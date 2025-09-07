@@ -1,0 +1,66 @@
+{
+  "expo": {
+    "name": "FitBridge",
+    "scheme": "fitbridge",
+    "slug": "fitbridge",
+    "version": "1.2025.03",
+    "orientation": "portrait",
+    "icon": "./assets/LogoColor.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/LogoColor.png",
+      "resizeMode": "contain"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.fitbridge.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSLocationWhenInUseUsageDescription": "FitBridge needs your location to find gyms near you and show them on the map.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "FitBridge needs your location to find gyms near you and show them on the map.",
+        "NSLocationUsageDescription": "FitBridge needs your location to find gyms near you and show them on the map.",
+        "NSPhotoLibraryUsageDescription": "FitBridge needs access to your photo library to allow you to upload images for your profile and gym photos.",
+        "NSCameraUsageDescription": "FitBridge needs access to your camera to allow you to take photos for your profile and gym photos."
+      }
+    },
+    "android": {
+      "package": "com.fitbridge.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/LogoColor.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY"
+        }
+      }
+    },
+    "web": {
+      "favicon": "./assets/LogoColor.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "7334b3f9-a93f-4725-bc9d-34d9a696322c"
+      }
+    },
+    "owner": "lamphong1507",
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "FitBridge needs access to your photo library to allow you to upload images for your profile and gym photos.",
+          "cameraPermission": "FitBridge needs access to your camera to allow you to take photos for your profile and gym photos."
+        }
+      ]
+    ]
+  }
+}

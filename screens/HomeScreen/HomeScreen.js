@@ -1,0 +1,431 @@
+import {
+  View,
+  Text,
+  Dimensions,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  RefreshControl,
+  ActivityIndicator,
+} from "react-native";
+import React, { useEffect, useState } from "react";
+import HeaderHome from "../../components/HeaderHome/HeaderHome";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import CarouselNative from "../../components/Carousel/Carousel";
+import GymCard from "../../components/GymCard/GymCard";
+import BlogCard from "../../components/BlogCard/BlogCard";
+import PairedSwiper from "../../components/PairSwiper/PairSwiper";
+import gymService from "../../services/gymService";
+import { useNavigation } from "@react-navigation/native";
+import axios from "axios";
+
+export default function HomeScreen() {
+  const [user, setUser] = useState(null);
+  const [allGyms, setAllGyms] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [coords, setCoords] = useState(null);
+  const [nearbyGyms, setNearbyGyms] = useState([]);
+  const navigation = useNavigation();
+  const isValidCoordinate = (lat, lng) => {
+    return (
+      lat !== undefined &&
+      lng !== undefined &&
+      !isNaN(lat) &&
+      !isNaN(lng) &&
+      lat >= -90 &&
+      lat <= 90 &&
+      lng >= -180 &&
+      lng <= 180
+    );
+  };
+
+  const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371; // Radius of the earth in km
+    const dLat = deg2rad(lat2 - lat1);
+    const dLon = deg2rad(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(deg2rad(lat1)) *
+        Math.cos(deg2rad(lat2)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c; // Distance in km
+    return distance;
+  };
+
+  const deg2rad = (deg) => {
+    return deg * (Math.PI / 180);
+  };
+
+  const filterGymsByDistance = () => {
+    if (!coords) return;
+
+    const radius = parseFloat(5);
+    if (isNaN(radius)) return;
+
+    const nearbyGyms = allGyms.filter((gym) => {
+      if (!isValidCoordinate(gym.latitude, gym.longitude)) return false;
+
+      const distance = calculateDistance(
+        coords.latitude,
+        coords.longitude,
+        gym.latitude,
+        gym.longitude
+      );
+
+      // Add distance property to gym object for sorting and display
+      gym.distance = distance;
+      return distance <= radius;
+    });
+
+    // Sort by distance (closest first)
+    nearbyGyms.sort((a, b) => a.distance - b.distance);
+    console.log("Nearby gyms:", nearbyGyms);
+    setNearbyGyms(nearbyGyms);
+  };
+
+  const fetchLocation = async () => {
+    try {
+      const userLocation = await AsyncStorage.getItem("userLocation");
+      if (userLocation !== null) {
+        const parsed = JSON.parse(userLocation);
+        setCoords(parsed.coords);
+      }
+    } catch (error) {
+      console.log("Error reading user location:", error);
+    }
+  };
+
+  const fetchUser = async () => {
+    const userData = await AsyncStorage.getItem("user");
+    if (userData) {
+      setUser(JSON.parse(userData));
+    }
+  };
+
+  const fetchAllGyms = async (page = 1, pageSize = 30) => {
+    try {
+      const response = await gymService.getAllGyms({
+        page,
+        size: pageSize,
+      });
+      const { items, total, page: currentPage } = response.data;
+
+      setAllGyms(items);
+    } catch (error) {
+      console.error("Error fetching hot research gym:", error);
+    }
+  };
+
+  const loadData = async () => {
+    setLoading(true);
+    await Promise.all([fetchUser(), fetchAllGyms(), fetchLocation()]);
+    setLoading(false);
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadData();
+    setRefreshing(false);
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  useEffect(() => {
+    if (coords && allGyms.length > 0) {
+      filterGymsByDistance();
+    }
+  }, [coords, allGyms]);
+
+  const { width } = Dimensions.get("window");
+  const widthCarousel = width - 30;
+
+  const blog = [
+    {
+      id: 1,
+      title: "5 Bài Tập Đốt Mỡ Nhanh Nhất Cho Người Mới",
+      imageUrl:
+        "https://i.pinimg.com/736x/0f/f6/69/0ff6690ae16b9358fb62ed4934d8e598.jpg",
+      summary:
+        "Khám phá 5 bài tập đơn giản giúp bạn đốt cháy mỡ và săn chắc cơ thể.",
+    },
+    {
+      id: 2,
+      title: "Thực Đơn Dinh Dưỡng Cho Gymer 7 Ngày",
+      imageUrl:
+        "https://i.pinimg.com/736x/0e/fc/b5/0efcb577e982d3b47739b3d10d47ce42.jpg",
+      summary: "Chế độ ăn chuẩn khoa học giúp tăng cơ, giảm mỡ hiệu quả.",
+    },
+    {
+      id: 3,
+      title: "Cách Phục Hồi Cơ Sau Tập Luyện",
+      imageUrl:
+        "https://i.pinimg.com/736x/63/69/ab/6369ab27dca3a6331a12c517441fabd2.jpg",
+      summary: "Các kỹ thuật thư giãn giúp phục hồi cơ bắp nhanh chóng.",
+    },
+  ];
+
+  const image = [
+    {
+      url: "https://img.freepik.com/free-psd/gym-fitness-facebook-cover-banner-template_106176-3896.jpg?semt=ais_hybrid&w=740",
+    },
+    {
+      url: "https://img.freepik.com/premium-psd/fitness-gym-red-banner-template_1073294-95.jpg",
+    },
+    {
+      url: "https://img.freepik.com/premium-psd/red-horizontal-workout-gym-poster-banner_179813-347.jpg",
+    },
+  ];
+
+  const renderGymCard = (item) => {
+    return <GymCard gym={item} />;
+  };
+
+  const renderBlogCard = (item) => {
+    return <BlogCard blog={item} />;
+  };
+  const hotResearchGym = allGyms.filter((gym) => gym.hotResearch === true);
+  return (
+    <View style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
+      <HeaderHome user={user} />
+      <ScrollView
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["#ED2A46"]} // Android
+            tintColor="#ED2A46" // iOS
+            title="Đang làm mới..." // iOS
+            titleColor="#ED2A46" // iOS
+          />
+        }
+      >
+        <View style={styles.carouselContainer}>
+          <CarouselNative
+            width={widthCarousel}
+            height={160}
+            autoPlay={true}
+            scrollAnimationDuration={1000}
+            style={styles.carousel}
+            data={image}
+          />
+
+          <View style={styles.gymSection}>
+            <View style={styles.titleContainer}>
+              <View style={styles.titleWithIcon}>
+                <Text style={styles.sectionTitle}>Phòng Gym Nổi Bật</Text>
+                <View style={styles.titleUnderline} />
+              </View>
+              <TouchableOpacity
+                style={styles.viewMoreButton}
+                onPress={() => navigation.navigate("SearchGymScreen")}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.viewMoreText}>Tìm kiếm</Text>
+              </TouchableOpacity>
+            </View>
+
+            {loading ? (
+              <>
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="large" color="#ED2A46" />
+                </View>
+              </>
+            ) : hotResearchGym && hotResearchGym.length > 0 ? (
+              <PairedSwiper
+                data={hotResearchGym}
+                renderItem={renderGymCard}
+                showsPagination={true}
+                itemsPerSlide={2}
+                height={240}
+                loop={hotResearchGym.length > 2}
+                dotStyle={styles.paginationDot}
+                activeDotStyle={styles.activePaginationDot}
+                containerStyle={styles.swiperContainer}
+              />
+            ) : (
+              <></>
+            )}
+          </View>
+
+          <View style={styles.gymSection}>
+            <View style={styles.titleContainer}>
+              <View style={styles.titleWithIcon}>
+                <Text style={styles.sectionTitle}>Phòng Gym Gần Tôi</Text>
+                <View style={styles.titleUnderline} />
+              </View>
+              <TouchableOpacity
+                style={styles.viewMoreButton}
+                onPress={() =>
+                  navigation.navigate("Bản Đồ", { screen: "MapScreen" })
+                }
+                activeOpacity={0.7}
+              >
+                <Text style={styles.viewMoreText}>Xem thêm</Text>
+              </TouchableOpacity>
+            </View>
+
+            {loading ? (
+              <>
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="large" color="#ED2A46" />
+                </View>
+              </>
+            ) : nearbyGyms && nearbyGyms.length > 0 ? (
+              <PairedSwiper
+                data={nearbyGyms}
+                showsPagination={true}
+                renderItem={renderGymCard}
+                itemsPerSlide={2}
+                height={240}
+                loop={true}
+                dotStyle={styles.paginationDot}
+                activeDotStyle={styles.activePaginationDot}
+                containerStyle={styles.swiperContainer}
+              />
+            ) : (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>
+                  Hiện không có phòng gym nào gần bạn
+                </Text>
+              </View>
+            )}
+          </View>
+
+          <View style={styles.gymSection}>
+            <View style={styles.titleContainer}>
+              <View style={styles.titleWithIcon}>
+                <Text style={styles.sectionTitle}>Blog</Text>
+                <View style={styles.titleUnderline} />
+              </View>
+              <TouchableOpacity
+                style={styles.viewMoreButton}
+                onPress={() => navigation.navigate("BlogScreen")}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.viewMoreText}>Xem thêm</Text>
+              </TouchableOpacity>
+            </View>
+
+            <PairedSwiper
+              data={blog}
+              renderItem={renderBlogCard}
+              showsPagination={true}
+              itemsPerSlide={2}
+              height={220}
+              loop={true}
+              dotStyle={styles.paginationDot}
+              activeDotStyle={styles.activePaginationDot}
+              containerStyle={styles.swiperContainer}
+            />
+          </View>
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  carouselContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  carousel: {
+    borderRadius: 10,
+    overflow: "hidden",
+    marginTop: 10,
+  },
+  gymSection: {
+    marginTop: 25,
+    paddingHorizontal: 15,
+    width: "100%",
+  },
+  titleContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
+    marginBottom: 18,
+  },
+  titleWithIcon: {
+    flexDirection: "column",
+    alignItems: "flex-start",
+  },
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#ED2A46",
+    letterSpacing: 0.5,
+  },
+  titleUnderline: {
+    width: 40,
+    height: 3,
+    backgroundColor: "#ED2A46",
+    marginTop: 4,
+    borderRadius: 2,
+  },
+  viewMoreButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: "#FFF5F6",
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#ED2A46",
+    shadowColor: "#ED2A46",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  viewMoreText: {
+    fontSize: 13,
+    color: "#ED2A46",
+    fontWeight: "600",
+  },
+  swiperContainer: {
+    paddingBottom: 25,
+  },
+  paginationDot: {
+    backgroundColor: "#E0E0E0",
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginHorizontal: 4,
+  },
+  activePaginationDot: {
+    backgroundColor: "#ED2A46",
+    width: 24,
+    height: 8,
+    borderRadius: 4,
+    marginHorizontal: 4,
+  },
+  emptyContainer: {
+    backgroundColor: "#F8F9FA",
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E9ECEF",
+    borderStyle: "dashed",
+  },
+  emptyText: {
+    fontSize: 16,
+    color: "#6B6B6B",
+    textAlign: "center",
+    fontWeight: "500",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 20,
+  },
+});
