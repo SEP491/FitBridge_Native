@@ -18,6 +18,15 @@ import PairedSwiper from "../../components/PairSwiper/PairSwiper";
 import gymService from "../../services/gymService";
 import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
+import {
+  calculateDistance,
+  isValidCoordinate,
+  filterGymsByDistance,
+  fetchUserFromStorage,
+  fetchLocationFromStorage,
+  createScreenDataLoader,
+  handleRefresh,
+} from "../../lib";
 
 export default function HomeScreen() {
   const [user, setUser] = useState(null);
@@ -27,83 +36,18 @@ export default function HomeScreen() {
   const [coords, setCoords] = useState(null);
   const [nearbyGyms, setNearbyGyms] = useState([]);
   const navigation = useNavigation();
-  const isValidCoordinate = (lat, lng) => {
-    return (
-      lat !== undefined &&
-      lng !== undefined &&
-      !isNaN(lat) &&
-      !isNaN(lng) &&
-      lat >= -90 &&
-      lat <= 90 &&
-      lng >= -180 &&
-      lng <= 180
-    );
+
+  const handleFilterGymsByDistance = () => {
+    if (!coords || !allGyms.length) return;
+
+    const filteredGyms = filterGymsByDistance(allGyms, coords, 5);
+    console.log("Nearby gyms:", filteredGyms);
+    setNearbyGyms(filteredGyms);
   };
 
-  const calculateDistance = (lat1, lon1, lat2, lon2) => {
-    const R = 6371; // Radius of the earth in km
-    const dLat = deg2rad(lat2 - lat1);
-    const dLon = deg2rad(lon2 - lon1);
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(deg2rad(lat1)) *
-        Math.cos(deg2rad(lat2)) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distance = R * c; // Distance in km
-    return distance;
-  };
-
-  const deg2rad = (deg) => {
-    return deg * (Math.PI / 180);
-  };
-
-  const filterGymsByDistance = () => {
-    if (!coords) return;
-
-    const radius = parseFloat(5);
-    if (isNaN(radius)) return;
-
-    const nearbyGyms = allGyms.filter((gym) => {
-      if (!isValidCoordinate(gym.latitude, gym.longitude)) return false;
-
-      const distance = calculateDistance(
-        coords.latitude,
-        coords.longitude,
-        gym.latitude,
-        gym.longitude
-      );
-
-      // Add distance property to gym object for sorting and display
-      gym.distance = distance;
-      return distance <= radius;
-    });
-
-    // Sort by distance (closest first)
-    nearbyGyms.sort((a, b) => a.distance - b.distance);
-    console.log("Nearby gyms:", nearbyGyms);
-    setNearbyGyms(nearbyGyms);
-  };
-
-  const fetchLocation = async () => {
-    try {
-      const userLocation = await AsyncStorage.getItem("userLocation");
-      if (userLocation !== null) {
-        const parsed = JSON.parse(userLocation);
-        setCoords(parsed.coords);
-      }
-    } catch (error) {
-      console.log("Error reading user location:", error);
-    }
-  };
-
-  const fetchUser = async () => {
-    const userData = await AsyncStorage.getItem("user");
-    if (userData) {
-      setUser(JSON.parse(userData));
-    }
-  };
+  // Using utility functions for fetching data
+  const fetchLocation = () => fetchLocationFromStorage();
+  const fetchUser = () => fetchUserFromStorage();
 
   const fetchAllGyms = async (page = 1, pageSize = 30) => {
     try {
@@ -120,16 +64,24 @@ export default function HomeScreen() {
   };
 
   const loadData = async () => {
-    setLoading(true);
-    await Promise.all([fetchUser(), fetchAllGyms(), fetchLocation()]);
-    setLoading(false);
+    try {
+      await createScreenDataLoader({
+        fetchUser: true,
+        fetchLocation: true,
+        fetchMainData: fetchAllGyms,
+        setLoading,
+        setters: {
+          setUser: (userData) => setUser(userData),
+          setLocation: (locationData) => setCoords(locationData),
+          setMainData: (gymsData) => {}, // fetchAllGyms already sets allGyms
+        },
+      });
+    } catch (error) {
+      console.error("Error loading screen data:", error);
+    }
   };
 
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await loadData();
-    setRefreshing(false);
-  };
+  const onRefresh = () => handleRefresh(loadData, setRefreshing);
 
   useEffect(() => {
     loadData();
@@ -137,7 +89,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     if (coords && allGyms.length > 0) {
-      filterGymsByDistance();
+      handleFilterGymsByDistance();
     }
   }, [coords, allGyms]);
 

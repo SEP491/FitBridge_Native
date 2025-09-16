@@ -13,6 +13,7 @@ import { useCart } from "../../context/CartContext";
 import CartCard from "../../components/CartCard/CartCard";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import cartService from "../../services/cartService";
+import { formatPrice, showErrorAlert, showSuccessAlert } from "../../lib";
 
 export default function PaymentScreen({ navigation }) {
   const { cart, getTotalPrice, removeFromCart, clearCart } = useCart();
@@ -31,7 +32,7 @@ export default function PaymentScreen({ navigation }) {
         gymCourseId: cart[0]?.id, // Assuming all items in cart are from the same course
       };
     } else {
-      Alert.alert("Lỗi", "Không thể xử lý gói tập này. Vui lòng thử lại sau.");
+      showErrorAlert("Không thể xử lý gói tập này. Vui lòng thử lại sau.");
       return;
     }
 
@@ -59,18 +60,14 @@ export default function PaymentScreen({ navigation }) {
         Linking.openURL(checkoutUrl);
       } else {
         console.error("Invalid or missing checkoutUrl:", checkoutUrl);
-        Alert.alert(
-          "Lỗi",
+        showErrorAlert(
           "Không thể lấy được link thanh toán. Vui lòng thử lại sau."
         );
       }
       clearCart(); // Clear cart after successful checkout
     } catch (error) {
       console.error("Error processing cart:", error);
-      Alert.alert(
-        "Lỗi",
-        "Đã xảy ra lỗi khi xử lý giỏ hàng. Vui lòng thử lại sau."
-      );
+      showErrorAlert("Đã xảy ra lỗi khi xử lý giỏ hàng. Vui lòng thử lại sau.");
       return;
     }
   };
@@ -181,12 +178,7 @@ export default function PaymentScreen({ navigation }) {
           <View style={styles.cardUnder}>
             <View style={styles.row}>
               <Text>Tổng tiền dịch vụ:</Text>
-              <Text>
-                {totalPrice.toLocaleString("vi-VN", {
-                  style: "currency",
-                  currency: "VND",
-                })}
-              </Text>
+              <Text>{formatPrice(totalPrice)}</Text>
             </View>
             <View style={[styles.row, styles.separator]}>
               <Text>Phụ Phí</Text>
@@ -194,12 +186,7 @@ export default function PaymentScreen({ navigation }) {
             </View>
             <View style={styles.row}>
               <Text>Tổng</Text>
-              <Text>
-                {totalPrice.toLocaleString("vi-VN", {
-                  style: "currency",
-                  currency: "VND",
-                })}
-              </Text>
+              <Text>{formatPrice(totalPrice)}</Text>
             </View>
           </View>
         </View>
@@ -212,10 +199,7 @@ export default function PaymentScreen({ navigation }) {
             <Text
               style={{ fontSize: 20, fontWeight: "bold", color: "#ED2A46" }}
             >
-              {totalPrice.toLocaleString("vi-VN", {
-                style: "currency",
-                currency: "VND",
-              })}
+              {formatPrice(totalPrice)}
             </Text>
           </View>
           <TouchableOpacity

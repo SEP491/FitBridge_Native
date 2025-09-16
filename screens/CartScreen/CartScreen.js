@@ -12,6 +12,7 @@ import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import { useNavigation } from "@react-navigation/native";
 import { useCart } from "../../context/CartContext"; // Import the cart context
 import { SafeAreaView } from "react-native-safe-area-context";
+import { formatPrice, showConfirmAlert, showAlert } from "../../lib";
 
 export default function CartScreen() {
   const navigation = useNavigation();
@@ -19,21 +20,13 @@ export default function CartScreen() {
 
   // Function to handle removing an item from cart
   const handleRemoveItem = (cartItemId) => {
-    Alert.alert(
-      "Xóa gói tập",
-      "Bạn có chắc chắn muốn xóa gói tập này khỏi giỏ hàng?",
-      [
-        {
-          text: "Hủy",
-          style: "cancel",
-        },
-        {
-          text: "Xóa",
-          onPress: () => removeFromCart(cartItemId),
-          style: "destructive",
-        },
-      ]
-    );
+    showConfirmAlert({
+      title: "Xóa gói tập",
+      message: "Bạn có chắc chắn muốn xóa gói tập này khỏi giỏ hàng?",
+      confirmText: "Xóa",
+      confirmStyle: "destructive",
+      onConfirm: () => removeFromCart(cartItemId),
+    });
   };
 
   // Calculate the total price
@@ -42,7 +35,7 @@ export default function CartScreen() {
   // Function to handle checkout
   const handleCheckout = () => {
     if (cart.length === 0) {
-      Alert.alert(
+      showAlert(
         "Giỏ hàng trống",
         "Vui lòng thêm gói tập vào giỏ hàng trước khi thanh toán."
       );
@@ -94,10 +87,7 @@ export default function CartScreen() {
                 <Text
                   style={{ fontSize: 20, fontWeight: "bold", color: "#ED2A46" }}
                 >
-                  {totalPrice.toLocaleString("vi-VN", {
-                    style: "currency",
-                    currency: "VND",
-                  })}
+                  {formatPrice(totalPrice)}
                 </Text>
               </View>
               <TouchableOpacity

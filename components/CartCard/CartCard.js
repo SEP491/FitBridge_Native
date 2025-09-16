@@ -2,6 +2,7 @@ import { View, Text, Image, TouchableOpacity } from "react-native";
 import React from "react";
 import { StyleSheet } from "react-native";
 import AntDesign from "@expo/vector-icons/AntDesign";
+import { formatPrice } from "../../lib";
 
 export default function CartCard({ product, onRemove, showRemove = true }) {
   return (
@@ -79,10 +80,7 @@ export default function CartCard({ product, onRemove, showRemove = true }) {
             marginTop: 10,
           }}
         >
-          {product.selectedPackage.packagePrice.toLocaleString("vi-VN", {
-            style: "currency",
-            currency: "VND",
-          })}
+          {formatPrice(product.selectedPackage.packagePrice)}
         </Text>
       </View>
     </View>
