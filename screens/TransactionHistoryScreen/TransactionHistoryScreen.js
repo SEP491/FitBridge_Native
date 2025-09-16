@@ -14,6 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import transactionService from "../../services/transactionService";
 import { useTranslation } from "../../hooks/useTranslation";
+import { formatPrice } from "../../lib";
 
 export default function TransactionHistoryScreen() {
   const navigation = useNavigation();
@@ -23,14 +24,6 @@ export default function TransactionHistoryScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("Course"); // "Course" or "Subscription"
-
-  // Helper function to format price
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(price);
-  };
 
   // Helper function to format status
   const getStatusText = (status) => {

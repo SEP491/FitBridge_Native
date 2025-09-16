@@ -21,6 +21,7 @@ import {
   calculateDistance,
   isValidCoordinate,
 } from "../../utils/locationUtils";
+import { filterGymsByDistance } from "../../lib";
 import { useLocationContext } from "../../context/LocationContext";
 import { useTranslation } from "../../hooks/useTranslation";
 
@@ -64,30 +65,18 @@ export default function MapScreen({ route }) {
   }, [targetLatitude, targetLongitude]);
 
   // Function to filter gyms by distance
-  const filterGymsByDistance = () => {
+  const handleFilterGymsByDistance = () => {
     if (!coords) return;
 
     const radius = parseFloat(searchRadius);
     if (isNaN(radius)) return;
 
-    const nearbyGyms = allGyms.filter((gym) => {
-      if (!isValidCoordinate(gym.latitude, gym.longitude)) return false;
-
-      const distance = calculateDistance(
-        coords.latitude,
-        coords.longitude,
-        gym.latitude,
-        gym.longitude
-      );
-
-      // Add distance property to gym object for sorting and display
-      gym.distance = distance;
-      return distance <= radius;
-    });
-
-    // Sort by distance (closest first)
-    nearbyGyms.sort((a, b) => a.distance - b.distance);
-    setFilteredGyms(nearbyGyms);
+    const filteredGyms = filterGymsByDistance(
+      allGyms,
+      { latitude: coords.latitude, longitude: coords.longitude },
+      radius
+    );
+    setFilteredGyms(filteredGyms);
   };
 
   useEffect(() => {
@@ -127,7 +116,7 @@ export default function MapScreen({ route }) {
   useEffect(() => {
     // Re-filter when coords or searchRadius changes
     if (coords && allGyms.length > 0) {
-      filterGymsByDistance();
+      handleFilterGymsByDistance();
     }
   }, [coords, searchRadius, allGyms]);
 
@@ -359,7 +348,7 @@ export default function MapScreen({ route }) {
             <TouchableOpacity
               style={styles.radiusApplyButton}
               onPress={() => {
-                filterGymsByDistance();
+                handleFilterGymsByDistance();
                 setShowRadiusInput(false);
               }}
             >

@@ -13,6 +13,7 @@ import { WebView } from "react-native-webview";
 import premiumService from "../../services/premiumService";
 import { useNavigation } from "@react-navigation/native";
 import { useTranslation } from "../../hooks/useTranslation";
+import { formatPrice } from "../../lib";
 
 const { width } = Dimensions.get("window");
 
@@ -71,13 +72,6 @@ export default function SubscriptionScreen() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(price);
   };
 
   const PackageCard = ({

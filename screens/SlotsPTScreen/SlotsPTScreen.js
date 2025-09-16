@@ -14,6 +14,7 @@ import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import colors from "../../constants/color";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useTranslation } from "../../hooks/useTranslation";
+import { formatDateForAPIAlt } from "../../lib";
 
 export default function SlotsPTScreen() {
   const { t } = useTranslation();
@@ -44,14 +45,6 @@ export default function SlotsPTScreen() {
     return days;
   };
 
-  // Format date for API (dd-mm-yyyy)
-  const formatDateForAPI = (date) => {
-    const day = date.getDate().toString().padStart(2, "0");
-    const month = (date.getMonth() + 1).toString().padStart(2, "0");
-    const year = date.getFullYear();
-    return `${day}-${month}-${year}`;
-  };
-
   // Format date for display
   const formatDateDisplay = (date) => {
     return date.toLocaleDateString("vi-VN", {
@@ -70,7 +63,7 @@ export default function SlotsPTScreen() {
   const loadSlots = async (date = selectedDate) => {
     setLoading(true);
     try {
-      const dateParam = formatDateForAPI(date);
+      const dateParam = formatDateForAPIAlt(date);
       const response = await ptService.getPtSlot({ date: dateParam });
       console.log("SlotsPTScreen response", response);
       setSlots(response.data?.ptSlots || []);

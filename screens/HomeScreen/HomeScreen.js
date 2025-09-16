@@ -10,20 +10,14 @@ import {
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import HeaderHome from "../../components/HeaderHome/HeaderHome";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import CarouselNative from "../../components/Carousel/Carousel";
 import GymCard from "../../components/GymCard/GymCard";
 import BlogCard from "../../components/BlogCard/BlogCard";
 import PairedSwiper from "../../components/PairSwiper/PairSwiper";
 import gymService from "../../services/gymService";
 import { useNavigation } from "@react-navigation/native";
-import axios from "axios";
 import {
-  calculateDistance,
-  isValidCoordinate,
   filterGymsByDistance,
-  fetchUserFromStorage,
-  fetchLocationFromStorage,
   createScreenDataLoader,
   handleRefresh,
 } from "../../lib";

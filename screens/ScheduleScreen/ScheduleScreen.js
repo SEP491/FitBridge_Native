@@ -16,6 +16,7 @@ import accountService from "../../services/accountService";
 import colors from "../../constants/color";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useTranslation } from "../../hooks/useTranslation";
+import { formatDateForAPI } from "../../lib";
 
 export default function ScheduleScreen({ route }) {
   const { t } = useTranslation();
@@ -47,14 +48,6 @@ export default function ScheduleScreen({ route }) {
       days.push(day);
     }
     return days;
-  };
-
-  // Format date for API (dd-mm-yyyy)
-  const formatDateForAPI = (date) => {
-    const day = date.getDate().toString().padStart(2, "0");
-    const month = (date.getMonth() + 1).toString().padStart(2, "0");
-    const year = date.getFullYear();
-    return `${year}-${month}-${day}`;
   };
 
   // Format date for display

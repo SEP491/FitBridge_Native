@@ -17,6 +17,7 @@ import bookingService from "../../services/bookingService";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useTranslation } from "../../hooks/useTranslation";
+import { formatDate, formatTime } from "../../lib";
 
 const { width } = Dimensions.get("window");
 
@@ -232,20 +233,6 @@ export default function PTBookingHistoryScreen({ navigation }) {
         },
       ]
     );
-  };
-
-  const formatDate = (dateString) => {
-    try {
-      const date = new Date(dateString);
-      return format(date, "dd/MM/yyyy", { locale: vi });
-    } catch (error) {
-      return dateString;
-    }
-  };
-
-  const formatTime = (timeString) => {
-    if (!timeString) return "";
-    return timeString.substring(0, 5);
   };
 
   // Calculate duration with rounded minutes (concise format)

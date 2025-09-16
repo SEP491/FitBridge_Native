@@ -181,7 +181,7 @@ export default function Navigator() {
         })}
       >
         <Stack.Screen
-          name="Home"
+          name="HomeMain"
           component={HomeScreen}
           options={{
             headerTitleAlign: "center",

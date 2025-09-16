@@ -22,6 +22,7 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import colors from "../../constants/color";
 import { useTranslation } from "../../hooks/useTranslation";
+import { formatDate, formatTime } from "../../lib";
 
 const { width } = Dimensions.get("window");
 
@@ -66,26 +67,6 @@ export default function BookingHistoryScreen() {
   useEffect(() => {
     loadBookingHistory();
   }, []);
-
-  // Format date for display
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("vi-VN", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
-  };
-
-  // Format time for display
-  const formatTime = (timeString) => {
-    const [hours, minutes] = timeString.split(":");
-    const hour = parseInt(hours);
-    const minute = parseInt(minutes);
-    const period = hour >= 12 ? "CH" : "SA";
-    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-    return `${displayHour}:${minute.toString().padStart(2, "0")} ${period}`;
-  };
 
   // Calculate duration with rounded minutes (concise format)
   const calculateDuration = (startTime, endTime) => {

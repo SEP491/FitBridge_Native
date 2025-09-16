@@ -56,7 +56,7 @@ export default function OrderSuccessScreen({ route, navigation }) {
   };
 
   const handleGoBack = () => {
-    navigation.navigate("Home"); // Adjust navigation as needed
+    navigation.navigate("HomeMain"); // Adjust navigation as needed
   };
 
   const handleRetry = () => {
