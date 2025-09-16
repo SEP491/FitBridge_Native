@@ -32,11 +32,12 @@
       },
       "edgeToEdgeEnabled": true,
       "permissions": [
-        "CAMERA",
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE",
-        "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION"
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.RECORD_AUDIO"
       ],
       "config": {
         "googleMaps": {
@@ -49,7 +50,7 @@
     },
     "extra": {
       "eas": {
-        "projectId": "7334b3f9-a93f-4725-bc9d-34d9a696322c"
+        "projectId": "cb6ad2e3-5bdc-42a0-8904-decc7c98b9ca"
       }
     },
     "owner": "lamphong1507",
