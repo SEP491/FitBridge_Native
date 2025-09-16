@@ -50,10 +50,13 @@ const ProfileScreen = () => {
   };
 
   const calculateBMI = (weight, height) => {
-    if (!weight || !height) return null;
-    const heightInMeters = height / 100;
+    const numWeight = parseFloat(weight);
+    const numHeight = parseFloat(height);
+    if (!numWeight || !numHeight || numWeight <= 0 || numHeight <= 0)
+      return null;
+    const heightInMeters = numHeight / 100;
     return formatNumber(
-      (weight / (heightInMeters * heightInMeters)).toFixed(1)
+      parseFloat((numWeight / (heightInMeters * heightInMeters)).toFixed(1))
     );
   };
 
@@ -71,6 +74,31 @@ const ProfileScreen = () => {
     if (bmi < 25) return "#4CAF50";
     if (bmi < 30) return "#FF9800";
     return "#F44336";
+  };
+
+  const getBMIPosition = (bmi) => {
+    if (!bmi) return 0;
+    const numBmi = parseFloat(bmi);
+
+    // BMI scale: 15 --- 18.5 --- 25 --- 30 --- 40
+    // Positions: 0%    25%      50%    75%   100%
+
+    if (numBmi <= 15) return 0;
+    if (numBmi >= 40) return 100;
+
+    if (numBmi <= 18.5) {
+      // Between 15 and 18.5: 0% to 25%
+      return ((numBmi - 15) / (18.5 - 15)) * 25;
+    } else if (numBmi <= 25) {
+      // Between 18.5 and 25: 25% to 50%
+      return 25 + ((numBmi - 18.5) / (25 - 18.5)) * 25;
+    } else if (numBmi <= 30) {
+      // Between 25 and 30: 50% to 75%
+      return 50 + ((numBmi - 25) / (30 - 25)) * 25;
+    } else {
+      // Between 30 and 40: 75% to 100%
+      return 75 + ((numBmi - 30) / (40 - 30)) * 25;
+    }
   };
 
   useEffect(() => {
@@ -215,7 +243,10 @@ const ProfileScreen = () => {
     fetchProfileData();
   };
 
-  const bmi = calculateBMI(userProfile.weight, userProfile.height);
+  const bmi = calculateBMI(
+    parseFloat(userProfile.weight),
+    parseFloat(userProfile.height)
+  );
   const bmiCategory = getBMICategory(bmi);
   const bmiColor = getBMIColor(bmi);
 
@@ -349,10 +380,7 @@ const ProfileScreen = () => {
                     style={[
                       styles.bmiIndicator,
                       {
-                        left: `${Math.min(
-                          Math.max(((bmi - 15) / 25) * 100, 0),
-                          100
-                        )}%`,
+                        left: `${getBMIPosition(bmi)}%`,
                         backgroundColor: bmiColor,
                       },
                     ]}
