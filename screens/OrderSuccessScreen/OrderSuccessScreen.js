@@ -11,6 +11,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import cartService from "../../services/cartService";
 import { useTranslation } from "../../hooks/useTranslation";
+import { formatPrice } from "../../lib";
 
 const THEME_COLORS = {
   primary: "#ED2A46",
@@ -49,10 +50,7 @@ export default function OrderSuccessScreen({ route, navigation }) {
   );
 
   const formatAmount = (amount) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(amount);
+    return formatPrice(amount);
   };
 
   const handleGoBack = () => {

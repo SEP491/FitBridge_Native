@@ -315,7 +315,7 @@ const AccountScreen = () => {
       } catch (primaryError) {
         console.log("Primary upload failed, trying alternative endpoint...");
         // Try alternative endpoint
-        response = await accountService.updateAvatar(formData);
+        response = await accountService.uploadAvatar(formData);
 
         // Get the new avatar URL from alternative response
         const newAvatarUrl = response.data?.avatar || response.avatar;

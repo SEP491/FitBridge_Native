@@ -25,6 +25,7 @@ import { ActivityIndicator } from "react-native";
 import { FontAwesome6 } from "@expo/vector-icons";
 import { useCart } from "../../context/CartContext";
 import { useTranslation } from "../../hooks/useTranslation";
+import { formatPrice, formatNumber } from "../../lib";
 
 export default function GymDetailScreen({ route }) {
   const { t } = useTranslation();
@@ -229,6 +230,7 @@ export default function GymDetailScreen({ route }) {
     };
 
     navigation.navigate("PTinCourseScreen", { gymPackage: gymPackage });
+    setPackageSelectionVisible(false);
   };
 
   // Since the API doesn't return ratings in comments, we'll use a default rating
@@ -299,10 +301,7 @@ export default function GymDetailScreen({ route }) {
                 <View style={styles.priceContainer}>
                   <Text style={styles.priceLabel}>{t("gymDetail.from")}</Text>
                   <Text style={styles.gymStartPrice}>
-                    {lowestPackage?.toLocaleString("vi-VN", {
-                      style: "currency",
-                      currency: "VND",
-                    })}
+                    {formatPrice(lowestPackage)}
                   </Text>
                   <Text style={styles.priceUnit}>
                     {t("gymDetail.perMonth")}
@@ -311,7 +310,7 @@ export default function GymDetailScreen({ route }) {
                 <View style={styles.ratingBadge}>
                   <Ionicons name="star" size={16} color="#FFD700" />
                   <Text style={styles.ratingText}>
-                    {averageRating.toFixed(1)}
+                    {formatNumber(averageRating.toFixed(1))}
                   </Text>
                   <Text style={styles.reviewCount}>({totalReviews})</Text>
                 </View>

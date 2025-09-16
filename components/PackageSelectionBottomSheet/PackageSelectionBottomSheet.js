@@ -8,6 +8,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { formatPrice } from "../../lib";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTranslation } from "../../hooks/useTranslation";
 
@@ -65,10 +66,7 @@ const PackageSelectionBottomSheet = ({
                       <View style={styles.packageInfo}>
                         <Text style={styles.packageName}>{item.name}</Text>
                         <Text style={styles.packagePrice}>
-                          {item.price.toLocaleString("vi-VN", {
-                            style: "currency",
-                            currency: "VND",
-                          })}
+                          {formatPrice(item.price)}
                         </Text>
                       </View>
 
@@ -118,10 +116,7 @@ const PackageSelectionBottomSheet = ({
                       <View style={styles.packageInfo}>
                         <Text style={styles.packageName}>{item.name}</Text>
                         <Text style={styles.packagePrice}>
-                          {item.price.toLocaleString("vi-VN", {
-                            style: "currency",
-                            currency: "VND",
-                          })}
+                          {formatPrice(item.price)}
                         </Text>
                       </View>
 

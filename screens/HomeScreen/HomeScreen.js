@@ -16,22 +16,21 @@ import BlogCard from "../../components/BlogCard/BlogCard";
 import PairedSwiper from "../../components/PairSwiper/PairSwiper";
 import gymService from "../../services/gymService";
 import { useNavigation } from "@react-navigation/native";
-import {
-  filterGymsByDistance,
-  createScreenDataLoader,
-  handleRefresh,
-} from "../../lib";
+import { filterGymsByDistance, handleRefresh } from "../../lib";
 import { useTranslation } from "../../hooks/useTranslation";
+import { useLocationContext } from "../../context/LocationContext";
+import { fetchUserFromStorage } from "../../lib/async/asyncUtils";
 
 export default function HomeScreen() {
   const [user, setUser] = useState(null);
   const [allGyms, setAllGyms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [coords, setCoords] = useState(null);
   const [nearbyGyms, setNearbyGyms] = useState([]);
   const navigation = useNavigation();
   const { t } = useTranslation();
+  const { location, refreshLocation, coordinates, hasLocation } =
+    useLocationContext();
 
   const fetchAllGyms = async (page = 1, pageSize = 200) => {
     try {
@@ -47,42 +46,57 @@ export default function HomeScreen() {
     }
   };
   const handleFilterGymsByDistance = () => {
-    if (!coords || !allGyms.length) return;
+    if (!coordinates || !allGyms.length) return;
 
-    const filteredGyms = filterGymsByDistance(allGyms, coords, 5);
+    const filteredGyms = filterGymsByDistance(allGyms, coordinates, 5);
     console.log("Nearby gyms:", filteredGyms);
     setNearbyGyms(filteredGyms);
   };
 
   const loadData = async () => {
     try {
-      await createScreenDataLoader({
-        fetchUser: true,
-        fetchLocation: true,
-        fetchMainData: fetchAllGyms,
-        setLoading,
-        setters: {
-          setUser: (userData) => setUser(userData),
-          setLocation: (locationData) => setCoords(locationData),
-          setMainData: (gymsData) => {}, // fetchAllGyms already sets allGyms
-        },
-      });
+      setLoading(true);
+
+      // Fetch user data from storage
+      const userData = await fetchUserFromStorage();
+      setUser(userData);
+
+      // Fetch gyms data
+      await fetchAllGyms();
+
+      // Request location if not already available
+      if (!hasLocation) {
+        await refreshLocation();
+      }
     } catch (error) {
       console.error("Error loading screen data:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const onRefresh = () => handleRefresh(loadData, setRefreshing);
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await loadData();
+      // Also refresh location when user pulls to refresh
+      await refreshLocation();
+    } catch (error) {
+      console.error("Error during refresh:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   useEffect(() => {
     loadData();
   }, []);
 
   useEffect(() => {
-    if (coords && allGyms.length > 0) {
+    if (coordinates && allGyms.length > 0) {
       handleFilterGymsByDistance();
     }
-  }, [coords, allGyms]);
+  }, [coordinates, allGyms]);
 
   const { width } = Dimensions.get("window");
   const widthCarousel = width - 30;

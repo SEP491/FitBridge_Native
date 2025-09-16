@@ -13,6 +13,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useCart } from "../../context/CartContext";
 import { useAvatar } from "../../context/AvatarContext";
 import { useLocationContext } from "../../context/LocationContext";
+import { capitalizeFirst } from "../../lib";
 import { useTranslation } from "../../hooks/useTranslation";
 import axios from "axios";
 

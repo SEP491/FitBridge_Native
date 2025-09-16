@@ -18,6 +18,7 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 import { useAvatar } from "../../context/AvatarContext";
 import accountService from "./../../services/accountService";
 import { useTranslation } from "../../hooks/useTranslation";
+import { formatNumber, formatDate, formatDateForAPI } from "../../lib";
 
 const ProfileScreen = () => {
   const { getAvatarUrl } = useAvatar(); // Use avatar context
@@ -41,24 +42,19 @@ const ProfileScreen = () => {
 
   const formatDisplayDate = (dateString) => {
     if (!dateString) return "";
-    const date = new Date(dateString);
-    return `${date.getDate().toString().padStart(2, "0")}/${(
-      date.getMonth() + 1
-    )
-      .toString()
-      .padStart(2, "0")}/${date.getFullYear()}`;
+    return formatDate(dateString);
   };
 
   const formatAPIDate = (date) => {
-    return `${date.getFullYear()}-${(date.getMonth() + 1)
-      .toString()
-      .padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
+    return formatDateForAPI(date);
   };
 
   const calculateBMI = (weight, height) => {
     if (!weight || !height) return null;
     const heightInMeters = height / 100;
-    return (weight / (heightInMeters * heightInMeters)).toFixed(1);
+    return formatNumber(
+      (weight / (heightInMeters * heightInMeters)).toFixed(1)
+    );
   };
 
   const getBMICategory = (bmi) => {

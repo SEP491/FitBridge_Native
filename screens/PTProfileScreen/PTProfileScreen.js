@@ -11,6 +11,7 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 import { LinearGradient } from "expo-linear-gradient";
 import ptService from "../../services/ptService";
 import { useTranslation } from "../../hooks/useTranslation";
+import { formatNumber } from "../../lib";
 
 const PTProfileScreen = ({ route }) => {
   const { t } = useTranslation();
@@ -52,7 +53,9 @@ const PTProfileScreen = ({ route }) => {
   const calculateBMI = (weight, height) => {
     if (!weight || !height) return null;
     const heightInMeters = height / 100;
-    return (weight / (heightInMeters * heightInMeters)).toFixed(1);
+    return formatNumber(
+      (weight / (heightInMeters * heightInMeters)).toFixed(1)
+    );
   };
 
   const getBMICategory = (bmi) => {

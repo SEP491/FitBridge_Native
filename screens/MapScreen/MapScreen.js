@@ -20,8 +20,9 @@ import GymListBottomSheet from "../../components/GymListBottomSheet/GymListBotto
 import {
   calculateDistance,
   isValidCoordinate,
-} from "../../utils/locationUtils";
-import { filterGymsByDistance } from "../../lib";
+  filterGymsByDistance,
+  formatNumber,
+} from "../../lib";
 import { useLocationContext } from "../../context/LocationContext";
 import { useTranslation } from "../../hooks/useTranslation";
 
@@ -273,7 +274,10 @@ export default function MapScreen({ route }) {
                   {t("map.operatingSince")} {gym.since}
                 </Text>
                 <Text style={styles.calloutDistance}>
-                  {t("map.distanceAway")} {gym.distance?.toFixed(1)} km
+                  {t("map.distanceAway")}{" "}
+                  {gym.distance
+                    ? `${formatNumber(gym.distance.toFixed(1))} km`
+                    : ""}
                 </Text>
                 {gym.hotResearch && (
                   <View style={styles.hotBadge}>

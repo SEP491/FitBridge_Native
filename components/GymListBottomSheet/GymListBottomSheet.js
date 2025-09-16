@@ -8,6 +8,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { formatNumber } from "../../lib";
 import { useTranslation } from "../../hooks/useTranslation";
 
 const GymListBottomSheet = ({
@@ -33,7 +34,9 @@ const GymListBottomSheet = ({
         </View>
         <View style={styles.gymItemRight}>
           <Text style={styles.gymItemDistance}>
-            {item.distance?.toFixed(1)} km
+            {item.distance
+              ? `${formatNumber(item.distance.toFixed(1))} km`
+              : ""}
           </Text>
         </View>
       </View>
