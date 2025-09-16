@@ -1,44 +1,17 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Location from "expo-location";
 import { Alert } from "react-native";
 
 // Constants
-const LOCATION_CACHE_KEY = "userLocation";
-const LOCATION_CACHE_DURATION = 300000; // 5 minutes
+const LOCATION_TIMEOUT = 15000; // 15 seconds
 const FALLBACK_LOCATION_DURATION = 600000; // 10 minutes
 
 /**
- * Gets cached location from AsyncStorage
- * @returns {Promise<Object|null>} Cached location object or null if not found
+ * Request location permission with custom options
+ * @param {Object} options - Permission request options
+ * @param {string} options.title - Alert title
+ * @param {string} options.message - Alert message
+ * @returns {Promise<boolean>} Whether permission was granted
  */
-export const getCachedLocation = async () => {
-  try {
-    const userLocation = await AsyncStorage.getItem(LOCATION_CACHE_KEY);
-    if (userLocation) {
-      const parsed = JSON.parse(userLocation);
-      console.log("📍 Using cached location:", parsed.coords);
-      return parsed;
-    }
-    return null;
-  } catch (error) {
-    console.log("❌ Error reading cached location:", error);
-    return null;
-  }
-};
-
-/**
- * Saves location to AsyncStorage
- * @param {Object} location - Location object to cache
- */
-export const cacheLocation = async (location) => {
-  try {
-    await AsyncStorage.setItem(LOCATION_CACHE_KEY, JSON.stringify(location));
-    console.log("💾 Location cached successfully");
-  } catch (error) {
-    console.error("❌ Error caching location:", error);
-  }
-};
-
 export const requestLocationPermission = async (options = {}) => {
   const {
     title = "Location Permission Required",
@@ -80,16 +53,12 @@ export const requestLocationPermission = async (options = {}) => {
  * Gets current location with specified accuracy
  * @param {Object} options - Location options
  * @param {number} options.accuracy - Location accuracy (default: Balanced)
- * @param {number} options.timeout - Request timeout in ms (default: 10000)
- * @param {number} options.maximumAge - Maximum age of cached location in ms (default: 5 minutes)
+ * @param {number} options.timeout - Request timeout in ms (default: 15000)
  * @returns {Promise<Object|null>} Location object or null if failed
  */
 export const getCurrentLocation = async (options = {}) => {
-  const {
-    accuracy = Location.Accuracy.Balanced,
-    timeout = 10000,
-    maximumAge = LOCATION_CACHE_DURATION,
-  } = options;
+  const { accuracy = Location.Accuracy.Balanced, timeout = LOCATION_TIMEOUT } =
+    options;
 
   try {
     console.log("📡 Getting current location...");
@@ -97,7 +66,6 @@ export const getCurrentLocation = async (options = {}) => {
     const location = await Location.getCurrentPositionAsync({
       accuracy,
       timeout,
-      maximumAge,
     });
 
     console.log("✅ Current location obtained:", location.coords);
@@ -138,33 +106,21 @@ export const getLastKnownLocation = async (options = {}) => {
 };
 
 /**
- * Gets user location with caching and fallback mechanisms
+ * Gets user location with permission check and fallback mechanisms
  * @param {Object} options - Options for location fetching
- * @param {boolean} options.forceRefresh - Force refresh location (skip cache)
  * @param {Object} options.permissionOptions - Options for permission request
  * @param {Object} options.locationOptions - Options for location request
  * @returns {Promise<Object|null>} User location or null if failed
  */
 export const getUserLocation = async (options = {}) => {
-  const {
-    forceRefresh = false,
-    permissionOptions = {},
-    locationOptions = {},
-  } = options;
+  const { permissionOptions = {}, locationOptions = {} } = options;
 
   try {
     // Check permissions first
     const hasPermission = await requestLocationPermission(permissionOptions);
     if (!hasPermission) {
+      console.log("❌ Location permission denied");
       return null;
-    }
-
-    // Try to get cached location first (unless force refresh)
-    if (!forceRefresh) {
-      const cachedLocation = await getCachedLocation();
-      if (cachedLocation) {
-        return cachedLocation;
-      }
     }
 
     // Get fresh location
@@ -172,14 +128,12 @@ export const getUserLocation = async (options = {}) => {
     const location = await getCurrentLocation(locationOptions);
 
     if (location) {
-      await cacheLocation(location);
       return location;
     }
 
     // Try last known location as fallback
     const lastKnownLocation = await getLastKnownLocation();
     if (lastKnownLocation) {
-      await cacheLocation(lastKnownLocation);
       return lastKnownLocation;
     }
 
@@ -220,12 +174,11 @@ export const refreshUserLocation = async (options = {}) => {
 
     const location = await getCurrentLocation({
       accuracy: Location.Accuracy.High,
-      timeout: 10000,
+      timeout: LOCATION_TIMEOUT,
     });
 
     if (location) {
       console.log("✅ Location refreshed:", location.coords);
-      await cacheLocation(location);
       onSuccess?.(location);
       return location;
     } else {
@@ -289,4 +242,35 @@ export const isValidCoordinate = (lat, lng) => {
     lng >= -180 &&
     lng <= 180
   );
+};
+
+/**
+ * Format coordinates for display
+ * @param {Object} coords - Coordinates object with latitude and longitude
+ * @param {number} precision - Number of decimal places (default: 6)
+ * @returns {string} Formatted coordinates string
+ */
+export const formatCoordinates = (coords, precision = 6) => {
+  if (!coords || !isValidCoordinate(coords.latitude, coords.longitude)) {
+    return "Invalid coordinates";
+  }
+
+  return `${coords.latitude.toFixed(precision)}, ${coords.longitude.toFixed(
+    precision
+  )}`;
+};
+
+/**
+ * Get human-readable accuracy description
+ * @param {number} accuracy - Accuracy in meters
+ * @returns {string} Human-readable accuracy description
+ */
+export const getAccuracyDescription = (accuracy) => {
+  if (!accuracy) return "Unknown accuracy";
+
+  if (accuracy <= 5) return "Very High accuracy";
+  if (accuracy <= 10) return "High accuracy";
+  if (accuracy <= 100) return "Good accuracy";
+  if (accuracy <= 1000) return "Low accuracy";
+  return "Very low accuracy";
 };

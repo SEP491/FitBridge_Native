@@ -20,7 +20,7 @@ import {
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import chatbotService from "../../services/chatbotService";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useLocationContext } from "../../context/LocationContext";
 
 const { width } = Dimensions.get("window");
 const MarkdownText = ({ text, style }) => {
@@ -379,6 +379,7 @@ const FloatingClearButton = ({ onPress, isVisible }) => {
 };
 
 export default function ChatScreen({ navigation }) {
+  const { location, hasLocation, coordinates } = useLocationContext();
   const [coords, setCoords] = useState({});
   // Add navigation prop
   const [messages, setMessages] = useState([
@@ -417,43 +418,23 @@ export default function ChatScreen({ navigation }) {
     };
   }, []);
 
-  // Fetch location every time the screen comes into focus
+  // Update location from context when available
   useFocusEffect(
     useCallback(() => {
-      const fetchLocation = async () => {
-        try {
-          console.log("🔄 Fetching location on screen focus...");
-
-          // First try to get cached location
-          const userLocation = await AsyncStorage.getItem("userLocation");
-          if (userLocation !== null) {
-            const parsed = JSON.parse(userLocation);
-            console.log("📍 Using cached location:", parsed.coords);
-            setCoords(parsed.coords);
-          } else {
-            // If no cached location, use default coordinates (Ho Chi Minh City center)
-            console.log("🔄 No cached location, using default coordinates");
-            const defaultCoords = {
-              latitude: 10.776889,
-              longitude: 106.700981,
-            };
-            setCoords(defaultCoords);
-            console.log("📍 Set default location:", defaultCoords);
-          }
-        } catch (error) {
-          console.log("❌ Error reading user location:", error);
-          // Use default coordinates as fallback
-          const fallbackCoords = {
-            latitude: 10.776889,
-            longitude: 106.700981,
-          };
-          setCoords(fallbackCoords);
-          console.log("📍 Using fallback location:", fallbackCoords);
-        }
-      };
-
-      fetchLocation();
-    }, [])
+      if (hasLocation && coordinates) {
+        console.log("� Using location from context:", coordinates);
+        setCoords(coordinates);
+      } else {
+        // Use default coordinates (Ho Chi Minh City center) as fallback
+        console.log("🔄 No location available, using default coordinates");
+        const defaultCoords = {
+          latitude: 10.776889,
+          longitude: 106.700981,
+        };
+        setCoords(defaultCoords);
+        console.log("📍 Set default location:", defaultCoords);
+      }
+    }, [hasLocation, coordinates])
   );
 
   // Format messages for API conversation history

@@ -18,13 +18,14 @@ import { useNavigation } from "@react-navigation/native";
 import { FontAwesome, FontAwesome5 } from "@expo/vector-icons";
 import GymListBottomSheet from "../../components/GymListBottomSheet/GymListBottomSheet";
 import {
-  getUserLocation,
-  refreshUserLocation,
   calculateDistance,
   isValidCoordinate,
 } from "../../utils/locationUtils";
+import { useLocationContext } from "../../context/LocationContext";
 
 export default function MapScreen({ route }) {
+  const { location, refreshLocation, coordinates, hasLocation } =
+    useLocationContext();
   const [coords, setCoords] = useState(null);
   const [loading, setLoading] = useState(true);
   const [allGyms, setAllGyms] = useState([]);
@@ -113,27 +114,13 @@ export default function MapScreen({ route }) {
     fetchGym();
   }, []);
 
+  // Update location from context
   useEffect(() => {
-    const initializeLocation = async () => {
-      try {
-        const location = await getUserLocation({
-          permissionOptions: {
-            title: "Location Permission Required",
-            message:
-              "FitBridge needs your location to show nearby gyms on the map. Please enable location permissions in your device settings.",
-          },
-        });
-
-        if (location) {
-          setCoords(location.coords);
-        }
-      } catch (error) {
-        console.error("❌ Error initializing location:", error);
-      }
-    };
-
-    initializeLocation();
-  }, []);
+    if (hasLocation && coordinates) {
+      setCoords(coordinates);
+      setLoading(false);
+    }
+  }, [hasLocation, coordinates]);
 
   useEffect(() => {
     // Re-filter when coords or searchRadius changes
@@ -321,21 +308,17 @@ export default function MapScreen({ route }) {
       <TouchableOpacity
         style={styles.locationRefreshButton}
         onPress={async () => {
-          await refreshUserLocation({
-            permissionOptions: {
-              title: "Location Permission Required",
-              message:
-                "Please enable location permissions to refresh your location.",
-            },
-            onSuccess: (location) => {
-              setCoords(location.coords);
+          try {
+            const newLocation = await refreshLocation();
+            if (newLocation && newLocation.coords) {
+              setCoords(newLocation.coords);
 
               // Animate map to new location
               if (mapRef.current) {
                 mapRef.current.animateToRegion(
                   {
-                    latitude: location.coords.latitude,
-                    longitude: location.coords.longitude,
+                    latitude: newLocation.coords.latitude,
+                    longitude: newLocation.coords.longitude,
                     latitudeDelta: 0.01,
                     longitudeDelta: 0.01,
                   },
@@ -344,15 +327,19 @@ export default function MapScreen({ route }) {
               }
 
               Alert.alert("Thành công", "Vị trí đã được cập nhật!");
-            },
-            onError: (error) => {
-              console.error("❌ Error refreshing location:", error);
+            } else {
               Alert.alert(
                 "Lỗi",
                 "Không thể cập nhật vị trí. Vui lòng kiểm tra kết nối và thử lại."
               );
-            },
-          });
+            }
+          } catch (error) {
+            console.error("❌ Error refreshing location:", error);
+            Alert.alert(
+              "Lỗi",
+              "Không thể cập nhật vị trí. Vui lòng kiểm tra kết nối và thử lại."
+            );
+          }
         }}
       >
         <FontAwesome5 name="location-arrow" size={20} color="#fff" />

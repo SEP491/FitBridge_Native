@@ -4,19 +4,22 @@ import { Platform, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { CartProvider } from "./context/CartContext";
 import { AvatarProvider } from "./context/AvatarContext";
+import { LocationProvider } from "./context/LocationContext";
 import { useEffect } from "react";
 
 export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <AvatarProvider>
-          <CartProvider>
-            <View style={{ flex: 1 }}>
-              <Navigator />
-            </View>
-          </CartProvider>
-        </AvatarProvider>
+        <LocationProvider>
+          <AvatarProvider>
+            <CartProvider>
+              <View style={{ flex: 1 }}>
+                <Navigator />
+              </View>
+            </CartProvider>
+          </AvatarProvider>
+        </LocationProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

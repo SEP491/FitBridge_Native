@@ -1,51 +1,15 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, Image, StyleSheet, Alert, Platform } from "react-native";
-import { getUserLocation } from "../../utils/locationUtils";
+import React, { useEffect } from "react";
+import { View, Text, Image, StyleSheet } from "react-native";
 
 const SplashScreen = ({ navigation }) => {
-  const [errorMsg, setErrorMsg] = useState(null);
-  const [permissionRequested, setPermissionRequested] = useState(false);
-
   useEffect(() => {
-    // Request location permission and navigate after splash timeout
-    const setupLocationAndNavigation = async () => {
-      // Request location permission first
-      await requestLocationPermission();
+    // Simple timer for splash screen - location is now handled by LocationContext
+    const timer = setTimeout(() => {
+      navigation.replace("Login");
+    }, 3000); // 3 seconds
 
-      // Set timer for splash screen
-      const timer = setTimeout(() => {
-        navigation.replace("Login");
-      }, 3000); // 3 seconds
-
-      return () => clearTimeout(timer);
-    };
-
-    setupLocationAndNavigation();
-  }, []);
-
-  const requestLocationPermission = async () => {
-    try {
-      console.log("Requesting location permissions...");
-
-      const location = await getUserLocation({
-        permissionOptions: {
-          title: "Location Permission Required",
-          message:
-            "FitBridge needs your location to find gyms near you. Please enable location access in your device settings.",
-        },
-      });
-
-      if (location) {
-        console.log("Location obtained successfully:", location.coords);
-      } else {
-        setErrorMsg("Unable to get location");
-        console.log("Failed to get location");
-      }
-    } catch (error) {
-      console.error("Error getting location:", error);
-      setErrorMsg(`Error getting location: ${error.message}`);
-    }
-  };
+    return () => clearTimeout(timer);
+  }, [navigation]);
 
   return (
     <View style={styles.container}>

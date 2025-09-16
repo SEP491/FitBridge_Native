@@ -12,7 +12,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
 import { useCart } from "../../context/CartContext";
 import { useAvatar } from "../../context/AvatarContext";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useLocationContext } from "../../context/LocationContext";
 import axios from "axios";
 
 export default function HeaderHome({ user }) {
@@ -21,6 +21,7 @@ export default function HeaderHome({ user }) {
   const navigation = useNavigation();
   const { cart, getCartCount } = useCart();
   const { getAvatarUrl } = useAvatar(); // Use avatar context
+  const { location, coordinates, hasLocation } = useLocationContext();
   const [weather, setWeather] = useState({});
   const [coords, setCoords] = useState(null);
   const fetchWeather = async () => {
@@ -55,21 +56,12 @@ export default function HeaderHome({ user }) {
       setLoading(false);
     }
   };
-  const fetchLocation = async () => {
-    try {
-      const userLocation = await AsyncStorage.getItem("userLocation");
-      if (userLocation !== null) {
-        const parsed = JSON.parse(userLocation);
-        setCoords(parsed.coords);
-      }
-    } catch (error) {
-      console.log("Error reading user location:", error);
-    }
-  };
-
+  // Update coords from LocationContext
   useEffect(() => {
-    fetchLocation();
-  }, []);
+    if (hasLocation && coordinates) {
+      setCoords(coordinates);
+    }
+  }, [hasLocation, coordinates]);
 
   // Fetch weather when coords change or on initial load
   useEffect(() => {
