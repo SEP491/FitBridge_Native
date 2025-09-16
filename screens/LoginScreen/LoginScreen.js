@@ -104,7 +104,7 @@ export default function LoginScreen() {
               source={require("../../assets/LogoColor.png")}
               style={styles.logo}
             />
-            <Text style={styles.welcomeTitle}>Chào mừng bạn trở lại!</Text>
+            <Text style={styles.welcomeTitle}>{t("welcome")}</Text>
             <Text style={styles.welcomeSubtitle}>{t("login")}</Text>
           </View>
 
@@ -203,7 +203,7 @@ export default function LoginScreen() {
             >
               {isLoading ? (
                 <Text style={styles.loginButtonText}>
-                  {t("auth.registering")}
+                  {t("auth.loggingIn")}
                 </Text>
               ) : (
                 <Text style={styles.loginButtonText}>{t("login")}</Text>

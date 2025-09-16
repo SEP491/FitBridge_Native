@@ -568,7 +568,9 @@
 
   "auth": {
     "registerSuccess": "Đăng ký thành công!",
+    "welcome": "Chào mừng đến với FitBridge!",
     "loginNow": "Đăng nhập ngay",
+    "loggingIn": "Đang đăng nhập...",
     "registering": "Đang đăng ký...",
     "register": "Đăng ký",
     "notification": "Thông báo",

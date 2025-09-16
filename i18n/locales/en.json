@@ -568,7 +568,9 @@
 
   "auth": {
     "registerSuccess": "Registration successful!",
+    "welcome": "Welcome to FitBridge!",
     "loginNow": "Login now",
+    "loggingIn": "Logging in...",
     "registering": "Registering...",
     "register": "Register",
     "notification": "Notification",
