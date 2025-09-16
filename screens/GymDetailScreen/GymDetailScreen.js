@@ -14,7 +14,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import CarouselNative from "../../components/Carousel/Carousel";
 import { TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
+import PackageSelectionBottomSheet from "../../components/PackageSelectionBottomSheet/PackageSelectionBottomSheet";
 import { LinearGradient } from "expo-linear-gradient";
 const { width } = Dimensions.get("window");
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -27,9 +27,7 @@ import { useCart } from "../../context/CartContext";
 
 export default function GymDetailScreen({ route }) {
   const { gymId } = route.params;
-  const bottomSheetRef = useRef(null);
-  const snapPoints = useMemo(() => ["50%", "80%"], []);
-  const handleSheetChanges = useCallback((index) => {}, []);
+  const [packageSelectionVisible, setPackageSelectionVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const mapRef = useRef(null);
   const [gymDetail, setGymDetail] = useState({});
@@ -330,7 +328,7 @@ export default function GymDetailScreen({ route }) {
 
               <TouchableOpacity
                 style={[styles.actionButton, styles.primaryButton]}
-                onPress={() => bottomSheetRef.current?.expand()}
+                onPress={() => setPackageSelectionVisible(true)}
               >
                 <Ionicons name="list-outline" size={20} color="#FFF" />
                 <Text style={styles.primaryButtonText}>Gói Tập Luyện</Text>
@@ -517,136 +515,15 @@ export default function GymDetailScreen({ route }) {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* Enhanced Bottom Sheet */}
-      <BottomSheet
-        ref={bottomSheetRef}
-        index={-1}
-        snapPoints={snapPoints}
-        onChange={handleSheetChanges}
-        enablePanDownToClose={true}
-        style={styles.sheetContainer}
-        handleIndicatorStyle={styles.sheetIndicator}
-      >
-        <BottomSheetView style={styles.contentContainer}>
-          <View style={styles.bottomSheetHeader}>
-            <Text style={styles.bottomSheetTitle}>Lựa chọn gói tập</Text>
-            <TouchableOpacity onPress={() => bottomSheetRef.current?.close()}>
-              <Ionicons name="close-circle-outline" size={24} color="#666" />
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView showsVerticalScrollIndicator={false}>
-            <View style={styles.packageContainer}>
-              {gymCourse?.packageNormal?.length > 0 && (
-                <View style={styles.packageSection}>
-                  <LinearGradient
-                    colors={["#FF914D", "#ED2A46"]}
-                    style={styles.packageTitleContainer}
-                  >
-                    <MaterialIcons
-                      name="fitness-center"
-                      size={20}
-                      color="#FFF"
-                    />
-                    <Text style={styles.packageTitle}>Gói Tập Tháng</Text>
-                  </LinearGradient>
-
-                  {gymCourse?.packageNormal?.map((item) => (
-                    <View key={item.id} style={styles.packageItem}>
-                      <View style={styles.packageInfo}>
-                        <Text style={styles.packageName}>{item.name}</Text>
-                        <Text style={styles.packagePrice}>
-                          {item.price.toLocaleString("vi-VN", {
-                            style: "currency",
-                            currency: "VND",
-                          })}
-                        </Text>
-                      </View>
-
-                      <TouchableOpacity
-                        style={[
-                          styles.addButton,
-                          isPackageInCart(item.id) && styles.addedButton,
-                        ]}
-                        onPress={() =>
-                          !isPackageInCart(item.id) && handleAddToCart(item)
-                        }
-                      >
-                        {isPackageInCart(item.id) ? (
-                          <Ionicons
-                            name="checkmark-circle"
-                            size={24}
-                            color="#FFF"
-                          />
-                        ) : (
-                          <Ionicons
-                            name="add-circle-outline"
-                            size={24}
-                            color="#ED2A46"
-                          />
-                        )}
-                      </TouchableOpacity>
-                    </View>
-                  ))}
-                </View>
-              )}
-
-              {gymCourse?.packagePT?.length > 0 && (
-                <View style={styles.packageSection}>
-                  <LinearGradient
-                    colors={["#FF914D", "#ED2A46"]}
-                    style={styles.packageTitleContainer}
-                  >
-                    <MaterialIcons name="people" size={20} color="#FFF" />
-                    <Text style={styles.packageTitle}>
-                      Gói Tập Tháng Kèm PT
-                    </Text>
-                  </LinearGradient>
-
-                  {gymCourse?.packagePT?.map((item) => (
-                    <View key={item.id} style={styles.packageItem}>
-                      <View style={styles.packageInfo}>
-                        <Text style={styles.packageName}>{item.name}</Text>
-                        <Text style={styles.packagePrice}>
-                          {item.price.toLocaleString("vi-VN", {
-                            style: "currency",
-                            currency: "VND",
-                          })}
-                        </Text>
-                      </View>
-
-                      <TouchableOpacity
-                        style={[
-                          styles.addButton,
-                          isPackageInCart(item.id) && styles.addedButton,
-                        ]}
-                        onPress={() =>
-                          !isPackageInCart(item.id) &&
-                          handleAddToCartWithPT(item)
-                        }
-                      >
-                        {isPackageInCart(item.id) ? (
-                          <Ionicons
-                            name="checkmark-circle"
-                            size={24}
-                            color="#FFF"
-                          />
-                        ) : (
-                          <Ionicons
-                            name="add-circle-outline"
-                            size={24}
-                            color="#ED2A46"
-                          />
-                        )}
-                      </TouchableOpacity>
-                    </View>
-                  ))}
-                </View>
-              )}
-            </View>
-          </ScrollView>
-        </BottomSheetView>
-      </BottomSheet>
+      {/* Package Selection Bottom Sheet */}
+      <PackageSelectionBottomSheet
+        visible={packageSelectionVisible}
+        onClose={() => setPackageSelectionVisible(false)}
+        gymCourse={gymCourse}
+        isPackageInCart={isPackageInCart}
+        handleAddToCart={handleAddToCart}
+        handleAddToCartWithPT={handleAddToCartWithPT}
+      />
     </View>
   );
 }
@@ -1005,105 +882,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     color: "#444",
-  },
-
-  // Bottom Sheet Styles
-  sheetContainer: {
-    backgroundColor: "#FFF",
-    borderTopLeftRadius: 25,
-    borderTopRightRadius: 25,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 12,
-  },
-
-  sheetIndicator: {
-    backgroundColor: "#E0E0E0",
-    width: 40,
-    height: 4,
-  },
-
-  contentContainer: {
-    flex: 1,
-    padding: 20,
-  },
-
-  bottomSheetHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-
-  bottomSheetTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#1a1a1a",
-  },
-
-  // Package Styles
-  packageContainer: {
-    gap: 20,
-  },
-
-  packageSection: {
-    backgroundColor: "#F8F9FA",
-    borderRadius: 16,
-    overflow: "hidden",
-  },
-
-  packageTitleContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-  },
-
-  packageTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#FFF",
-    marginLeft: 8,
-  },
-
-  packageItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E0E0E0",
-  },
-
-  packageInfo: {
-    flex: 1,
-  },
-
-  packageName: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1a1a1a",
-    marginBottom: 4,
-  },
-
-  packagePrice: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#ED2A46",
-  },
-
-  addButton: {
-    padding: 8,
-    borderRadius: 20,
-  },
-
-  addedButton: {
-    backgroundColor: "#4CAF50",
-    borderRadius: 20,
-    padding: 8,
   },
 
   // Comment Input Styles

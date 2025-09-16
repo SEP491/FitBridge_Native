@@ -16,7 +16,7 @@ import gymService from "../../services/gymService";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { useNavigation } from "@react-navigation/native";
 import { FontAwesome, FontAwesome5 } from "@expo/vector-icons";
-import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
+import GymListBottomSheet from "../../components/GymListBottomSheet/GymListBottomSheet";
 import {
   getUserLocation,
   refreshUserLocation,
@@ -31,13 +31,10 @@ export default function MapScreen({ route }) {
   const [filteredGyms, setFilteredGyms] = useState([]);
   const [searchRadius, setSearchRadius] = useState("5");
   const [showRadiusInput, setShowRadiusInput] = useState(false);
+  const [gymListVisible, setGymListVisible] = useState(false);
   const navigation = useNavigation();
 
-  // Reference for the bottom sheet
-  const bottomSheetRef = useRef(null);
   const mapRef = useRef(null);
-  // Snap points for the bottom sheet (percentage of screen height)
-  const snapPoints = useMemo(() => ["55%"], []);
 
   const { latitude: targetLatitude, longitude: targetLongitude } =
     route.params || {};
@@ -62,8 +59,6 @@ export default function MapScreen({ route }) {
       }, 500);
     }
   }, [targetLatitude, targetLongitude]);
-  // Callback for bottom sheet changes
-  const handleSheetChanges = useCallback((index) => {}, []);
 
   // Function to filter gyms by distance
   const filterGymsByDistance = () => {
@@ -207,41 +202,20 @@ export default function MapScreen({ route }) {
     },
   ];
 
-  const renderGymItem = ({ item }) => (
-    <TouchableOpacity
-      style={styles.gymItem}
-      onPress={() => {
-        // Center the map on the gym's location
-        if (
-          mapRef.current &&
-          isValidCoordinate(item.latitude, item.longitude)
-        ) {
-          mapRef.current.animateToRegion(
-            {
-              latitude: item.latitude,
-              longitude: item.longitude,
-              latitudeDelta: 0.01,
-              longitudeDelta: 0.01,
-            },
-            1000
-          ); // Animation duration in ms
-          bottomSheetRef.current?.close();
-        }
-      }}
-    >
-      <View style={styles.gymItemContent}>
-        <View style={styles.gymItemLeft}>
-          <Text style={styles.gymItemName}>{item.gymName}</Text>
-          <Text style={styles.gymItemAddress}>{item.address}</Text>
-        </View>
-        <View style={styles.gymItemRight}>
-          <Text style={styles.gymItemDistance}>
-            {item.distance?.toFixed(1)} km
-          </Text>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
+  const handleGymPress = (item) => {
+    // Center the map on the gym's location
+    if (mapRef.current && isValidCoordinate(item.latitude, item.longitude)) {
+      mapRef.current.animateToRegion(
+        {
+          latitude: item.latitude,
+          longitude: item.longitude,
+          latitudeDelta: 0.01,
+          longitudeDelta: 0.01,
+        },
+        1000
+      ); // Animation duration in ms
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -432,45 +406,20 @@ export default function MapScreen({ route }) {
       {/* Toggle Gym List Button */}
       <TouchableOpacity
         style={styles.listButton}
-        onPress={() => bottomSheetRef.current?.expand()}
+        onPress={() => setGymListVisible(true)}
       >
         <FontAwesome6 name="list" size={20} color="#fff" />
         <Text style={styles.listButtonText}>Danh sách phòng tập</Text>
       </TouchableOpacity>
 
       {/* Gym List Bottom Sheet */}
-      <BottomSheet
-        ref={bottomSheetRef}
-        index={-1}
-        snapPoints={snapPoints}
-        onChange={handleSheetChanges}
-        enablePanDownToClose={true}
-        style={styles.sheetContainer}
-      >
-        <BottomSheetView style={styles.contentContainer}>
-          <View style={styles.gymListHeader}>
-            <Text style={styles.gymListTitle}>
-              Phòng tập gần đây ({validGyms.length})
-            </Text>
-          </View>
-
-          {validGyms.length === 0 ? (
-            <View style={styles.noGymsMessage}>
-              <Text style={styles.noGymsText}>
-                Không tìm thấy phòng tập nào trong phạm vi {searchRadius} km
-              </Text>
-            </View>
-          ) : (
-            <FlatList
-              data={validGyms}
-              renderItem={renderGymItem}
-              keyExtractor={(item) => item.id.toString()}
-              style={styles.gymList}
-              contentContainerStyle={styles.gymListContent}
-            />
-          )}
-        </BottomSheetView>
-      </BottomSheet>
+      <GymListBottomSheet
+        visible={gymListVisible}
+        onClose={() => setGymListVisible(false)}
+        gyms={validGyms}
+        searchRadius={searchRadius}
+        onGymPress={handleGymPress}
+      />
     </View>
   );
 }
@@ -659,74 +608,5 @@ const styles = StyleSheet.create({
     color: "#fff",
     marginLeft: 8,
     fontWeight: "600",
-  },
-  // Bottom Sheet Styles
-  sheetContainer: {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 15,
-    borderTopRightRadius: 15,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -3 },
-    shadowOpacity: 0.27,
-    shadowRadius: 4.65,
-    elevation: 6,
-  },
-  contentContainer: {
-    flex: 1,
-  },
-  gymListHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-  },
-  gymListTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  gymList: {
-    flex: 1,
-  },
-  gymListContent: {
-    paddingBottom: 20,
-  },
-  gymItem: {
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-    padding: 12,
-  },
-  gymItemContent: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  gymItemLeft: {
-    flex: 1,
-  },
-  gymItemName: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 2,
-    color: "#FF914D",
-  },
-  gymItemAddress: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 3,
-  },
-  gymItemRight: {
-    justifyContent: "center",
-    marginLeft: 10,
-  },
-  gymItemDistance: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#ED2A46",
-  },
-  noGymsMessage: {
-    padding: 20,
-    alignItems: "center",
-    justifyContent: "center",
   },
 });
