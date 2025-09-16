@@ -15,8 +15,10 @@ import Foundation from "@expo/vector-icons/Foundation";
 import { useNavigation } from "@react-navigation/native";
 import gymService from "../../services/gymService";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { useTranslation } from "../../hooks/useTranslation";
 
 export default function GymPTScreen({ route }) {
+  const { t } = useTranslation();
   const { gymId } = route.params;
   const [searchText, setSearchText] = useState("");
   const [pt, setPT] = useState([]);
@@ -85,7 +87,9 @@ export default function GymPTScreen({ route }) {
                     <Foundation name="female-symbol" size={18} color="white" />
                   )}
                   <Text style={styles.detailText}>
-                    {item.gender === "Male" ? "Nam" : "Nữ"}
+                    {item.gender === "Male"
+                      ? t("ptScreen.male")
+                      : t("ptScreen.female")}
                   </Text>
                 </View>
 
@@ -114,11 +118,11 @@ export default function GymPTScreen({ route }) {
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
       <Foundation name="torsos-all" size={64} color="#ccc" />
-      <Text style={styles.emptyTitle}>Không tìm thấy PT nào</Text>
+      <Text style={styles.emptyTitle}>{t("ptScreen.noPTFound")}</Text>
       <Text style={styles.emptySubtitle}>
         {searchText
-          ? "Thử tìm kiếm với từ khóa khác"
-          : "Hiện tại chưa có PT nào tại phòng gym này"}
+          ? t("ptScreen.tryDifferentKeyword")
+          : t("ptScreen.noPTAtGym")}
       </Text>
     </View>
   );
@@ -139,7 +143,7 @@ export default function GymPTScreen({ route }) {
             <TextInput
               value={searchText}
               onChangeText={setSearchText}
-              placeholder="Tìm kiếm PT theo tên"
+              placeholder={t("ptScreen.searchPlaceholder")}
               placeholderTextColor="#999"
               style={styles.searchInput}
             />
@@ -161,7 +165,7 @@ export default function GymPTScreen({ route }) {
         >
           {loading ? (
             <View style={styles.loadingContainer}>
-              <Text style={styles.loadingText}>Đang tải...</Text>
+              <Text style={styles.loadingText}>{t("ptScreen.loading")}</Text>
             </View>
           ) : filteredPT.length > 0 ? (
             filteredPT.map(renderPTCard)

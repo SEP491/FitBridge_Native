@@ -10,6 +10,7 @@ import {
 import { useState, useCallback, useEffect } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import cartService from "../../services/cartService";
+import { useTranslation } from "../../hooks/useTranslation";
 
 const THEME_COLORS = {
   primary: "#ED2A46",
@@ -21,6 +22,7 @@ const THEME_COLORS = {
 };
 
 export default function OrderSuccessScreen({ route, navigation }) {
+  const { t } = useTranslation();
   const [orderStatus, setOrderStatus] = useState("processing"); // 'processing', 'success', 'failed'
   const [orderData, setOrderData] = useState(null);
 
@@ -37,7 +39,7 @@ export default function OrderSuccessScreen({ route, navigation }) {
           status: code, // Change this to test different scenarios
           orderCode: orderCode || "000000",
           amount: amount || 0,
-          description: "Thanh toán đơn hàng thành công",
+          description: t("orderSuccess.successDescription"),
         });
         setOrderStatus("success");
       } else if (code === "01") {
@@ -67,9 +69,11 @@ export default function OrderSuccessScreen({ route, navigation }) {
       <View style={styles.container}>
         <View style={styles.processingContainer}>
           <ActivityIndicator size="large" color={THEME_COLORS.primary} />
-          <Text style={styles.processingTitle}>Đang xử lý thanh toán...</Text>
+          <Text style={styles.processingTitle}>
+            {t("orderSuccess.processing")}
+          </Text>
           <Text style={styles.processingSubtitle}>
-            Vui lòng đợi trong giây lát
+            {t("orderSuccess.pleaseWait")}
           </Text>
         </View>
       </View>
@@ -86,30 +90,40 @@ export default function OrderSuccessScreen({ route, navigation }) {
             <Text style={styles.successIconText}>✓</Text>
           </View>
 
-          <Text style={styles.successTitle}>Thanh toán thành công!</Text>
+          <Text style={styles.successTitle}>
+            {t("orderSuccess.paymentSuccess")}
+          </Text>
           <Text style={styles.successSubtitle}>
-            Đơn hàng của bạn đã được xử lý thành công
+            {t("orderSuccess.orderProcessedSuccess")}
           </Text>
 
           {/* Order Details */}
           {orderData && (
             <View style={styles.orderDetails}>
-              <Text style={styles.orderDetailsTitle}>Chi tiết đơn hàng</Text>
+              <Text style={styles.orderDetailsTitle}>
+                {t("orderSuccess.orderDetails")}
+              </Text>
 
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Mã đơn hàng:</Text>
+                <Text style={styles.detailLabel}>
+                  {t("orderSuccess.orderCode")}
+                </Text>
                 <Text style={styles.detailValue}>{orderData.orderCode}</Text>
               </View>
 
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Số tiền:</Text>
+                <Text style={styles.detailLabel}>
+                  {t("orderSuccess.amount")}
+                </Text>
                 <Text style={styles.detailValue}>
                   {formatAmount(orderData.amount)}
                 </Text>
               </View>
 
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Mô tả:</Text>
+                <Text style={styles.detailLabel}>
+                  {t("orderSuccess.description")}
+                </Text>
                 <Text style={styles.detailValue}>{orderData.description}</Text>
               </View>
 
@@ -123,7 +137,9 @@ export default function OrderSuccessScreen({ route, navigation }) {
           )}
 
           <TouchableOpacity style={styles.primaryButton} onPress={handleGoBack}>
-            <Text style={styles.primaryButtonText}>Về trang chủ</Text>
+            <Text style={styles.primaryButtonText}>
+              {t("orderSuccess.backToHome")}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -139,34 +155,40 @@ export default function OrderSuccessScreen({ route, navigation }) {
           <Text style={styles.failedIconText}>✕</Text>
         </View>
 
-        <Text style={styles.failedTitle}>Thanh toán thất bại!</Text>
+        <Text style={styles.failedTitle}>
+          {t("orderSuccess.paymentFailed")}
+        </Text>
         <Text style={styles.failedSubtitle}>
-          Đã xảy ra lỗi khi xử lý thanh toán của bạn
+          {t("orderSuccess.paymentError")}
         </Text>
 
         {/* Order Details */}
         {orderData && (
           <View style={styles.orderDetails}>
-            <Text style={styles.orderDetailsTitle}>Thông tin đơn hàng</Text>
+            <Text style={styles.orderDetailsTitle}>
+              {t("orderSuccess.orderInfo")}
+            </Text>
 
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Mã đơn hàng:</Text>
+              <Text style={styles.detailLabel}>
+                {t("orderSuccess.orderCode")}
+              </Text>
               <Text style={styles.detailValue}>{orderData.orderCode}</Text>
             </View>
 
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Số tiền:</Text>
+              <Text style={styles.detailLabel}>{t("orderSuccess.amount")}</Text>
               <Text style={styles.detailValue}>
                 {formatAmount(orderData.amount)}
               </Text>
             </View>
 
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Trạng thái:</Text>
+              <Text style={styles.detailLabel}>{t("orderSuccess.status")}</Text>
               <Text
                 style={[styles.detailValue, { color: THEME_COLORS.primary }]}
               >
-                Thất bại
+                {t("orderSuccess.failed")}
               </Text>
             </View>
           </View>
@@ -177,11 +199,15 @@ export default function OrderSuccessScreen({ route, navigation }) {
             style={styles.secondaryButton}
             onPress={handleRetry}
           >
-            <Text style={styles.secondaryButtonText}>Thử lại</Text>
+            <Text style={styles.secondaryButtonText}>
+              {t("orderSuccess.retry")}
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.primaryButton} onPress={handleGoBack}>
-            <Text style={styles.primaryButtonText}>Về trang chủ</Text>
+            <Text style={styles.primaryButtonText}>
+              {t("orderSuccess.backToHome")}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>

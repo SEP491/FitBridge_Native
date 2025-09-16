@@ -24,8 +24,10 @@ import MapView, { Marker } from "react-native-maps";
 import { ActivityIndicator } from "react-native";
 import { FontAwesome6 } from "@expo/vector-icons";
 import { useCart } from "../../context/CartContext";
+import { useTranslation } from "../../hooks/useTranslation";
 
 export default function GymDetailScreen({ route }) {
+  const { t } = useTranslation();
   const { gymId } = route.params;
   const [packageSelectionVisible, setPackageSelectionVisible] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -106,7 +108,7 @@ export default function GymDetailScreen({ route }) {
       setHasMoreComments(page < totalPages);
     } catch (error) {
       console.error("Error fetching comments:", error);
-      Alert.alert("Lỗi", "Không thể tải bình luận");
+      Alert.alert(t("gymDetail.error"), t("gymDetail.errorLoadingComments"));
     } finally {
       setCommentsLoading(false);
     }
@@ -115,7 +117,7 @@ export default function GymDetailScreen({ route }) {
   // Post comment function
   const handlePostComment = async () => {
     if (!newComment.trim()) {
-      Alert.alert("Lỗi", "Vui lòng nhập nội dung bình luận");
+      Alert.alert(t("gymDetail.error"), t("gymDetail.enterCommentContent"));
       return;
     }
 
@@ -126,13 +128,13 @@ export default function GymDetailScreen({ route }) {
       });
 
       setNewComment("");
-      Alert.alert("Thành công", "Bình luận thành công");
+      Alert.alert(t("common.success"), t("gymDetail.commentSuccess"));
 
       // Refresh comments
       fetchComments(1, true);
     } catch (error) {
       console.error("Error posting comment:", error);
-      Alert.alert("Lỗi", "Không thể đăng bình luận");
+      Alert.alert(t("gymDetail.error"), t("gymDetail.errorPostingComment"));
     } finally {
       setIsPostingComment(false);
     }
@@ -149,14 +151,14 @@ export default function GymDetailScreen({ route }) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#ED2A46" />
-        <Text style={styles.loadingText}>Đang tải...</Text>
+        <Text style={styles.loadingText}>{t("gymDetail.loading")}</Text>
       </View>
     );
   }
   if (!gymId) {
     return (
       <View style={styles.loadingContainer}>
-        <Text>Không tìm thấy phòng gym.</Text>
+        <Text>{t("gymDetail.notFound")}</Text>
       </View>
     );
   }
@@ -172,13 +174,13 @@ export default function GymDetailScreen({ route }) {
     getCartCount();
 
     if (getCartCount() > 0) {
-      Alert.alert("Giỏ hàng đã có gói tập", "Bạn có muốn xem giỏ hàng không?", [
+      Alert.alert(t("gymDetail.cartAlert"), t("gymDetail.viewCart") + "?", [
         {
-          text: "Không",
+          text: t("gymDetail.no"),
           style: "cancel",
         },
         {
-          text: "Xem giỏ hàng",
+          text: t("gymDetail.viewCart"),
           onPress: () => navigation.navigate("CartScreen"),
         },
       ]);
@@ -201,9 +203,12 @@ export default function GymDetailScreen({ route }) {
       addToCart(gymPackage);
 
       Alert.alert(
-        "Thêm vào giỏ hàng thành công",
-        `Bạn đã thêm gói ${packageGym.name} tại ${gymDetail.gymName} vào giỏ hàng`,
-        [{ text: "OK" }]
+        t("gymDetail.addToCartSuccess"),
+        t("gymDetail.addedPackageToCart", {
+          packageName: packageGym.name,
+          gymName: gymDetail.gymName,
+        }),
+        [{ text: t("gymDetail.ok") }]
       );
     }
   };
@@ -292,16 +297,17 @@ export default function GymDetailScreen({ route }) {
 
               <View style={styles.priceRatingContainer}>
                 <View style={styles.priceContainer}>
-                  <Text style={styles.priceLabel}>Từ </Text>
+                  <Text style={styles.priceLabel}>{t("gymDetail.from")}</Text>
                   <Text style={styles.gymStartPrice}>
                     {lowestPackage?.toLocaleString("vi-VN", {
                       style: "currency",
                       currency: "VND",
                     })}
                   </Text>
-                  <Text style={styles.priceUnit}>/tháng</Text>
-                </View>
-
+                  <Text style={styles.priceUnit}>
+                    {t("gymDetail.perMonth")}
+                  </Text>
+                </View>{" "}
                 <View style={styles.ratingBadge}>
                   <Ionicons name="star" size={16} color="#FFD700" />
                   <Text style={styles.ratingText}>
@@ -323,7 +329,9 @@ export default function GymDetailScreen({ route }) {
                   size={20}
                   color="#ED2A46"
                 />
-                <Text style={styles.secondaryButtonText}>Danh Sách PT</Text>
+                <Text style={styles.secondaryButtonText}>
+                  {t("gymDetail.trainerList")}
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -331,7 +339,9 @@ export default function GymDetailScreen({ route }) {
                 onPress={() => setPackageSelectionVisible(true)}
               >
                 <Ionicons name="list-outline" size={20} color="#FFF" />
-                <Text style={styles.primaryButtonText}>Gói Tập Luyện</Text>
+                <Text style={styles.primaryButtonText}>
+                  {t("gymDetail.packages")}
+                </Text>
               </TouchableOpacity>
             </View>
 
@@ -343,7 +353,9 @@ export default function GymDetailScreen({ route }) {
                   size={20}
                   color="#ED2A46"
                 />
-                <Text style={styles.sectionTitle}>Mô tả</Text>
+                <Text style={styles.sectionTitle}>
+                  {t("gymDetail.description")}
+                </Text>
               </View>
               <Text style={styles.descriptionText}>
                 {gymDetail?.description ||
@@ -355,7 +367,9 @@ export default function GymDetailScreen({ route }) {
             <View style={styles.sectionContainer}>
               <View style={styles.sectionHeader}>
                 <Ionicons name="map-outline" size={20} color="#ED2A46" />
-                <Text style={styles.sectionTitle}>Vị trí</Text>
+                <Text style={styles.sectionTitle}>
+                  {t("gymDetail.location")}
+                </Text>
               </View>
 
               <View style={styles.mapContainer}>
@@ -378,7 +392,7 @@ export default function GymDetailScreen({ route }) {
                       latitude: gymDetail?.latitude,
                     }}
                     onPress={() => {
-                      navigation.navigate("Bản Đồ", {
+                      navigation.navigate("MapStack", {
                         screen: "MapScreen",
                         params: {
                           longitude: gymDetail?.longitude,
@@ -402,7 +416,7 @@ export default function GymDetailScreen({ route }) {
                 <TouchableOpacity
                   style={styles.mapOverlay}
                   onPress={() => {
-                    navigation.navigate("Bản Đồ", {
+                    navigation.navigate("MapStack", {
                       screen: "MapScreen",
                       params: {
                         longitude: gymDetail?.longitude,
@@ -412,7 +426,7 @@ export default function GymDetailScreen({ route }) {
                   }}
                 >
                   <Text style={styles.mapOverlayText}>
-                    Nhấn để xem bản đồ đầy đủ
+                    {t("gymDetail.viewFullMap")}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -423,14 +437,16 @@ export default function GymDetailScreen({ route }) {
           <View style={styles.reviewsSection}>
             <View style={styles.sectionHeader}>
               <Ionicons name="chatbubbles-outline" size={20} color="#ED2A46" />
-              <Text style={styles.sectionTitle}>Bình Luận & Nhận Xét</Text>
+              <Text style={styles.sectionTitle}>
+                {t("gymDetail.commentsReviews")}
+              </Text>
             </View>
 
             {/* Comment Input Section */}
             <View style={styles.commentInputContainer}>
               <TextInput
                 style={styles.commentInput}
-                placeholder="Viết bình luận của bạn..."
+                placeholder={t("gymDetail.writeComment")}
                 value={newComment}
                 onChangeText={setNewComment}
                 multiline
@@ -494,7 +510,7 @@ export default function GymDetailScreen({ route }) {
                   ) : (
                     <>
                       <Text style={styles.loadMoreText}>
-                        Xem thêm bình luận
+                        {t("gymDetail.loadMoreComments")}
                       </Text>
                       <Ionicons name="chevron-down" size={16} color="#ED2A46" />
                     </>
@@ -506,7 +522,7 @@ export default function GymDetailScreen({ route }) {
                 <View style={styles.emptyCommentsContainer}>
                   <Ionicons name="chatbubbles-outline" size={48} color="#CCC" />
                   <Text style={styles.emptyCommentsText}>
-                    Chưa có bình luận nào. Hãy là người đầu tiên!
+                    {t("gymDetail.noComments")}
                   </Text>
                 </View>
               )}

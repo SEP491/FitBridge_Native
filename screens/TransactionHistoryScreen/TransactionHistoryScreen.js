@@ -13,9 +13,11 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import transactionService from "../../services/transactionService";
+import { useTranslation } from "../../hooks/useTranslation";
 
 export default function TransactionHistoryScreen() {
   const navigation = useNavigation();
+  const { t } = useTranslation();
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -34,11 +36,11 @@ export default function TransactionHistoryScreen() {
   const getStatusText = (status) => {
     switch (status) {
       case "COMPLETED":
-        return "Thành công";
+        return t("transaction.statusLabels.completed");
       case "PENDING":
-        return "Đang xử lý";
+        return t("transaction.statusLabels.pending");
       case "FAILED":
-        return "Thất bại";
+        return t("transaction.statusLabels.failed");
       default:
         return status;
     }
@@ -76,22 +78,23 @@ export default function TransactionHistoryScreen() {
 
   // Helper function to format package info
   const formatPackageInfo = (transaction) => {
-    const courseName = transaction.gym?.course?.name || "Không có thông tin";
+    const courseName =
+      transaction.gym?.course?.name || t("transaction.noInformation");
     return courseName;
   };
 
   const formatPremiumSubscription = (transaction) => {
     // For Premium subscriptions, we can show the type
     if (transaction.type === "Premium") {
-      return "Gói Premium";
+      return t("transaction.premiumPackage");
     }
-    return "Gói đăng ký";
+    return t("transaction.subscriptionPackage");
   };
 
   const formatPTName = (transaction) => {
     const ptName = transaction.gym?.pt?.fullName;
     if (ptName) {
-      return `PT: ${ptName}`;
+      return t("transaction.ptLabel", { name: ptName });
     }
     return null;
   };
@@ -167,7 +170,9 @@ export default function TransactionHistoryScreen() {
       <View style={styles.loadingContainer}>
         <View style={styles.loadingSpinner}>
           <Ionicons name="reload-outline" size={32} color="#FF914D" />
-          <Text style={styles.loadingText}>Đang tải giao dịch...</Text>
+          <Text style={styles.loadingText}>
+            {t("transaction.loadingTransactions")}
+          </Text>
         </View>
       </View>
     );
@@ -187,7 +192,7 @@ export default function TransactionHistoryScreen() {
               activeTab === "Course" && styles.activeTabText,
             ]}
           >
-            Gói Tập
+            {t("transaction.packageTab")}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -200,7 +205,7 @@ export default function TransactionHistoryScreen() {
               activeTab === "Subscription" && styles.activeTabText,
             ]}
           >
-            Đăng ký
+            {t("transaction.subscriptionTab")}
           </Text>
         </TouchableOpacity>
       </View>
@@ -212,8 +217,8 @@ export default function TransactionHistoryScreen() {
           <TextInput
             placeholder={
               activeTab === "Course"
-                ? "Tìm kiếm theo tên gym hoặc gói tập..."
-                : "Tìm kiếm theo gói đăng ký..."
+                ? t("transaction.searchPackagesPlaceholder")
+                : t("transaction.searchSubscriptionsPlaceholder")
             }
             placeholderTextColor="#9CA3AF"
             style={styles.searchInput}
@@ -231,8 +236,13 @@ export default function TransactionHistoryScreen() {
       {/* Transaction Summary */}
       <View style={styles.summaryContainer}>
         <Text style={styles.summaryText}>
-          {filteredTransactions.length} giao dịch{" "}
-          {activeTab === "Course" ? "gói tập" : "đăng ký"}
+          {t("transaction.transactionCount", {
+            count: filteredTransactions.length,
+            type:
+              activeTab === "Course"
+                ? t("transaction.course")
+                : t("transaction.registration"),
+          })}
         </Text>
       </View>
 
@@ -264,8 +274,8 @@ export default function TransactionHistoryScreen() {
                 <View style={styles.gymInfo}>
                   <Text style={styles.gymName} numberOfLines={1}>
                     {activeTab === "Course"
-                      ? item.gym?.gymName || "Không có tên gym"
-                      : "Gói Premium"}
+                      ? item.gym?.gymName || t("transaction.noGymName")
+                      : t("transaction.premiumPackage")}
                   </Text>
                   <Text style={styles.packageText} numberOfLines={2}>
                     {activeTab === "Course"
@@ -308,7 +318,9 @@ export default function TransactionHistoryScreen() {
               {/* Footer with price and date */}
               <View style={styles.cardFooter}>
                 <View style={styles.priceSection}>
-                  <Text style={styles.priceLabel}>Tổng thanh toán</Text>
+                  <Text style={styles.priceLabel}>
+                    {t("transaction.totalPayment")}
+                  </Text>
                   <Text style={styles.priceValue}>
                     {formatPrice(item.price)}
                   </Text>
@@ -326,7 +338,7 @@ export default function TransactionHistoryScreen() {
                           minute: "2-digit",
                           second: "2-digit",
                         })
-                      : "Không có thông tin"}
+                      : t("transaction.noDateInformation")}
                   </Text>
                 </View>
               </View>
@@ -346,24 +358,26 @@ export default function TransactionHistoryScreen() {
             </View>
             <Text style={styles.emptyTitle}>
               {searchQuery
-                ? "Không tìm thấy giao dịch"
-                : `Chưa có giao dịch ${
-                    activeTab === "Course" ? "gói tập" : "đăng ký"
-                  }`}
+                ? t("transaction.noTransactionsFound")
+                : activeTab === "Course"
+                ? t("transaction.noPackageTransactions")
+                : t("transaction.noSubscriptionTransactions")}
             </Text>
             <Text style={styles.emptySubtitle}>
               {searchQuery
-                ? "Thử tìm kiếm với từ gói khác"
-                : `Các giao dịch ${
-                    activeTab === "Course" ? "gói tập" : "đăng ký"
-                  } của bạn sẽ hiển thị tại đây`}
+                ? t("transaction.tryDifferentKeywords")
+                : activeTab === "Course"
+                ? t("transaction.packageTransactionsWillAppear")
+                : t("transaction.subscriptionTransactionsWillAppear")}
             </Text>
             {searchQuery && (
               <TouchableOpacity
                 style={styles.clearSearchButton}
                 onPress={() => setSearchQuery("")}
               >
-                <Text style={styles.clearSearchText}>Xóa tìm kiếm</Text>
+                <Text style={styles.clearSearchText}>
+                  {t("transaction.clearSearch")}
+                </Text>
               </TouchableOpacity>
             )}
           </View>

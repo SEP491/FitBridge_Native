@@ -60,7 +60,8 @@
           "photosPermission": "FitBridge needs access to your photo library to allow you to upload images for your profile and gym photos.",
           "cameraPermission": "FitBridge needs access to your camera to allow you to take photos for your profile and gym photos."
         }
-      ]
+      ],
+      "expo-localization"
     ]
   }
 }

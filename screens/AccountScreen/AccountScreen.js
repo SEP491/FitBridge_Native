@@ -22,12 +22,14 @@ import * as ImagePicker from "expo-image-picker";
 import * as Device from "expo-device";
 import { useAvatar } from "../../context/AvatarContext";
 import accountService from "../../services/accountService";
+import { useTranslation } from "../../hooks/useTranslation";
 
 const { width } = Dimensions.get("window");
 
 const AccountScreen = () => {
   const navigation = useNavigation();
   const { updateAvatar, getAvatarUrl, syncAvatarFromUserData } = useAvatar(); // Use avatar context
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -63,7 +65,7 @@ const AccountScreen = () => {
       });
     } catch (error) {
       console.error("Error fetching user data:", error);
-      Alert.alert("Lỗi", "Không thể tải thông tin hồ sơ");
+      Alert.alert(t("common.error"), t("account.cannotLoadProfile"));
     } finally {
       setLoading(false);
     }
@@ -82,7 +84,11 @@ const AccountScreen = () => {
       return;
     }
 
-    const options = ["Chọn từ thư viện", "Chụp ảnh mới", "Hủy"];
+    const options = [
+      t("account.chooseFromLibrary"),
+      t("account.takeNewPhoto"),
+      t("common.cancel"),
+    ];
     const cancelButtonIndex = 2;
 
     if (Platform.OS === "ios") {
@@ -101,10 +107,10 @@ const AccountScreen = () => {
       );
     } else {
       // For Android, show Alert
-      Alert.alert("Chọn ảnh đại diện", "Bạn muốn chọn ảnh từ đâu?", [
-        { text: "Thư viện", onPress: selectImageFromLibrary },
-        { text: "Máy ảnh", onPress: takePhotoWithCamera },
-        { text: "Hủy", style: "cancel" },
+      Alert.alert(t("account.chooseAvatar"), t("account.chooseImageSource"), [
+        { text: t("account.library"), onPress: selectImageFromLibrary },
+        { text: t("account.camera"), onPress: takePhotoWithCamera },
+        { text: t("common.cancel"), style: "cancel" },
       ]);
     }
   };
@@ -117,17 +123,17 @@ const AccountScreen = () => {
 
       if (status !== "granted") {
         Alert.alert(
-          "Quyền truy cập",
-          "Cần cấp quyền truy cập thư viện ảnh để chọn ảnh đại diện",
+          t("account.permissionAccess"),
+          t("account.needPhotoPermission"),
           [
-            { text: "Hủy", style: "cancel" },
+            { text: t("common.cancel"), style: "cancel" },
             {
-              text: "Cài đặt",
+              text: t("account.settings"),
               onPress: () => {
                 if (Platform.OS === "ios") {
                   Alert.alert(
-                    "Hướng dẫn",
-                    "Vào Cài đặt > FitBridge > Ảnh để cấp quyền"
+                    t("account.permissionGuide"),
+                    t("account.goToSettings")
                   );
                 }
               },
@@ -151,17 +157,16 @@ const AccountScreen = () => {
     } catch (error) {
       console.error("Error selecting image from library:", error);
 
-      let errorMessage = "Không thể mở thư viện ảnh";
+      let errorMessage = t("account.cannotOpenPhotoLibrary");
 
       if (error.message?.includes("Permission")) {
-        errorMessage =
-          "Không có quyền truy cập thư viện ảnh. Vui lòng cấp quyền trong Cài đặt.";
+        errorMessage = t("account.noPhotoLibraryPermission");
       } else if (error.message?.includes("User cancelled")) {
         // Don't show error for user cancellation
         return;
       }
 
-      Alert.alert("Lỗi", errorMessage);
+      Alert.alert(t("common.error"), errorMessage);
     }
   };
 
@@ -170,8 +175,8 @@ const AccountScreen = () => {
       // Check if running on simulator
       if (!Device.isDevice) {
         Alert.alert(
-          "Máy ảnh không khả dụng",
-          "Máy ảnh không hoạt động trên simulator. Vui lòng sử dụng thiết bị thật hoặc chọn ảnh từ thư viện."
+          t("account.cameraNotAvailable"),
+          t("account.cameraNotAvailableSimulator")
         );
         return;
       }
@@ -184,18 +189,18 @@ const AccountScreen = () => {
 
       if (status !== "granted") {
         Alert.alert(
-          "Quyền truy cập",
-          "Cần cấp quyền truy cập máy ảnh để chụp ảnh đại diện",
+          t("account.permissionAccess"),
+          t("account.needCameraPermission"),
           [
-            { text: "Hủy", style: "cancel" },
+            { text: t("common.cancel"), style: "cancel" },
             {
-              text: "Cài đặt",
+              text: t("account.settings"),
               onPress: () => {
                 // On iOS, guide user to settings
                 if (Platform.OS === "ios") {
                   Alert.alert(
-                    "Hướng dẫn",
-                    "Vào Cài đặt > FitBridge > Máy ảnh để cấp quyền"
+                    t("account.permissionGuide"),
+                    t("account.goToCameraSettings")
                   );
                 }
               },
@@ -227,8 +232,8 @@ const AccountScreen = () => {
           cameraError.message?.includes("No camera available")
         ) {
           Alert.alert(
-            "Máy ảnh không khả dụng",
-            "Không thể truy cập máy ảnh. Vui lòng thử lại hoặc chọn ảnh từ thư viện."
+            t("account.cameraNotAvailable"),
+            t("account.cameraNotAvailableDevice")
           );
         } else {
           throw cameraError; // Re-throw to be caught by outer catch
@@ -238,30 +243,28 @@ const AccountScreen = () => {
       console.error("Error taking photo with camera:", error);
 
       // Handle different types of errors more specifically
-      let errorMessage = "Không thể mở máy ảnh";
+      let errorMessage = t("account.cannotOpenCamera");
 
       if (
         error.message?.includes("Camera not available") ||
         error.message?.includes("simulator") ||
         error.message?.includes("No camera available")
       ) {
-        errorMessage =
-          "Máy ảnh không khả dụng trên thiết bị này. Vui lòng chọn ảnh từ thư viện.";
+        errorMessage = t("account.cameraNotAvailableDevice");
       } else if (error.message?.includes("Permission")) {
-        errorMessage =
-          "Không có quyền truy cập máy ảnh. Vui lòng cấp quyền trong Cài đặt.";
+        errorMessage = t("account.noCameraPermission");
       } else if (error.message?.includes("User cancelled")) {
         // Don't show error for user cancellation
         return;
       }
 
-      Alert.alert("Lỗi", errorMessage);
+      Alert.alert(t("common.error"), errorMessage);
     }
   };
 
   const uploadAvatar = async (imageAsset) => {
     if (!imageAsset?.uri) {
-      Alert.alert("Lỗi", "Không thể đọc thông tin ảnh");
+      Alert.alert(t("common.error"), t("account.cannotReadImageInfo"));
       return;
     }
 
@@ -276,10 +279,7 @@ const AccountScreen = () => {
       // Validate file type
       const allowedTypes = ["jpg", "jpeg", "png", "webp"];
       if (!allowedTypes.includes(fileType.toLowerCase())) {
-        Alert.alert(
-          "Lỗi",
-          "Định dạng ảnh không được hỗ trợ. Vui lòng chọn file JPG, PNG hoặc WEBP"
-        );
+        Alert.alert(t("common.error"), t("account.unsupportedImageFormat"));
         return;
       }
 
@@ -332,31 +332,28 @@ const AccountScreen = () => {
         }
       }
 
-      Alert.alert(
-        "Thành công",
-        "Cập nhật ảnh đại diện thành công! Avatar đã được cập nhật"
-      );
+      Alert.alert(t("common.success"), t("account.avatarUploadSuccess"));
     } catch (error) {
       console.error("Error uploading avatar:", error);
 
       // Handle different types of errors
-      let errorMessage = "Không thể cập nhật ảnh đại diện";
+      let errorMessage = t("account.cannotUpdateAvatar");
 
       if (error.response?.status === 413) {
-        errorMessage = "Kích thước ảnh quá lớn. Vui lòng chọn ảnh nhỏ hơn 5MB";
+        errorMessage = t("account.imageTooLarge");
       } else if (error.response?.status === 400) {
-        errorMessage = "Định dạng ảnh không được hỗ trợ hoặc file bị lỗi";
+        errorMessage = t("account.unsupportedFormat");
       } else if (error.response?.status === 401) {
-        errorMessage = "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại";
+        errorMessage = t("account.sessionExpired");
       } else if (error.response?.status === 500) {
-        errorMessage = "Lỗi máy chủ. Vui lòng thử lại sau";
+        errorMessage = t("account.serverError");
       } else if (error.message === "Network Error") {
-        errorMessage = "Lỗi kết nối mạng. Vui lòng kiểm tra kết nối và thử lại";
+        errorMessage = t("account.networkError");
       } else if (error.code === "ENOTFOUND") {
-        errorMessage = "Không thể kết nối tới máy chủ. Vui lòng thử lại";
+        errorMessage = t("account.cannotConnectServer");
       }
 
-      Alert.alert("Lỗi", errorMessage);
+      Alert.alert(t("common.error"), errorMessage);
     } finally {
       setUploadingAvatar(false);
     }
@@ -366,7 +363,7 @@ const AccountScreen = () => {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#ED2A46" />
-        <Text style={styles.loadingText}>Đang tải...</Text>
+        <Text style={styles.loadingText}>{t("loading")}</Text>
       </View>
     );
   }
@@ -404,9 +401,9 @@ const AccountScreen = () => {
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.welcomeText}>Xin chào!</Text>
+          <Text style={styles.welcomeText}>{t("account.hello")}</Text>
           <Text style={styles.nameText}>
-            {userProfile.fullName || formData.fullName || "Người dùng"}
+            {userProfile.fullName || formData.fullName || t("account.user")}
           </Text>
         </View>
       </LinearGradient>
@@ -419,7 +416,7 @@ const AccountScreen = () => {
         {/* Profile Form Card */}
         <View style={styles.formCard}>
           <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>Tài khoản</Text>
+            <Text style={styles.cardTitle}>{t("account.title")}</Text>
           </View>
 
           <View style={styles.formSection}>
@@ -441,7 +438,7 @@ const AccountScreen = () => {
                   styles.input,
                   editMode ? styles.inputEditable : styles.inputReadonly,
                 ]}
-                placeholder="Nhập địa chỉ email"
+                placeholder={t("account.enterEmail")}
                 keyboardType="email-address"
                 placeholderTextColor="#999"
                 editable={editMode}
@@ -457,7 +454,8 @@ const AccountScreen = () => {
                   color="#ED2A46"
                   style={{ marginRight: 8 }}
                 />
-                {"  "}Số điện thoại
+                {"  "}
+                {t("profile.phone")}
               </Text>
               <TextInput
                 value={formData.phone}
@@ -466,7 +464,7 @@ const AccountScreen = () => {
                   styles.input,
                   editMode ? styles.inputEditable : styles.inputReadonly,
                 ]}
-                placeholder="Nhập số điện thoại"
+                placeholder={t("account.enterPhone")}
                 keyboardType="phone-pad"
                 placeholderTextColor="#999"
                 editable={editMode}
@@ -486,9 +484,11 @@ const AccountScreen = () => {
                 <Icon name="key" size={20} color="#ED2A46" />
               </View>
               <View style={styles.actionCardContent}>
-                <Text style={styles.actionCardTitle}>Đổi mật khẩu</Text>
+                <Text style={styles.actionCardTitle}>
+                  {t("account.changePassword")}
+                </Text>
                 <Text style={styles.actionCardSubtitle}>
-                  Cập nhật mật khẩu bảo mật
+                  {t("account.updateSecurityPassword")}
                 </Text>
               </View>
               <Icon name="chevron-right" size={16} color="#999" />
@@ -524,9 +524,11 @@ const AccountScreen = () => {
                 <Icon name="question-circle" size={20} color="#4CAF50" />
               </View>
               <View style={styles.actionCardContent}>
-                <Text style={styles.actionCardTitle}>Trợ giúp & Hỗ trợ</Text>
+                <Text style={styles.actionCardTitle}>
+                  {t("account.helpSupport")}
+                </Text>
                 <Text style={styles.actionCardSubtitle}>
-                  Câu hỏi thường gặp, liên hệ
+                  {t("account.faqContact")}
                 </Text>
               </View>
               <Icon name="chevron-right" size={16} color="#999" />

@@ -18,8 +18,10 @@ import { useNavigation } from "@react-navigation/native";
 import gymService from "../../services/gymService";
 import { useCart } from "../../context/CartContext";
 import colors from "../../constants/color";
+import { useTranslation } from "../../hooks/useTranslation";
 
 export default function PTinCourseScreen({ route }) {
+  const { t } = useTranslation();
   const { gymPackage } = route.params;
   const [pt, setPT] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -46,16 +48,20 @@ export default function PTinCourseScreen({ route }) {
 
   const handleAddToCart = async (selectedPT) => {
     if (getCartCount() > 0) {
-      Alert.alert("Giỏ hàng đã có gói tập", "Bạn có muốn xem giỏ hàng không?", [
-        {
-          text: "Không",
-          style: "cancel",
-        },
-        {
-          text: "Xem giỏ hàng",
-          onPress: () => navigation.navigate("CartScreen"),
-        },
-      ]);
+      Alert.alert(
+        t("ptCourse.cartHasPackage"),
+        t("ptCourse.viewCartQuestion"),
+        [
+          {
+            text: t("ptCourse.no"),
+            style: "cancel",
+          },
+          {
+            text: t("ptCourse.viewCart"),
+            onPress: () => navigation.navigate("CartScreen"),
+          },
+        ]
+      );
       return;
     } else {
       const cartItem = {
@@ -76,12 +82,21 @@ export default function PTinCourseScreen({ route }) {
 
       let successMessage = "";
       if (gymPackage.type === "Normal") {
-        successMessage = `Bạn đã thêm gói ${gymPackage.name} tại ${gymPackage.gymName} vào giỏ hàng`;
+        successMessage = t("ptCourse.addedNormalPackage", {
+          packageName: gymPackage.name,
+          gymName: gymPackage.gymName,
+        });
       } else if (gymPackage.type === "WithPT") {
-        successMessage = `Bạn đã thêm gói ${gymPackage.name} với PT ${selectedPT?.fullName} tại ${gymPackage.gymName} vào giỏ hàng`;
+        successMessage = t("ptCourse.addedPTPackage", {
+          packageName: gymPackage.name,
+          ptName: selectedPT?.fullName,
+          gymName: gymPackage.gymName,
+        });
       }
 
-      Alert.alert("Thông báo", successMessage, [{ text: "OK" }]);
+      Alert.alert(t("ptCourse.notification"), successMessage, [
+        { text: t("ptCourse.ok") },
+      ]);
       navigation.goBack();
     }
   };
@@ -126,7 +141,9 @@ export default function PTinCourseScreen({ route }) {
                     <Foundation name="female-symbol" size={18} color="white" />
                   )}
                   <Text style={styles.detailText}>
-                    {item.gender === "Male" ? "Nam" : "Nữ"}
+                    {item.gender === "Male"
+                      ? t("ptScreen.male")
+                      : t("ptScreen.female")}
                   </Text>
                 </View>
 
@@ -148,14 +165,18 @@ export default function PTinCourseScreen({ route }) {
                   }}
                 >
                   <Ionicons name="person-outline" size={16} color="#FFFFFF" />
-                  <Text style={styles.detailButtonText}>Chi Tiết</Text>
+                  <Text style={styles.detailButtonText}>
+                    {t("ptCourse.details")}
+                  </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.selectButton}
                   onPress={() => handleAddToCart(item)}
                 >
                   <Ionicons name="checkmark-circle" size={16} color="#FF914D" />
-                  <Text style={styles.selectButtonText}>Chọn PT</Text>
+                  <Text style={styles.selectButtonText}>
+                    {t("ptCourse.selectPT")}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -168,10 +189,8 @@ export default function PTinCourseScreen({ route }) {
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
       <Foundation name="torsos-all" size={64} color="#ccc" />
-      <Text style={styles.emptyTitle}>Không có PT nào</Text>
-      <Text style={styles.emptySubtitle}>
-        Hiện tại chưa có PT nào cho gói tập này
-      </Text>
+      <Text style={styles.emptyTitle}>{t("ptCourse.noPTAvailable")}</Text>
+      <Text style={styles.emptySubtitle}>{t("ptCourse.noPTForPackage")}</Text>
     </View>
   );
 
@@ -191,7 +210,7 @@ export default function PTinCourseScreen({ route }) {
             <TextInput
               value={searchText}
               onChangeText={setSearchText}
-              placeholder="Tìm kiếm PT theo tên"
+              placeholder={t("ptScreen.searchPlaceholder")}
               placeholderTextColor="#999"
               style={styles.searchInput}
             />
@@ -212,7 +231,7 @@ export default function PTinCourseScreen({ route }) {
         >
           {loading ? (
             <View style={styles.loadingContainer}>
-              <Text style={styles.loadingText}>Đang tải...</Text>
+              <Text style={styles.loadingText}>{t("ptScreen.loading")}</Text>
             </View>
           ) : filteredPT.length > 0 ? (
             filteredPT.map(renderPTCard)

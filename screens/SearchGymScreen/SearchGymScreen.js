@@ -15,6 +15,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import GymCard from "../../components/GymCard/GymCard";
 import gymService from "../../services/gymService";
+import { useTranslation } from "../../hooks/useTranslation";
 
 export default function SearchGymScreen() {
   const [searchText, setSearchText] = useState("");
@@ -28,6 +29,7 @@ export default function SearchGymScreen() {
 
   const navigation = useNavigation();
   const route = useRoute();
+  const { t } = useTranslation();
 
   useEffect(() => {
     // Check if we received a search query from HeaderHome
@@ -39,7 +41,10 @@ export default function SearchGymScreen() {
 
   const performSearch = async (query, page = 1, append = false) => {
     if (!query.trim()) {
-      Alert.alert("Thông báo", "Vui lòng nhập từ khóa tìm kiếm");
+      Alert.alert(
+        t("errors.notification"),
+        t("errors.pleaseEnterSearchKeyword")
+      );
       return;
     }
 
@@ -70,7 +75,7 @@ export default function SearchGymScreen() {
       );
     } catch (error) {
       console.error("Error searching gyms:", error);
-      Alert.alert("Lỗi", "Không thể tìm kiếm phòng gym. Vui lòng thử lại sau.");
+      Alert.alert(t("errors.error"), t("errors.cannotSearch"));
     } finally {
       setLoading(false);
       setRefreshing(false);

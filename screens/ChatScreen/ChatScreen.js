@@ -21,6 +21,7 @@ import {
 import Ionicons from "@expo/vector-icons/Ionicons";
 import chatbotService from "../../services/chatbotService";
 import { useLocationContext } from "../../context/LocationContext";
+import { useTranslation } from "../../hooks/useTranslation";
 
 const { width } = Dimensions.get("window");
 const MarkdownText = ({ text, style }) => {
@@ -175,7 +176,9 @@ const GymCard = ({ gym, onPress }) => {
           <Text style={styles.gymAddress} numberOfLines={2}>
             📍 {gym.address}
           </Text>
-          <Text style={styles.gymSince}>📅 Hoạt động từ: {gym.since}</Text>
+          <Text style={styles.gymSince}>
+            📅 {t("chat.operatingSince")} {gym.since}
+          </Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -216,7 +219,8 @@ const GymCardsList = ({ gyms, onGymPress }) => {
             onPress={handleShowMore}
           >
             <Text style={styles.showMoreText}>
-              Hiển thị thêm 5 gym ({gyms.length - visibleCount} còn lại)
+              {t("chat.showMoreGyms")} ({gyms.length - visibleCount}{" "}
+              {t("chat.remaining")})
             </Text>
             <Ionicons name="chevron-down" size={16} color="#ED2A46" />
           </TouchableOpacity>
@@ -227,7 +231,7 @@ const GymCardsList = ({ gyms, onGymPress }) => {
             style={styles.collapseButton}
             onPress={handleCollapse}
           >
-            <Text style={styles.collapseText}>Thu gọn</Text>
+            <Text style={styles.collapseText}>{t("chat.collapse")}</Text>
             <Ionicons name="chevron-up" size={16} color="#666" />
           </TouchableOpacity>
         )}
@@ -380,21 +384,29 @@ const FloatingClearButton = ({ onPress, isVisible }) => {
 
 export default function ChatScreen({ navigation }) {
   const { location, hasLocation, coordinates } = useLocationContext();
+  const { t } = useTranslation();
   const [coords, setCoords] = useState({});
   // Add navigation prop
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      text: "Tôi là PT AI của FitBridge, tôi có thể giúp gì cho bạn ?",
-      isAI: true,
-      timestamp: new Date(),
-    },
-  ]);
+  const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const flatListRef = useRef(null);
   const textInputRef = useRef(null);
+
+  // Initialize greeting message
+  useEffect(() => {
+    if (messages.length === 0) {
+      setMessages([
+        {
+          id: 1,
+          text: t("chat.aiGreeting"),
+          isAI: true,
+          timestamp: new Date(),
+        },
+      ]);
+    }
+  }, [t]);
 
   // Keyboard event listeners
   useEffect(() => {
@@ -485,30 +497,26 @@ export default function ChatScreen({ navigation }) {
   };
 
   const handleClearChat = () => {
-    Alert.alert(
-      "Xóa cuộc trò chuyện",
-      "Bạn có chắc chắn muốn xóa toàn bộ cuộc trò chuyện không?",
-      [
-        {
-          text: "Hủy",
-          style: "cancel",
+    Alert.alert(t("chat.clearChat"), t("chat.clearChatConfirm"), [
+      {
+        text: t("chat.cancel"),
+        style: "cancel",
+      },
+      {
+        text: t("chat.delete"),
+        style: "destructive",
+        onPress: () => {
+          setMessages([
+            {
+              id: 1,
+              text: t("chat.aiGreeting"),
+              isAI: true,
+              timestamp: new Date(),
+            },
+          ]);
         },
-        {
-          text: "Xóa",
-          style: "destructive",
-          onPress: () => {
-            setMessages([
-              {
-                id: 1,
-                text: "Tôi là PT AI của FitBridge, tôi có thể giúp gì cho bạn ?",
-                isAI: true,
-                timestamp: new Date(),
-              },
-            ]);
-          },
-        },
-      ]
-    );
+      },
+    ]);
   };
 
   const sendMessage = async () => {
@@ -536,16 +544,14 @@ export default function ChatScreen({ navigation }) {
       // Check if response contains gyms data
       if (response.gyms && response.gyms.length > 0) {
         // Only show the prompt response, gyms will be shown as cards
-        aiResponseText =
-          response.promptResponse || "Đây là những phòng gym phù hợp với bạn:";
+        aiResponseText = response.promptResponse || t("chat.gymsForYou");
         gyms = response.gyms;
       } else if (response.message) {
         aiResponseText = response.message;
       } else if (response.promptResponse) {
         aiResponseText = response.promptResponse;
       } else {
-        aiResponseText =
-          "Xin lỗi, tôi không thể xử lý yêu cầu của bạn lúc này.";
+        aiResponseText = t("chat.cannotProcess");
       }
 
       const aiResponse = {
@@ -573,7 +579,7 @@ export default function ChatScreen({ navigation }) {
 
       const errorMessage = {
         id: "error-" + Date.now(),
-        text: "Xin lỗi, đã có lỗi xảy ra khi kết nối với server. Vui lòng thử lại sau.",
+        text: t("chat.connectionError"),
         isAI: true,
         timestamp: new Date(),
         role: "assistant",
@@ -584,8 +590,8 @@ export default function ChatScreen({ navigation }) {
 
       // Optional: Show alert for critical errors
       Alert.alert(
-        "Lỗi kết nối",
-        "Không thể kết nối với server. Vui lòng kiểm tra kết nối internet và thử lại."
+        t("chat.connectionErrorTitle"),
+        t("chat.serverConnectionFailed")
       );
     } finally {
       setIsLoading(false);

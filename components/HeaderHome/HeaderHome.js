@@ -13,12 +13,14 @@ import { useNavigation } from "@react-navigation/native";
 import { useCart } from "../../context/CartContext";
 import { useAvatar } from "../../context/AvatarContext";
 import { useLocationContext } from "../../context/LocationContext";
+import { useTranslation } from "../../hooks/useTranslation";
 import axios from "axios";
 
 export default function HeaderHome({ user }) {
   const [searchText, setSearchText] = useState("");
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
+  const { t } = useTranslation();
   const { cart, getCartCount } = useCart();
   const { getAvatarUrl } = useAvatar(); // Use avatar context
   const { location, coordinates, hasLocation } = useLocationContext();
@@ -70,9 +72,9 @@ export default function HeaderHome({ user }) {
 
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return "Chào Buổi Sáng!";
-    if (hour < 18) return "Chào Buổi Chiều!";
-    return "Chào Buổi Tối!";
+    if (hour < 12) return t("goodMorning");
+    if (hour < 18) return t("goodAfternoon");
+    return t("goodEvening");
   };
 
   const getWeatherIcon = () => {
@@ -117,9 +119,7 @@ export default function HeaderHome({ user }) {
                   style={[styles.avatar]}
                 />
               </View>
-              <Text style={styles.userName}>
-                {user?.fullName || "Người dùng"}
-              </Text>
+              <Text style={styles.userName}>{user?.fullName || t("user")}</Text>
               <View style={styles.statusDot} />
             </View>
           </View>
@@ -163,7 +163,7 @@ export default function HeaderHome({ user }) {
               <TextInput
                 value={searchText}
                 onChangeText={setSearchText}
-                placeholder="Tìm kiếm phòng gym..."
+                placeholder={t("gym.searchGymPlaceholder")}
                 placeholderTextColor="#A39F9F"
                 style={styles.searchInput}
                 onSubmitEditing={() => {

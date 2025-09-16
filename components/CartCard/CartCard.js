@@ -32,7 +32,7 @@ export default function CartCard({ product, onRemove, showRemove = true }) {
                   }}
                   onPress={onRemove}
                 >
-                  <AntDesign name="closecircle" size={22} color="#ED2A46" />
+                  <AntDesign name="close" size={22} color="#ED2A46" />
                 </TouchableOpacity>
               )}
             </View>

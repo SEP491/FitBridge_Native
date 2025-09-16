@@ -21,11 +21,13 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import colors from "../../constants/color";
+import { useTranslation } from "../../hooks/useTranslation";
 
 const { width } = Dimensions.get("window");
 
 export default function BookingHistoryScreen() {
   const navigation = useNavigation();
+  const { t } = useTranslation();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -135,12 +137,12 @@ export default function BookingHistoryScreen() {
   const getStatusText = (status) => {
     switch (status) {
       case "Completed":
-        return "Hoàn thành";
+        return t("booking.completed");
       case "Canceled":
-        return "Đã hủy";
+        return t("booking.canceled");
       case "Booked":
       default:
-        return "Đã đặt";
+        return t("booking.booked");
     }
   };
 
@@ -198,7 +200,9 @@ export default function BookingHistoryScreen() {
                 />
               </View>
               <View style={styles.ptInfo}>
-                <Text style={styles.ptLabel}>Personal Trainer</Text>
+                <Text style={styles.ptLabel}>
+                  {t("booking.personalTrainer")}
+                </Text>
                 <Text style={styles.ptName}>{booking.pt.fullName}</Text>
                 <View style={styles.ptDetailRow}>
                   {booking.pt.gender === "Male" ? (
@@ -211,8 +215,10 @@ export default function BookingHistoryScreen() {
                     />
                   )}
                   <Text style={styles.ptDetailText}>
-                    {booking.pt.gender === "Male" ? "Nam" : "Nữ"} •{" "}
-                    {booking.pt.experience} năm kinh nghiệm
+                    {booking.pt.gender === "Male"
+                      ? t("profile.male")
+                      : t("profile.female")}{" "}
+                    • {booking.pt.experience} {t("booking.yearsExperience")}
                   </Text>
                 </View>
               </View>
@@ -228,7 +234,7 @@ export default function BookingHistoryScreen() {
                 </Text>
               </View>
               <View style={styles.userInfo}>
-                <Text style={styles.userLabel}>Người đặt</Text>
+                <Text style={styles.userLabel}>{t("booking.bookedBy")}</Text>
                 <Text style={styles.userName}>{booking.user.fullName}</Text>
               </View>
             </View>
@@ -271,12 +277,14 @@ export default function BookingHistoryScreen() {
     <View style={styles.emptyContainer}>
       <Ionicons name="calendar-outline" size={64} color="#ccc" />
       <Text style={styles.emptyTitle}>
-        {searchQuery ? "Không tìm thấy kết quả" : "Chưa có lịch sử đặt lịch"}
+        {searchQuery
+          ? t("booking.noResultsFound")
+          : t("booking.noBookingHistory")}
       </Text>
       <Text style={styles.emptySubtitle}>
         {searchQuery
-          ? `Không tìm thấy PT nào có tên "${searchQuery}"`
-          : "Hãy đặt lịch với PT để xem lịch sử tại đây"}
+          ? `${t("booking.noSearchResults")} "${searchQuery}"`
+          : t("booking.bookWithPTPrompt")}
       </Text>
     </View>
   );
@@ -296,9 +304,13 @@ export default function BookingHistoryScreen() {
             <MaterialIcons name="history" size={24} color="#fff" />
           </View>
           <View style={styles.summaryInfo}>
-            <Text style={styles.summaryLabel}>Tổng số lịch đặt</Text>
+            <Text style={styles.summaryLabel}>
+              {t("booking.totalBookings")}
+            </Text>
             <Text style={styles.summaryCount}>{bookings.length}</Text>
-            <Text style={styles.summarySubText}>Lịch sử của bạn</Text>
+            <Text style={styles.summarySubText}>
+              {t("booking.yourHistory")}
+            </Text>
           </View>
         </View>
         <TouchableOpacity
@@ -320,7 +332,7 @@ export default function BookingHistoryScreen() {
           />
           <TextInput
             style={styles.searchInput}
-            placeholder="Tìm kiếm theo tên PT..."
+            placeholder={t("booking.searchByPTName")}
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholderTextColor="#94a3b8"
@@ -342,19 +354,19 @@ export default function BookingHistoryScreen() {
           <Text style={styles.statNumber}>
             {filteredBookings.filter((b) => b.status === "Booked").length}
           </Text>
-          <Text style={styles.statLabel}>Đã đặt</Text>
+          <Text style={styles.statLabel}>{t("booking.booked")}</Text>
         </View>
         <View style={styles.statItem}>
           <Text style={styles.statNumber}>
             {filteredBookings.filter((b) => b.status === "Completed").length}
           </Text>
-          <Text style={styles.statLabel}>Hoàn thành</Text>
+          <Text style={styles.statLabel}>{t("booking.completed")}</Text>
         </View>
         <View style={styles.statItem}>
           <Text style={styles.statNumber}>
             {filteredBookings.filter((b) => b.status === "Canceled").length}
           </Text>
-          <Text style={styles.statLabel}>Đã hủy</Text>
+          <Text style={styles.statLabel}>{t("booking.canceled")}</Text>
         </View>
       </View>
 
@@ -377,7 +389,9 @@ export default function BookingHistoryScreen() {
           <View style={styles.loadingContainer}>
             <View style={styles.loadingCard}>
               <ActivityIndicator size="large" color="#E42D46" />
-              <Text style={styles.loadingText}>Đang tải lịch sử...</Text>
+              <Text style={styles.loadingText}>
+                {t("booking.loadingHistory")}
+              </Text>
             </View>
           </View>
         ) : filteredBookings.length > 0 ? (

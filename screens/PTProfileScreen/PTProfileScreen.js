@@ -10,8 +10,10 @@ import {
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { LinearGradient } from "expo-linear-gradient";
 import ptService from "../../services/ptService";
+import { useTranslation } from "../../hooks/useTranslation";
 
 const PTProfileScreen = ({ route }) => {
+  const { t } = useTranslation();
   const [pt, setPT] = useState({});
   const { ptId } = route.params;
   const [loading, setLoading] = useState(true);
@@ -55,25 +57,25 @@ const PTProfileScreen = ({ route }) => {
 
   const getBMICategory = (bmi) => {
     if (!bmi) return "";
-    if (bmi < 18.5) return "Thiếu cân";
-    if (bmi < 25) return "Bình thường";
-    if (bmi < 30) return "Thừa cân";
-    return "Béo phì";
+    if (bmi < 18.5) return t("profile.bmiCategories.underweight");
+    if (bmi < 25) return t("profile.bmiCategories.normal");
+    if (bmi < 30) return t("profile.bmiCategories.overweight");
+    return t("profile.bmiCategories.obese");
   };
 
   const getExperienceLevel = (years) => {
-    if (!years) return "Mới bắt đầu";
-    if (years < 2) return "Tập sự";
-    if (years < 5) return "Có kinh nghiệm";
-    if (years < 10) return "Chuyên nghiệp";
-    return "Chuyên gia";
+    if (!years) return t("ptProfile.experienceLevels.beginner");
+    if (years < 2) return t("ptProfile.experienceLevels.trainee");
+    if (years < 5) return t("ptProfile.experienceLevels.experienced");
+    if (years < 10) return t("ptProfile.experienceLevels.professional");
+    return t("ptProfile.experienceLevels.expert");
   };
 
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
         <MaterialCommunityIcons name="loading" size={40} color="#FF914D" />
-        <Text style={styles.loadingText}>Đang tải thông tin...</Text>
+        <Text style={styles.loadingText}>{t("ptProfile.loadingInfo")}</Text>
       </View>
     );
   }
@@ -108,11 +110,11 @@ const PTProfileScreen = ({ route }) => {
               size={16}
               color="#4CAF50"
             />
-            <Text style={styles.statusText}>Đã xác thực</Text>
+            <Text style={styles.statusText}>{t("ptProfile.verified")}</Text>
           </View>
         </View>
 
-        <Text style={styles.name}>{pt.fullName || "Chưa có tên"}</Text>
+        <Text style={styles.name}>{pt.fullName || t("ptProfile.noName")}</Text>
 
         <View style={styles.quickInfoContainer}>
           <View style={styles.quickInfoItem}>
@@ -124,7 +126,7 @@ const PTProfileScreen = ({ route }) => {
           <View style={styles.quickInfoItem}>
             <MaterialCommunityIcons name="target" size={20} color="#FFD700" />
             <Text style={styles.quickInfoText}>
-              {pt.goalTraining || "Tổng quát"}
+              {pt.goalTraining || t("ptProfile.general")}
             </Text>
           </View>
         </View>
@@ -132,7 +134,7 @@ const PTProfileScreen = ({ route }) => {
 
       {/* Personal Information Section */}
       <View style={styles.sectionContainer}>
-        <Text style={styles.sectionTitle}>Thông tin cá nhân</Text>
+        <Text style={styles.sectionTitle}>{t("ptProfile.personalInfo")}</Text>
 
         <View style={styles.infoGrid}>
           <View style={styles.infoCard}>
@@ -141,21 +143,23 @@ const PTProfileScreen = ({ route }) => {
               size={24}
               color="#FF914D"
             />
-            <Text style={styles.infoLabel}>Giới tính</Text>
+            <Text style={styles.infoLabel}>{t("ptProfile.gender")}</Text>
             <Text style={styles.infoValue}>
               {pt.gender === "Male"
-                ? "Nam"
+                ? t("ptProfile.genderOptions.male")
                 : pt.gender === "Female"
-                ? "Nữ"
-                : "Chưa xác định"}
+                ? t("ptProfile.genderOptions.female")
+                : t("ptProfile.genderOptions.undefined")}
             </Text>
           </View>
 
           <View style={styles.infoCard}>
             <MaterialCommunityIcons name="calendar" size={24} color="#FF914D" />
-            <Text style={styles.infoLabel}>Tuổi</Text>
+            <Text style={styles.infoLabel}>{t("ptProfile.age")}</Text>
             <Text style={styles.infoValue}>
-              {age ? `${age} tuổi` : "Chưa có"}
+              {age
+                ? `${age} ${t("ptProfile.units.yearsOld")}`
+                : t("ptProfile.notAvailable")}
             </Text>
           </View>
 
@@ -165,9 +169,11 @@ const PTProfileScreen = ({ route }) => {
               size={24}
               color="#FF914D"
             />
-            <Text style={styles.infoLabel}>Chiều cao</Text>
+            <Text style={styles.infoLabel}>{t("ptProfile.height")}</Text>
             <Text style={styles.infoValue}>
-              {pt.height ? `${pt.height} cm` : "Chưa có"}
+              {pt.height
+                ? `${pt.height} ${t("ptProfile.units.cm")}`
+                : t("ptProfile.notAvailable")}
             </Text>
           </View>
 
@@ -177,9 +183,11 @@ const PTProfileScreen = ({ route }) => {
               size={24}
               color="#FF914D"
             />
-            <Text style={styles.infoLabel}>Cân nặng</Text>
+            <Text style={styles.infoLabel}>{t("ptProfile.weight")}</Text>
             <Text style={styles.infoValue}>
-              {pt.weight ? `${pt.weight} kg` : "Chưa có"}
+              {pt.weight
+                ? `${pt.weight} ${t("ptProfile.units.kg")}`
+                : t("ptProfile.notAvailable")}
             </Text>
           </View>
         </View>
@@ -188,7 +196,9 @@ const PTProfileScreen = ({ route }) => {
       {/* Health Metrics Section */}
       {bmi && (
         <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Chỉ số sức khỏe</Text>
+          <Text style={styles.sectionTitle}>
+            {t("ptProfile.healthMetrics")}
+          </Text>
 
           <View style={styles.bmiContainer}>
             <View style={styles.bmiHeader}>
@@ -197,7 +207,7 @@ const PTProfileScreen = ({ route }) => {
                 size={24}
                 color="#E91E63"
               />
-              <Text style={styles.bmiTitle}>Chỉ số BMI</Text>
+              <Text style={styles.bmiTitle}>{t("ptProfile.bmiIndex")}</Text>
             </View>
 
             <View style={styles.bmiContent}>
@@ -232,31 +242,43 @@ const PTProfileScreen = ({ route }) => {
 
       {/* Professional Information Section */}
       <View style={styles.sectionContainer}>
-        <Text style={styles.sectionTitle}>Thông tin nghề nghiệp</Text>
+        <Text style={styles.sectionTitle}>
+          {t("ptProfile.professionalInfo")}
+        </Text>
 
         <View style={styles.professionalCard}>
           <View style={styles.professionalHeader}>
             <MaterialCommunityIcons name="dumbbell" size={24} color="#FF914D" />
-            <Text style={styles.professionalTitle}>Chuyên môn</Text>
+            <Text style={styles.professionalTitle}>
+              {t("ptProfile.specialty")}
+            </Text>
           </View>
 
           <View style={styles.professionalContent}>
             <View style={styles.professionalItem}>
-              <Text style={styles.professionalLabel}>Mục tiêu huấn luyện:</Text>
+              <Text style={styles.professionalLabel}>
+                {t("ptProfile.trainingGoal")}
+              </Text>
               <Text style={styles.professionalValue}>
-                {pt.goalTraining || "Tổng quát"}
+                {pt.goalTraining || t("ptProfile.general")}
               </Text>
             </View>
 
             <View style={styles.professionalItem}>
-              <Text style={styles.professionalLabel}>Kinh nghiệm:</Text>
+              <Text style={styles.professionalLabel}>
+                {t("ptProfile.experience")}
+              </Text>
               <Text style={styles.professionalValue}>
-                {pt.experience ? `${pt.experience} năm` : "Mới bắt đầu"}
+                {pt.experience
+                  ? `${pt.experience} ${t("ptProfile.units.years")}`
+                  : t("ptProfile.experienceLevels.beginner")}
               </Text>
             </View>
 
             <View style={styles.professionalItem}>
-              <Text style={styles.professionalLabel}>Trình độ:</Text>
+              <Text style={styles.professionalLabel}>
+                {t("ptProfile.level")}
+              </Text>
               <Text style={styles.professionalValue}>
                 {getExperienceLevel(pt.experience)}
               </Text>

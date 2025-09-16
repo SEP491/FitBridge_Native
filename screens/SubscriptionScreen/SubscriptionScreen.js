@@ -12,10 +12,12 @@ import React, { useEffect, useState } from "react";
 import { WebView } from "react-native-webview";
 import premiumService from "../../services/premiumService";
 import { useNavigation } from "@react-navigation/native";
+import { useTranslation } from "../../hooks/useTranslation";
 
 const { width } = Dimensions.get("window");
 
 export default function SubscriptionScreen() {
+  const { t } = useTranslation();
   const [subscriptions, setSubscriptions] = useState([]);
   const [selectedPackage, setSelectedPackage] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -39,7 +41,10 @@ export default function SubscriptionScreen() {
         }
       } catch (error) {
         console.error("Error fetching subscriptions:", error);
-        Alert.alert("Lỗi", "Không thể tải danh sách gói dịch vụ");
+        Alert.alert(
+          t("subscription.error"),
+          t("subscription.cannotLoadPackages")
+        );
       }
     };
     fetchSubscriptions();
@@ -47,7 +52,10 @@ export default function SubscriptionScreen() {
 
   const handleUpgrade = async () => {
     if (!selectedPackage) {
-      Alert.alert("Thông báo", "Vui lòng chọn gói dịch vụ");
+      Alert.alert(
+        t("subscription.notification"),
+        t("subscription.pleaseSelectPackage")
+      );
       return;
     }
 
@@ -59,7 +67,7 @@ export default function SubscriptionScreen() {
       setShowWebView(true);
     } catch (error) {
       console.error("Error upgrading:", error);
-      Alert.alert("Lỗi", "Không thể nâng cấp gói dịch vụ. Vui lòng thử lại.");
+      Alert.alert(t("subscription.error"), t("subscription.cannotUpgrade"));
     } finally {
       setLoading(false);
     }
@@ -93,7 +101,7 @@ export default function SubscriptionScreen() {
     >
       {isPopular && (
         <View style={styles.popularBadge}>
-          <Text style={styles.popularBadgeText}>HOT</Text>
+          <Text style={styles.popularBadgeText}>{t("subscription.hot")}</Text>
         </View>
       )}
 
@@ -106,7 +114,7 @@ export default function SubscriptionScreen() {
             {formatPrice(price)}
           </Text>
           <Text style={[styles.period, isSelected && styles.selectedText]}>
-            /tháng
+            {t("subscription.perMonth")}
           </Text>
         </View>
         {description && (
@@ -137,11 +145,11 @@ export default function SubscriptionScreen() {
   // Default features for premium packages
   const getDefaultFeatures = (packageName) => {
     const defaultFeatures = [
-      "Chat với PT AI: Không giới hạn",
-      "Truy cập tất cả tính năng",
-      "Hỗ trợ ưu tiên 24/7",
-      "Tính năng nâng cao",
-      "Không quảng cáo",
+      t("subscription.defaultFeatures.unlimitedAiChat"),
+      t("subscription.defaultFeatures.allFeatures"),
+      t("subscription.defaultFeatures.priority247Support"),
+      t("subscription.defaultFeatures.advancedFeatures"),
+      t("subscription.defaultFeatures.noAds"),
     ];
 
     // You can customize features based on package name or price
@@ -201,7 +209,10 @@ export default function SubscriptionScreen() {
 
   const handlePaymentCancel = () => {
     setShowWebView(false);
-    Alert.alert("Thông báo", "Thanh toán đã bị hủy hoặc không thành công");
+    Alert.alert(
+      t("subscription.notification"),
+      t("subscription.paymentCancelled")
+    );
   };
 
   const closeWebView = () => {
@@ -217,11 +228,11 @@ export default function SubscriptionScreen() {
     const { nativeEvent } = syntheticEvent;
     console.warn("WebView error: ", nativeEvent);
     Alert.alert(
-      "Lỗi tải trang",
-      "Không thể tải trang thanh toán. Vui lòng thử lại.",
+      t("subscription.pageLoadError"),
+      t("subscription.cannotLoadPaymentPage"),
       [
         {
-          text: "Thử lại",
+          text: t("subscription.tryAgain"),
           onPress: () => {
             setWebViewLoading(true);
             // Force reload by setting the URL again
@@ -229,7 +240,7 @@ export default function SubscriptionScreen() {
           },
         },
         {
-          text: "Đóng",
+          text: t("subscription.close"),
           onPress: closeWebView,
         },
       ]
@@ -239,9 +250,11 @@ export default function SubscriptionScreen() {
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Nâng cấp tài khoản</Text>
+        <Text style={styles.headerTitle}>
+          {t("subscription.upgradeAccount")}
+        </Text>
         <Text style={styles.headerSubtitle}>
-          Chọn gói phù hợp với nhu cầu của bạn
+          {t("subscription.choosePackage")}
         </Text>
       </View>
 
@@ -262,29 +275,49 @@ export default function SubscriptionScreen() {
       </View>
 
       <View style={styles.comparisonSection}>
-        <Text style={styles.comparisonTitle}>So sánh gói dịch vụ</Text>
+        <Text style={styles.comparisonTitle}>
+          {t("subscription.comparePackages")}
+        </Text>
 
         <View style={styles.comparisonTable}>
           <View style={styles.comparisonHeader}>
-            <Text style={styles.featureColumnHeader}>Tính năng</Text>
-            <Text style={styles.packageColumnHeader}>Free</Text>
-            <Text style={styles.packageColumnHeader}>Premium</Text>
+            <Text style={styles.featureColumnHeader}>
+              {t("subscription.feature")}
+            </Text>
+            <Text style={styles.packageColumnHeader}>
+              {t("subscription.free")}
+            </Text>
+            <Text style={styles.packageColumnHeader}>
+              {t("subscription.premium")}
+            </Text>
           </View>
 
           <View style={styles.comparisonRow}>
-            <Text style={styles.featureCell}>Tin nhắn với AI</Text>
-            <Text style={styles.limitedCell}>10/ngày</Text>
-            <Text style={styles.unlimitedCell}>Không giới hạn</Text>
+            <Text style={styles.featureCell}>
+              {t("subscription.aiMessages")}
+            </Text>
+            <Text style={styles.limitedCell}>
+              {t("subscription.dailyLimit")}
+            </Text>
+            <Text style={styles.unlimitedCell}>
+              {t("subscription.unlimited")}
+            </Text>
           </View>
 
           <View style={styles.comparisonRow}>
-            <Text style={styles.featureCell}>Hỗ trợ khách hàng</Text>
-            <Text style={styles.basicCell}>Email</Text>
-            <Text style={styles.premiumCell}>24/7</Text>
+            <Text style={styles.featureCell}>
+              {t("subscription.customerSupport")}
+            </Text>
+            <Text style={styles.basicCell}>{t("subscription.email")}</Text>
+            <Text style={styles.premiumCell}>
+              {t("subscription.support247")}
+            </Text>
           </View>
 
           <View style={styles.comparisonRow}>
-            <Text style={styles.featureCell}>Tính năng nâng cao</Text>
+            <Text style={styles.featureCell}>
+              {t("subscription.advancedFeatures")}
+            </Text>
             <Text style={styles.noCell}>✗</Text>
             <Text style={styles.yesCell}>✓</Text>
           </View>
@@ -301,13 +334,13 @@ export default function SubscriptionScreen() {
         onPress={handleUpgrade}
       >
         <Text style={styles.upgradeButtonText}>
-          {loading ? "ĐANG XỬ LÝ..." : "NÂNG CẤP NGAY"}
+          {loading
+            ? t("subscription.processing")
+            : t("subscription.upgradeNow")}
         </Text>
       </TouchableOpacity>
 
-      <Text style={styles.footerText}>
-        Bạn có thể hủy đăng ký bất cứ lúc nào trong cài đặt tài khoản
-      </Text>
+      <Text style={styles.footerText}>{t("subscription.cancelAnytime")}</Text>
 
       {/* WebView Modal for checkout */}
       <Modal
@@ -318,7 +351,7 @@ export default function SubscriptionScreen() {
       >
         <View style={styles.webViewContainer}>
           <View style={styles.webViewHeader}>
-            <Text style={styles.webViewTitle}>Thanh toán</Text>
+            <Text style={styles.webViewTitle}>{t("subscription.payment")}</Text>
             <TouchableOpacity style={styles.closeButton} onPress={closeWebView}>
               <Text style={styles.closeButtonText}>✕</Text>
             </TouchableOpacity>
@@ -339,7 +372,9 @@ export default function SubscriptionScreen() {
             onLoadEnd={() => setWebViewLoading(false)}
             renderLoading={() => (
               <View style={styles.loadingContainer}>
-                <Text style={styles.loadingText}>Đang tải...</Text>
+                <Text style={styles.loadingText}>
+                  {t("subscription.loading")}
+                </Text>
               </View>
             )}
           />

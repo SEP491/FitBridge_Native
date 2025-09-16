@@ -19,6 +19,7 @@ import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
 import { Image } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import authService from "../../services/authService";
+import { useTranslation } from "../../hooks/useTranslation";
 
 export default function RegisterScreen() {
   const [fullName, setFullName] = useState("");
@@ -31,6 +32,7 @@ export default function RegisterScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const navigation = useNavigation();
+  const { t } = useTranslation();
 
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -43,31 +45,35 @@ export default function RegisterScreen() {
 
   const handleRegister = async () => {
     if (!fullName || !phone || !password || !confirmPassword) {
-      Alert.alert("Thông báo", "Vui lòng điền đầy đủ thông tin", [
+      Alert.alert(t("auth.notification"), t("auth.pleaseEnterAllInfo"), [
         { text: "OK" },
       ]);
       return;
     }
 
     if (email && !validateEmail(email)) {
-      Alert.alert("Thông báo", "Email không hợp lệ", [{ text: "OK" }]);
+      Alert.alert(t("auth.notification"), t("auth.invalidEmail"), [
+        { text: "OK" },
+      ]);
       return;
     }
 
     if (!validatePassword(password)) {
-      Alert.alert("Thông báo", "Mật khẩu phải có ít nhất 6 ký tự", [
+      Alert.alert(t("auth.notification"), t("auth.passwordMinLength"), [
         { text: "OK" },
       ]);
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert("Thông báo", "Mật khẩu không khớp", [{ text: "OK" }]);
+      Alert.alert(t("auth.notification"), t("auth.passwordNotMatch"), [
+        { text: "OK" },
+      ]);
       return;
     }
 
     if (!agreedToTerms) {
-      Alert.alert("Thông báo", "Vui lòng đồng ý với điều khoản dịch vụ", [
+      Alert.alert(t("auth.notification"), t("auth.pleaseAgreeTerms"), [
         { text: "OK" },
       ]);
       return;
@@ -84,22 +90,16 @@ export default function RegisterScreen() {
     try {
       const response = await authService.register(requestData);
 
-      Alert.alert(
-        "Đăng ký thành công!",
-        "Tài khoản của bạn đã được tạo. Vui lòng đăng nhập để tiếp tục.",
-        [
-          {
-            text: "Đăng nhập ngay",
-            onPress: () => navigation.replace("Login"),
-          },
-        ]
-      );
+      Alert.alert(t("auth.registerSuccess"), t("auth.accountCreated"), [
+        {
+          text: t("auth.loginNow"),
+          onPress: () => navigation.replace("Login"),
+        },
+      ]);
     } catch (error) {
-      Alert.alert(
-        "Lỗi đăng ký",
-        "Không thể đăng ký. Vui lòng kiểm tra thông tin và thử lại.",
-        [{ text: "OK" }]
-      );
+      Alert.alert(t("errors.error"), t("auth.registrationFailed"), [
+        { text: "OK" },
+      ]);
       console.error("Registration error:", error);
     } finally {
       setIsLoading(false);
@@ -127,9 +127,9 @@ export default function RegisterScreen() {
                   source={require("../../assets/LogoColor.png")}
                   style={styles.logo}
                 />
-                <Text style={styles.welcomeTitle}>Tạo tài khoản mới</Text>
+                <Text style={styles.welcomeTitle}>{t("createAccount")}</Text>
                 <Text style={styles.welcomeSubtitle}>
-                  Điền thông tin để bắt đầu
+                  {t("auth.pleaseEnterAllInfo")}
                 </Text>
               </View>
 
@@ -145,7 +145,10 @@ export default function RegisterScreen() {
                     {/* Full Name Input */}
                     <View style={styles.inputGroup}>
                       <Text style={styles.label}>
-                        Họ và Tên <Text style={styles.required}>*</Text>
+                        {t("profile.fullName")}{" "}
+                        <Text style={styles.required}>
+                          {t("auth.required")}
+                        </Text>
                       </Text>
                       <View style={styles.inputContainer}>
                         <FontAwesome
@@ -157,7 +160,7 @@ export default function RegisterScreen() {
                         <TextInput
                           value={fullName}
                           onChangeText={setFullName}
-                          placeholder="Nguyễn Văn A"
+                          placeholder={t("profile.fullName")}
                           placeholderTextColor="#A39F9F"
                           style={styles.input}
                           maxLength={50}
@@ -167,7 +170,9 @@ export default function RegisterScreen() {
 
                     {/* Email Input */}
                     <View style={styles.inputGroup}>
-                      <Text style={styles.label}>Email (Tùy chọn)</Text>
+                      <Text style={styles.label}>
+                        {t("email")} ({t("common.optional")})
+                      </Text>
                       <View style={styles.inputContainer}>
                         <MaterialIcons
                           name="email"
@@ -178,7 +183,7 @@ export default function RegisterScreen() {
                         <TextInput
                           value={email}
                           onChangeText={setEmail}
-                          placeholder="nguyenvana@email.com"
+                          placeholder={t("email")}
                           placeholderTextColor="#A39F9F"
                           style={styles.input}
                           keyboardType="email-address"
@@ -190,7 +195,10 @@ export default function RegisterScreen() {
                     {/* Phone Input */}
                     <View style={styles.inputGroup}>
                       <Text style={styles.label}>
-                        Số điện thoại <Text style={styles.required}>*</Text>
+                        {t("profile.phoneNumber")}{" "}
+                        <Text style={styles.required}>
+                          {t("auth.required")}
+                        </Text>
                       </Text>
                       <View style={styles.inputContainer}>
                         <FontAwesome
@@ -214,7 +222,10 @@ export default function RegisterScreen() {
                     {/* Password Input */}
                     <View style={styles.inputGroup}>
                       <Text style={styles.label}>
-                        Mật khẩu <Text style={styles.required}>*</Text>
+                        {t("password")}{" "}
+                        <Text style={styles.required}>
+                          {t("auth.required")}
+                        </Text>
                       </Text>
                       <View style={styles.inputContainer}>
                         <FontAwesome
@@ -226,7 +237,7 @@ export default function RegisterScreen() {
                         <TextInput
                           value={password}
                           onChangeText={setPassword}
-                          placeholder="Tối thiểu 6 ký tự"
+                          placeholder={t("auth.passwordMinLength")}
                           secureTextEntry={secureText}
                           placeholderTextColor="#A39F9F"
                           style={styles.passwordInput}
@@ -248,7 +259,10 @@ export default function RegisterScreen() {
                     {/* Confirm Password Input */}
                     <View style={styles.inputGroup}>
                       <Text style={styles.label}>
-                        Xác nhận mật khẩu <Text style={styles.required}>*</Text>
+                        {t("confirmPassword")}{" "}
+                        <Text style={styles.required}>
+                          {t("auth.required")}
+                        </Text>
                       </Text>
                       <View style={styles.inputContainer}>
                         <FontAwesome
@@ -260,7 +274,7 @@ export default function RegisterScreen() {
                         <TextInput
                           value={confirmPassword}
                           onChangeText={setConfirmPassword}
-                          placeholder="Nhập lại mật khẩu"
+                          placeholder={t("auth.enterPasswordAgain")}
                           secureTextEntry={secureConfirmText}
                           placeholderTextColor="#A39F9F"
                           style={styles.passwordInput}
@@ -302,10 +316,13 @@ export default function RegisterScreen() {
                     )}
                   </View>
                   <Text style={styles.termsText}>
-                    Tôi đồng ý với{" "}
-                    <Text style={styles.termsLink}>Điều khoản dịch vụ</Text> và{" "}
+                    {t("auth.agreeWithTerms")}{" "}
                     <Text style={styles.termsLink}>
-                      Chính sách quyền riêng tư
+                      {t("auth.termsOfService")}
+                    </Text>{" "}
+                    {t("auth.and")}{" "}
+                    <Text style={styles.termsLink}>
+                      {t("auth.privacyPolicy")}
                     </Text>
                   </Text>
                 </TouchableOpacity>
@@ -328,19 +345,21 @@ export default function RegisterScreen() {
                   end={{ x: 1, y: 0 }}
                 >
                   <Text style={styles.registerButtonText}>
-                    {isLoading ? "Đang đăng ký..." : "Đăng ký"}
+                    {isLoading ? t("auth.registering") : t("register")}
                   </Text>
                 </LinearGradient>
               </TouchableOpacity>
 
               {/* Login Link */}
               <View style={styles.loginSection}>
-                <Text style={styles.loginQuestion}>Bạn đã có tài khoản? </Text>
+                <Text style={styles.loginQuestion}>
+                  {t("alreadyHaveAccount")}{" "}
+                </Text>
                 <TouchableOpacity
                   onPress={() => navigation.goBack()}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.loginText}>Đăng nhập</Text>
+                  <Text style={styles.loginText}>{t("login")}</Text>
                 </TouchableOpacity>
               </View>
             </View>

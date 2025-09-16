@@ -14,9 +14,11 @@ import CartCard from "../../components/CartCard/CartCard";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import cartService from "../../services/cartService";
 import { formatPrice, showErrorAlert, showSuccessAlert } from "../../lib";
+import { useTranslation } from "../../hooks/useTranslation";
 
 export default function PaymentScreen({ navigation }) {
   const { cart, getTotalPrice, removeFromCart, clearCart } = useCart();
+  const { t } = useTranslation();
   const totalPrice = getTotalPrice();
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("bank");
   const handleCheckout = async () => {
@@ -32,7 +34,7 @@ export default function PaymentScreen({ navigation }) {
         gymCourseId: cart[0]?.id, // Assuming all items in cart are from the same course
       };
     } else {
-      showErrorAlert("Không thể xử lý gói tập này. Vui lòng thử lại sau.");
+      showErrorAlert(t("errors.cannotProcessPackage"));
       return;
     }
 
@@ -60,34 +62,28 @@ export default function PaymentScreen({ navigation }) {
         Linking.openURL(checkoutUrl);
       } else {
         console.error("Invalid or missing checkoutUrl:", checkoutUrl);
-        showErrorAlert(
-          "Không thể lấy được link thanh toán. Vui lòng thử lại sau."
-        );
+        showErrorAlert(t("errors.cannotLoadPaymentLink"));
       }
       clearCart(); // Clear cart after successful checkout
     } catch (error) {
       console.error("Error processing cart:", error);
-      showErrorAlert("Đã xảy ra lỗi khi xử lý giỏ hàng. Vui lòng thử lại sau.");
+      showErrorAlert(t("errors.cartProcessError"));
       return;
     }
   };
 
   const handleRemoveItem = (cartItemId) => {
-    Alert.alert(
-      "Xóa gói tập",
-      "Bạn có chắc chắn muốn xóa gói tập này khỏi giỏ hàng?",
-      [
-        {
-          text: "Hủy",
-          style: "cancel",
-        },
-        {
-          text: "Xóa",
-          onPress: () => removeFromCart(cartItemId),
-          style: "destructive",
-        },
-      ]
-    );
+    Alert.alert(t("payment.removePackage"), t("payment.removePackageConfirm"), [
+      {
+        text: t("payment.cancel"),
+        style: "cancel",
+      },
+      {
+        text: t("payment.remove"),
+        onPress: () => removeFromCart(cartItemId),
+        style: "destructive",
+      },
+    ]);
   };
   return (
     <View style={styles.container}>
@@ -128,15 +124,15 @@ export default function PaymentScreen({ navigation }) {
             ))}
           </ScrollView>
         ) : (
-          <Text style={{ fontSize: 20 }}>Giỏ hàng của bạn đang trống</Text>
+          <Text style={{ fontSize: 20 }}>{t("payment.emptyCart")}</Text>
         )}
 
         <View style={styles.paymentMethod}>
           <View style={styles.cartUpper}>
             <Text style={{ fontSize: 15, color: "#ED2A46" }}>
-              Phương thức thanh toán
+              {t("payment.paymentMethods")}
             </Text>
-            <Text style={{ fontSize: 10 }}>Xem tất cả</Text>
+            <Text style={{ fontSize: 10 }}>{t("payment.seeAll")}</Text>
           </View>
 
           <View style={styles.cardUnder}>
@@ -146,7 +142,7 @@ export default function PaymentScreen({ navigation }) {
             >
               <View style={styles.paymentLeft}>
                 <MaterialIcons name="payment" size={30} color="#ED2A46" />
-                <Text>Chuyển Khoản</Text>
+                <Text>{t("payment.bankTransfer")}</Text>
               </View>
               {selectedPaymentMethod === "bank" && (
                 <MaterialIcons name="check-circle" size={24} color="#ED2A46" />
@@ -159,7 +155,7 @@ export default function PaymentScreen({ navigation }) {
             >
               <View style={styles.paymentLeft}>
                 <MaterialIcons name="qr-code" size={30} color="#ED2A46" />
-                <Text>Quét QR Code</Text>
+                <Text>{t("payment.qrCode")}</Text>
               </View>
               {selectedPaymentMethod === "qr" && (
                 <MaterialIcons name="check-circle" size={24} color="#ED2A46" />
@@ -171,21 +167,21 @@ export default function PaymentScreen({ navigation }) {
         <View style={styles.paymentMethod}>
           <View style={styles.cartUpper}>
             <Text style={{ fontSize: 15, color: "#ED2A46" }}>
-              Chi tiết thanh toán
+              {t("payment.paymentDetails")}
             </Text>
           </View>
 
           <View style={styles.cardUnder}>
             <View style={styles.row}>
-              <Text>Tổng tiền dịch vụ:</Text>
+              <Text>{t("payment.totalServiceAmount")}</Text>
               <Text>{formatPrice(totalPrice)}</Text>
             </View>
             <View style={[styles.row, styles.separator]}>
-              <Text>Phụ Phí</Text>
+              <Text>{t("payment.additionalFees")}</Text>
               <Text>0 đ</Text>
             </View>
             <View style={styles.row}>
-              <Text>Tổng</Text>
+              <Text>{t("payment.total")}</Text>
               <Text>{formatPrice(totalPrice)}</Text>
             </View>
           </View>
@@ -195,7 +191,7 @@ export default function PaymentScreen({ navigation }) {
       <View style={styles.orderSummary}>
         <View style={styles.proceedContainer}>
           <View>
-            <Text style={{ fontSize: 15 }}>Tổng thanh toán:</Text>
+            <Text style={{ fontSize: 15 }}>{t("payment.totalPayment")}</Text>
             <Text
               style={{ fontSize: 20, fontWeight: "bold", color: "#ED2A46" }}
             >
@@ -206,7 +202,7 @@ export default function PaymentScreen({ navigation }) {
             style={styles.checkoutButton}
             onPress={() => handleCheckout()}
           >
-            <Text style={styles.checkoutText}>Xác nhận</Text>
+            <Text style={styles.checkoutText}>{t("payment.confirm")}</Text>
           </TouchableOpacity>
         </View>
       </View>

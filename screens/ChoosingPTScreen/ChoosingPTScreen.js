@@ -15,8 +15,10 @@ import Foundation from "@expo/vector-icons/Foundation";
 import { useNavigation } from "@react-navigation/native";
 import accountService from "../../services/accountService";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { useTranslation } from "../../hooks/useTranslation";
 
 export default function ChoosingPTScreen() {
+  const { t } = useTranslation();
   const [searchText, setSearchText] = useState("");
   const [ptList, setPtList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -88,7 +90,9 @@ export default function ChoosingPTScreen() {
                     <Foundation name="female-symbol" size={18} color="white" />
                   )}
                   <Text style={styles.detailText}>
-                    {item.gender === "Male" ? "Nam" : "Nữ"}
+                    {item.gender === "Male"
+                      ? t("ptScreen.male")
+                      : t("ptScreen.female")}
                   </Text>
                 </View>
 
@@ -102,7 +106,7 @@ export default function ChoosingPTScreen() {
                 <View style={styles.detailRow}>
                   <Ionicons name="fitness" size={18} color="white" />
                   <Text style={styles.detailText}>
-                    {item.experience} năm kinh nghiệm
+                    {item.experience} {t("ptScreen.yearsExperience")}
                   </Text>
                 </View>
               </View>
@@ -124,11 +128,11 @@ export default function ChoosingPTScreen() {
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
       <Foundation name="torsos-all" size={64} color="#ccc" />
-      <Text style={styles.emptyTitle}>Không tìm thấy PT nào</Text>
+      <Text style={styles.emptyTitle}>{t("ptScreen.noPTFound")}</Text>
       <Text style={styles.emptySubtitle}>
         {searchText
-          ? "Thử tìm kiếm với từ khóa khác"
-          : "Hiện tại bạn chưa có PT nào trong lịch trình"}
+          ? t("ptScreen.tryDifferentKeyword")
+          : t("ptScreen.noPTInSchedule")}
       </Text>
     </View>
   );
@@ -149,7 +153,7 @@ export default function ChoosingPTScreen() {
             <TextInput
               value={searchText}
               onChangeText={setSearchText}
-              placeholder="Tìm kiếm PT theo tên"
+              placeholder={t("ptScreen.searchPlaceholder")}
               placeholderTextColor="#999"
               style={styles.searchInput}
             />
@@ -171,7 +175,7 @@ export default function ChoosingPTScreen() {
         >
           {loading ? (
             <View style={styles.loadingContainer}>
-              <Text style={styles.loadingText}>Đang tải...</Text>
+              <Text style={styles.loadingText}>{t("ptScreen.loading")}</Text>
             </View>
           ) : filteredPT.length > 0 ? (
             filteredPT.map(renderPTCard)

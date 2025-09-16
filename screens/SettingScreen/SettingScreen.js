@@ -9,13 +9,22 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "../../hooks/useTranslation";
 
 export default function SettingScreen() {
   const navigation = useNavigation();
+  const { t } = useTranslation();
 
-  const renderItem = (label) => (
-    <TouchableOpacity style={styles.row}>
-      <Text style={styles.rowText}>{label}</Text>
+  const renderItem = (labelKey, navigationTarget = null) => (
+    <TouchableOpacity
+      style={styles.row}
+      onPress={() => {
+        if (labelKey === "settings.language") {
+          navigation.navigate("LanguageSelectScreen");
+        } // Thêm các điều kiện khác nếu cần
+      }}
+    >
+      <Text style={styles.rowText}>{t(labelKey)}</Text>
       <Ionicons name="chevron-forward" size={20} color="#999" />
     </TouchableOpacity>
   );
@@ -34,28 +43,28 @@ export default function SettingScreen() {
           />
           <TextInput
             style={styles.searchInput}
-            placeholder="Tìm kiếm cài đặt"
+            placeholder={t("settings.searchSettings")}
             placeholderTextColor="#999"
           />
         </View>
 
         <ScrollView>
-          <Text style={styles.section}>Tài khoản của tôi</Text>
-          {renderItem("Bảo mật")}
-          {renderItem("Địa chỉ")}
-          {renderItem("Tài khoản / Thẻ ngân hàng")}
+          <Text style={styles.section}>{t("settings.myAccount")}</Text>
+          {renderItem("settings.security")}
+          {renderItem("settings.address")}
+          {renderItem("settings.bankCard")}
 
-          <Text style={styles.section}>Cài đặt</Text>
-          {renderItem("AI Chatbot")}
-          {renderItem("Thông báo")}
-          {renderItem("Riêng tư")}
-          {renderItem("Ngôn ngữ / Language")}
+          <Text style={styles.section}>{t("userMenu.settings")}</Text>
+          {renderItem("settings.aiChatbot")}
+          {renderItem("settings.notifications")}
+          {renderItem("settings.privacy")}
+          {renderItem("settings.language")}
 
-          <Text style={styles.section}>Hỗ trợ</Text>
-          {renderItem("Trung tâm hỗ trợ")}
-          {renderItem("Điều khoản")}
-          {renderItem("Đánh giá app FitBridge")}
-          {renderItem("Yêu cầu huỷ tài khoản")}
+          <Text style={styles.section}>{t("userMenu.support")}</Text>
+          {renderItem("settings.supportCenter")}
+          {renderItem("settings.terms")}
+          {renderItem("settings.rateApp")}
+          {renderItem("settings.deleteAccountRequest")}
         </ScrollView>
       </View>
     </View>

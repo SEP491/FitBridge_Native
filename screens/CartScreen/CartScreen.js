@@ -12,18 +12,20 @@ import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import { useNavigation } from "@react-navigation/native";
 import { useCart } from "../../context/CartContext"; // Import the cart context
 import { SafeAreaView } from "react-native-safe-area-context";
-import { formatPrice, showConfirmAlert, showAlert } from "../../lib";
+import { showConfirmAlert, showAlert, formatPrice } from "../../lib";
+import { useTranslation } from "../../hooks/useTranslation";
 
 export default function CartScreen() {
   const navigation = useNavigation();
   const { cart, removeFromCart, getTotalPrice, clearCart } = useCart(); // Use the cart context
+  const { t } = useTranslation();
 
   // Function to handle removing an item from cart
   const handleRemoveItem = (cartItemId) => {
     showConfirmAlert({
-      title: "Xóa gói tập",
-      message: "Bạn có chắc chắn muốn xóa gói tập này khỏi giỏ hàng?",
-      confirmText: "Xóa",
+      title: t("cart.removePackage"),
+      message: t("cart.removePackageConfirm"),
+      confirmText: t("cart.remove"),
       confirmStyle: "destructive",
       onConfirm: () => removeFromCart(cartItemId),
     });
@@ -35,10 +37,7 @@ export default function CartScreen() {
   // Function to handle checkout
   const handleCheckout = () => {
     if (cart.length === 0) {
-      showAlert(
-        "Giỏ hàng trống",
-        "Vui lòng thêm gói tập vào giỏ hàng trước khi thanh toán."
-      );
+      showAlert(t("cart.emptyCart"), t("cart.addPackageBeforePayment"));
       return;
     }
     navigation.navigate("PaymentScreen", { total: totalPrice });
@@ -83,7 +82,7 @@ export default function CartScreen() {
           <View style={styles.orderSummary}>
             <View style={styles.proceedContainer}>
               <View>
-                <Text style={{ fontSize: 15 }}>Tổng thanh toán:</Text>
+                <Text style={{ fontSize: 15 }}>{t("cart.totalPayment")}</Text>
                 <Text
                   style={{ fontSize: 20, fontWeight: "bold", color: "#ED2A46" }}
                 >
@@ -94,7 +93,7 @@ export default function CartScreen() {
                 style={styles.checkoutButton}
                 onPress={handleCheckout}
               >
-                <Text style={styles.checkoutText}>Thanh Toán</Text>
+                <Text style={styles.checkoutText}>{t("cart.payment")}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -113,14 +112,14 @@ export default function CartScreen() {
               color: "#6B6B6B",
             }}
           >
-            Giỏ hàng của bạn đang trống
+            {t("cart.cartEmpty")}
           </Text>
 
           <TouchableOpacity
             style={styles.button}
             onPress={() => navigation.navigate("Trang chủ")}
           >
-            <Text style={styles.buttonText}>Về Trang Chủ</Text>
+            <Text style={styles.buttonText}>{t("cart.backToHome")}</Text>
           </TouchableOpacity>
         </View>
       )}

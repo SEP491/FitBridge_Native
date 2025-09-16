@@ -13,8 +13,10 @@ import ptService from "../../services/ptService";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import colors from "../../constants/color";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { useTranslation } from "../../hooks/useTranslation";
 
 export default function SlotsPTScreen() {
+  const { t } = useTranslation();
   const [slots, setSlots] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -60,7 +62,7 @@ export default function SlotsPTScreen() {
 
   // Get day name in Vietnamese
   const getDayName = (date) => {
-    const days = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
+    const days = t("slots.daysShort");
     return days[date.getDay()];
   };
 
@@ -74,7 +76,7 @@ export default function SlotsPTScreen() {
       setSlots(response.data?.ptSlots || []);
     } catch (error) {
       console.error("Error loading PT slots:", error);
-      Alert.alert("Lỗi", "Không thể tải danh sách khung giờ đã đăng ký.");
+      Alert.alert(t("slots.error"), t("slots.errorLoadingSlots"));
     } finally {
       setLoading(false);
     }
@@ -129,28 +131,37 @@ export default function SlotsPTScreen() {
 
   // Handle slot activation/deactivation
   const handleToggleSlotStatus = async (ptSlotId, isActive) => {
-    const action = isActive ? "hủy kích hoạt" : "kích hoạt";
-    Alert.alert("Xác nhận", `Bạn có chắc chắn muốn ${action} khung giờ này?`, [
+    const message = isActive
+      ? t("slots.deactivateSlotMessage")
+      : t("slots.activateSlotMessage");
+    Alert.alert(t("slots.confirmAction"), message, [
       {
-        text: "Hủy",
+        text: t("slots.cancel"),
         style: "cancel",
       },
       {
-        text: "Xác nhận",
+        text: t("slots.confirm"),
         onPress: async () => {
           try {
             if (isActive) {
               await ptService.unactiveSlot(ptSlotId);
+              Alert.alert(
+                t("slots.success"),
+                t("slots.deactivatedSlotSuccess")
+              );
             } else {
               await ptService.activeSlot(ptSlotId);
+              Alert.alert(t("slots.success"), t("slots.activatedSlotSuccess"));
             }
-            Alert.alert("Thành công", `Đã ${action} khung giờ thành công!`);
             loadSlots(selectedDate);
           } catch (error) {
             console.error("Error toggling slot status:", error);
+            const action = isActive
+              ? t("slots.deactivate")
+              : t("slots.activate");
             Alert.alert(
-              "Lỗi",
-              `Không thể ${action} khung giờ. Vui lòng thử lại.`
+              t("slots.error"),
+              t("slots.actionError", { action: action })
             );
           }
         },
@@ -163,7 +174,7 @@ export default function SlotsPTScreen() {
     const [hours, minutes] = timeString.split(":");
     const hour = parseInt(hours);
     const minute = parseInt(minutes);
-    const period = hour >= 12 ? "CH" : "SA";
+    const period = hour >= 12 ? t("slots.pm") : t("slots.am");
     const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
     return `${displayHour}:${minute.toString().padStart(2, "0")} ${period}`;
   };
@@ -177,11 +188,15 @@ export default function SlotsPTScreen() {
     const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
 
     if (diffHours === 0) {
-      return `${diffMinutes} phút`;
+      return `${diffMinutes} ${t("slots.minutes")}`;
     } else if (diffMinutes === 0) {
-      return `${diffHours} giờ`;
+      return `${diffHours} ${
+        diffHours === 1 ? t("slots.hour") : t("slots.hours")
+      }`;
     } else {
-      return `${diffHours} giờ ${diffMinutes} phút`;
+      return `${diffHours} ${
+        diffHours === 1 ? t("slots.hour") : t("slots.hours")
+      } ${diffMinutes} ${t("slots.minutes")}`;
     }
   };
 
@@ -192,9 +207,9 @@ export default function SlotsPTScreen() {
     const endDate = weekDays[6];
 
     if (startDate.getMonth() === endDate.getMonth()) {
-      return `${startDate.getDate()} - ${endDate.getDate()} tháng ${
-        startDate.getMonth() + 1
-      }, ${startDate.getFullYear()}`;
+      return `${startDate.getDate()} - ${endDate.getDate()} ${t(
+        "slots.month"
+      )} ${startDate.getMonth() + 1}, ${startDate.getFullYear()}`;
     } else {
       return `${startDate.getDate()}/${
         startDate.getMonth() + 1
@@ -245,10 +260,10 @@ export default function SlotsPTScreen() {
         <View style={styles.weekInfoContainer}>
           <Text style={styles.weekText}>{getWeekRangeText()}</Text>
           {currentWeekOffset !== 1 && (
-            <Text style={styles.todayButtonText}>Tuần này</Text>
+            <Text style={styles.todayButtonText}>{t("slots.thisWeek")}</Text>
           )}
           {currentWeekOffset !== 0 && (
-            <Text style={styles.todayButtonText}>Tuần sau</Text>
+            <Text style={styles.todayButtonText}>{t("slots.nextWeek")}</Text>
           )}
         </View>
 
@@ -337,7 +352,8 @@ export default function SlotsPTScreen() {
                       styles.pastMonthText,
                   ]}
                 >
-                  Th{date.getMonth() + 1}
+                  {t("slots.month").slice(0, 2)}
+                  {date.getMonth() + 1}
                 </Text>
               </TouchableOpacity>
             );
@@ -359,17 +375,13 @@ export default function SlotsPTScreen() {
         {loading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={colors.red} />
-            <Text style={styles.loadingText}>
-              Đang tải khung giờ đã đăng ký...
-            </Text>
+            <Text style={styles.loadingText}>{t("slots.loadingSlots")}</Text>
           </View>
         ) : slots.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>
-              Không có khung giờ nào được đăng ký
-            </Text>
+            <Text style={styles.emptyText}>{t("slots.noSlotsRegistered")}</Text>
             <Text style={styles.emptySubText}>
-              Vào ngày {formatDateDisplay(selectedDate)}
+              {t("slots.onDate", { date: formatDateDisplay(selectedDate) })}
             </Text>
           </View>
         ) : (
@@ -384,21 +396,23 @@ export default function SlotsPTScreen() {
                   ]}
                 >
                   <Text style={styles.statusText}>
-                    {ptSlot.active ? "Đã kích hoạt" : "Chưa kích hoạt"}
+                    {ptSlot.active
+                      ? t("slots.activated")
+                      : t("slots.notActivated")}
                   </Text>
                 </View>
               </View>
 
               <View style={styles.timeContainer}>
                 <View style={styles.timeItem}>
-                  <Text style={styles.timeLabel}>Giờ bắt đầu</Text>
+                  <Text style={styles.timeLabel}>{t("slots.startTime")}</Text>
                   <Text style={styles.timeValue}>
                     {formatTime(ptSlot.slot.startTime)}
                   </Text>
                 </View>
                 <View style={styles.timeSeparator} />
                 <View style={styles.timeItem}>
-                  <Text style={styles.timeLabel}>Giờ kết thúc</Text>
+                  <Text style={styles.timeLabel}>{t("slots.endTime")}</Text>
                   <Text style={styles.timeValue}>
                     {formatTime(ptSlot.slot.endTime)}
                   </Text>
@@ -406,7 +420,7 @@ export default function SlotsPTScreen() {
               </View>
 
               <View style={styles.durationContainer}>
-                <Text style={styles.durationLabel}>Thời lượng:</Text>
+                <Text style={styles.durationLabel}>{t("slots.duration")}</Text>
                 <Text style={styles.durationValue}>
                   {calculateDuration(
                     ptSlot.slot.startTime,
@@ -417,7 +431,7 @@ export default function SlotsPTScreen() {
 
               {ptSlot.isBooking && (
                 <View style={styles.bookingBadge}>
-                  <Text style={styles.bookingText}>Đã có người đặt</Text>
+                  <Text style={styles.bookingText}>{t("slots.booked")}</Text>
                 </View>
               )}
 
@@ -431,7 +445,7 @@ export default function SlotsPTScreen() {
                 onPress={() => handleToggleSlotStatus(ptSlot.id, ptSlot.active)}
               >
                 <Text style={styles.actionButtonText}>
-                  {ptSlot.active ? "Hủy kích hoạt" : "Kích hoạt"}
+                  {ptSlot.active ? t("slots.deactivate") : t("slots.activate")}
                 </Text>
               </TouchableOpacity>
             </View>

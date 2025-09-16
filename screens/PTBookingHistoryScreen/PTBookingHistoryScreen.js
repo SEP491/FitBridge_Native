@@ -16,6 +16,7 @@ import { vi } from "date-fns/locale";
 import bookingService from "../../services/bookingService";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { useTranslation } from "../../hooks/useTranslation";
 
 const { width } = Dimensions.get("window");
 
@@ -48,19 +49,20 @@ const getStatusColor = (status) => {
 };
 
 // Status text in Vietnamese
-const getStatusText = (status) => {
+const getStatusText = (status, t) => {
   switch (status) {
     case "Completed":
-      return "Hoàn thành";
+      return t("bookingHistory.statusTexts.completed");
     case "Canceled":
-      return "Đã hủy";
+      return t("bookingHistory.statusTexts.canceled");
     case "Booked":
     default:
-      return "Đã đặt";
+      return t("bookingHistory.statusTexts.booked");
   }
 };
 
 export default function PTBookingHistoryScreen({ navigation }) {
+  const { t } = useTranslation();
   const [bookingHistory, setBookingHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -104,10 +106,7 @@ export default function PTBookingHistoryScreen({ navigation }) {
       }
     } catch (error) {
       console.error("Error fetching PT booking history:", error);
-      Alert.alert(
-        "Lỗi",
-        "Không thể tải lịch sử đặt chỗ. Vui lòng thử lại sau."
-      );
+      Alert.alert(t("bookingHistory.error"), t("bookingHistory.fetchError"));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -149,16 +148,13 @@ export default function PTBookingHistoryScreen({ navigation }) {
 
       const statusMessage =
         newStatus === "Completed"
-          ? "Buổi tập đã được đánh dấu hoàn thành!"
-          : "Buổi tập đã được hủy!";
+          ? t("bookingHistory.sessionCompleted")
+          : t("bookingHistory.sessionCanceled");
 
-      Alert.alert("Thành công", statusMessage);
+      Alert.alert(t("bookingHistory.success"), statusMessage);
     } catch (error) {
       console.error("Error updating booking status:", error);
-      Alert.alert(
-        "Lỗi",
-        "Không thể cập nhật trạng thái buổi tập. Vui lòng thử lại."
-      );
+      Alert.alert(t("bookingHistory.error"), t("bookingHistory.updateError"));
     } finally {
       setUpdatingBooking(null);
     }
@@ -173,36 +169,41 @@ export default function PTBookingHistoryScreen({ navigation }) {
     if (currentStatus !== "Booked") {
       Alert.alert(
         "Thông báo",
-        `Buổi tập này đã ${getStatusText(
-          currentStatus
-        ).toLowerCase()}, không thể thay đổi trạng thái.`
+        t("bookingHistory.cannotChangeStatus", {
+          status: getStatusText(currentStatus, t).toLowerCase(),
+        })
       );
       return;
     }
 
     // Show options to Complete or Cancel
     Alert.alert(
-      "Cập nhật trạng thái buổi tập",
-      `Chọn trạng thái cho buổi tập với ${clientName}:`,
+      t("bookingHistory.updateSessionStatus"),
+      t("bookingHistory.chooseStatusFor", { clientName }),
       [
         {
-          text: "Đánh dấu hoàn thành",
+          text: t("bookingHistory.markCompleted"),
           onPress: () =>
             confirmStatusUpdate(
               booking.id,
               "Completed",
               clientName,
-              "đánh dấu hoàn thành"
+              t("bookingHistory.markCompleted").toLowerCase()
             ),
         },
         {
-          text: "Hủy buổi tập",
+          text: t("bookingHistory.cancelSession"),
           style: "destructive",
           onPress: () =>
-            confirmStatusUpdate(booking.id, "Canceled", clientName, "hủy"),
+            confirmStatusUpdate(
+              booking.id,
+              "Canceled",
+              clientName,
+              t("bookingHistory.cancelSession").toLowerCase()
+            ),
         },
         {
-          text: "Đóng",
+          text: t("bookingHistory.close"),
           style: "cancel",
         },
       ]
@@ -216,19 +217,21 @@ export default function PTBookingHistoryScreen({ navigation }) {
     clientName,
     actionText
   ) => {
-    const confirmationMessage = `Bạn có chắc chắn muốn ${actionText} buổi tập với ${clientName}?`;
-
-    Alert.alert("Xác nhận", confirmationMessage, [
-      {
-        text: "Hủy",
-        style: "cancel",
-      },
-      {
-        text: "Xác nhận",
-        style: newStatus === "Canceled" ? "destructive" : "default",
-        onPress: () => updateBookingStatus(bookingId, newStatus),
-      },
-    ]);
+    Alert.alert(
+      t("bookingHistory.confirm"),
+      t("bookingHistory.confirmAction", { action: actionText, clientName }),
+      [
+        {
+          text: t("bookingHistory.cancel"),
+          style: "cancel",
+        },
+        {
+          text: t("bookingHistory.confirm"),
+          style: newStatus === "Canceled" ? "destructive" : "default",
+          onPress: () => updateBookingStatus(bookingId, newStatus),
+        },
+      ]
+    );
   };
 
   const formatDate = (dateString) => {
@@ -265,7 +268,7 @@ export default function PTBookingHistoryScreen({ navigation }) {
 
   const renderBookingItem = (booking, index) => {
     const statusInfo = getStatusColor(booking.status);
-    const statusText = getStatusText(booking.status);
+    const statusText = getStatusText(booking.status, t);
     const canUpdate = booking.status === "Booked"; // Only Booked status can be updated
     const isUpdating = updatingBooking === booking.id;
 
@@ -316,7 +319,9 @@ export default function PTBookingHistoryScreen({ navigation }) {
                 </Text>
               </View>
               <View style={styles.clientInfo}>
-                <Text style={styles.clientLabel}>Khách hàng</Text>
+                <Text style={styles.clientLabel}>
+                  {t("bookingHistory.client")}
+                </Text>
                 <Text style={styles.clientName}>{booking.user.fullName}</Text>
               </View>
               {canUpdate && !isUpdating && (
@@ -368,12 +373,12 @@ export default function PTBookingHistoryScreen({ navigation }) {
                   <View style={styles.loadingButtonContent}>
                     <ActivityIndicator size="small" color="#fff" />
                     <Text style={styles.updateButtonText}>
-                      Đang cập nhật...
+                      {t("bookingHistory.updating")}
                     </Text>
                   </View>
                 ) : (
                   <Text style={styles.updateButtonText}>
-                    Cập nhật trạng thái
+                    {t("bookingHistory.updateStatus")}
                   </Text>
                 )}
               </TouchableOpacity>
@@ -385,8 +390,8 @@ export default function PTBookingHistoryScreen({ navigation }) {
             <View style={styles.statusInfoSection}>
               <Text style={styles.statusInfoText}>
                 {booking.status === "Completed"
-                  ? "✅ Buổi tập đã hoàn thành"
-                  : "❌ Buổi tập đã bị hủy"}
+                  ? t("bookingHistory.sessionCompleteStatus")
+                  : t("bookingHistory.sessionCanceledStatus")}
               </Text>
             </View>
           )}
@@ -406,12 +411,14 @@ export default function PTBookingHistoryScreen({ navigation }) {
         <MaterialIcons name="fitness-center" size={40} color="#ccc" />
       </View>
       <Text style={styles.emptyText}>
-        {searchQuery ? "Không tìm thấy kết quả" : "Chưa có buổi tập nào"}
+        {searchQuery
+          ? t("bookingHistory.noResults")
+          : t("bookingHistory.noSessions")}
       </Text>
       <Text style={styles.emptySubText}>
         {searchQuery
-          ? `Không tìm thấy khách hàng nào có tên "${searchQuery}"`
-          : "Lịch sử các buổi tập của bạn sẽ xuất hiện ở đây"}
+          ? t("bookingHistory.noResultsFor", { searchQuery })
+          : t("bookingHistory.historyWillAppear")}
       </Text>
     </View>
   );
@@ -421,7 +428,9 @@ export default function PTBookingHistoryScreen({ navigation }) {
       <View style={styles.loadingContainer}>
         <View style={styles.loadingCard}>
           <ActivityIndicator size="large" color="#E42D46" />
-          <Text style={styles.loadingText}>Đang tải lịch sử...</Text>
+          <Text style={styles.loadingText}>
+            {t("bookingHistory.loadingHistory")}
+          </Text>
         </View>
       </View>
     );
@@ -436,9 +445,13 @@ export default function PTBookingHistoryScreen({ navigation }) {
             <MaterialIcons name="fitness-center" size={24} color="#fff" />
           </View>
           <View style={styles.summaryInfo}>
-            <Text style={styles.summaryLabel}>Tổng số buổi tập</Text>
+            <Text style={styles.summaryLabel}>
+              {t("bookingHistory.totalSessions")}
+            </Text>
             <Text style={styles.summaryCount}>{pagination.total}</Text>
-            <Text style={styles.summarySubText}>Bạn đã huấn luyện</Text>
+            <Text style={styles.summarySubText}>
+              {t("bookingHistory.youHaveTrained")}
+            </Text>
           </View>
         </View>
         <TouchableOpacity
@@ -460,7 +473,7 @@ export default function PTBookingHistoryScreen({ navigation }) {
           />
           <TextInput
             style={styles.searchInput}
-            placeholder="Tìm kiếm theo tên khách hàng..."
+            placeholder={t("bookingHistory.searchByClientName")}
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholderTextColor="#94a3b8"
@@ -482,19 +495,19 @@ export default function PTBookingHistoryScreen({ navigation }) {
           <Text style={styles.statNumber}>
             {filteredBookings.filter((b) => b.status === "Booked").length}
           </Text>
-          <Text style={styles.statLabel}>Đã đặt</Text>
+          <Text style={styles.statLabel}>{t("bookingHistory.booked")}</Text>
         </View>
         <View style={styles.statItem}>
           <Text style={styles.statNumber}>
             {filteredBookings.filter((b) => b.status === "Completed").length}
           </Text>
-          <Text style={styles.statLabel}>Hoàn thành</Text>
+          <Text style={styles.statLabel}>{t("bookingHistory.completed")}</Text>
         </View>
         <View style={styles.statItem}>
           <Text style={styles.statNumber}>
             {filteredBookings.filter((b) => b.status === "Canceled").length}
           </Text>
-          <Text style={styles.statLabel}>Đã hủy</Text>
+          <Text style={styles.statLabel}>{t("bookingHistory.canceled")}</Text>
         </View>
       </View>
 

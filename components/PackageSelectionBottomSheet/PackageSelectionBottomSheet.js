@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { useTranslation } from "../../hooks/useTranslation";
 
 const PackageSelectionBottomSheet = ({
   visible,
@@ -18,6 +19,7 @@ const PackageSelectionBottomSheet = ({
   handleAddToCart,
   handleAddToCartWithPT,
 }) => {
+  const { t } = useTranslation();
   return (
     <Modal
       visible={visible}
@@ -29,7 +31,7 @@ const PackageSelectionBottomSheet = ({
         <View style={styles.modalContent}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>Lựa chọn gói tập</Text>
+            <Text style={styles.headerTitle}>{t("gym.packageSelection")}</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <Ionicons name="close-circle-outline" size={24} color="#666" />
             </TouchableOpacity>
@@ -53,7 +55,9 @@ const PackageSelectionBottomSheet = ({
                       size={20}
                       color="#FFF"
                     />
-                    <Text style={styles.packageTitle}>Gói Tập Tháng</Text>
+                    <Text style={styles.packageTitle}>
+                      {t("gym.monthlyPackages")}
+                    </Text>
                   </LinearGradient>
 
                   {gymCourse?.packageNormal?.map((item) => (
@@ -105,7 +109,7 @@ const PackageSelectionBottomSheet = ({
                   >
                     <MaterialIcons name="people" size={20} color="#FFF" />
                     <Text style={styles.packageTitle}>
-                      Gói Tập Tháng Kèm PT
+                      {t("gym.monthlyPackagesWithPT")}
                     </Text>
                   </LinearGradient>
 
@@ -154,7 +158,7 @@ const PackageSelectionBottomSheet = ({
                 !gymCourse?.packagePT?.length && (
                   <View style={styles.noPackagesMessage}>
                     <Text style={styles.noPackagesText}>
-                      Hiện tại chưa có gói tập nào có sẵn
+                      {t("gym.noPackagesAvailable")}
                     </Text>
                   </View>
                 )}

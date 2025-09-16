@@ -11,6 +11,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import authService from "../../services/authService";
+import { useTranslation } from "../../hooks/useTranslation";
 
 const DeleteAccountBottomSheet = ({
   visible,
@@ -18,58 +19,62 @@ const DeleteAccountBottomSheet = ({
   onConfirmDelete,
   clearCart,
 }) => {
+  const { t } = useTranslation();
   const [selectedReason, setSelectedReason] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const deleteReasons = [
     {
       id: 1,
-      title: "Không còn sử dụng ứng dụng",
-      description: "Tôi không còn cần sử dụng ứng dụng này nữa",
+      title: t("deleteAccount.reasons.noLongerUse.title"),
+      description: t("deleteAccount.reasons.noLongerUse.description"),
     },
     {
       id: 2,
-      title: "Tìm thấy ứng dụng khác tốt hơn",
-      description: "Tôi đã tìm thấy giải pháp thay thế phù hợp hơn",
+      title: t("deleteAccount.reasons.foundBetter.title"),
+      description: t("deleteAccount.reasons.foundBetter.description"),
     },
     {
       id: 3,
-      title: "Không hài lòng với dịch vụ",
-      description: "Dịch vụ không đáp ứng được nhu cầu của tôi",
+      title: t("deleteAccount.reasons.unsatisfiedService.title"),
+      description: t("deleteAccount.reasons.unsatisfiedService.description"),
     },
     {
       id: 4,
-      title: "Vấn đề về bảo mật",
-      description: "Tôi lo ngại về việc bảo mật thông tin cá nhân",
+      title: t("deleteAccount.reasons.securityConcerns.title"),
+      description: t("deleteAccount.reasons.securityConcerns.description"),
     },
     {
       id: 5,
-      title: "Quá nhiều thông báo",
-      description: "Ứng dụng gửi quá nhiều thông báo không mong muốn",
+      title: t("deleteAccount.reasons.tooManyNotifications.title"),
+      description: t("deleteAccount.reasons.tooManyNotifications.description"),
     },
     {
       id: 6,
-      title: "Lý do khác",
-      description: "Tôi có lý do khác không được liệt kê ở trên",
+      title: t("deleteAccount.reasons.otherReason.title"),
+      description: t("deleteAccount.reasons.otherReason.description"),
     },
   ];
 
   const handleDeleteAccount = async () => {
     if (!selectedReason) {
-      Alert.alert("Thông báo", "Vui lòng chọn lý do xóa tài khoản");
+      Alert.alert(
+        t("deleteAccount.notification"),
+        t("deleteAccount.pleaseSelectReason")
+      );
       return;
     }
 
     Alert.alert(
-      "Xác nhận xóa tài khoản",
-      "Bạn có chắc chắn muốn xóa tài khoản? Hành động này không thể hoàn tác.",
+      t("deleteAccount.confirmTitle"),
+      t("deleteAccount.confirmMessage"),
       [
         {
-          text: "Hủy",
+          text: t("deleteAccount.cancel"),
           style: "cancel",
         },
         {
-          text: "Xóa tài khoản",
+          text: t("deleteAccount.deleteButton"),
           style: "destructive",
           onPress: async () => {
             setIsLoading(true);
@@ -85,18 +90,21 @@ const DeleteAccountBottomSheet = ({
                 }
                 onConfirmDelete();
                 onClose();
-                Alert.alert("Thành công", "Tài khoản đã được xóa thành công.");
+                Alert.alert(
+                  t("deleteAccount.success"),
+                  t("deleteAccount.accountDeleted")
+                );
               } else {
                 Alert.alert(
-                  "Lỗi",
-                  "Đã có lỗi xảy ra khi xóa tài khoản. Vui lòng thử lại."
+                  t("deleteAccount.error"),
+                  t("deleteAccount.deleteFailed")
                 );
               }
             } catch (error) {
               console.error("Error deleting account:", error);
               Alert.alert(
-                "Lỗi",
-                "Đã có lỗi xảy ra khi xóa tài khoản. Vui lòng thử lại."
+                t("deleteAccount.error"),
+                t("deleteAccount.deleteFailed")
               );
             } finally {
               setIsLoading(false);
@@ -123,7 +131,7 @@ const DeleteAccountBottomSheet = ({
         <View style={styles.modalContent}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>Xóa tài khoản</Text>
+            <Text style={styles.headerTitle}>{t("deleteAccount.title")}</Text>
             <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
               <Ionicons name="close" size={24} color="#666" />
             </TouchableOpacity>
@@ -132,16 +140,13 @@ const DeleteAccountBottomSheet = ({
           {/* Warning Message */}
           <View style={styles.warningContainer}>
             <Ionicons name="warning" size={24} color="#FF6B6B" />
-            <Text style={styles.warningText}>
-              Việc xóa tài khoản sẽ không thể hoàn tác. Tất cả dữ liệu của bạn
-              sẽ bị xóa vĩnh viễn.
-            </Text>
+            <Text style={styles.warningText}>{t("deleteAccount.warning")}</Text>
           </View>
 
           {/* Reason Selection */}
           <View style={styles.reasonsContainer}>
             <Text style={styles.reasonsTitle}>
-              Vui lòng cho chúng tôi biết lý do:
+              {t("deleteAccount.reasonsTitle")}
             </Text>
             <ScrollView style={styles.reasonsList}>
               {deleteReasons.map((reason) => (
@@ -182,7 +187,9 @@ const DeleteAccountBottomSheet = ({
           {/* Action Buttons */}
           <View style={styles.buttonContainer}>
             <TouchableOpacity style={styles.cancelButton} onPress={handleClose}>
-              <Text style={styles.cancelButtonText}>Hủy</Text>
+              <Text style={styles.cancelButtonText}>
+                {t("deleteAccount.cancel")}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -198,7 +205,9 @@ const DeleteAccountBottomSheet = ({
                 style={styles.deleteButtonGradient}
               >
                 <Text style={styles.deleteButtonText}>
-                  {isLoading ? "Đang xử lý..." : "Xóa tài khoản"}
+                  {isLoading
+                    ? t("deleteAccount.processing")
+                    : t("deleteAccount.deleteButton")}
                 </Text>
               </LinearGradient>
             </TouchableOpacity>

@@ -6,6 +6,8 @@ import { CartProvider } from "./context/CartContext";
 import { AvatarProvider } from "./context/AvatarContext";
 import { LocationProvider } from "./context/LocationContext";
 import { useEffect } from "react";
+// Import i18n configuration
+import "./i18n";
 
 export default function App() {
   return (

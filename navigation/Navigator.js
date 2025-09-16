@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { useTranslation } from "../hooks/useTranslation";
 import HomeScreen from "../screens/HomeScreen/HomeScreen";
 import Icon from "react-native-vector-icons/FontAwesome";
 import SplashScreen from "../screens/SplashSreen/SplashSreen";
@@ -45,8 +46,10 @@ import authService from "../services/authService";
 import ChoosingPTScreen from "../screens/ChoosingPTScreen/ChoosingPTScreen";
 import ScheduleScreen from "../screens/ScheduleScreen/ScheduleScreen";
 import BookingHistoryScreen from "../screens/BookingHistoryScreen/BookingHistoryScreen";
+import LanguageSelectScreen from "../screens/SettingScreen/LanguageSelectScreen/LanguageSelectScreen";
 
 export default function Navigator() {
+  const { t } = useTranslation();
   const Tab = createBottomTabNavigator();
   const Stack = createNativeStackNavigator();
   const TopTab = createMaterialTopTabNavigator();
@@ -63,7 +66,7 @@ export default function Navigator() {
       screens: {
         MainApp: {
           screens: {
-            "Trang chủ": {
+            [t("navigation.home")]: {
               screens: {
                 PaymentScreen: "payment",
                 OrderSuccessScreen: "orderprocess",
@@ -71,7 +74,7 @@ export default function Navigator() {
                 SearchGymScreen: "search",
               },
             },
-            "Bản Đồ": {
+            [t("navigation.map")]: {
               screens: {
                 MapScreen: "map/user",
               },
@@ -197,7 +200,7 @@ export default function Navigator() {
           options={{
             headerTitleAlign: "center",
             headerShown: true,
-            title: "Danh sách PT",
+            title: t("screenTitles.ptList"),
           }}
         />
         <Stack.Screen
@@ -206,7 +209,7 @@ export default function Navigator() {
           options={{
             headerTitleAlign: "center",
             headerShown: true,
-            title: "Blog",
+            title: t("screenTitles.blog"),
           }}
         />
         <Stack.Screen
@@ -215,7 +218,7 @@ export default function Navigator() {
           options={{
             headerTitleAlign: "center",
             headerShown: true,
-            title: "Blog",
+            title: t("screenTitles.blog"),
           }}
         />
         <Stack.Screen
@@ -224,7 +227,7 @@ export default function Navigator() {
           options={{
             headerTitleAlign: "center",
             headerShown: true,
-            title: "Tìm kiếm phòng gym",
+            title: t("screenTitles.searchGym"),
           }}
         />
         <Stack.Screen
@@ -233,7 +236,7 @@ export default function Navigator() {
           options={{
             headerTitleAlign: "center",
             headerShown: true,
-            title: "Thông tin PT",
+            title: t("screenTitles.ptInfo"),
           }}
         />
         <Stack.Screen
@@ -242,7 +245,7 @@ export default function Navigator() {
           options={{
             headerTitleAlign: "center",
             headerShown: true,
-            title: "Giỏ hàng",
+            title: t("screenTitles.cart"),
           }}
         />
         <Stack.Screen
@@ -251,7 +254,7 @@ export default function Navigator() {
           options={{
             headerTitleAlign: "center",
             headerShown: true,
-            title: "Chọn PT cho gói tập",
+            title: t("screenTitles.choosePTForPackage"),
           }}
         />
         <Stack.Screen
@@ -260,7 +263,7 @@ export default function Navigator() {
           options={{
             headerTitleAlign: "center",
             headerShown: true,
-            title: "Tiến hành thanh toán",
+            title: t("screenTitles.payment"),
           }}
         />
         <Stack.Screen
@@ -269,7 +272,7 @@ export default function Navigator() {
           options={{
             headerTitleAlign: "center",
             headerShown: true,
-            title: "Tiến thành thanh toán",
+            title: t("screenTitles.paymentSuccess"),
           }}
         />
       </Stack.Navigator>
@@ -297,7 +300,7 @@ export default function Navigator() {
           options={{
             headerTitleAlign: "center",
             headerShown: true,
-            title: "Bản đồ",
+            title: t("screenTitles.map"),
           }}
         />
       </Stack.Navigator>
@@ -324,7 +327,7 @@ export default function Navigator() {
           component={ChoosingPTScreen}
           options={{
             headerShown: true,
-            title: "Chọn PT cho lịch tập",
+            title: t("screenTitles.choosePTForSchedule"),
             headerTitleAlign: "center",
             headerTitleStyle: {
               fontWeight: "bold",
@@ -338,7 +341,7 @@ export default function Navigator() {
           component={ScheduleScreen}
           options={{
             headerShown: true,
-            title: "Lịch Tập",
+            title: t("screenTitles.schedule"),
             headerTitleAlign: "center",
             headerTitleStyle: {
               fontWeight: "bold",
@@ -352,7 +355,7 @@ export default function Navigator() {
           component={BookingHistoryScreen}
           options={{
             headerShown: true,
-            title: "Lịch sử đặt lịch",
+            title: t("screenTitles.bookingHistory"),
             headerTitleAlign: "center",
             headerTitleStyle: {
               fontWeight: "bold",
@@ -384,7 +387,7 @@ export default function Navigator() {
           name="SchedulePTTabs"
           options={{
             headerShown: true,
-            title: "Đăng Ký Lịch PT",
+            title: t("screenTitles.ptScheduleRegistration"),
           }}
         >
           {() => (
@@ -413,14 +416,14 @@ export default function Navigator() {
                 name="SchedulePTScreen"
                 component={SchedulePTScreen}
                 options={{
-                  title: "Đăng ký Slot",
+                  title: t("screenTitles.registerSlot"),
                 }}
               />
               <TopTab.Screen
                 name="SlotsPTScreen"
                 component={SlotsPTScreen}
                 options={{
-                  title: "Xem lịch Book",
+                  title: t("screenTitles.viewBookedSlots"),
                 }}
               />
               {/* <TopTab.Screen
@@ -438,7 +441,7 @@ export default function Navigator() {
           component={PTBookingHistoryScreen}
           options={{
             headerShown: true,
-            title: "Lịch sử đặt lịch PT",
+            title: t("screenTitles.ptBookingHistory"),
             headerTitleAlign: "center",
             headerTitleStyle: {
               fontWeight: "bold",
@@ -465,7 +468,7 @@ export default function Navigator() {
           component={ChatScreen}
           options={{
             headerShown: true,
-            title: "Chatbox AI",
+            title: t("screenTitles.aiChatbox"),
             headerTitleAlign: "center",
             headerTitleStyle: {
               fontWeight: "bold",
@@ -503,7 +506,22 @@ export default function Navigator() {
           component={SettingScreen}
           options={{
             headerShown: true,
-            title: "Cài Đặt",
+            title: t("screenTitles.settings"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+
+        <Stack.Screen
+          name="LanguageSelectScreen"
+          component={LanguageSelectScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.chooseLanguage"),
             headerTitleAlign: "center",
             headerTitleStyle: {
               fontWeight: "bold",
@@ -517,7 +535,7 @@ export default function Navigator() {
           component={ProfileScreen}
           options={{
             headerShown: true,
-            title: "Hồ Sơ",
+            title: t("screenTitles.profile"),
             headerTitleAlign: "center",
             headerTitleStyle: {
               fontWeight: "bold",
@@ -531,7 +549,7 @@ export default function Navigator() {
           component={AccountScreen}
           options={{
             headerShown: true,
-            title: "Tài Khoản",
+            title: t("screenTitles.account"),
             headerTitleAlign: "center",
             headerTitleStyle: {
               fontWeight: "bold",
@@ -545,7 +563,7 @@ export default function Navigator() {
           component={UpdatePasswordScreen}
           options={{
             headerShown: true,
-            title: "Đổi Mật Khẩu",
+            title: t("screenTitles.changePassword"),
             headerTitleAlign: "center",
             headerTitleStyle: {
               fontWeight: "bold",
@@ -554,12 +572,12 @@ export default function Navigator() {
             },
           }}
         />
-        {/* <Stack.Screen
+        <Stack.Screen
           name="SubscriptionScreen"
           component={SubscriptionScreen}
           options={{
             headerShown: true,
-            title: "Nâng cấp gói",
+            title: t("screenTitles.upgradePackage"),
             headerTitleAlign: "center",
             headerTitleStyle: {
               fontWeight: "bold",
@@ -567,13 +585,13 @@ export default function Navigator() {
               color: "#ED2A46",
             },
           }}
-        /> */}
+        />
         <Stack.Screen
           name="TransactionHistoryScreen"
           component={TransactionHistoryScreen}
           options={{
             headerShown: true,
-            title: "Lịch Sử Giao Dịch",
+            title: t("screenTitles.transactionHistory"),
             headerTitleAlign: "center",
             headerTitleStyle: {
               fontWeight: "bold",
@@ -587,7 +605,7 @@ export default function Navigator() {
           component={VoucherScreen}
           options={{
             headerShown: true,
-            title: "Ưu đãi",
+            title: t("screenTitles.offers"),
             headerTitleAlign: "center",
             headerTitleStyle: {
               fontWeight: "bold",
@@ -601,7 +619,7 @@ export default function Navigator() {
           component={FAQScreen}
           options={{
             headerShown: true,
-            title: "Câu hỏi thường gặp",
+            title: t("screenTitles.faq"),
             headerTitleAlign: "center",
             headerTitleStyle: {
               fontWeight: "bold",
@@ -644,17 +662,17 @@ export default function Navigator() {
             tabBarIcon: ({ focused, color, size }) => {
               let iconName;
 
-              if (route.name === "Trang chủ") {
+              if (route.name === t("navigation.home")) {
                 iconName = "home";
-              } else if (route.name === "Bản Đồ") {
+              } else if (route.name === t("navigation.map")) {
                 iconName = "map-marker";
-              } else if (route.name === "Lịch Tập") {
+              } else if (route.name === t("navigation.schedule")) {
                 iconName = "calendar";
-              } else if (route.name === "AI Chatbox") {
+              } else if (route.name === t("navigation.aiChatbox")) {
                 iconName = "wechat";
-              } else if (route.name === "Tôi") {
+              } else if (route.name === t("navigation.me")) {
                 iconName = "user";
-              } else if (route.name === "Đăng Ký Lịch PT") {
+              } else if (route.name === t("navigation.ptSchedule")) {
                 iconName = "calendar";
               }
 
@@ -669,14 +687,14 @@ export default function Navigator() {
       >
         {/* Common tabs for all users */}
         <Tab.Screen
-          name="Trang chủ"
+          name={t("navigation.home")}
           component={HomeStack}
           options={{
             headerShown: false,
           }}
         />
         <Tab.Screen
-          name="Bản Đồ"
+          name={t("navigation.map")}
           component={MapStack}
           options={{
             headerShown: false,
@@ -686,7 +704,7 @@ export default function Navigator() {
         {/* Role-specific tabs */}
         {user?.role === "USER" && (
           <Tab.Screen
-            name="Lịch Tập"
+            name={t("navigation.schedule")}
             component={ScheduleStack}
             options={{
               headerShown: false,
@@ -696,7 +714,7 @@ export default function Navigator() {
 
         {user?.role === "PT" && (
           <Tab.Screen
-            name="Đăng Ký Lịch PT"
+            name={t("navigation.ptSchedule")}
             component={SchedulePTStack}
             options={{
               headerShown: false,
@@ -706,7 +724,7 @@ export default function Navigator() {
 
         {user?.role === "USER" && (
           <Tab.Screen
-            name="AI Chatbox"
+            name={t("navigation.aiChatbox")}
             component={ChatStack}
             options={{
               headerShown: false,
@@ -716,7 +734,7 @@ export default function Navigator() {
 
         {/* Profile tab - available for all authenticated users */}
         <Tab.Screen
-          name="Tôi"
+          name={t("navigation.me")}
           component={ProfileStack}
           options={{
             headerShown: false,
@@ -739,7 +757,7 @@ export default function Navigator() {
       >
         <ActivityIndicator size="large" color="#FF914D" />
         <Text style={{ marginTop: 16, fontSize: 16, color: "#666" }}>
-          Đang kiểm tra đăng nhập...
+          {t("screenTitles.checkingLogin")}
         </Text>
       </View>
     );
@@ -772,7 +790,7 @@ export default function Navigator() {
               component={LoginScreen}
               options={{
                 headerShown: true,
-                title: "Đăng Nhập",
+                title: t("screenTitles.login"),
                 headerTitleAlign: "center",
                 headerTitleStyle: {
                   fontWeight: "bold",
@@ -786,7 +804,7 @@ export default function Navigator() {
               component={ForgotPasswordScreen1}
               options={{
                 headerShown: true,
-                title: "Quên Mật Khẩu",
+                title: t("screenTitles.forgotPassword"),
                 headerTitleAlign: "center",
                 headerTitleStyle: {
                   fontWeight: "bold",
@@ -800,7 +818,7 @@ export default function Navigator() {
               component={ForgotPasswordScreen2}
               options={{
                 headerShown: true,
-                title: "Quên Mật Khẩu",
+                title: t("screenTitles.forgotPassword"),
                 headerTitleAlign: "center",
                 headerTitleStyle: {
                   fontWeight: "bold",
@@ -814,7 +832,7 @@ export default function Navigator() {
               component={ForgotPasswordScreen3}
               options={{
                 headerShown: true,
-                title: "Quên Mật Khẩu",
+                title: t("screenTitles.forgotPassword"),
                 headerTitleAlign: "center",
                 headerTitleStyle: {
                   fontWeight: "bold",
@@ -828,7 +846,7 @@ export default function Navigator() {
               component={RegisterScreen}
               options={{
                 headerShown: true,
-                title: "Đăng Ký",
+                title: t("screenTitles.register"),
                 headerTitleAlign: "center",
                 headerTitleStyle: {
                   fontWeight: "bold",

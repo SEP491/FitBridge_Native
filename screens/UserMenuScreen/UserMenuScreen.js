@@ -17,11 +17,13 @@ import { useCart } from "../../context/CartContext";
 import { useAvatar } from "../../context/AvatarContext";
 import authService from "../../services/authService";
 import DeleteAccountBottomSheet from "../../components/DeleteAccountBottomSheet/DeleteAccountBottomSheet";
+import { useTranslation } from "../../hooks/useTranslation";
 
 export default function UserMenuScreen() {
   const [user, setUser] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const { clearCart } = useCart(); // Assuming useCart is defined in your context or service
+  const { t } = useTranslation();
   const { getAvatarUrl, clearAvatar } = useAvatar(); // Use avatar context
   useEffect(() => {
     const fetchUser = async () => {
@@ -41,19 +43,19 @@ export default function UserMenuScreen() {
   let menuItems = [
     {
       icon: <Ionicons name="person-outline" size={28} color="#ED2A46" />,
-      label: "Tài Khoản",
+      label: t("userMenu.account"),
       navigation: "AccountScreen",
       category: "account",
     },
     {
       icon: <Ionicons name="document-text-outline" size={28} color="#ED2A46" />,
-      label: "Hồ Sơ",
+      label: t("userMenu.profile"),
       navigation: "ProfileScreen",
       category: "account",
     },
     {
       icon: <Ionicons name="settings-outline" size={28} color="#ED2A46" />,
-      label: "Cài Đặt",
+      label: t("userMenu.settings"),
       navigation: "SettingScreen",
       category: "settings",
     },
@@ -63,21 +65,21 @@ export default function UserMenuScreen() {
   if (user && user.role === "USER") {
     menuItems = [
       ...menuItems,
-      // {
-      //   icon: <Ionicons name="time-outline" size={28} color="#ED2A46" />,
-      //   label: "Nâng Cấp Gói",
-      //   navigation: "SubscriptionScreen",
-      //   category: "services",
-      // },
+      {
+        icon: <Ionicons name="time-outline" size={28} color="#ED2A46" />,
+        label: t("userMenu.subscription"),
+        navigation: "SubscriptionScreen",
+        category: "services",
+      },
       {
         icon: <Ionicons name="ticket-outline" size={28} color="#ED2A46" />,
-        label: "Ưu Đãi",
+        label: t("userMenu.vouchers"),
         navigation: "VoucherScreen",
         category: "services",
       },
       {
         icon: <Ionicons name="time-outline" size={28} color="#ED2A46" />,
-        label: "Lịch Sử Giao Dịch",
+        label: t("userMenu.transactionHistory"),
         navigation: "TransactionHistoryScreen",
         category: "services",
       },
@@ -89,39 +91,39 @@ export default function UserMenuScreen() {
     ...menuItems,
     {
       icon: <Ionicons name="help-circle-outline" size={28} color="#ED2A46" />,
-      label: "Câu Hỏi Thường Gặp",
+      label: t("userMenu.faq"),
       navigation: "FAQScreen",
       category: "support",
     },
     {
       icon: <Ionicons name="apps-outline" size={28} color="#ED2A46" />,
-      label: "Tiện Ích Khác",
+      label: t("userMenu.otherUtilities"),
       navigation: "UserMenu",
       category: "support",
     },
     {
       icon: <Ionicons name="trash-outline" size={28} color="#ED2A46" />,
-      label: "Xoá Tài Khoản",
+      label: t("userMenu.deleteAccount"),
       navigation: "UserMenu",
       category: "settings",
       onPress: () => setShowDeleteModal(true),
     },
     {
       icon: <Ionicons name="log-out-outline" size={28} color="#ED2A46" />,
-      label: "Đăng Xuất",
+      label: t("userMenu.logout"),
       navigation: "UserMenu",
       category: "settings",
       onPress: async () => {
         Alert.alert(
-          "Xác nhận đăng xuất", // Title of the alert
-          "Bạn có chắc chắn muốn đăng xuất?", // Message of the alert
+          t("userMenu.confirmLogout"), // Title of the alert
+          t("userMenu.logoutMessage"), // Message of the alert
           [
             {
-              text: "Hủy", // Cancel button
+              text: t("userMenu.cancel"), // Cancel button
               style: "cancel", // Style for cancel button (iOS/Android)
             },
             {
-              text: "Đăng Xuất", // Confirm button
+              text: t("userMenu.logout"), // Confirm button
               style: "destructive", // Red color for destructive action (iOS/Android)
               onPress: async () => {
                 try {
@@ -136,17 +138,11 @@ export default function UserMenuScreen() {
                     }
                     // Navigation will be handled automatically by the Navigator
                   } else {
-                    Alert.alert(
-                      "Lỗi",
-                      "Đã có lỗi xảy ra khi đăng xuất. Vui lòng thử lại."
-                    );
+                    Alert.alert(t("common.error"), t("errors.logoutError"));
                   }
                 } catch (error) {
                   console.error("Error during logout:", error);
-                  Alert.alert(
-                    "Lỗi",
-                    "Đã có lỗi xảy ra khi đăng xuất. Vui lòng thử lại."
-                  );
+                  Alert.alert(t("common.error"), t("errors.logoutError"));
                 }
               },
             },
@@ -202,15 +198,15 @@ export default function UserMenuScreen() {
             </View>
             <View style={styles.userTextContainer}>
               <Text style={styles.userName}>
-                {user ? user.fullName : "Người dùng"}
+                {user ? user.fullName : t("userMenu.user")}
               </Text>
               <Text style={styles.userPhone}>
-                {user ? user.phone : "Vui lòng đăng nhập"}
+                {user ? user.phone : t("userMenu.pleaseLogin")}
               </Text>
               {user && user.role && (
                 <View style={styles.roleContainer}>
                   <Text style={styles.roleText}>
-                    {user.role === "PT" ? "PT" : "Người dùng"}
+                    {user.role === "PT" ? "PT" : t("userMenu.user")}
                   </Text>
                 </View>
               )}
@@ -222,7 +218,7 @@ export default function UserMenuScreen() {
         <View style={styles.menuContainer}>
           {/* Account Section */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Tài khoản</Text>
+            <Text style={styles.sectionTitle}>{t("userMenu.account")}</Text>
             {menuItems
               .filter((item) => item.category === "account")
               .map((item, index) => (
@@ -233,7 +229,7 @@ export default function UserMenuScreen() {
           {/* Services Section (only for users) */}
           {user && user.role === "USER" && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Dịch vụ</Text>
+              <Text style={styles.sectionTitle}>{t("userMenu.services")}</Text>
               {menuItems
                 .filter((item) => item.category === "services")
                 .map((item, index) => (
@@ -244,7 +240,7 @@ export default function UserMenuScreen() {
 
           {/* Support Section */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Hỗ trợ</Text>
+            <Text style={styles.sectionTitle}>{t("userMenu.support")}</Text>
             {menuItems
               .filter((item) => item.category === "support")
               .map((item, index) => (
@@ -254,7 +250,7 @@ export default function UserMenuScreen() {
 
           {/* Settings Section */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Cài đặt</Text>
+            <Text style={styles.sectionTitle}>{t("userMenu.settings")}</Text>
             {menuItems
               .filter((item) => item.category === "settings")
               .map((item, index) => (
@@ -265,7 +261,7 @@ export default function UserMenuScreen() {
 
         {/* Version Info */}
         <View style={styles.versionContainer}>
-          <Text style={styles.versionText}>Phiên bản 1.2025.03</Text>
+          <Text style={styles.versionText}>{t("userMenu.version")}</Text>
         </View>
       </ScrollView>
 

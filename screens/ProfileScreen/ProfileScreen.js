@@ -17,9 +17,11 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { useAvatar } from "../../context/AvatarContext";
 import accountService from "./../../services/accountService";
+import { useTranslation } from "../../hooks/useTranslation";
 
 const ProfileScreen = () => {
   const { getAvatarUrl } = useAvatar(); // Use avatar context
+  const { t } = useTranslation();
   const [userProfile, setUserProfile] = useState({
     fullName: "",
     email: "",
@@ -61,10 +63,10 @@ const ProfileScreen = () => {
 
   const getBMICategory = (bmi) => {
     if (!bmi) return "";
-    if (bmi < 18.5) return "Thiếu cân";
-    if (bmi < 25) return "Bình thường";
-    if (bmi < 30) return "Thừa cân";
-    return "Béo phì";
+    if (bmi < 18.5) return t("profile.bmiCategories.underweight");
+    if (bmi < 25) return t("profile.bmiCategories.normal");
+    if (bmi < 30) return t("profile.bmiCategories.overweight");
+    return t("profile.bmiCategories.obese");
   };
 
   const getBMIColor = (bmi) => {
@@ -113,8 +115,8 @@ const ProfileScreen = () => {
       // Validate age
       if (!validateAge(newDateString)) {
         Alert.alert(
-          "Ngày sinh không hợp lệ",
-          "Vui lòng chọn ngày sinh hợp lệ (tuổi từ 13-100)"
+          t("profile.invalidDateOfBirth"),
+          t("profile.ageValidationMessage")
         );
         // For iOS, keep the picker open for correction
         if (Platform.OS === "android") {
@@ -136,13 +138,13 @@ const ProfileScreen = () => {
   };
 
   const genderOptions = [
-    { label: "Nam", value: "Male" },
-    { label: "Nữ", value: "Female" },
+    { label: t("profile.genderOptions.male"), value: "Male" },
+    { label: t("profile.genderOptions.female"), value: "Female" },
   ];
 
   const getGenderLabel = (value) => {
     const option = genderOptions.find((opt) => opt.value === value);
-    return option ? option.label : "Chọn giới tính";
+    return option ? option.label : t("profile.selectGender");
   };
 
   const validateAge = (dateString) => {
@@ -168,10 +170,7 @@ const ProfileScreen = () => {
       setUserProfile(response.data);
     } catch (error) {
       console.error("Lỗi khi lấy thông tin hồ sơ:", error);
-      Alert.alert(
-        "Lỗi",
-        "Không thể lấy thông tin hồ sơ. Vui lòng thử lại sau."
-      );
+      Alert.alert(t("profile.profileError"), t("profile.fetchProfileError"));
     }
   };
 
@@ -197,15 +196,21 @@ const ProfileScreen = () => {
         global.updateNavigationUser();
       }
       if (response.status === "200") {
-        Alert.alert("Thành công", "Cập nhật hồ sơ thành công");
+        Alert.alert(
+          t("profile.updateSuccess"),
+          t("profile.updateProfileSuccess")
+        );
         fetchProfileData();
         setIsEditMode(false);
       } else {
-        Alert.alert("Lỗi", response.message || "Cập nhật không thành công");
+        Alert.alert(
+          t("profile.profileError"),
+          response.message || t("profile.updateProfileError")
+        );
       }
     } catch (error) {
       console.error("Lỗi khi cập nhật hồ sơ:", error);
-      Alert.alert("Lỗi", "Không thể cập nhật hồ sơ. Vui lòng thử lại sau.");
+      Alert.alert(t("profile.profileError"), t("profile.updateProfileError"));
     }
   };
 
@@ -254,7 +259,9 @@ const ProfileScreen = () => {
                   size={18}
                   color="#FFD700"
                 />
-                <Text style={styles.basicInfoText}>{userProfile.age} tuổi</Text>
+                <Text style={styles.basicInfoText}>
+                  {userProfile.age} {t("profile.yearsOld")}
+                </Text>
               </View>
               <View style={styles.basicInfoItem}>
                 <MaterialCommunityIcons
@@ -318,7 +325,9 @@ const ProfileScreen = () => {
         {/* Health Metrics Section */}
         {bmi && (
           <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>Chỉ số sức khỏe</Text>
+            <Text style={styles.sectionTitle}>
+              {t("profile.healthMetrics")}
+            </Text>
 
             <View style={styles.healthCard}>
               <View style={styles.healthHeader}>
@@ -328,7 +337,9 @@ const ProfileScreen = () => {
                   color={bmiColor}
                 />
                 <View style={styles.healthInfo}>
-                  <Text style={styles.healthTitle}>Chỉ số BMI</Text>
+                  <Text style={styles.healthTitle}>
+                    {t("profile.bmiIndex")}
+                  </Text>
                   <Text style={styles.healthSubtitle}>{bmiCategory}</Text>
                 </View>
                 <Text style={[styles.healthValue, { color: bmiColor }]}>
@@ -366,7 +377,7 @@ const ProfileScreen = () => {
         {/* Personal Information Form */}
         <View style={styles.sectionContainer}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Thông tin cá nhân</Text>
+            <Text style={styles.sectionTitle}>{t("profile.personalInfo")}</Text>
             <TouchableOpacity
               style={styles.editToggle}
               onPress={() =>
@@ -389,7 +400,7 @@ const ProfileScreen = () => {
                   size={16}
                   color="#FF914D"
                 />{" "}
-                Họ và tên
+                {t("profile.fullName")}
               </Text>
               <TextInput
                 style={[styles.textInput, !isEditMode && styles.disabledInput]}
@@ -397,7 +408,7 @@ const ProfileScreen = () => {
                 onChangeText={(text) =>
                   setUserProfile({ ...userProfile, fullName: text })
                 }
-                placeholder="Nhập họ và tên"
+                placeholder={t("profile.enterFullName")}
                 editable={isEditMode}
               />
             </View>
@@ -409,7 +420,7 @@ const ProfileScreen = () => {
                   size={16}
                   color="#FF914D"
                 />{" "}
-                Email
+                {t("email")}
               </Text>
               <TextInput
                 style={[styles.textInput, styles.disabledInput]}
@@ -426,13 +437,13 @@ const ProfileScreen = () => {
                   size={16}
                   color="#FF914D"
                 />{" "}
-                Số điện thoại
+                {t("profile.phoneNumber")}
               </Text>
               <TextInput
                 style={[styles.textInput, styles.disabledInput]}
                 value={userProfile.phone}
                 editable={false}
-                placeholder="Số điện thoại"
+                placeholder={t("profile.phoneNumber")}
               />
             </View>
 
@@ -443,7 +454,7 @@ const ProfileScreen = () => {
                   size={16}
                   color="#FF914D"
                 />{" "}
-                Ngày sinh
+                {t("profile.dateOfBirth")}
               </Text>
               <TouchableOpacity onPress={openDatePicker} disabled={!isEditMode}>
                 <View
@@ -458,7 +469,7 @@ const ProfileScreen = () => {
                       !displayDate && styles.placeholderText,
                     ]}
                   >
-                    {displayDate || "Chọn ngày sinh"}
+                    {displayDate || t("profile.selectDateOfBirth")}
                   </Text>
                   <MaterialCommunityIcons
                     name="calendar"
@@ -477,7 +488,7 @@ const ProfileScreen = () => {
                     size={16}
                     color="#FF914D"
                   />{" "}
-                  Cân nặng (kg)
+                  {t("profile.weight")}
                 </Text>
                 <TextInput
                   style={[
@@ -501,7 +512,7 @@ const ProfileScreen = () => {
                     size={16}
                     color="#FF914D"
                   />{" "}
-                  Chiều cao (cm)
+                  {t("profile.height")}
                 </Text>
                 <TextInput
                   style={[
@@ -526,7 +537,7 @@ const ProfileScreen = () => {
                   size={16}
                   color="#FF914D"
                 />{" "}
-                Giới tính
+                {t("profile.gender")}
               </Text>
               <TouchableOpacity
                 onPress={() => isEditMode && setShowGenderPicker(true)}
@@ -562,7 +573,7 @@ const ProfileScreen = () => {
                   size={16}
                   color="#FF914D"
                 />{" "}
-                Địa chỉ
+                {t("profile.address")}
               </Text>
               <TextInput
                 style={[styles.textInput, !isEditMode && styles.disabledInput]}
@@ -570,7 +581,7 @@ const ProfileScreen = () => {
                 onChangeText={(text) =>
                   setUserProfile({ ...userProfile, address: text })
                 }
-                placeholder="Nhập địa chỉ"
+                placeholder={t("profile.enterAddress")}
                 editable={isEditMode}
                 multiline={true}
                 numberOfLines={2}
@@ -591,7 +602,9 @@ const ProfileScreen = () => {
                 size={20}
                 color="#fff"
               />
-              <Text style={styles.saveButtonText}>Lưu thay đổi</Text>
+              <Text style={styles.saveButtonText}>
+                {t("profile.saveChanges")}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -599,7 +612,7 @@ const ProfileScreen = () => {
               onPress={cancelEditMode}
             >
               <MaterialCommunityIcons name="close" size={20} color="#f44336" />
-              <Text style={styles.cancelButtonText}>Hủy</Text>
+              <Text style={styles.cancelButtonText}>{t("profile.cancel")}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -614,11 +627,13 @@ const ProfileScreen = () => {
             <View style={styles.pickerModal}>
               <View style={styles.pickerHeader}>
                 <TouchableOpacity onPress={() => setShowGenderPicker(false)}>
-                  <Text style={styles.pickerCancel}>Hủy</Text>
+                  <Text style={styles.pickerCancel}>{t("profile.cancel")}</Text>
                 </TouchableOpacity>
-                <Text style={styles.pickerTitle}>Chọn giới tính</Text>
+                <Text style={styles.pickerTitle}>
+                  {t("profile.selectGender")}
+                </Text>
                 <TouchableOpacity onPress={() => setShowGenderPicker(false)}>
-                  <Text style={styles.pickerDone}>Xong</Text>
+                  <Text style={styles.pickerDone}>{t("profile.done")}</Text>
                 </TouchableOpacity>
               </View>
               <View style={styles.pickerOptions}>

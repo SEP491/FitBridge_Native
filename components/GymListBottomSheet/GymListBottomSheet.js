@@ -8,6 +8,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "../../hooks/useTranslation";
 
 const GymListBottomSheet = ({
   visible,
@@ -16,6 +17,7 @@ const GymListBottomSheet = ({
   searchRadius,
   onGymPress,
 }) => {
+  const { t } = useTranslation();
   const renderGymItem = ({ item }) => (
     <TouchableOpacity
       style={styles.gymItem}
@@ -50,7 +52,7 @@ const GymListBottomSheet = ({
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.headerTitle}>
-              Phòng tập gần đây ({gyms.length})
+              {t("gym.nearbyGymsCount", { count: gyms.length })}
             </Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <Ionicons name="close" size={24} color="#666" />
@@ -61,7 +63,7 @@ const GymListBottomSheet = ({
           {gyms.length === 0 ? (
             <View style={styles.noGymsMessage}>
               <Text style={styles.noGymsText}>
-                Không tìm thấy phòng tập nào trong phạm vi {searchRadius} km
+                {t("gym.noGymsInRadius", { radius: searchRadius })}
               </Text>
             </View>
           ) : (

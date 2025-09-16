@@ -12,8 +12,10 @@ import React, { useState } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import ptService from "../../services/ptService";
 import colors from "../../constants/color";
+import { useTranslation } from "../../hooks/useTranslation";
 
 export default function SchedulePTScreen() {
+  const { t } = useTranslation();
   const [slots, setSlots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -25,10 +27,7 @@ export default function SchedulePTScreen() {
       setSlots(response.data?.items || []);
     } catch (error) {
       console.error("Error loading gym slots:", error);
-      Alert.alert(
-        "Lỗi",
-        "Không thể tải danh sách khung giờ. Vui lòng thử lại."
-      );
+      Alert.alert(t("schedule.error"), t("schedule.loadSlotsError"));
     } finally {
       setLoading(false);
     }
@@ -36,27 +35,27 @@ export default function SchedulePTScreen() {
 
   const handleRegisterSlot = async (slotId, slotName) => {
     Alert.alert(
-      "Đăng ký buổi tập PT",
-      `Bạn có chắc chắn muốn đăng ký khung giờ ${slotName}?`,
+      t("pt.registerPTSession"),
+      t("schedule.registerSlotConfirm", { slotName }),
       [
         {
-          text: "Hủy",
+          text: t("schedule.cancel"),
           style: "cancel",
         },
         {
-          text: "Đăng ký",
+          text: t("pt.register"),
           onPress: async () => {
             setRegistering(slotId);
             try {
               await ptService.registerSlot({ slotId });
-              Alert.alert("Thành công", "Đăng ký Khung giờ thành công!");
+              Alert.alert(
+                t("schedule.success"),
+                t("schedule.registerSlotSuccess")
+              );
               loadSlotOfGym(); // Refresh the slots
             } catch (error) {
               console.error("Error registering for slot:", error);
-              Alert.alert(
-                "Lỗi",
-                "Không thể đăng ký khung giờ. Vui lòng thử lại."
-              );
+              Alert.alert(t("schedule.error"), t("schedule.registerSlotError"));
             } finally {
               setRegistering(null);
             }
@@ -76,7 +75,7 @@ export default function SchedulePTScreen() {
     const [hours, minutes] = timeString.split(":");
     const hour = parseInt(hours);
     const minute = parseInt(minutes);
-    const period = hour >= 12 ? "PM" : "AM";
+    const period = hour >= 12 ? t("schedule.pm") : t("schedule.am");
     const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
     return `${displayHour}:${minute.toString().padStart(2, "0")} ${period}`;
   };
@@ -89,11 +88,15 @@ export default function SchedulePTScreen() {
     const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
 
     if (diffHours === 0) {
-      return `${diffMinutes} min`;
+      return `${diffMinutes} ${t("schedule.minutes")}`;
     } else if (diffMinutes === 0) {
-      return `${diffHours} hr`;
+      return `${diffHours} ${
+        diffHours === 1 ? t("schedule.hour") : t("schedule.hours")
+      }`;
     } else {
-      return `${diffHours} hr ${diffMinutes} min`;
+      return `${diffHours} ${
+        diffHours === 1 ? t("schedule.hour") : t("schedule.hours")
+      } ${diffMinutes} ${t("schedule.minutes")}`;
     }
   };
 
@@ -107,7 +110,7 @@ export default function SchedulePTScreen() {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={colors.red} />
-        <Text style={styles.loadingText}>Đang tải danh sách khung giờ...</Text>
+        <Text style={styles.loadingText}>{t("schedule.loadingSlots")}</Text>
       </View>
     );
   }
@@ -126,8 +129,12 @@ export default function SchedulePTScreen() {
       >
         {slots.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>Không có khung giờ nào</Text>
-            <Text style={styles.emptySubText}>Vui lòng quay lại sau</Text>
+            <Text style={styles.emptyText}>
+              {t("schedule.noSlotsAvailable")}
+            </Text>
+            <Text style={styles.emptySubText}>
+              {t("schedule.pleaseComeLater")}
+            </Text>
           </View>
         ) : (
           slots.map((slot) => (
@@ -143,14 +150,16 @@ export default function SchedulePTScreen() {
 
               <View style={styles.timeContainer}>
                 <View style={styles.timeItem}>
-                  <Text style={styles.timeLabel}>Giờ bắt đầu</Text>
+                  <Text style={styles.timeLabel}>
+                    {t("schedule.startTime")}
+                  </Text>
                   <Text style={styles.timeValue}>
                     {formatTime(slot.startTime)}
                   </Text>
                 </View>
                 <View style={styles.timeSeparator} />
                 <View style={styles.timeItem}>
-                  <Text style={styles.timeLabel}>Giờ kết thúc</Text>
+                  <Text style={styles.timeLabel}>{t("schedule.endTime")}</Text>
                   <Text style={styles.timeValue}>
                     {formatTime(slot.endTime)}
                   </Text>
@@ -169,7 +178,7 @@ export default function SchedulePTScreen() {
                   <ActivityIndicator size="small" color={colors.white} />
                 ) : (
                   <Text style={styles.registerButtonText}>
-                    Đăng ký khung giờ
+                    {t("schedule.registerSlot")}
                   </Text>
                 )}
               </TouchableOpacity>

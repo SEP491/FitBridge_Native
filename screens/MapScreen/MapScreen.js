@@ -22,10 +22,12 @@ import {
   isValidCoordinate,
 } from "../../utils/locationUtils";
 import { useLocationContext } from "../../context/LocationContext";
+import { useTranslation } from "../../hooks/useTranslation";
 
 export default function MapScreen({ route }) {
   const { location, refreshLocation, coordinates, hasLocation } =
     useLocationContext();
+  const { t } = useTranslation();
   const [coords, setCoords] = useState(null);
   const [loading, setLoading] = useState(true);
   const [allGyms, setAllGyms] = useState([]);
@@ -156,7 +158,7 @@ export default function MapScreen({ route }) {
   if (!coords) {
     return (
       <View style={styles.container}>
-        <Text>Không có tọa độ khả dụng.</Text>
+        <Text>{t("map.noCoordinates")}</Text>
       </View>
     );
   }
@@ -279,10 +281,10 @@ export default function MapScreen({ route }) {
                 <Text style={styles.calloutAddress}>{gym.address}</Text>
 
                 <Text style={styles.calloutSince}>
-                  Hoạt động từ: {gym.since}
+                  {t("map.operatingSince")} {gym.since}
                 </Text>
                 <Text style={styles.calloutDistance}>
-                  Cách đây: {gym.distance?.toFixed(1)} km
+                  {t("map.distanceAway")} {gym.distance?.toFixed(1)} km
                 </Text>
                 {gym.hotResearch && (
                   <View style={styles.hotBadge}>
@@ -301,7 +303,9 @@ export default function MapScreen({ route }) {
         onPress={() => setShowRadiusInput(!showRadiusInput)}
       >
         <FontAwesome5 name="search-location" size={20} color="#fff" />
-        <Text style={styles.radiusButtonText}>Bán kính {searchRadius} km </Text>
+        <Text style={styles.radiusButtonText}>
+          {t("map.radius")} {searchRadius} km{" "}
+        </Text>
       </TouchableOpacity>
 
       {/* Location Refresh Button */}
@@ -326,19 +330,13 @@ export default function MapScreen({ route }) {
                 );
               }
 
-              Alert.alert("Thành công", "Vị trí đã được cập nhật!");
+              Alert.alert(t("common.success"), t("map.locationUpdated"));
             } else {
-              Alert.alert(
-                "Lỗi",
-                "Không thể cập nhật vị trí. Vui lòng kiểm tra kết nối và thử lại."
-              );
+              Alert.alert(t("common.error"), t("map.locationUpdateError"));
             }
           } catch (error) {
             console.error("❌ Error refreshing location:", error);
-            Alert.alert(
-              "Lỗi",
-              "Không thể cập nhật vị trí. Vui lòng kiểm tra kết nối và thử lại."
-            );
+            Alert.alert(t("common.error"), t("map.locationUpdateError"));
           }
         }}
       >
@@ -348,7 +346,7 @@ export default function MapScreen({ route }) {
       {/* Search Radius Input */}
       {showRadiusInput && (
         <View style={styles.radiusInputContainer}>
-          <Text style={styles.radiusInputLabel}>Bán kính (km):</Text>
+          <Text style={styles.radiusInputLabel}>{t("map.radiusKm")}</Text>
           <View style={styles.radiusInputRow}>
             <TextInput
               style={styles.radiusInput}
@@ -356,7 +354,7 @@ export default function MapScreen({ route }) {
               onChangeText={handleSetSearchRadius}
               keyboardType="numeric"
               maxLength={2}
-              placeholder="Nhập bán kính"
+              placeholder={t("map.enterRadius")}
             />
             <TouchableOpacity
               style={styles.radiusApplyButton}
@@ -365,7 +363,9 @@ export default function MapScreen({ route }) {
                 setShowRadiusInput(false);
               }}
             >
-              <Text style={styles.radiusApplyButtonText}>Tìm kiếm</Text>
+              <Text style={styles.radiusApplyButtonText}>
+                {t("common.search")}
+              </Text>
             </TouchableOpacity>
           </View>
           <View style={styles.radiusPresets}>
@@ -396,7 +396,7 @@ export default function MapScreen({ route }) {
         onPress={() => setGymListVisible(true)}
       >
         <FontAwesome6 name="list" size={20} color="#fff" />
-        <Text style={styles.listButtonText}>Danh sách phòng tập</Text>
+        <Text style={styles.listButtonText}>{t("map.gymList")}</Text>
       </TouchableOpacity>
 
       {/* Gym List Bottom Sheet */}

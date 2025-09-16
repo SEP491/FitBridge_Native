@@ -15,8 +15,10 @@ import { useNavigation } from "@react-navigation/native";
 import accountService from "../../services/accountService";
 import colors from "../../constants/color";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { useTranslation } from "../../hooks/useTranslation";
 
 export default function ScheduleScreen({ route }) {
+  const { t } = useTranslation();
   const navigation = useNavigation();
   const [ptData, setPtData] = useState(null);
   const [slots, setSlots] = useState([]);
@@ -65,7 +67,7 @@ export default function ScheduleScreen({ route }) {
 
   // Get day name in Vietnamese
   const getDayName = (date) => {
-    const days = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
+    const days = t("schedule.daysShort");
     return days[date.getDay()];
   };
 
@@ -87,7 +89,7 @@ export default function ScheduleScreen({ route }) {
       }
     } catch (error) {
       console.error("Error loading PT slots:", error);
-      Alert.alert("Lỗi", "Không thể tải danh sách khung giờ PT.");
+      Alert.alert(t("schedule.error"), t("schedule.errorLoadingSlots"));
     } finally {
       setLoading(false);
     }
@@ -137,7 +139,7 @@ export default function ScheduleScreen({ route }) {
     const [hours, minutes] = timeString.split(":");
     const hour = parseInt(hours);
     const minute = parseInt(minutes);
-    const period = hour >= 12 ? "CH" : "SA";
+    const period = hour >= 12 ? t("schedule.pm") : t("schedule.am");
     const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
     return `${displayHour}:${minute.toString().padStart(2, "0")} ${period}`;
   };
@@ -151,11 +153,15 @@ export default function ScheduleScreen({ route }) {
     const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
 
     if (diffHours === 0) {
-      return `${diffMinutes} phút`;
+      return `${diffMinutes} ${t("schedule.minutes")}`;
     } else if (diffMinutes === 0) {
-      return `${diffHours} giờ`;
+      return `${diffHours} ${
+        diffHours === 1 ? t("schedule.hour") : t("schedule.hours")
+      }`;
     } else {
-      return `${diffHours} giờ ${diffMinutes} phút`;
+      return `${diffHours} ${
+        diffHours === 1 ? t("schedule.hour") : t("schedule.hours")
+      } ${diffMinutes} ${t("schedule.minutes")}`;
     }
   };
 
@@ -166,9 +172,9 @@ export default function ScheduleScreen({ route }) {
     const endDate = weekDays[6];
 
     if (startDate.getMonth() === endDate.getMonth()) {
-      return `${startDate.getDate()} - ${endDate.getDate()} tháng ${
-        startDate.getMonth() + 1
-      }, ${startDate.getFullYear()}`;
+      return `${startDate.getDate()} - ${endDate.getDate()} ${t(
+        "schedule.month"
+      )} ${startDate.getMonth() + 1}, ${startDate.getFullYear()}`;
     } else {
       return `${startDate.getDate()}/${
         startDate.getMonth() + 1
@@ -181,24 +187,32 @@ export default function ScheduleScreen({ route }) {
   // Handle slot booking
   const handleBookSlot = (slot) => {
     if (!slot.active) {
-      Alert.alert("Thông báo", "Khung giờ này chưa được kích hoạt bởi PT.");
+      Alert.alert(
+        t("schedule.notificationTitle"),
+        t("schedule.slotNotActivated")
+      );
       return;
     }
 
     if (slot.isBooking) {
-      Alert.alert("Thông báo", "Khung giờ này đã được đặt trước.");
+      Alert.alert(
+        t("schedule.notificationTitle"),
+        t("schedule.slotAlreadyBooked")
+      );
       return;
     }
 
     Alert.alert(
-      "Xác nhận đặt lịch",
-      `Bạn có chắc chắn muốn đặt lịch ${slot.slot.name} từ ${formatTime(
-        slot.slot.startTime
-      )} đến ${formatTime(slot.slot.endTime)}?`,
+      t("schedule.confirmBooking"),
+      t("schedule.bookingConfirmMessage", {
+        slotName: slot.slot.name,
+        startTime: formatTime(slot.slot.startTime),
+        endTime: formatTime(slot.slot.endTime),
+      }),
       [
-        { text: "Hủy", style: "cancel" },
+        { text: t("schedule.cancel"), style: "cancel" },
         {
-          text: "Đặt lịch",
+          text: t("schedule.bookSlot"),
           onPress: async () => {
             const bookingData = {
               ptSlotId: slot.id,
@@ -208,7 +222,7 @@ export default function ScheduleScreen({ route }) {
             console.log("Booking Response:", response);
             loadPtSlotForUser(selectedDate);
             // Navigate to booking confirmation or handle booking
-            Alert.alert("Thành công", "Đặt lịch thành công!");
+            Alert.alert(t("schedule.success"), t("schedule.bookingSuccess"));
           },
         },
       ]
@@ -343,7 +357,8 @@ export default function ScheduleScreen({ route }) {
                         styles.pastMonthText,
                     ]}
                   >
-                    Th{date.getMonth() + 1}
+                    {t("schedule.month").slice(0, 2)}
+                    {date.getMonth() + 1}
                   </Text>
                 </TouchableOpacity>
               );
@@ -365,14 +380,18 @@ export default function ScheduleScreen({ route }) {
           {loading ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color={colors.red} />
-              <Text style={styles.loadingText}>Đang tải lịch tập...</Text>
+              <Text style={styles.loadingText}>
+                {t("schedule.loadingSchedule")}
+              </Text>
             </View>
           ) : slots.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Ionicons name="calendar-outline" size={64} color="#ccc" />
-              <Text style={styles.emptyText}>Không có khung giờ nào</Text>
+              <Text style={styles.emptyText}>{t("schedule.noTimeSlots")}</Text>
               <Text style={styles.emptySubText}>
-                Vào ngày {formatDateDisplay(selectedDate)}
+                {t("schedule.onDate", {
+                  date: formatDateDisplay(selectedDate),
+                })}
               </Text>
             </View>
           ) : (
@@ -383,7 +402,9 @@ export default function ScheduleScreen({ route }) {
                   <View style={styles.statusContainer}>
                     {ptSlot.isBooking && (
                       <View style={styles.bookingBadge}>
-                        <Text style={styles.bookingText}>Đã đặt</Text>
+                        <Text style={styles.bookingText}>
+                          {t("schedule.booked")}
+                        </Text>
                       </View>
                     )}
                     <View
@@ -395,7 +416,9 @@ export default function ScheduleScreen({ route }) {
                       ]}
                     >
                       <Text style={styles.statusText}>
-                        {ptSlot.active ? "Hoạt động" : "Không hoạt động"}
+                        {ptSlot.active
+                          ? t("schedule.active")
+                          : t("schedule.inactive")}
                       </Text>
                     </View>
                   </View>
@@ -403,14 +426,18 @@ export default function ScheduleScreen({ route }) {
 
                 <View style={styles.timeContainer}>
                   <View style={styles.timeItem}>
-                    <Text style={styles.timeLabel}>Giờ bắt đầu</Text>
+                    <Text style={styles.timeLabel}>
+                      {t("schedule.startTime")}
+                    </Text>
                     <Text style={styles.timeValue}>
                       {formatTime(ptSlot.slot.startTime)}
                     </Text>
                   </View>
                   <View style={styles.timeSeparator} />
                   <View style={styles.timeItem}>
-                    <Text style={styles.timeLabel}>Giờ kết thúc</Text>
+                    <Text style={styles.timeLabel}>
+                      {t("schedule.endTime")}
+                    </Text>
                     <Text style={styles.timeValue}>
                       {formatTime(ptSlot.slot.endTime)}
                     </Text>
@@ -418,7 +445,9 @@ export default function ScheduleScreen({ route }) {
                 </View>
 
                 <View style={styles.durationContainer}>
-                  <Text style={styles.durationLabel}>Thời lượng:</Text>
+                  <Text style={styles.durationLabel}>
+                    {t("schedule.duration")}
+                  </Text>
                   <Text style={styles.durationValue}>
                     {calculateDuration(
                       ptSlot.slot.startTime,
@@ -444,10 +473,10 @@ export default function ScheduleScreen({ route }) {
                     ]}
                   >
                     {ptSlot.isBooking
-                      ? "Đã được đặt"
+                      ? t("schedule.alreadyBooked")
                       : ptSlot.active
-                      ? "Đặt lịch"
-                      : "Không khả dụng"}
+                      ? t("schedule.bookNow")
+                      : t("schedule.notAvailable")}
                   </Text>
                 </TouchableOpacity>
               </View>

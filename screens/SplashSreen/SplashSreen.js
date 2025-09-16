@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { View, Text, Image, StyleSheet } from "react-native";
+import { t } from "../../i18n";
 
 const SplashScreen = ({ navigation }) => {
   useEffect(() => {
@@ -19,6 +20,8 @@ const SplashScreen = ({ navigation }) => {
         resizeMode="contain"
       />
       <Text style={styles.title}>FitBridge</Text>
+      <Text style={styles.welcomeText}>{t("welcome")}</Text>
+      <Text style={styles.loadingText}>{t("loading")}</Text>
     </View>
   );
 };
@@ -38,6 +41,19 @@ const styles = StyleSheet.create({
     fontSize: 35,
     fontWeight: "bold",
     color: "#ED2A46",
+  },
+  welcomeText: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#333333",
+    marginTop: 20,
+    textAlign: "center",
+  },
+  loadingText: {
+    fontSize: 14,
+    color: "#666666",
+    marginTop: 10,
+    textAlign: "center",
   },
 });
 

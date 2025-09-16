@@ -19,16 +19,19 @@ import { Image } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import authService from "../../services/authService";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useTranslation } from "../../hooks/useTranslation";
+
 export default function LoginScreen() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [secureText, setSecureText] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const navigation = useNavigation();
+  const { t } = useTranslation();
 
   const handleLogin = async () => {
     if (!phone || !password) {
-      Alert.alert("Thông báo", "Vui lòng nhập số điện thoại và mật khẩu", [
+      Alert.alert(t("auth.notification"), t("auth.pleaseEnterPhonePassword"), [
         { text: "OK" },
       ]);
       return;
@@ -67,19 +70,15 @@ export default function LoginScreen() {
           global.updateNavigationUser();
         }
       } else {
-        Alert.alert(
-          "Thông báo",
-          "Tài khoản của bạn không có quyền truy cập vào ứng dụng này",
-          [{ text: "OK" }]
-        );
+        Alert.alert(t("auth.notification"), t("auth.noAccessPermission"), [
+          { text: "OK" },
+        ]);
         return;
       }
     } catch (error) {
-      Alert.alert(
-        "Đăng nhập thất bại",
-        "Số điện thoại hoặc mật khẩu không đúng",
-        [{ text: "OK" }]
-      );
+      Alert.alert(t("auth.loginFailed"), t("auth.phonePasswordIncorrect"), [
+        { text: "OK" },
+      ]);
       console.error("Login error:", error);
     } finally {
       setIsLoading(false);
@@ -106,7 +105,7 @@ export default function LoginScreen() {
               style={styles.logo}
             />
             <Text style={styles.welcomeTitle}>Chào mừng bạn trở lại!</Text>
-            <Text style={styles.welcomeSubtitle}>Đăng nhập để tiếp tục</Text>
+            <Text style={styles.welcomeSubtitle}>{t("login")}</Text>
           </View>
 
           {/* Form Section */}
@@ -120,7 +119,7 @@ export default function LoginScreen() {
               <View style={styles.formContent}>
                 {/* Phone Input */}
                 <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Số điện thoại</Text>
+                  <Text style={styles.label}>{t("profile.phoneNumber")}</Text>
                   <View style={styles.inputContainer}>
                     <FontAwesome
                       name="phone"
@@ -142,7 +141,7 @@ export default function LoginScreen() {
 
                 {/* Password Input */}
                 <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Mật khẩu</Text>
+                  <Text style={styles.label}>{t("password")}</Text>
                   <View style={styles.inputContainer}>
                     <FontAwesome
                       name="lock"
@@ -153,7 +152,7 @@ export default function LoginScreen() {
                     <TextInput
                       value={password}
                       onChangeText={setPassword}
-                      placeholder="Nhập mật khẩu của bạn"
+                      placeholder={t("password")}
                       secureTextEntry={secureText}
                       placeholderTextColor="#A39F9F"
                       style={styles.passwordInput}
@@ -178,7 +177,9 @@ export default function LoginScreen() {
                   style={styles.forgotPasswordContainer}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.forgotPassword}>Quên mật khẩu?</Text>
+                  <Text style={styles.forgotPassword}>
+                    {t("forgotPassword")}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </LinearGradient>
@@ -201,23 +202,25 @@ export default function LoginScreen() {
               end={{ x: 1, y: 0 }}
             >
               {isLoading ? (
-                <Text style={styles.loginButtonText}>Đang đăng nhập...</Text>
+                <Text style={styles.loginButtonText}>
+                  {t("auth.registering")}
+                </Text>
               ) : (
-                <Text style={styles.loginButtonText}>Đăng nhập</Text>
+                <Text style={styles.loginButtonText}>{t("login")}</Text>
               )}
             </LinearGradient>
           </TouchableOpacity>
 
           {/* Sign Up Section */}
           <View style={styles.signUpSection}>
-            <Text style={styles.signUpQuestion}>Bạn chưa có tài khoản? </Text>
+            <Text style={styles.signUpQuestion}>{t("dontHaveAccount")} </Text>
             <TouchableOpacity
               onPress={() => {
                 navigation.navigate("Register");
               }}
               activeOpacity={0.7}
             >
-              <Text style={styles.signUpText}>Đăng ký ngay</Text>
+              <Text style={styles.signUpText}>{t("register")}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

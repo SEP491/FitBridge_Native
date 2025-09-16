@@ -27,6 +27,7 @@ import {
   createScreenDataLoader,
   handleRefresh,
 } from "../../lib";
+import { useTranslation } from "../../hooks/useTranslation";
 
 export default function HomeScreen() {
   const [user, setUser] = useState(null);
@@ -36,20 +37,9 @@ export default function HomeScreen() {
   const [coords, setCoords] = useState(null);
   const [nearbyGyms, setNearbyGyms] = useState([]);
   const navigation = useNavigation();
+  const { t } = useTranslation();
 
-  const handleFilterGymsByDistance = () => {
-    if (!coords || !allGyms.length) return;
-
-    const filteredGyms = filterGymsByDistance(allGyms, coords, 5);
-    console.log("Nearby gyms:", filteredGyms);
-    setNearbyGyms(filteredGyms);
-  };
-
-  // Using utility functions for fetching data
-  const fetchLocation = () => fetchLocationFromStorage();
-  const fetchUser = () => fetchUserFromStorage();
-
-  const fetchAllGyms = async (page = 1, pageSize = 30) => {
+  const fetchAllGyms = async (page = 1, pageSize = 200) => {
     try {
       const response = await gymService.getAllGyms({
         page,
@@ -61,6 +51,13 @@ export default function HomeScreen() {
     } catch (error) {
       console.error("Error fetching hot research gym:", error);
     }
+  };
+  const handleFilterGymsByDistance = () => {
+    if (!coords || !allGyms.length) return;
+
+    const filteredGyms = filterGymsByDistance(allGyms, coords, 5);
+    console.log("Nearby gyms:", filteredGyms);
+    setNearbyGyms(filteredGyms);
   };
 
   const loadData = async () => {
@@ -99,25 +96,24 @@ export default function HomeScreen() {
   const blog = [
     {
       id: 1,
-      title: "5 Bài Tập Đốt Mỡ Nhanh Nhất Cho Người Mới",
+      title: t("home.blogPost1Title"),
       imageUrl:
         "https://i.pinimg.com/736x/0f/f6/69/0ff6690ae16b9358fb62ed4934d8e598.jpg",
-      summary:
-        "Khám phá 5 bài tập đơn giản giúp bạn đốt cháy mỡ và săn chắc cơ thể.",
+      summary: t("home.blogPost1Summary"),
     },
     {
       id: 2,
-      title: "Thực Đơn Dinh Dưỡng Cho Gymer 7 Ngày",
+      title: t("home.blogPost2Title"),
       imageUrl:
         "https://i.pinimg.com/736x/0e/fc/b5/0efcb577e982d3b47739b3d10d47ce42.jpg",
-      summary: "Chế độ ăn chuẩn khoa học giúp tăng cơ, giảm mỡ hiệu quả.",
+      summary: t("home.blogPost2Summary"),
     },
     {
       id: 3,
-      title: "Cách Phục Hồi Cơ Sau Tập Luyện",
+      title: t("home.blogPost3Title"),
       imageUrl:
         "https://i.pinimg.com/736x/63/69/ab/6369ab27dca3a6331a12c517441fabd2.jpg",
-      summary: "Các kỹ thuật thư giãn giúp phục hồi cơ bắp nhanh chóng.",
+      summary: t("home.blogPost3Summary"),
     },
   ];
 
@@ -151,7 +147,7 @@ export default function HomeScreen() {
             onRefresh={onRefresh}
             colors={["#ED2A46"]} // Android
             tintColor="#ED2A46" // iOS
-            title="Đang làm mới..." // iOS
+            title={t("home.refreshing")} // iOS
             titleColor="#ED2A46" // iOS
           />
         }
@@ -169,7 +165,9 @@ export default function HomeScreen() {
           <View style={styles.gymSection}>
             <View style={styles.titleContainer}>
               <View style={styles.titleWithIcon}>
-                <Text style={styles.sectionTitle}>Phòng Gym Nổi Bật</Text>
+                <Text style={styles.sectionTitle}>
+                  {t("home.featuredGyms")}
+                </Text>
                 <View style={styles.titleUnderline} />
               </View>
               <TouchableOpacity
@@ -177,7 +175,7 @@ export default function HomeScreen() {
                 onPress={() => navigation.navigate("SearchGymScreen")}
                 activeOpacity={0.7}
               >
-                <Text style={styles.viewMoreText}>Tìm kiếm</Text>
+                <Text style={styles.viewMoreText}>{t("common.search")}</Text>
               </TouchableOpacity>
             </View>
 
@@ -207,7 +205,9 @@ export default function HomeScreen() {
           <View style={styles.gymSection}>
             <View style={styles.titleContainer}>
               <View style={styles.titleWithIcon}>
-                <Text style={styles.sectionTitle}>Phòng Gym Gần Tôi</Text>
+                <Text style={styles.sectionTitle}>
+                  {t("home.nearbyGymsTitle")}
+                </Text>
                 <View style={styles.titleUnderline} />
               </View>
               <TouchableOpacity
@@ -217,7 +217,7 @@ export default function HomeScreen() {
                 }
                 activeOpacity={0.7}
               >
-                <Text style={styles.viewMoreText}>Xem thêm</Text>
+                <Text style={styles.viewMoreText}>{t("home.viewMore")}</Text>
               </TouchableOpacity>
             </View>
 
@@ -241,9 +241,7 @@ export default function HomeScreen() {
               />
             ) : (
               <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>
-                  Hiện không có phòng gym nào gần bạn
-                </Text>
+                <Text style={styles.emptyText}>{t("home.noNearbyGyms")}</Text>
               </View>
             )}
           </View>
@@ -251,7 +249,7 @@ export default function HomeScreen() {
           <View style={styles.gymSection}>
             <View style={styles.titleContainer}>
               <View style={styles.titleWithIcon}>
-                <Text style={styles.sectionTitle}>Blog</Text>
+                <Text style={styles.sectionTitle}>{t("home.blog")}</Text>
                 <View style={styles.titleUnderline} />
               </View>
               <TouchableOpacity
@@ -259,7 +257,7 @@ export default function HomeScreen() {
                 onPress={() => navigation.navigate("BlogScreen")}
                 activeOpacity={0.7}
               >
-                <Text style={styles.viewMoreText}>Xem thêm</Text>
+                <Text style={styles.viewMoreText}>{t("home.viewMore")}</Text>
               </TouchableOpacity>
             </View>
 

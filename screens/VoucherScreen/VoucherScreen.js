@@ -12,9 +12,11 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import CarouselNative from "../../components/Carousel/Carousel";
 import { useNavigation } from "@react-navigation/native";
+import { useTranslation } from "../../hooks/useTranslation";
 
 export default function VoucherScreen() {
   const navigation = useNavigation();
+  const { t } = useTranslation();
 
   const vouchers = [
     {
@@ -80,7 +82,9 @@ export default function VoucherScreen() {
       {/* Nhập mã voucher */}
       <View style={styles.voucherInputContainer}>
         <TouchableOpacity style={styles.filterButton}>
-          <Text style={{ color: "#ED2A46", textAlign: "center" }}>Bộ lọc</Text>
+          <Text style={{ color: "#ED2A46", textAlign: "center" }}>
+            {t("voucher.filter")}
+          </Text>
         </TouchableOpacity>
         <TextInput
           placeholder="Nhập mã voucher"
@@ -95,7 +99,7 @@ export default function VoucherScreen() {
           <View key={v.id} style={styles.card}>
             {/* Nút Chi tiết ở góc trên bên phải */}
             <TouchableOpacity style={styles.detailTopRight}>
-              <Text style={styles.detail}>Chi tiết &gt;</Text>
+              <Text style={styles.detail}>{t("voucher.details")}</Text>
             </TouchableOpacity>
 
             <View style={styles.cardContent}>
