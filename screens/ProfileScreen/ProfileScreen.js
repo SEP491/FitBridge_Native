@@ -13,7 +13,7 @@ import {
   KeyboardAvoidingView,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { useAvatar } from "../../context/AvatarContext";
 import accountService from "./../../services/accountService";
@@ -117,48 +117,28 @@ const ProfileScreen = () => {
     }
   };
 
-  const handleDateChange = (event, selectedDate) => {
-    // For Android, always hide the picker after any interaction
-    if (Platform.OS === "android") {
-      setShowDatePicker(false);
-    }
+  const handleDateConfirm = (selectedDate) => {
+    setShowDatePicker(false);
+    const newDateString = formatAPIDate(selectedDate);
 
-    // Handle user cancellation or dismissal
-    if (event.type === "dismissed" || !selectedDate) {
-      // For iOS, hide the picker on dismissal
-      if (Platform.OS === "ios") {
-        setShowDatePicker(false);
-      }
+    // Validate age
+    if (!validateAge(newDateString)) {
+      Alert.alert(
+        t("profile.invalidDateOfBirth"),
+        t("profile.ageValidationMessage")
+      );
       return;
+    } else {
+      // Valid date - update profile
+      setUserProfile({
+        ...userProfile,
+        dob: newDateString,
+      });
     }
+  };
 
-    // Handle date selection
-    if (event.type === "set") {
-      const newDateString = formatAPIDate(selectedDate);
-
-      // Validate age
-      if (!validateAge(newDateString)) {
-        Alert.alert(
-          t("profile.invalidDateOfBirth"),
-          t("profile.ageValidationMessage")
-        );
-        // For iOS, keep the picker open for correction
-        if (Platform.OS === "android") {
-          return;
-        }
-      } else {
-        // Valid date - update profile and close picker
-        setUserProfile({
-          ...userProfile,
-          dob: newDateString,
-        });
-
-        // For iOS, close the picker after successful selection
-        if (Platform.OS === "ios") {
-          setShowDatePicker(false);
-        }
-      }
-    }
+  const handleDateCancel = () => {
+    setShowDatePicker(false);
   };
 
   const genderOptions = [
@@ -169,6 +149,21 @@ const ProfileScreen = () => {
   const getGenderLabel = (value) => {
     const option = genderOptions.find((opt) => opt.value === value);
     return option ? option.label : t("profile.selectGender");
+  };
+
+  const calculateAge = (dob) => {
+    if (!dob) return 0;
+    const birthDate = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    ) {
+      age--;
+    }
+    return age;
   };
 
   const validateAge = (dateString) => {
@@ -287,7 +282,7 @@ const ProfileScreen = () => {
                   color="#FFD700"
                 />
                 <Text style={styles.basicInfoText}>
-                  {userProfile.age} {t("profile.yearsOld")}
+                  {calculateAge(userProfile.dob)} {t("profile.yearsOld")}
                 </Text>
               </View>
               <View style={styles.basicInfoItem}>
@@ -698,21 +693,23 @@ const ProfileScreen = () => {
         </Modal>
       </ScrollView>
 
-      {/* Native Date Picker - Platform specific display */}
-      {showDatePicker && (
-        <DateTimePicker
-          value={userProfile.dob ? new Date(userProfile.dob) : new Date()}
-          mode="date"
-          display={Platform.OS === "ios" ? "spinner" : "default"}
-          onChange={handleDateChange}
-          maximumDate={new Date()}
-          minimumDate={new Date(1924, 0, 1)}
-          themeVariant="light"
-          {...(Platform.OS === "ios" && {
-            textColor: "#333333",
-          })}
-        />
-      )}
+      {/* Date Picker Modal */}
+      <DateTimePickerModal
+        isVisible={showDatePicker}
+        mode="date"
+        onConfirm={handleDateConfirm}
+        onCancel={handleDateCancel}
+        date={userProfile.dob ? new Date(userProfile.dob) : new Date()}
+        maximumDate={new Date()}
+        minimumDate={new Date(1924, 0, 1)}
+        confirmTextIOS={t("common.confirm")}
+        cancelTextIOS={t("common.cancel")}
+        headerTextIOS={t("profile.selectDateOfBirth")}
+        display="spinner"
+        isDarkModeEnabled={false}
+        buttonTextColorIOS="#FF914D"
+        textColor="#1A191A"
+      />
     </KeyboardAvoidingView>
   );
 };

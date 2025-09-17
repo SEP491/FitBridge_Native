@@ -62,7 +62,7 @@ export default function UserMenuScreen() {
   ];
 
   // Only add user-specific items if user role is "User"
-  if (user && user.role === "USER") {
+  if (user && user.role === "Customer") {
     menuItems = [
       ...menuItems,
       {
@@ -206,7 +206,7 @@ export default function UserMenuScreen() {
               {user && user.role && (
                 <View style={styles.roleContainer}>
                   <Text style={styles.roleText}>
-                    {user.role === "PT" ? "PT" : t("userMenu.user")}
+                    {user.role === "Gym PT" ? "Gym PT" : t("userMenu.user")}
                   </Text>
                 </View>
               )}
@@ -227,7 +227,7 @@ export default function UserMenuScreen() {
           </View>
 
           {/* Services Section (only for users) */}
-          {user && user.role === "USER" && (
+          {user && user.role === "Customer" && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>{t("userMenu.services")}</Text>
               {menuItems

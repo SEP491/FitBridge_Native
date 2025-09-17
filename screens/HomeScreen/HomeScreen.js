@@ -41,6 +41,7 @@ export default function HomeScreen() {
       const { items, total, page: currentPage } = response.data;
 
       setAllGyms(items);
+      console.log("Fetched gyms:", items);
     } catch (error) {
       console.error("Error fetching hot research gym:", error);
     }

@@ -21,6 +21,7 @@ import authService from "../../services/authService";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTranslation } from "../../hooks/useTranslation";
 
+import { jwtDecode } from "jwt-decode";
 export default function LoginScreen() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
@@ -39,27 +40,29 @@ export default function LoginScreen() {
 
     setIsLoading(true);
     const requestData = {
-      phone: phone.trim(),
+      identifier: phone.trim(),
       password: password.trim(),
     };
 
     try {
       const response = await authService.login(requestData);
-
-      if (response.data.role === "USER" || response.data.role === "PT") {
+      console.log("Login response:", response);
+      const userData = jwtDecode(response.data.idToken);
+      console.log("Decoded user data:", userData);
+      if (userData.role === "Customer" || userData.role === "PT") {
         // Store token and user data
         await AsyncStorage.setItem("token", response.data.accessToken);
         const user = {
-          id: response.data.id,
-          fullName: response.data.fullName,
-          phone: response.data.phone,
-          role: response.data.role,
+          id: userData.sub,
+          fullName: userData.name,
+          phone: userData.phone,
+          role: userData.role,
+          email: userData.email,
         };
         await AsyncStorage.setItem("user", JSON.stringify(user));
-
         // Handle avatar - only store if it's not null/undefined
-        if (response.data.avatar) {
-          await AsyncStorage.setItem("userAvatar", response.data.avatar);
+        if (userData.senderAvatar) {
+          await AsyncStorage.setItem("userAvatar", userData.senderAvatar);
         } else {
           // Remove any existing avatar if the response doesn't have one
           await AsyncStorage.removeItem("userAvatar");

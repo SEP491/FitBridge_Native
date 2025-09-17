@@ -2,8 +2,9 @@ import { request } from "./request";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const authService = {
-  login: (loginData) => request("POST", "v1/auth", loginData),
-  register: (registerData) => request("POST", `v1/account`, registerData),
+  login: (loginData) => request("POST", "v1/identities/login", loginData),
+  register: (registerData) =>
+    request("POST", `v1/identities/register-customer`, registerData),
 
   // Check if token is valid by making a request to get user profile
   validateToken: async () => {
@@ -14,7 +15,7 @@ const authService = {
       }
 
       // Try to get user profile with the stored token
-      const response = await request("GET", "v1/account/profile");
+      const response = await request("GET", "v1/accounts/profile");
 
       // Get stored user data to merge with profile data (for role info)
       const storedUser = await AsyncStorage.getItem("user");

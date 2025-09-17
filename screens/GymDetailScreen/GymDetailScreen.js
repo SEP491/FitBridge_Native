@@ -52,6 +52,8 @@ export default function GymDetailScreen({ route }) {
       setLoading(true);
       try {
         const response = await gymService.getGymById(gymId);
+        console.log(response.data);
+        console.log(response.data.gymImages);
         setGymDetail(response.data);
       } catch (error) {
         console.error("Error fetching gym detail:", error);
@@ -192,8 +194,7 @@ export default function GymDetailScreen({ route }) {
         gymName: gymDetail.gymName,
         gymAddress: gymDetail.address,
         gymImage:
-          gymDetail?.mainImage ||
-          gymDetail?.images[0]?.url ||
+          gymDetail?.gymImages[0] ||
           "https://levelfyc.com/wp-content/uploads/2024/08/khong-gian-4.jpg",
         id: packageGym.id,
         name: packageGym.name,
@@ -220,8 +221,7 @@ export default function GymDetailScreen({ route }) {
       gymName: gymDetail.gymName,
       gymAddress: gymDetail.address,
       gymImage:
-        gymDetail.mainImage ||
-        gymDetail?.images[0]?.url ||
+        gymDetail?.gymImages[0] ||
         "https://levelfyc.com/wp-content/uploads/2024/08/khong-gian-4.jpg",
       id: packageGym.id,
       name: packageGym.name,
@@ -268,7 +268,7 @@ export default function GymDetailScreen({ route }) {
               scrollAnimationDuration={1000}
               style={styles.carousel}
               data={
-                gymDetail?.images || [
+                gymDetail?.gymImages || [
                   "https://levelfyc.com/wp-content/uploads/2024/08/khong-gian-4.jpg",
                 ]
               }
@@ -294,7 +294,7 @@ export default function GymDetailScreen({ route }) {
 
               <View style={styles.locationContainer}>
                 <Ionicons name="location-outline" size={16} color="#666" />
-                <Text style={styles.gymAddress}>{gymDetail?.address}</Text>
+                <Text style={styles.gymAddress}>{gymDetail?.gymAddress}</Text>
               </View>
 
               <View style={styles.priceRatingContainer}>
@@ -306,7 +306,7 @@ export default function GymDetailScreen({ route }) {
                   <Text style={styles.priceUnit}>
                     {t("gymDetail.perMonth")}
                   </Text>
-                </View>{" "}
+                </View>
                 <View style={styles.ratingBadge}>
                   <Ionicons name="star" size={16} color="#FFD700" />
                   <Text style={styles.ratingText}>
@@ -357,8 +357,8 @@ export default function GymDetailScreen({ route }) {
                 </Text>
               </View>
               <Text style={styles.descriptionText}>
-                {gymDetail?.description ||
-                  "Loren ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua ut enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat"}
+                {gymDetail?.gymDescription ||
+                  "No description available for this gym."}
               </Text>
             </View>
 

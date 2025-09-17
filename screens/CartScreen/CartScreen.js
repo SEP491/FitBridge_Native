@@ -117,7 +117,7 @@ export default function CartScreen() {
 
           <TouchableOpacity
             style={styles.button}
-            onPress={() => navigation.navigate("Trang chủ")}
+            onPress={() => navigation.goBack()}
           >
             <Text style={styles.buttonText}>{t("cart.backToHome")}</Text>
           </TouchableOpacity>

@@ -34,9 +34,7 @@ const GymListBottomSheet = ({
         </View>
         <View style={styles.gymItemRight}>
           <Text style={styles.gymItemDistance}>
-            {item.distance
-              ? `${formatNumber(item.distance.toFixed(1))} km`
-              : ""}
+            {item.distance ? `${item.distance.toFixed(1)} km` : ""}
           </Text>
         </View>
       </View>

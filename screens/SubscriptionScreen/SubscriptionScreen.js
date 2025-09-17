@@ -193,7 +193,7 @@ export default function SubscriptionScreen() {
 
   const handlePaymentSuccess = () => {
     setShowWebView(false);
-    navigation.navigate("Trang chủ", {
+    navigation.navigate(t("navigation.home"), {
       screen: "OrderSuccessScreen",
       params: {
         orderCode: orderCode,

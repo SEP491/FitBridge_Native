@@ -1,5 +1,4 @@
 import { View, Text, StyleSheet, Dimensions, Image } from "react-native";
-import React from "react";
 import { TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
@@ -22,7 +21,7 @@ export default function GymCard({ gym, fullWidth = false, height = 130 }) {
         <Image
           source={{
             uri:
-              gym?.mainImage ||
+              gym?.gymImages[0].url ||
               "https://thesaigontimes.vn/wp-content/uploads/2024/12/g1-2.jpeg",
           }}
           style={[styles.image, { height: height }]}
@@ -70,7 +69,7 @@ export default function GymCard({ gym, fullWidth = false, height = 130 }) {
         <View style={styles.addressContainer}>
           <Text style={styles.locationIcon}>📍</Text>
           <Text style={styles.address} numberOfLines={1} ellipsizeMode="tail">
-            {gym?.address}
+            {gym?.gymAddress}
           </Text>
         </View>
       </View>

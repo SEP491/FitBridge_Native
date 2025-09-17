@@ -22,6 +22,8 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import chatbotService from "../../services/chatbotService";
 import { useLocationContext } from "../../context/LocationContext";
 import { useTranslation } from "../../hooks/useTranslation";
+import { t } from "../../i18n";
+import { getYearsFromDob } from "../../lib";
 
 const { width } = Dimensions.get("window");
 const MarkdownText = ({ text, style }) => {
@@ -177,7 +179,7 @@ const GymCard = ({ gym, onPress }) => {
             📍 {gym.address}
           </Text>
           <Text style={styles.gymSince}>
-            📅 {t("chat.operatingSince")} {gym.since}
+            {t("chat.operatingSince")} {getYearsFromDob(gym.dob)}
           </Text>
         </View>
       </View>
@@ -490,7 +492,7 @@ export default function ChatScreen({ navigation }) {
   // Handle gym card press
   const handleGymPress = (gym) => {
     // Navigate to gym detail screen
-    navigation.navigate("Trang chủ", {
+    navigation.navigate(t("navigation.home"), {
       screen: "GymDetailScreen",
       params: { gymId: gym.id },
     });

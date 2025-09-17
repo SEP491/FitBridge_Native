@@ -185,7 +185,7 @@ export default function HeaderHome({ user }) {
           </View>
 
           <View style={styles.actionButtons}>
-            {user?.role === "USER" && (
+            {user?.role === "Customer" && (
               <TouchableOpacity
                 style={styles.actionButton}
                 onPress={() => navigation.navigate("CartScreen")}

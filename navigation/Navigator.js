@@ -702,7 +702,7 @@ export default function Navigator() {
         />
 
         {/* Role-specific tabs */}
-        {user?.role === "USER" && (
+        {user?.role === "Customer" && (
           <Tab.Screen
             name={t("navigation.schedule")}
             component={ScheduleStack}
@@ -722,7 +722,7 @@ export default function Navigator() {
           />
         )}
 
-        {user?.role === "USER" && (
+        {user?.role === "Customer" && (
           <Tab.Screen
             name={t("navigation.aiChatbox")}
             component={ChatStack}

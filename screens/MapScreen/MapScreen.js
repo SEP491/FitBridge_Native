@@ -22,6 +22,9 @@ import {
   isValidCoordinate,
   filterGymsByDistance,
   formatNumber,
+  calculateSinceYears,
+  formatDate,
+  getYearsFromDob,
 } from "../../lib";
 import { useLocationContext } from "../../context/LocationContext";
 import { useTranslation } from "../../hooks/useTranslation";
@@ -153,14 +156,38 @@ export default function MapScreen({ route }) {
     );
   }
 
-  // Filter out gyms with invalid coordinates
-  const validGyms = filteredGyms.filter((gym) =>
-    isValidCoordinate(gym.latitude, gym.longitude)
-  );
+  // Filter out gyms with invalid coordinates and calculate distances
+  const validGyms = filteredGyms
+    .filter((gym) => isValidCoordinate(gym.latitude, gym.longitude))
+    .map((gym) => {
+      // Calculate distance from current location to each gym
+      if (coords) {
+        const distance = calculateDistance(
+          coords.latitude,
+          coords.longitude,
+          gym.latitude,
+          gym.longitude
+        );
+        return { ...gym, distance };
+      }
+      return gym;
+    });
 
-  const validAllGyms = allGyms.filter((gym) =>
-    isValidCoordinate(gym.latitude, gym.longitude)
-  );
+  const validAllGyms = allGyms
+    .filter((gym) => isValidCoordinate(gym.latitude, gym.longitude))
+    .map((gym) => {
+      // Calculate distance from current location to each gym
+      if (coords) {
+        const distance = calculateDistance(
+          coords.latitude,
+          coords.longitude,
+          gym.latitude,
+          gym.longitude
+        );
+        return { ...gym, distance };
+      }
+      return gym;
+    });
 
   const MapStyle = [
     {
@@ -260,7 +287,7 @@ export default function MapScreen({ route }) {
             </View>
             <Callout
               onPress={() =>
-                navigation.navigate("Trang chủ", {
+                navigation.navigate(t("navigation.home"), {
                   screen: "GymDetailScreen",
                   params: { gymId: gym.id },
                 })
@@ -268,16 +295,14 @@ export default function MapScreen({ route }) {
             >
               <View style={styles.calloutContainer}>
                 <Text style={styles.calloutTitle}>{gym.gymName}</Text>
-                <Text style={styles.calloutAddress}>{gym.address}</Text>
+                <Text style={styles.calloutAddress}>{gym.gymAddress}</Text>
 
                 <Text style={styles.calloutSince}>
-                  {t("map.operatingSince")} {gym.since}
+                  {t("map.operatingSince")} {getYearsFromDob(gym.dob)}
                 </Text>
                 <Text style={styles.calloutDistance}>
                   {t("map.distanceAway")}{" "}
-                  {gym.distance
-                    ? `${formatNumber(gym.distance.toFixed(1))} km`
-                    : ""}
+                  {gym.distance ? `${gym.distance.toFixed(1)} km` : ""}
                 </Text>
                 {gym.hotResearch && (
                   <View style={styles.hotBadge}>

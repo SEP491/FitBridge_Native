@@ -1,7 +1,7 @@
 import { request } from "./request";
 
 const accountService = {
-  getProfile: () => request("GET", "v1/account/profile"),
+  getProfile: () => request("GET", "v1/accounts/profile"),
   updateProfileUser: (data) => request("PUT", "v1/user", data),
   uploadAvatar: (formData) =>
     request("POST", "v1/account/avatar", formData, {

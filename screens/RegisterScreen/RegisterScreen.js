@@ -8,9 +8,9 @@ import {
   TouchableWithoutFeedback,
   StatusBar,
   Alert,
+  Modal,
 } from "react-native";
 import React, { useState } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { StyleSheet } from "react-native";
 import { TextInput } from "react-native";
@@ -18,6 +18,7 @@ import { TouchableOpacity } from "react-native";
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
 import { Image } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 import authService from "../../services/authService";
 import { useTranslation } from "../../hooks/useTranslation";
 
@@ -27,6 +28,9 @@ export default function RegisterScreen() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [isMale, setIsMale] = useState(true);
   const [secureText, setSecureText] = useState(true);
   const [secureConfirmText, setSecureConfirmText] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -41,6 +45,23 @@ export default function RegisterScreen() {
 
   const validatePassword = (password) => {
     return password.length >= 6;
+  };
+
+  const formatDate = (date) => {
+    return date.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
+
+  const handleDateConfirm = (selectedDate) => {
+    setShowDatePicker(false);
+    setDateOfBirth(selectedDate);
+  };
+
+  const handleDateCancel = () => {
+    setShowDatePicker(false);
   };
 
   const handleRegister = async () => {
@@ -81,15 +102,19 @@ export default function RegisterScreen() {
 
     setIsLoading(true);
     const requestData = {
-      phone,
+      email,
+      phoneNumber: phone || null,
       password,
-      email: email || null,
       fullName,
+      dob: dateOfBirth.toISOString(), // Format as YYYY-MM-DD
+      isMale,
+      isTestAccount: false,
     };
+    console.log("Register request data:", requestData);
 
     try {
       const response = await authService.register(requestData);
-
+      console.log("Registration successful:", response.data.status);
       Alert.alert(t("auth.registerSuccess"), t("auth.accountCreated"), [
         {
           text: t("auth.loginNow"),
@@ -97,10 +122,10 @@ export default function RegisterScreen() {
         },
       ]);
     } catch (error) {
-      Alert.alert(t("errors.error"), t("auth.registrationFailed"), [
+      Alert.alert(t("errors.error"), error.response.data.message, [
         { text: "OK" },
       ]);
-      console.error("Registration error:", error);
+      console.error("Registration error:", error.response.data);
     } finally {
       setIsLoading(false);
     }
@@ -171,7 +196,10 @@ export default function RegisterScreen() {
                     {/* Email Input */}
                     <View style={styles.inputGroup}>
                       <Text style={styles.label}>
-                        {t("email")} ({t("common.optional")})
+                        {t("email")}{" "}
+                        <Text style={styles.required}>
+                          {t("auth.required")}
+                        </Text>
                       </Text>
                       <View style={styles.inputContainer}>
                         <MaterialIcons
@@ -216,6 +244,89 @@ export default function RegisterScreen() {
                           keyboardType="phone-pad"
                           maxLength={10}
                         />
+                      </View>
+                    </View>
+
+                    {/* Date of Birth Input */}
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>
+                        {t("profile.dateOfBirth")}{" "}
+                        <Text style={styles.required}>
+                          {t("auth.required")}
+                        </Text>
+                      </Text>
+                      <TouchableOpacity
+                        style={styles.inputContainer}
+                        onPress={() => setShowDatePicker(true)}
+                        activeOpacity={0.7}
+                      >
+                        <FontAwesome
+                          name="calendar"
+                          size={18}
+                          color="#A39F9F"
+                          style={styles.inputIcon}
+                        />
+                        <Text style={styles.dateText}>
+                          {formatDate(dateOfBirth)}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+
+                    {/* Gender Selection */}
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>
+                        {t("profile.gender")}{" "}
+                        <Text style={styles.required}>
+                          {t("auth.required")}
+                        </Text>
+                      </Text>
+                      <View style={styles.genderContainer}>
+                        <TouchableOpacity
+                          style={[
+                            styles.genderButton,
+                            isMale && styles.genderButtonActive,
+                          ]}
+                          onPress={() => setIsMale(true)}
+                          activeOpacity={0.7}
+                        >
+                          <FontAwesome
+                            name="mars"
+                            size={18}
+                            color={isMale ? "#FFFFFF" : "#A39F9F"}
+                            style={styles.genderIcon}
+                          />
+                          <Text
+                            style={[
+                              styles.genderText,
+                              isMale && styles.genderTextActive,
+                            ]}
+                          >
+                            {t("profile.genderOptions.male")}
+                          </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[
+                            styles.genderButton,
+                            !isMale && styles.genderButtonActive,
+                          ]}
+                          onPress={() => setIsMale(false)}
+                          activeOpacity={0.7}
+                        >
+                          <FontAwesome
+                            name="venus"
+                            size={18}
+                            color={!isMale ? "#FFFFFF" : "#A39F9F"}
+                            style={styles.genderIcon}
+                          />
+                          <Text
+                            style={[
+                              styles.genderText,
+                              !isMale && styles.genderTextActive,
+                            ]}
+                          >
+                            {t("profile.genderOptions.female")}
+                          </Text>
+                        </TouchableOpacity>
                       </View>
                     </View>
 
@@ -366,6 +477,24 @@ export default function RegisterScreen() {
           </TouchableWithoutFeedback>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Date Picker Modal */}
+      <DateTimePickerModal
+        isVisible={showDatePicker}
+        mode="date"
+        onConfirm={handleDateConfirm}
+        onCancel={handleDateCancel}
+        date={dateOfBirth}
+        maximumDate={new Date()}
+        minimumDate={new Date(1900, 0, 1)}
+        confirmTextIOS={t("common.confirm")}
+        cancelTextIOS={t("common.cancel")}
+        headerTextIOS={t("profile.selectDateOfBirth")}
+        display="spinner"
+        isDarkModeEnabled={false}
+        buttonTextColorIOS="#FF914D"
+        textColor="#1A191A"
+      />
     </View>
   );
 }
@@ -488,6 +617,44 @@ const styles = StyleSheet.create({
   eyeIcon: {
     padding: 8,
     marginLeft: 8,
+  },
+  dateText: {
+    flex: 1,
+    fontSize: 15,
+    color: "#1A191A",
+    paddingVertical: 0,
+  },
+  genderContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  genderButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#F8F9FA",
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginHorizontal: 4,
+  },
+  genderButtonActive: {
+    backgroundColor: "#FF914D",
+    borderColor: "#FF914D",
+  },
+  genderIcon: {
+    marginRight: 8,
+  },
+  genderText: {
+    fontSize: 15,
+    fontWeight: "500",
+    color: "#A39F9F",
+  },
+  genderTextActive: {
+    color: "#FFFFFF",
   },
   termsSection: {
     marginBottom: 24,
