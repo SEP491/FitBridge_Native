@@ -53,7 +53,7 @@ const AccountScreen = () => {
     try {
       const response = await accountService.getProfile();
       setUserProfile(response.data);
-
+      console.log("Fetched user profile:", response.data);
       // Sync avatar with context
       await syncAvatarFromUserData(response.data);
 
@@ -383,7 +383,7 @@ const AccountScreen = () => {
           <View style={styles.avatarContainer}>
             <Image
               source={{
-                uri: userProfile.avatar || getAvatarUrl(),
+                uri: getAvatarUrl(),
               }}
               style={[styles.avatar, uploadingAvatar && styles.avatarUploading]}
             />

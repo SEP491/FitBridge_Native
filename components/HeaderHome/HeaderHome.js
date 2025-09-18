@@ -27,6 +27,7 @@ export default function HeaderHome({ user }) {
   const { location, coordinates, hasLocation } = useLocationContext();
   const [weather, setWeather] = useState({});
   const [coords, setCoords] = useState(null);
+  console.log(getAvatarUrl());
   const fetchWeather = async () => {
     setLoading(true);
     try {
@@ -110,9 +111,6 @@ export default function HeaderHome({ user }) {
 
             <View style={styles.userInfo}>
               <View style={styles.avatarContainer}>
-                {/* <Text style={styles.avatarText}>
-                  {(user?.fullName || "U").charAt(0).toUpperCase()}
-                </Text> */}
                 <Image
                   source={{
                     uri: getAvatarUrl(),
