@@ -15,6 +15,10 @@
   "alreadyHaveAccount": "Đã có tài khoản?",
   "dontHaveAccount": "Chưa có tài khoản?",
 
+  "loginScreen": {
+    "identifier": "Email hoặc Số điện thoại",
+    "password": "Mật khẩu"
+  },
   "navigation": {
     "home": "Trang chủ",
     "search": "Tìm kiếm",

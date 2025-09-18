@@ -23,7 +23,7 @@ import { useTranslation } from "../../hooks/useTranslation";
 
 import { jwtDecode } from "jwt-decode";
 export default function LoginScreen() {
-  const [phone, setPhone] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [secureText, setSecureText] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -31,7 +31,7 @@ export default function LoginScreen() {
   const { t } = useTranslation();
 
   const handleLogin = async () => {
-    if (!phone || !password) {
+    if (!identifier || !password) {
       Alert.alert(t("auth.notification"), t("auth.pleaseEnterPhonePassword"), [
         { text: "OK" },
       ]);
@@ -40,7 +40,7 @@ export default function LoginScreen() {
 
     setIsLoading(true);
     const requestData = {
-      identifier: phone.trim(),
+      identifier: identifier.trim(),
       password: password.trim(),
     };
 
@@ -79,10 +79,10 @@ export default function LoginScreen() {
         return;
       }
     } catch (error) {
-      Alert.alert(t("auth.loginFailed"), t("auth.phonePasswordIncorrect"), [
+      Alert.alert(t("auth.loginFailed"), error.response.data.message, [
         { text: "OK" },
       ]);
-      console.error("Login error:", error);
+      console.error("Login error:", error.response.data);
     } finally {
       setIsLoading(false);
     }
@@ -122,7 +122,9 @@ export default function LoginScreen() {
               <View style={styles.formContent}>
                 {/* Phone Input */}
                 <View style={styles.inputGroup}>
-                  <Text style={styles.label}>{t("profile.phoneNumber")}</Text>
+                  <Text style={styles.label}>
+                    {t("loginScreen.identifier")}
+                  </Text>
                   <View style={styles.inputContainer}>
                     <FontAwesome
                       name="phone"
@@ -131,13 +133,11 @@ export default function LoginScreen() {
                       style={styles.inputIcon}
                     />
                     <TextInput
-                      value={phone}
-                      onChangeText={setPhone}
+                      value={identifier}
+                      onChangeText={setIdentifier}
                       placeholder="0123456789"
                       placeholderTextColor="#A39F9F"
                       style={styles.input}
-                      keyboardType="phone-pad"
-                      maxLength={10}
                     />
                   </View>
                 </View>
