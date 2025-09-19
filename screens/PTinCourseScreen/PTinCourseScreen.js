@@ -35,6 +35,7 @@ export default function PTinCourseScreen({ route }) {
       try {
         setLoading(true);
         const response = await gymService.getPTinGymCourse(gymPackage.id);
+        console.log("PT in Course response:", response.data);
         const { items } = response.data;
         setPT(items);
       } catch (error) {
@@ -122,8 +123,8 @@ export default function PTinCourseScreen({ route }) {
               <Image
                 source={{
                   uri:
-                    item.avatar ||
-                    "https://static.vecteezy.com/system/resources/thumbnails/027/951/137/small_2x/stylish-spectacles-guy-3d-avatar-character-illustrations-png.png",
+                    item.avatarUrl ||
+                    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcREDVautKC6iIhByPKtNOGlHRa2E52Ahxt4jQ&s",
                 }}
                 style={styles.avatar}
               />
@@ -154,7 +155,6 @@ export default function PTinCourseScreen({ route }) {
                   </Text>
                 </View>
               </View>
-
               <View style={styles.buttonContainer}>
                 <TouchableOpacity
                   style={styles.detailButton}

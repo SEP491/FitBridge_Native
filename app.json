@@ -41,7 +41,7 @@
       ],
       "config": {
         "googleMaps": {
-          "apiKey": "process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY"
+          "apiKey": "AIzaSyA6qi4i55mqDQ1UumM4rmfjmuN8kws0nKk"
         }
       }
     },

@@ -60,7 +60,7 @@ export default function SearchGymScreen() {
       });
 
       const { items, total, page: responsePage } = response.data;
-
+      console.log("Search gyms response:", response.data);
       if (append) {
         setSearchResults((prev) => [...prev, ...items]);
       } else {

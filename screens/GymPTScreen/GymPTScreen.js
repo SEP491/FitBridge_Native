@@ -30,6 +30,7 @@ export default function GymPTScreen({ route }) {
       try {
         setLoading(true);
         const response = await gymService.getPTByGymId(gymId);
+        console.log("PT by Gym ID response:", response.data);
         const { items } = response.data;
         setPT(items);
       } catch (error) {
@@ -68,7 +69,7 @@ export default function GymPTScreen({ route }) {
               <Image
                 source={{
                   uri:
-                    item.avatar ||
+                    item.avatarUrl ||
                     "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcREDVautKC6iIhByPKtNOGlHRa2E52Ahxt4jQ&s",
                 }}
                 style={styles.avatar}

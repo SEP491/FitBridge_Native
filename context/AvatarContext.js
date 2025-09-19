@@ -104,17 +104,13 @@ export const AvatarProvider = ({ children }) => {
   const syncAvatarFromUserData = async (userData) => {
     console.log("🔄 Syncing avatar from user data:", userData);
     try {
-      if (
-        userData &&
-        userData.senderAvatar &&
-        userData.senderAvatar !== userAvatar
-      ) {
-        console.log("🔄 Syncing avatar from user data:", userData.senderAvatar);
-        setUserAvatar(userData.avatar);
-        await AsyncStorage.setItem("userAvatar", userData.senderAvatar);
+      if (userData && userData.avatarUrl && userData.avatarUrl !== userAvatar) {
+        console.log("🔄 Syncing avatar from user data:", userData.avatarUrl);
+        setUserAvatar(userData.avatarUrl);
+        await AsyncStorage.setItem("userAvatar", userData.avatarUrl);
       } else if (
         userData &&
-        (userData.senderAvatar === null || userData.senderAvatar === undefined)
+        (userData.avatarUrl === null || userData.avatarUrl === undefined)
       ) {
         console.log(
           "🔄 Clearing avatar from user data (null/undefined received)"

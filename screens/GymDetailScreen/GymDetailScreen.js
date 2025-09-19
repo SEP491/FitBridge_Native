@@ -65,7 +65,7 @@ export default function GymDetailScreen({ route }) {
     const fetchCourseGym = async () => {
       try {
         const response = await gymService.getCourseByGymId(gymId);
-
+        console.log("Course by Gym ID response:", response.data);
         const { items, total, page: currentPage } = response.data;
 
         const lowestPackage =
@@ -76,7 +76,7 @@ export default function GymDetailScreen({ route }) {
             .filter((item) => item.type === "Normal")
             .sort((a, b) => a.price - b.price),
           packagePT: items
-            .filter((item) => item.type === "WithPT")
+            .filter((item) => item.type === "WithPt")
             .sort((a, b) => a.price - b.price),
         };
         setGymCourse(courseFiltered);

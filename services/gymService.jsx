@@ -6,17 +6,15 @@ const gymService = {
   searchGyms: (params) => request("GET", "v1/gyms", null, {}, params),
 
   getGymById: (id) => request("GET", `v1/gyms/${id}`),
-  getCourseByGymId: (id) => request("GET", `v1/gym/${id}/courses`),
-  getPTByGymId: (id) => request("GET", `v1/gym/${id}/pts`),
+  getCourseByGymId: (id) => request("GET", `v1/gym-courses/${id}`),
+  getPTByGymId: (id) => request("GET", `v1/gyms/${id}/pts`),
 
   getSlotOfGym: (id) => request("GET", `v1/pt-slot/${id}/user`),
 
-  // Thêm hàm mới này:
-  getPTById: (id) => request("GET", `v1/pt/${id}`),
+  getPTById: (id) => request("GET", `v1/gyms/${id}/pts`),
 
-  getPTinGymCourse: (id) => request("GET", `v1/course/${id}/pts`),
+  getPTinGymCourse: (id) => request("GET", `v1/gym-courses/${id}/pts`),
 
-  // Comment functions
   getCommentsByGymId: (gymId, params) =>
     request("GET", `v1/gym/${gymId}/comments`, null, {}, params),
   postComment: (gymId, data) =>
