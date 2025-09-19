@@ -847,5 +847,45 @@
         "description": "I have another reason not listed above"
       }
     }
+  },
+
+  "fitness": {
+    "todaysActivity": "Today's Activity",
+    "viewDetails": "View Details",
+    "steps": "Steps",
+    "distance": "Distance",
+    "calories": "Calories",
+    "km": "km",
+    "kcal": "kcal",
+    "trackingActive": "Tracking active",
+    "trackingPaused": "Tracking paused",
+    "loadingFitnessData": "Loading fitness data...",
+    "unableToLoadFitnessData": "Unable to load fitness data",
+    "fitnessDetails": "Fitness Details",
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "today": "Today",
+    "thisWeek": "This Week",
+    "thisMonth": "This Month",
+    "kilometers": "Kilometers",
+    "dailyAverageWeek": "Daily Average (Week)",
+    "dailyAverageMonth": "Daily Average (Month)",
+    "stepsPerDay": "steps/day",
+    "distancePerDay": "distance/day",
+    "caloriesPerDay": "calories/day",
+    "last7Days": "Last 7 Days",
+    "last30Days": "Last 30 Days",
+    "trackingStatus": "Tracking Status",
+    "status": "Status",
+    "active": "Active",
+    "paused": "Paused",
+    "lastUpdated": "Last Updated",
+    "fitnessTracking": "Fitness Tracking",
+    "pauseStepTracking": "Do you want to pause step tracking?",
+    "startStepTracking": "Do you want to start step tracking?",
+    "cancel": "Cancel",
+    "pause": "Pause",
+    "start": "Start"
   }
 }

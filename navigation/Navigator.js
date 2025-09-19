@@ -47,6 +47,7 @@ import ChoosingPTScreen from "../screens/ChoosingPTScreen/ChoosingPTScreen";
 import ScheduleScreen from "../screens/ScheduleScreen/ScheduleScreen";
 import BookingHistoryScreen from "../screens/BookingHistoryScreen/BookingHistoryScreen";
 import LanguageSelectScreen from "../screens/SettingScreen/LanguageSelectScreen/LanguageSelectScreen";
+import FitnessDetailScreen from "../screens/FitnessDetailScreen/FitnessDetailScreen";
 
 export default function Navigator() {
   const { t } = useTranslation();
@@ -273,6 +274,14 @@ export default function Navigator() {
             headerTitleAlign: "center",
             headerShown: true,
             title: t("screenTitles.paymentSuccess"),
+          }}
+        />
+        <Stack.Screen
+          name="FitnessDetail"
+          component={FitnessDetailScreen}
+          options={{
+            headerTitleAlign: "center",
+            headerShown: true,
           }}
         />
       </Stack.Navigator>

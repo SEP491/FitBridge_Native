@@ -5,6 +5,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { CartProvider } from "./context/CartContext";
 import { AvatarProvider } from "./context/AvatarContext";
 import { LocationProvider } from "./context/LocationContext";
+import { FitnessProvider } from "./context/FitnessContext";
 import { useEffect } from "react";
 // Import i18n configuration
 import "./i18n";
@@ -14,13 +15,15 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <LocationProvider>
-          <AvatarProvider>
-            <CartProvider>
-              <View style={{ flex: 1 }}>
-                <Navigator />
-              </View>
-            </CartProvider>
-          </AvatarProvider>
+          <FitnessProvider>
+            <AvatarProvider>
+              <CartProvider>
+                <View style={{ flex: 1 }}>
+                  <Navigator />
+                </View>
+              </CartProvider>
+            </AvatarProvider>
+          </FitnessProvider>
         </LocationProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

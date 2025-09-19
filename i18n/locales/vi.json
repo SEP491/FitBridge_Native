@@ -825,5 +825,45 @@
         "description": "Tôi có lý do khác không được liệt kê ở trên"
       }
     }
+  },
+
+  "fitness": {
+    "todaysActivity": "Hoạt động hôm nay",
+    "viewDetails": "Xem chi tiết",
+    "steps": "Bước chân",
+    "distance": "Khoảng cách",
+    "calories": "Calo",
+    "km": "km",
+    "kcal": "kcal",
+    "trackingActive": "Đang theo dõi",
+    "trackingPaused": "Tạm dừng theo dõi",
+    "loadingFitnessData": "Đang tải dữ liệu sức khỏe...",
+    "unableToLoadFitnessData": "Không thể tải dữ liệu sức khỏe",
+    "fitnessDetails": "Chi tiết sức khỏe",
+    "daily": "Hàng ngày",
+    "weekly": "Hàng tuần",
+    "monthly": "Hàng tháng",
+    "today": "Hôm nay",
+    "thisWeek": "Tuần này",
+    "thisMonth": "Tháng này",
+    "kilometers": "Kilômét",
+    "dailyAverageWeek": "Trung bình hàng ngày (Tuần)",
+    "dailyAverageMonth": "Trung bình hàng ngày (Tháng)",
+    "stepsPerDay": "bước/ngày",
+    "distancePerDay": "khoảng cách/ngày",
+    "caloriesPerDay": "calo/ngày",
+    "last7Days": "7 ngày qua",
+    "last30Days": "30 ngày qua",
+    "trackingStatus": "Trạng thái theo dõi",
+    "status": "Trạng thái",
+    "active": "Đang hoạt động",
+    "paused": "Tạm dừng",
+    "lastUpdated": "Cập nhật lần cuối",
+    "fitnessTracking": "Theo dõi sức khỏe",
+    "pauseStepTracking": "Bạn có muốn tạm dừng theo dõi bước chân không?",
+    "startStepTracking": "Bạn có muốn bắt đầu theo dõi bước chân không?",
+    "cancel": "Hủy",
+    "pause": "Tạm dừng",
+    "start": "Bắt đầu"
   }
 }

@@ -14,6 +14,7 @@ import CarouselNative from "../../components/Carousel/Carousel";
 import GymCard from "../../components/GymCard/GymCard";
 import BlogCard from "../../components/BlogCard/BlogCard";
 import PairedSwiper from "../../components/PairSwiper/PairSwiper";
+import FitnessSummary from "../../components/FitnessSummary/FitnessSummary";
 import gymService from "../../services/gymService";
 import { useNavigation } from "@react-navigation/native";
 import { filterGymsByDistance, handleRefresh } from "../../lib";
@@ -170,118 +171,119 @@ export default function HomeScreen() {
             style={styles.carousel}
             data={image}
           />
+        </View>
 
-          <View style={styles.gymSection}>
-            <View style={styles.titleContainer}>
-              <View style={styles.titleWithIcon}>
-                <Text style={styles.sectionTitle}>
-                  {t("home.featuredGyms")}
-                </Text>
-                <View style={styles.titleUnderline} />
-              </View>
-              <TouchableOpacity
-                style={styles.viewMoreButton}
-                onPress={() => navigation.navigate("SearchGymScreen")}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.viewMoreText}>{t("common.search")}</Text>
-              </TouchableOpacity>
+        {/* Fitness Summary Section */}
+        <FitnessSummary />
+
+        <View style={styles.gymSection}>
+          <View style={styles.titleContainer}>
+            <View style={styles.titleWithIcon}>
+              <Text style={styles.sectionTitle}>{t("home.featuredGyms")}</Text>
+              <View style={styles.titleUnderline} />
             </View>
-
-            {loading ? (
-              <>
-                <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="large" color="#ED2A46" />
-                </View>
-              </>
-            ) : hotResearchGym && hotResearchGym.length > 0 ? (
-              <PairedSwiper
-                data={hotResearchGym}
-                renderItem={renderGymCard}
-                showsPagination={true}
-                itemsPerSlide={2}
-                height={240}
-                loop={hotResearchGym.length > 2}
-                dotStyle={styles.paginationDot}
-                activeDotStyle={styles.activePaginationDot}
-                containerStyle={styles.swiperContainer}
-              />
-            ) : (
-              <></>
-            )}
+            <TouchableOpacity
+              style={styles.viewMoreButton}
+              onPress={() => navigation.navigate("SearchGymScreen")}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.viewMoreText}>{t("common.search")}</Text>
+            </TouchableOpacity>
           </View>
 
-          <View style={styles.gymSection}>
-            <View style={styles.titleContainer}>
-              <View style={styles.titleWithIcon}>
-                <Text style={styles.sectionTitle}>
-                  {t("home.nearbyGymsTitle")}
-                </Text>
-                <View style={styles.titleUnderline} />
+          {loading ? (
+            <>
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#ED2A46" />
               </View>
-              <TouchableOpacity
-                style={styles.viewMoreButton}
-                onPress={() =>
-                  navigation.navigate("Bản Đồ", { screen: "MapScreen" })
-                }
-                activeOpacity={0.7}
-              >
-                <Text style={styles.viewMoreText}>{t("home.viewMore")}</Text>
-              </TouchableOpacity>
-            </View>
-
-            {loading ? (
-              <>
-                <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="large" color="#ED2A46" />
-                </View>
-              </>
-            ) : nearbyGyms && nearbyGyms.length > 0 ? (
-              <PairedSwiper
-                data={nearbyGyms}
-                showsPagination={true}
-                renderItem={renderGymCard}
-                itemsPerSlide={2}
-                height={240}
-                loop={true}
-                dotStyle={styles.paginationDot}
-                activeDotStyle={styles.activePaginationDot}
-                containerStyle={styles.swiperContainer}
-              />
-            ) : (
-              <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>{t("home.noNearbyGyms")}</Text>
-              </View>
-            )}
-          </View>
-
-          <View style={styles.gymSection}>
-            <View style={styles.titleContainer}>
-              <View style={styles.titleWithIcon}>
-                <Text style={styles.sectionTitle}>{t("home.blog")}</Text>
-                <View style={styles.titleUnderline} />
-              </View>
-              <TouchableOpacity
-                style={styles.viewMoreButton}
-                onPress={() => navigation.navigate("BlogScreen")}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.viewMoreText}>{t("home.viewMore")}</Text>
-              </TouchableOpacity>
-            </View>
-
+            </>
+          ) : hotResearchGym && hotResearchGym.length > 0 ? (
             <PairedSwiper
-              data={blog}
-              renderItem={renderBlogCard}
+              data={hotResearchGym}
+              renderItem={renderGymCard}
               showsPagination={true}
               itemsPerSlide={2}
-              height={220}
+              height={240}
+              loop={hotResearchGym.length > 2}
+              dotStyle={styles.paginationDot}
+              activeDotStyle={styles.activePaginationDot}
+              containerStyle={styles.swiperContainer}
+            />
+          ) : (
+            <></>
+          )}
+        </View>
+
+        <View style={styles.gymSection}>
+          <View style={styles.titleContainer}>
+            <View style={styles.titleWithIcon}>
+              <Text style={styles.sectionTitle}>
+                {t("home.nearbyGymsTitle")}
+              </Text>
+              <View style={styles.titleUnderline} />
+            </View>
+            <TouchableOpacity
+              style={styles.viewMoreButton}
+              onPress={() =>
+                navigation.navigate("Bản Đồ", { screen: "MapScreen" })
+              }
+              activeOpacity={0.7}
+            >
+              <Text style={styles.viewMoreText}>{t("home.viewMore")}</Text>
+            </TouchableOpacity>
+          </View>
+
+          {loading ? (
+            <>
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#ED2A46" />
+              </View>
+            </>
+          ) : nearbyGyms && nearbyGyms.length > 0 ? (
+            <PairedSwiper
+              data={nearbyGyms}
+              showsPagination={true}
+              renderItem={renderGymCard}
+              itemsPerSlide={2}
+              height={240}
               loop={true}
               dotStyle={styles.paginationDot}
               activeDotStyle={styles.activePaginationDot}
               containerStyle={styles.swiperContainer}
             />
+          ) : (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>{t("home.noNearbyGyms")}</Text>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.gymSection}>
+          <View style={styles.titleContainer}>
+            <View style={styles.titleWithIcon}>
+              <Text style={styles.sectionTitle}>{t("home.blog")}</Text>
+              <View style={styles.titleUnderline} />
+            </View>
+            <TouchableOpacity
+              style={styles.viewMoreButton}
+              onPress={() => navigation.navigate("BlogScreen")}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.viewMoreText}>{t("home.viewMore")}</Text>
+            </TouchableOpacity>
           </View>
+
+          <PairedSwiper
+            data={blog}
+            renderItem={renderBlogCard}
+            showsPagination={true}
+            itemsPerSlide={2}
+            height={220}
+            loop={true}
+            dotStyle={styles.paginationDot}
+            activeDotStyle={styles.activePaginationDot}
+            containerStyle={styles.swiperContainer}
+          />
         </View>
       </ScrollView>
     </View>
