@@ -2,24 +2,6 @@ import React from "react";
 import { View, StyleSheet, Dimensions } from "react-native";
 import Swiper from "react-native-swiper";
 
-/**
- * A reusable swiper component that displays items in pairs per slide
- *
- * @param {Object} props
- * @param {Array} props.data - Array of data items to display
- * @param {Function} props.renderItem - Function to render each item (receives item as parameter)
- * @param {number} props.itemsPerSlide - Number of items to display per slide (default: 2)
- * @param {Object} props.containerStyle - Additional styles for the container
- * @param {Object} props.slideStyle - Additional styles for each slide
- * @param {Object} props.itemContainerStyle - Additional styles for each item container
- * @param {boolean} props.autoplay - Whether to autoplay the swiper (default: false)
- * @param {number} props.autoplayTimeout - Timeout for autoplay in seconds (default: 3)
- * @param {boolean} props.loop - Whether to loop the swiper (default: true)
- * @param {number} props.height - Height of the swiper (default: 240)
- * @param {Object} props.dotStyle - Custom style for pagination dots
- * @param {Object} props.activeDotStyle - Custom style for active pagination dot
- * @param {boolean} props.showsButtons - Whether to show navigation buttons (default: false)
- */
 const PairedSwiper = ({
   data = [],
   renderItem,

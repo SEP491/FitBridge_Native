@@ -684,6 +684,19 @@
     "noPTInSchedule": "You currently have no PT in your schedule"
   },
 
+  "searchGymScreen": {
+    "searchPlaceholder": "Enter gym name...",
+    "searchButton": "Search",
+    "searching": "Searching...",
+    "foundResults": "Found {{count}} results",
+    "foundResultsFor": "Found {{count}} results for \"{{query}}\"",
+    "noResultsTitle": "No results found",
+    "noResultsSubtitle": "Try searching with different keywords",
+    "searchTitle": "Search for gyms",
+    "searchSubtitle": "Enter gym name to start searching",
+    "loadingMore": "Loading more..."
+  },
+
   "ptCourse": {
     "cartHasPackage": "Cart already has a package",
     "viewCartQuestion": "Do you want to view the cart?",

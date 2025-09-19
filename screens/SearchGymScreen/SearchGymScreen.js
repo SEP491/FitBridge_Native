@@ -137,7 +137,7 @@ export default function SearchGymScreen() {
           <TextInput
             value={searchText}
             onChangeText={setSearchText}
-            placeholder="Nhập tên phòng gym..."
+            placeholder={t("searchGymScreen.searchPlaceholder")}
             placeholderTextColor="#A39F9F"
             style={styles.searchInput}
             onSubmitEditing={handleSearch}
@@ -159,7 +159,9 @@ export default function SearchGymScreen() {
           {loading ? (
             <ActivityIndicator size="small" color="white" />
           ) : (
-            <Text style={styles.searchButtonText}>Tìm</Text>
+            <Text style={styles.searchButtonText}>
+              {t("searchGymScreen.searchButton")}
+            </Text>
           )}
         </TouchableOpacity>
       </View>
@@ -190,8 +192,12 @@ export default function SearchGymScreen() {
         {hasSearched && (
           <View style={styles.resultInfo}>
             <Text style={styles.resultText}>
-              Tìm thấy {totalResults} kết quả
-              {searchText ? ` cho "${searchText}"` : ""}
+              {searchText
+                ? t("searchGymScreen.foundResultsFor", {
+                    count: totalResults,
+                    query: searchText,
+                  })
+                : t("searchGymScreen.foundResults", { count: totalResults })}
             </Text>
           </View>
         )}
@@ -199,14 +205,18 @@ export default function SearchGymScreen() {
         {loading && !refreshing && searchResults.length === 0 ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#ED2A46" />
-            <Text style={styles.loadingText}>Đang tìm kiếm...</Text>
+            <Text style={styles.loadingText}>
+              {t("searchGymScreen.searching")}
+            </Text>
           </View>
         ) : hasSearched && searchResults.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Ionicons name="search" size={80} color="#E0E0E0" />
-            <Text style={styles.emptyTitle}>Không tìm thấy kết quả</Text>
+            <Text style={styles.emptyTitle}>
+              {t("searchGymScreen.noResultsTitle")}
+            </Text>
             <Text style={styles.emptySubtitle}>
-              Thử tìm kiếm với từ khóa khác
+              {t("searchGymScreen.noResultsSubtitle")}
             </Text>
           </View>
         ) : (
@@ -216,7 +226,9 @@ export default function SearchGymScreen() {
             {hasMoreData && (
               <View style={styles.loadMoreContainer}>
                 <ActivityIndicator size="small" color="#ED2A46" />
-                <Text style={styles.loadMoreText}>Đang tải thêm...</Text>
+                <Text style={styles.loadMoreText}>
+                  {t("searchGymScreen.loadingMore")}
+                </Text>
               </View>
             )}
           </View>
@@ -225,9 +237,11 @@ export default function SearchGymScreen() {
         {!hasSearched && (
           <View style={styles.instructionContainer}>
             <Ionicons name="search-outline" size={80} color="#E0E0E0" />
-            <Text style={styles.instructionTitle}>Tìm kiếm phòng gym</Text>
+            <Text style={styles.instructionTitle}>
+              {t("searchGymScreen.searchTitle")}
+            </Text>
             <Text style={styles.instructionSubtitle}>
-              Nhập tên phòng gym để bắt đầu tìm kiếm
+              {t("searchGymScreen.searchSubtitle")}
             </Text>
           </View>
         )}

@@ -633,6 +633,19 @@
     "noPTInSchedule": "Hiện tại bạn chưa có PT nào trong lịch trình"
   },
 
+  "searchGymScreen": {
+    "searchPlaceholder": "Nhập tên phòng gym...",
+    "searchButton": "Tìm",
+    "searching": "Đang tìm kiếm...",
+    "foundResults": "Tìm thấy {{count}} kết quả",
+    "foundResultsFor": "Tìm thấy {{count}} kết quả cho \"{{query}}\"",
+    "noResultsTitle": "Không tìm thấy kết quả",
+    "noResultsSubtitle": "Thử tìm kiếm với từ khóa khác",
+    "searchTitle": "Tìm kiếm phòng gym",
+    "searchSubtitle": "Nhập tên phòng gym để bắt đầu tìm kiếm",
+    "loadingMore": "Đang tải thêm..."
+  },
+
   "ptCourse": {
     "cartHasPackage": "Giỏ hàng đã có gói tập",
     "viewCartQuestion": "Bạn có muốn xem giỏ hàng không?",
