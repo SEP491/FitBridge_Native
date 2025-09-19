@@ -3,22 +3,20 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Image,
-  TouchableOpacity,
   Alert,
   SafeAreaView,
   StatusBar,
   TextInput,
+  TouchableOpacity,
 } from "react-native";
 import React, { useEffect, useState } from "react";
-import { LinearGradient } from "expo-linear-gradient";
-import Foundation from "@expo/vector-icons/Foundation";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
 import gymService from "../../services/gymService";
 import { useCart } from "../../context/CartContext";
 import colors from "../../constants/color";
 import { useTranslation } from "../../hooks/useTranslation";
+import PTCard from "../../components/PTCard/PTCard";
 
 export default function PTinCourseScreen({ route }) {
   const { t } = useTranslation();
@@ -48,142 +46,78 @@ export default function PTinCourseScreen({ route }) {
   }, []);
 
   const handleAddToCart = async (selectedPT) => {
-    if (getCartCount() > 0) {
-      Alert.alert(
-        t("ptCourse.cartHasPackage"),
-        t("ptCourse.viewCartQuestion"),
-        [
-          {
-            text: t("ptCourse.no"),
-            style: "cancel",
-          },
-          {
-            text: t("ptCourse.viewCart"),
-            onPress: () => navigation.navigate("CartScreen"),
-          },
-        ]
-      );
-      return;
-    } else {
-      const cartItem = {
-        ...gymPackage,
-        pt:
-          gymPackage.type === "WithPT"
-            ? {
-                id: selectedPT.id,
-                fullName: selectedPT.fullName,
-                avatar: selectedPT.avatar,
-                gender: selectedPT.gender,
-                goalTraining: selectedPT.goalTraining,
-              }
-            : null,
-      };
+    // if (getCartCount() > 0) {
+    //   Alert.alert(
+    //     t("ptCourse.cartHasPackage"),
+    //     t("ptCourse.viewCartQuestion"),
+    //     [
+    //       {
+    //         text: t("ptCourse.no"),
+    //         style: "cancel",
+    //       },
+    //       {
+    //         text: t("ptCourse.viewCart"),
+    //         onPress: () => navigation.navigate("CartScreen"),
+    //       },
+    //     ]
+    //   );
+    //   return;
+    // } else {
+    const cartItem = {
+      ...gymPackage,
+      pt:
+        gymPackage.type === "WithPt"
+          ? {
+              id: selectedPT.id,
+              fullName: selectedPT.fullName,
+              avatar: selectedPT.avatarUrl,
+              gender: selectedPT.gender,
+              goalTraining: selectedPT.goalTraining,
+            }
+          : null,
+    };
 
-      addToCart(cartItem);
+    addToCart(cartItem);
 
-      let successMessage = "";
-      if (gymPackage.type === "Normal") {
-        successMessage = t("ptCourse.addedNormalPackage", {
-          packageName: gymPackage.name,
-          gymName: gymPackage.gymName,
-        });
-      } else if (gymPackage.type === "WithPT") {
-        successMessage = t("ptCourse.addedPTPackage", {
-          packageName: gymPackage.name,
-          ptName: selectedPT?.fullName,
-          gymName: gymPackage.gymName,
-        });
-      }
-
-      Alert.alert(t("ptCourse.notification"), successMessage, [
-        { text: t("ptCourse.ok") },
-      ]);
-      navigation.goBack();
+    let successMessage = "";
+    if (gymPackage.type === "Normal") {
+      successMessage = t("ptCourse.addedNormalPackage", {
+        packageName: gymPackage.name,
+        gymName: gymPackage.gymName,
+      });
+    } else if (gymPackage.type === "WithPt") {
+      successMessage = t("ptCourse.addedPTPackage", {
+        packageName: gymPackage.name,
+        ptName: selectedPT?.fullName,
+        gymName: gymPackage.gymName,
+      });
     }
+
+    Alert.alert(t("ptCourse.notification"), successMessage, [
+      { text: t("ptCourse.ok") },
+    ]);
+    navigation.goBack();
+    // }
   };
 
   const filteredPT = pt.filter((item) =>
     item.fullName.toLowerCase().includes(searchText.toLowerCase())
   );
+
   const renderPTCard = (item) => (
-    <TouchableOpacity
+    <PTCard
       key={item.id}
-      style={styles.cardTouchable}
-      activeOpacity={0.8}
-    >
-      <View style={styles.cardContainer}>
-        <LinearGradient
-          colors={["#FF914D", "#ED2A46"]}
-          style={styles.gradientCard}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        >
-          <View style={styles.cardContent}>
-            <View style={styles.avatarContainer}>
-              <Image
-                source={{
-                  uri:
-                    item.avatarUrl ||
-                    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcREDVautKC6iIhByPKtNOGlHRa2E52Ahxt4jQ&s",
-                }}
-                style={styles.avatar}
-              />
-              <View style={styles.onlineIndicator} />
-            </View>
-
-            <View style={styles.infoContainer}>
-              <Text style={styles.nameText}>{item.fullName}</Text>
-
-              <View style={styles.detailsContainer}>
-                <View style={styles.detailRow}>
-                  {item.gender === "Male" ? (
-                    <Foundation name="male-symbol" size={18} color="white" />
-                  ) : (
-                    <Foundation name="female-symbol" size={18} color="white" />
-                  )}
-                  <Text style={styles.detailText}>
-                    {item.gender === "Male"
-                      ? t("ptScreen.male")
-                      : t("ptScreen.female")}
-                  </Text>
-                </View>
-
-                <View style={styles.detailRow}>
-                  <Foundation name="target-two" size={18} color="white" />
-                  <Text style={styles.detailText} numberOfLines={2}>
-                    {item.goalTraining}
-                  </Text>
-                </View>
-              </View>
-              <View style={styles.buttonContainer}>
-                <TouchableOpacity
-                  style={styles.detailButton}
-                  onPress={() => {
-                    navigation.navigate("PTProfileScreen", {
-                      ptId: item.id,
-                    });
-                  }}
-                >
-                  <Ionicons name="person-outline" size={16} color="#FFFFFF" />
-                  <Text style={styles.detailButtonText}>
-                    {t("ptCourse.details")}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.selectButton}
-                  onPress={() => handleAddToCart(item)}
-                >
-                  <Ionicons name="checkmark-circle" size={16} color="#FF914D" />
-                  <Text style={styles.selectButtonText}>
-                    {t("ptCourse.selectPT")}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </LinearGradient>
-      </View>
-    </TouchableOpacity>
+      item={item}
+      showButtons={true}
+      onDetailPress={() => {
+        navigation.navigate("PTProfileScreen", {
+          ptId: item.id,
+        });
+      }}
+      onSelectPress={() => handleAddToCart(item)}
+      detailButtonText={t("ptCourse.details")}
+      selectButtonText={t("ptCourse.selectPT")}
+    />
   );
 
   const renderEmptyState = () => (
@@ -300,121 +234,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 20,
-  },
-  cardTouchable: {
-    marginBottom: 16,
-  },
-  cardContainer: {
-    borderRadius: 16,
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-  },
-  gradientCard: {
-    borderRadius: 16,
-    padding: 20,
-  },
-  cardContent: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-  },
-  avatarContainer: {
-    position: "relative",
-    marginRight: 16,
-  },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    borderWidth: 3,
-    borderColor: "rgba(255,255,255,0.3)",
-  },
-  onlineIndicator: {
-    position: "absolute",
-    bottom: 4,
-    right: 4,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: "#28A745",
-    borderWidth: 2,
-    borderColor: "white",
-  },
-  infoContainer: {
-    flex: 1,
-  },
-  nameText: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#FFFFFF",
-    marginBottom: 12,
-  },
-  detailsContainer: {
-    gap: 8,
-    marginBottom: 16,
-  },
-  detailRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  detailText: {
-    color: "rgba(255,255,255,0.9)",
-    fontSize: 15,
-    fontWeight: "500",
-    flex: 1,
-  },
-  buttonContainer: {
-    flexDirection: "row",
-    gap: 12,
-    marginTop: 4,
-  },
-  detailButton: {
-    backgroundColor: "rgba(255,255,255,0.15)",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 25,
-    borderWidth: 1.5,
-    borderColor: "rgba(255,255,255,0.4)",
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-  },
-  selectButton: {
-    backgroundColor: "#FFFFFF",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 25,
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-  },
-  detailButtonText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#FFFFFF",
-  },
-  selectButtonText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#FF914D",
   },
   clearButton: {
     padding: 4,

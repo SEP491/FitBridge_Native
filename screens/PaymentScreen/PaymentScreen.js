@@ -24,7 +24,7 @@ export default function PaymentScreen({ navigation }) {
   const handleCheckout = async () => {
     let requestData = {};
 
-    if (cart[0].type === "WithPT" && cart[0].pt) {
+    if (cart[0].type === "WithPt" && cart[0].pt) {
       requestData = {
         gymCourseId: cart[0]?.id, // Assuming all items in cart are from the same course
         ptId: cart[0]?.pt?.id || null, // Optional PT ID
@@ -41,7 +41,7 @@ export default function PaymentScreen({ navigation }) {
     try {
       let response;
 
-      if (cart[0].type === "WithPT") {
+      if (cart[0].type === "WithPt") {
         response = await cartService.processCartPT(requestData);
       } else if (cart[0].type === "Normal") {
         response = await cartService.processCartNormal(requestData);

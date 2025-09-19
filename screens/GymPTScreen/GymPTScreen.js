@@ -3,19 +3,18 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Image,
-  TouchableOpacity,
   TextInput,
   SafeAreaView,
   StatusBar,
+  TouchableOpacity,
 } from "react-native";
 import React, { useEffect, useState } from "react";
-import { LinearGradient } from "expo-linear-gradient";
 import Foundation from "@expo/vector-icons/Foundation";
 import { useNavigation } from "@react-navigation/native";
 import gymService from "../../services/gymService";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useTranslation } from "../../hooks/useTranslation";
+import PTCard from "../../components/PTCard/PTCard";
 
 export default function GymPTScreen({ route }) {
   const { t } = useTranslation();
@@ -47,73 +46,16 @@ export default function GymPTScreen({ route }) {
   );
 
   const renderPTCard = (item) => (
-    <TouchableOpacity
+    <PTCard
       key={item.id}
+      item={item}
+      showButtons={false}
       onPress={() =>
         navigation.navigate("PTProfileScreen", {
           ptId: item.id,
         })
       }
-      style={styles.cardTouchable}
-      activeOpacity={0.8}
-    >
-      <View style={styles.cardContainer}>
-        <LinearGradient
-          colors={["#FF914D", "#ED2A46"]}
-          style={styles.gradientCard}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        >
-          <View style={styles.cardContent}>
-            <View style={styles.avatarContainer}>
-              <Image
-                source={{
-                  uri:
-                    item.avatarUrl ||
-                    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcREDVautKC6iIhByPKtNOGlHRa2E52Ahxt4jQ&s",
-                }}
-                style={styles.avatar}
-              />
-              <View style={styles.onlineIndicator} />
-            </View>
-
-            <View style={styles.infoContainer}>
-              <Text style={styles.nameText}>{item.fullName}</Text>
-
-              <View style={styles.detailsContainer}>
-                <View style={styles.detailRow}>
-                  {item.gender === "Male" ? (
-                    <Foundation name="male-symbol" size={18} color="white" />
-                  ) : (
-                    <Foundation name="female-symbol" size={18} color="white" />
-                  )}
-                  <Text style={styles.detailText}>
-                    {item.gender === "Male"
-                      ? t("ptScreen.male")
-                      : t("ptScreen.female")}
-                  </Text>
-                </View>
-
-                <View style={styles.detailRow}>
-                  <Foundation name="target-two" size={18} color="white" />
-                  <Text style={styles.detailText} numberOfLines={2}>
-                    {item.goalTraining}
-                  </Text>
-                </View>
-              </View>
-            </View>
-
-            <View style={styles.arrowContainer}>
-              <Ionicons
-                name="chevron-forward"
-                size={24}
-                color="rgba(255,255,255,0.8)"
-              />
-            </View>
-          </View>
-        </LinearGradient>
-      </View>
-    </TouchableOpacity>
+    />
   );
 
   const renderEmptyState = () => (

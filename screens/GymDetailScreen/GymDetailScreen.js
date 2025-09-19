@@ -176,50 +176,50 @@ export default function GymDetailScreen({ route }) {
   const handleAddToCart = (packageGym) => {
     getCartCount();
 
-    if (getCartCount() > 0) {
-      Alert.alert(t("gymDetail.cartAlert"), t("gymDetail.viewCart") + "?", [
-        {
-          text: t("gymDetail.no"),
-          style: "cancel",
-        },
-        {
-          text: t("gymDetail.viewCart"),
-          onPress: () => navigation.navigate("CartScreen"),
-        },
-      ]);
-      return;
-    } else {
-      const gymPackage = {
-        gymId: gymDetail.id,
+    // if (getCartCount() > 0) {
+    //   Alert.alert(t("gymDetail.cartAlert"), t("gymDetail.viewCart") + "?", [
+    //     {
+    //       text: t("gymDetail.no"),
+    //       style: "cancel",
+    //     },
+    //     {
+    //       text: t("gymDetail.viewCart"),
+    //       onPress: () => navigation.navigate("CartScreen"),
+    //     },
+    //   ]);
+    //   return;
+    // } else {
+    const gymPackage = {
+      gymId: gymDetail.id,
+      gymName: gymDetail.gymName,
+      gymAddress: gymDetail.address,
+      gymImage:
+        gymDetail?.gymImages[0] ||
+        "https://levelfyc.com/wp-content/uploads/2024/08/khong-gian-4.jpg",
+      id: packageGym.id,
+      name: packageGym.name,
+      type: packageGym.type,
+      price: packageGym.price,
+    };
+
+    addToCart(gymPackage);
+
+    Alert.alert(
+      t("gymDetail.addToCartSuccess"),
+      t("gymDetail.addedPackageToCart", {
+        packageName: packageGym.name,
         gymName: gymDetail.gymName,
-        gymAddress: gymDetail.address,
-        gymImage:
-          gymDetail?.gymImages[0] ||
-          "https://levelfyc.com/wp-content/uploads/2024/08/khong-gian-4.jpg",
-        id: packageGym.id,
-        name: packageGym.name,
-        type: packageGym.type,
-        price: packageGym.price,
-      };
-
-      addToCart(gymPackage);
-
-      Alert.alert(
-        t("gymDetail.addToCartSuccess"),
-        t("gymDetail.addedPackageToCart", {
-          packageName: packageGym.name,
-          gymName: gymDetail.gymName,
-        }),
-        [{ text: t("gymDetail.ok") }]
-      );
-    }
+      }),
+      [{ text: t("gymDetail.ok") }]
+    );
+    // }
   };
 
   const handleAddToCartWithPT = (packageGym) => {
     const gymPackage = {
       gymId: gymDetail.id,
       gymName: gymDetail.gymName,
-      gymAddress: gymDetail.address,
+      gymAddress: gymDetail.gymAddress,
       gymImage:
         gymDetail?.gymImages[0] ||
         "https://levelfyc.com/wp-content/uploads/2024/08/khong-gian-4.jpg",

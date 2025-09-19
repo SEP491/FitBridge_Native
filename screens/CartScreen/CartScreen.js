@@ -19,7 +19,7 @@ export default function CartScreen() {
   const navigation = useNavigation();
   const { cart, removeFromCart, getTotalPrice, clearCart } = useCart(); // Use the cart context
   const { t } = useTranslation();
-
+  console.log("Cart items:", cart);
   // Function to handle removing an item from cart
   const handleRemoveItem = (cartItemId) => {
     showConfirmAlert({

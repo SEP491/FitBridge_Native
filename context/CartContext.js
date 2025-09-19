@@ -17,13 +17,13 @@ export const CartProvider = ({ children }) => {
     setCart((prevCart) => {
       // Create unique identifier for cart item
       const cartItemId =
-        gymPackage.type === "WithPT" && gymPackage.pt
+        gymPackage.type === "WithPt" && gymPackage.pt
           ? `${gymPackage.gymId}-${gymPackage.id}-${gymPackage.pt.id}`
           : `${gymPackage.gymId}-${gymPackage.id}`;
 
       // Check if item already exists in cart
       const existingItemIndex = prevCart.findIndex((item) => {
-        if (gymPackage.type === "WithPT" && gymPackage.pt) {
+        if (gymPackage.type === "WithPt" && gymPackage.pt) {
           return (
             item.gymId === gymPackage.gymId &&
             item.id === gymPackage.id &&
