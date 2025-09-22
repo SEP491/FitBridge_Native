@@ -23,6 +23,7 @@ export const FitnessProvider = ({ children }) => {
     distance: 0,
     calories: 0,
     isTracking: false,
+    realTimeSteps: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -31,10 +32,19 @@ export const FitnessProvider = ({ children }) => {
 
   // Initialize fitness tracking
   useEffect(() => {
-    initializeFitnessTracking();
+    let cleanup;
+
+    const init = async () => {
+      cleanup = await initializeFitnessTracking();
+    };
+
+    init();
 
     // Cleanup on unmount
     return () => {
+      if (cleanup) {
+        cleanup();
+      }
       fitnessTrackingService.stopTracking();
     };
   }, []);
@@ -44,13 +54,15 @@ export const FitnessProvider = ({ children }) => {
       setIsLoading(true);
       setError(null);
 
+      console.log("Initializing fitness tracking...");
+
       // Initialize the service
       const success = await fitnessTrackingService.initialize();
       if (!success) {
         throw new Error("Failed to initialize fitness tracking service");
       }
 
-      // Start tracking
+      // Start tracking immediately for real-time updates
       const trackingStarted = await fitnessTrackingService.startTracking();
       if (!trackingStarted) {
         console.warn(
@@ -65,15 +77,19 @@ export const FitnessProvider = ({ children }) => {
       // Load weekly and monthly data
       await loadHistoricalData();
 
-      // Listen for updates
+      // Listen for real-time updates from the service
       const unsubscribe = fitnessTrackingService.addListener((newData) => {
+        console.log("Received real-time update:", newData);
         setFitnessData(newData);
       });
 
       setIsLoading(false);
+      console.log("Fitness tracking initialized successfully");
 
       // Return cleanup function
-      return unsubscribe;
+      return () => {
+        unsubscribe();
+      };
     } catch (err) {
       console.error("Error initializing fitness tracking:", err);
       setError(err.message);
@@ -98,8 +114,13 @@ export const FitnessProvider = ({ children }) => {
   const refreshData = useCallback(async () => {
     try {
       setError(null);
-      const currentData = fitnessTrackingService.getCurrentFitnessData();
+      console.log("Manual data refresh requested");
+
+      // Get latest data from service
+      const currentData = await fitnessTrackingService.manualRefresh();
       setFitnessData(currentData);
+
+      // Refresh historical data
       await loadHistoricalData();
     } catch (err) {
       console.error("Error refreshing fitness data:", err);
@@ -110,8 +131,7 @@ export const FitnessProvider = ({ children }) => {
   const updateUserProfile = async (profile) => {
     try {
       await fitnessTrackingService.updateUserProfile(profile);
-      // Refresh data to recalculate calories with new profile
-      await refreshData();
+      // The service will automatically notify listeners with updated data
     } catch (err) {
       console.error("Error updating user profile:", err);
       setError(err.message);
@@ -121,6 +141,8 @@ export const FitnessProvider = ({ children }) => {
   const startTracking = async () => {
     try {
       setError(null);
+      console.log("Starting tracking from context");
+
       const success = await fitnessTrackingService.startTracking();
       if (success) {
         const updatedData = fitnessTrackingService.getCurrentFitnessData();
@@ -136,6 +158,7 @@ export const FitnessProvider = ({ children }) => {
 
   const stopTracking = () => {
     try {
+      console.log("Stopping tracking from context");
       fitnessTrackingService.stopTracking();
       const updatedData = fitnessTrackingService.getCurrentFitnessData();
       setFitnessData(updatedData);
@@ -215,6 +238,11 @@ export const FitnessProvider = ({ children }) => {
     [fitnessData.steps]
   );
 
+  // Get debug info for troubleshooting
+  const getDebugInfo = () => {
+    return fitnessTrackingService.getDebugInfo();
+  };
+
   const value = {
     // Current data
     fitnessData,
@@ -241,6 +269,7 @@ export const FitnessProvider = ({ children }) => {
     // Utilities
     getStepGoalProgress,
     loadHistoricalData,
+    getDebugInfo,
   };
 
   return (

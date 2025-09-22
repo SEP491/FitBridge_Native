@@ -21,6 +21,7 @@ import { filterGymsByDistance, handleRefresh } from "../../lib";
 import { useTranslation } from "../../hooks/useTranslation";
 import { useLocationContext } from "../../context/LocationContext";
 import { fetchUserFromStorage } from "../../lib/async/asyncUtils";
+import PedometerTest from "../../components/PedometerTest/PedometerTest";
 
 export default function HomeScreen() {
   const [user, setUser] = useState(null);
@@ -175,7 +176,7 @@ export default function HomeScreen() {
 
         {/* Fitness Summary Section */}
         <FitnessSummary />
-
+        {/* <PedometerTest /> */}
         <View style={styles.gymSection}>
           <View style={styles.titleContainer}>
             <View style={styles.titleWithIcon}>
