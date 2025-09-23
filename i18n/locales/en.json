@@ -694,7 +694,21 @@
     "noResultsSubtitle": "Try searching with different keywords",
     "searchTitle": "Search for gyms",
     "searchSubtitle": "Enter gym name to start searching",
-    "loadingMore": "Loading more..."
+    "loadingMore": "Loading more...",
+    "clearAll": "Clear Search"
+  },
+
+  "hotKeywords": {
+    "trending": "Trending Searches",
+    "recent": "Recent",
+    "trendingNow": "Trending Now",
+    "quickSearch": "Quick Search",
+    "nearMe": "Near Me",
+    "open247": "24/7 Open",
+    "premium": "Premium",
+    "hot": "Hot",
+    "rising": "Rising",
+    "new": "New"
   },
 
   "ptCourse": {

@@ -643,7 +643,21 @@
     "noResultsSubtitle": "Thử tìm kiếm với từ khóa khác",
     "searchTitle": "Tìm kiếm phòng gym",
     "searchSubtitle": "Nhập tên phòng gym để bắt đầu tìm kiếm",
-    "loadingMore": "Đang tải thêm..."
+    "loadingMore": "Đang tải thêm...",
+    "clearAll": "Xóa tất cả"
+  },
+
+  "hotKeywords": {
+    "trending": "Xu Hướng Tìm Kiếm",
+    "recent": "Gần Đây",
+    "trendingNow": "Đang Thịnh Hành",
+    "quickSearch": "Tìm Nhanh",
+    "nearMe": "Gần Tôi",
+    "open247": "Mở 24/7",
+    "premium": "Cao Cấp",
+    "hot": "Nóng",
+    "rising": "Tăng",
+    "new": "Mới"
   },
 
   "ptCourse": {

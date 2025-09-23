@@ -5,6 +5,7 @@ import {
   TextInput,
   TouchableOpacity,
   Image,
+  Keyboard,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { LinearGradient } from "expo-linear-gradient";
@@ -16,10 +17,14 @@ import { useLocationContext } from "../../context/LocationContext";
 import { capitalizeFirst } from "../../lib";
 import { useTranslation } from "../../hooks/useTranslation";
 import axios from "axios";
+import FullScreenSearch from "../FullScreenSearch/FullScreenSearch";
+import hotKeywordsService from "../../services/hotKeywordsService";
 
 export default function HeaderHome({ user }) {
   const [searchText, setSearchText] = useState("");
   const [loading, setLoading] = useState(true);
+  const [showFullScreenSearch, setShowFullScreenSearch] = useState(false);
+
   const navigation = useNavigation();
   const { t } = useTranslation();
   const { cart, getCartCount } = useCart();
@@ -96,61 +101,112 @@ export default function HeaderHome({ user }) {
     return "rainy"; // Default to rainy as requested
   };
 
+  // Handle search input focus - open full screen search
+  const handleSearchFocus = () => {
+    setShowFullScreenSearch(true);
+  };
+
+  // Handle keyword selection from full screen search
+  const handleKeywordSelect = (keyword) => {
+    setSearchText(keyword);
+    setShowFullScreenSearch(false);
+    Keyboard.dismiss();
+
+    // Save the search for analytics
+    hotKeywordsService.saveSearch(keyword);
+    hotKeywordsService.saveRecentSearch(keyword);
+
+    // Navigate to search screen with the selected keyword
+    navigation.navigate("SearchGymScreen", {
+      searchQuery: keyword,
+    });
+  };
+
+  // Handle close full screen search
+  const handleCloseFullScreenSearch = () => {
+    setShowFullScreenSearch(false);
+    Keyboard.dismiss();
+  };
+
+  // Handle search submission from full screen
+  const handleFullScreenSearch = (query) => {
+    // Save the search for analytics
+    hotKeywordsService.saveSearch(query);
+    hotKeywordsService.saveRecentSearch(query);
+
+    // Navigate to search screen
+    navigation.navigate("SearchGymScreen", {
+      searchQuery: query,
+    });
+  };
+
+  // Handle search submission from header (fallback)
+  const handleSearchSubmit = () => {
+    if (searchText.trim()) {
+      setShowFullScreenSearch(false);
+
+      // Save the search for analytics
+      hotKeywordsService.saveSearch(searchText.trim());
+      hotKeywordsService.saveRecentSearch(searchText.trim());
+
+      navigation.navigate("SearchGymScreen", {
+        searchQuery: searchText.trim(),
+      });
+    }
+  };
   return (
-    <LinearGradient
-      colors={["#FF914D", "#ED2A46", "#C21A3F"]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.gradientContainer}
-    >
-      <View style={styles.overlay} />
-      <View style={styles.header}>
-        <View style={styles.welcomeSection}>
-          <View style={styles.welcomeText}>
-            <Text style={styles.greeting}>{getGreeting()}</Text>
+    <>
+      <LinearGradient
+        colors={["#FF914D", "#ED2A46", "#C21A3F"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.gradientContainer}
+      >
+        <View style={styles.overlay} />
+        <View style={styles.header}>
+          <View style={styles.welcomeSection}>
+            <View style={styles.welcomeText}>
+              <Text style={styles.greeting}>{getGreeting()}</Text>
 
-            <View style={styles.userInfo}>
-              <View style={styles.avatarContainer}>
-                <Image
-                  source={{
-                    uri: getAvatarUrl(),
-                  }}
-                  style={[styles.avatar]}
-                />
-              </View>
-              <Text style={styles.userName}>{user?.fullName || t("user")}</Text>
-              <View style={styles.statusDot} />
-            </View>
-          </View>
-
-          <View style={styles.profileSection}>
-            <View style={styles.weatherContainer}>
-              <Ionicons
-                name={getWeatherIcon()}
-                size={24}
-                color="white"
-                style={styles.weatherIcon}
-              />
-              {weather && weather.current && (
-                <Text style={styles.temperatureText}>
-                  {Math.round(weather.current.temperature_2m)}°C
+              <View style={styles.userInfo}>
+                <View style={styles.avatarContainer}>
+                  <Image
+                    source={{
+                      uri: getAvatarUrl(),
+                    }}
+                    style={[styles.avatar]}
+                  />
+                </View>
+                <Text style={styles.userName}>
+                  {user?.fullName || t("user")}
                 </Text>
-              )}
+                <View style={styles.statusDot} />
+              </View>
+            </View>
+
+            <View style={styles.profileSection}>
+              <View style={styles.weatherContainer}>
+                <Ionicons
+                  name={getWeatherIcon()}
+                  size={24}
+                  color="white"
+                  style={styles.weatherIcon}
+                />
+                {weather && weather.current && (
+                  <Text style={styles.temperatureText}>
+                    {Math.round(weather.current.temperature_2m)}°C
+                  </Text>
+                )}
+              </View>
             </View>
           </View>
-        </View>
 
-        <View style={styles.actionSection}>
-          <View style={styles.searchContainer}>
-            <View style={styles.searchBox}>
+          <View style={styles.actionSection}>
+            <View style={styles.searchContainer}>
               <TouchableOpacity
-                onPress={() => {
-                  if (searchText.trim()) {
-                    navigation.navigate("SearchGymScreen", {
-                      searchQuery: searchText.trim(),
-                    });
-                  }
-                }}
+                style={styles.searchBox}
+                onPress={handleSearchFocus}
+                activeOpacity={0.8}
               >
                 <Ionicons
                   name="search"
@@ -158,56 +214,48 @@ export default function HeaderHome({ user }) {
                   color="#999"
                   style={styles.searchIcon}
                 />
+                <Text style={styles.searchPlaceholder}>
+                  {t("gym.searchGymPlaceholder")}
+                </Text>
               </TouchableOpacity>
-              <TextInput
-                value={searchText}
-                onChangeText={setSearchText}
-                placeholder={t("gym.searchGymPlaceholder")}
-                placeholderTextColor="#A39F9F"
-                style={styles.searchInput}
-                onSubmitEditing={() => {
-                  if (searchText.trim()) {
-                    navigation.navigate("SearchGymScreen", {
-                      searchQuery: searchText.trim(),
-                    });
-                  }
-                }}
-                returnKeyType="search"
-              />
-              {searchText.length > 0 && (
-                <TouchableOpacity onPress={() => setSearchText("")}>
-                  <Ionicons name="close-circle" size={16} color="#999" />
+            </View>
+
+            <View style={styles.actionButtons}>
+              {user?.role === "Customer" && (
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={() => navigation.navigate("CartScreen")}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.iconContainer}>
+                    <Ionicons name="cart" size={30} color="white" />
+                    <View style={styles.badge}>
+                      <Text style={styles.badgeText}>{getCartCount()}</Text>
+                    </View>
+                  </View>
                 </TouchableOpacity>
               )}
-            </View>
-          </View>
 
-          <View style={styles.actionButtons}>
-            {user?.role === "Customer" && (
-              <TouchableOpacity
-                style={styles.actionButton}
-                onPress={() => navigation.navigate("CartScreen")}
-                activeOpacity={0.7}
-              >
+              <TouchableOpacity style={styles.actionButton} activeOpacity={0.7}>
                 <View style={styles.iconContainer}>
-                  <Ionicons name="cart" size={30} color="white" />
-                  <View style={styles.badge}>
-                    <Text style={styles.badgeText}>{getCartCount()}</Text>
-                  </View>
+                  <Ionicons name="notifications" size={30} color="white" />
+                  <View style={styles.notificationDot} />
                 </View>
               </TouchableOpacity>
-            )}
-
-            <TouchableOpacity style={styles.actionButton} activeOpacity={0.7}>
-              <View style={styles.iconContainer}>
-                <Ionicons name="notifications" size={30} color="white" />
-                <View style={styles.notificationDot} />
-              </View>
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
-      </View>
-    </LinearGradient>
+      </LinearGradient>
+
+      {/* Full Screen Search */}
+      <FullScreenSearch
+        visible={showFullScreenSearch}
+        onKeywordSelect={handleKeywordSelect}
+        onClose={handleCloseFullScreenSearch}
+        onSearch={handleFullScreenSearch}
+        initialSearchText={searchText}
+      />
+    </>
   );
 }
 
@@ -330,6 +378,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    borderWidth: 1,
+    borderColor: "transparent",
+  },
+  searchBoxFocused: {
+    borderColor: "#ED2A46",
+    shadowColor: "#ED2A46",
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 5,
   },
   searchIcon: {
     marginRight: 12,
@@ -337,6 +394,12 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     color: "#333",
+    fontSize: 12,
+    fontWeight: "400",
+  },
+  searchPlaceholder: {
+    flex: 1,
+    color: "#A39F9F",
     fontSize: 12,
     fontWeight: "400",
   },
