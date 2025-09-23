@@ -6,7 +6,13 @@ import { LinearGradient } from "expo-linear-gradient";
 import { formatPrice } from "../../lib";
 import colors from "../../constants/color";
 
-export default function CartCard({ product, onRemove, showRemove = true }) {
+export default function CartCard({
+  product,
+  onRemove,
+  onQuantityChange,
+  showRemove = true,
+  showQuantityControls = true,
+}) {
   return (
     <View style={styles.cartCart}>
       <View style={styles.cartUpper}>
@@ -69,8 +75,50 @@ export default function CartCard({ product, onRemove, showRemove = true }) {
 
       <View style={styles.cartUnder}>
         <Text style={styles.priceText}>
-          {formatPrice(product.selectedPackage.packagePrice)}
+          {formatPrice(
+            product.selectedPackage.packagePrice * (product.quantity || 1)
+          )}
         </Text>
+
+        {showQuantityControls ? (
+          <View style={styles.quantityContainer}>
+            <TouchableOpacity
+              style={styles.quantityButton}
+              onPress={() =>
+                onQuantityChange && onQuantityChange(product.quantity - 1)
+              }
+              disabled={product.quantity <= 1}
+              activeOpacity={0.7}
+            >
+              <AntDesign
+                name="minus"
+                size={16}
+                color={product.quantity <= 1 ? "#ccc" : colors.red}
+              />
+            </TouchableOpacity>
+
+            <View style={styles.quantityDisplay}>
+              <Text style={styles.quantityText}>{product.quantity || 1}</Text>
+            </View>
+
+            <TouchableOpacity
+              style={styles.quantityButton}
+              onPress={() =>
+                onQuantityChange && onQuantityChange(product.quantity + 1)
+              }
+              activeOpacity={0.7}
+            >
+              <AntDesign name="plus" size={16} color={colors.red} />
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.quantityDisplayOnly}>
+            <Text style={styles.quantityLabel}>Qty:</Text>
+            <Text style={styles.quantityValueOnly}>
+              {product.quantity || 1}
+            </Text>
+          </View>
+        )}
       </View>
     </View>
   );
@@ -185,12 +233,68 @@ const styles = StyleSheet.create({
   },
   cartUnder: {
     marginTop: 12,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  quantityContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F8F8F8",
+    borderRadius: 20,
+    paddingHorizontal: 4,
+    paddingVertical: 4,
+  },
+  quantityButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.white,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  quantityDisplay: {
+    minWidth: 40,
+    alignItems: "center",
+    paddingHorizontal: 12,
+  },
+  quantityText: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#333",
+  },
+  quantityDisplayOnly: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F8F8F8",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  quantityLabel: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#666",
+    marginRight: 8,
+  },
+  quantityValueOnly: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#333",
   },
   priceText: {
     fontSize: 18,
     fontWeight: "800",
     color: colors.red,
-    textAlign: "right",
+    textAlign: "left",
     letterSpacing: 0.3,
   },
   removeButton: {

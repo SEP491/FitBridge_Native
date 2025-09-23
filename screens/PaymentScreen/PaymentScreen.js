@@ -96,6 +96,7 @@ export default function PaymentScreen({ navigation }) {
             {cart.map((item, index) => (
               <CartCard
                 showRemove={false}
+                showQuantityControls={false}
                 key={item.cartItemId || index}
                 product={{
                   gymId: item.gymId,
@@ -103,6 +104,7 @@ export default function PaymentScreen({ navigation }) {
                   rating: 5,
                   address: item.gymAddress,
                   image: item.gymImage,
+                  quantity: item.quantity || 1,
                   selectedPackage: {
                     packageId: item.id,
                     packageName: item.name,

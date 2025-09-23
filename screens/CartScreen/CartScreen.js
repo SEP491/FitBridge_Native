@@ -17,9 +17,20 @@ import { useTranslation } from "../../hooks/useTranslation";
 
 export default function CartScreen() {
   const navigation = useNavigation();
-  const { cart, removeFromCart, getTotalPrice, clearCart } = useCart(); // Use the cart context
+  const { cart, removeFromCart, getTotalPrice, clearCart, updateQuantity } =
+    useCart(); // Use the cart context
   const { t } = useTranslation();
   console.log("Cart items:", cart);
+
+  // Function to handle quantity change
+  const handleQuantityChange = (cartItemId, newQuantity) => {
+    if (newQuantity < 1) {
+      handleRemoveItem(cartItemId);
+      return;
+    }
+    updateQuantity(cartItemId, newQuantity);
+  };
+
   // Function to handle removing an item from cart
   const handleRemoveItem = (cartItemId) => {
     showConfirmAlert({
@@ -57,6 +68,7 @@ export default function CartScreen() {
                   rating: 5, // Default since we don't have ratings in cart items
                   address: item.gymAddress,
                   image: item?.gymImage,
+                  quantity: item.quantity || 1, // Add quantity to product object
                   selectedPackage: {
                     packageId: item.id,
                     packageName: item.name,
@@ -74,6 +86,9 @@ export default function CartScreen() {
                       }
                     : null,
                 }}
+                onQuantityChange={(newQuantity) =>
+                  handleQuantityChange(item.cartItemId, newQuantity)
+                }
                 onRemove={() => handleRemoveItem(item.cartItemId)}
               />
             ))}

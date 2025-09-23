@@ -57,6 +57,16 @@ export const CartProvider = ({ children }) => {
     );
   };
 
+  const updateQuantity = (cartItemId, newQuantity) => {
+    setCart((prevCart) =>
+      prevCart.map((item) =>
+        item.cartItemId === cartItemId
+          ? { ...item, quantity: Math.max(1, newQuantity) }
+          : item
+      )
+    );
+  };
+
   const clearCart = () => {
     setCart([]);
   };
@@ -88,6 +98,7 @@ export const CartProvider = ({ children }) => {
     cart,
     addToCart,
     removeFromCart,
+    updateQuantity,
     clearCart,
     getCartCount,
     getTotalPrice,
