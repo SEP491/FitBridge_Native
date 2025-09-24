@@ -10,6 +10,9 @@ const STORAGE_KEYS = {
   LAST_RESET_DATE: "last_reset_date",
   USER_PROFILE: "user_profile",
   TODAY_BASE_STEPS: "today_base_steps", // Steps from device at start of day
+  TODAY_DATA: "today_data", // Complete today's fitness data
+  WEEKLY_CACHE: "weekly_cache", // Cached weekly data
+  MONTHLY_CACHE: "monthly_cache", // Cached monthly data
 };
 
 // Default user profile for calorie calculation
@@ -114,6 +117,11 @@ class FitnessTrackingService {
       // Clear storage
       await AsyncStorage.removeItem(STORAGE_KEYS.DAILY_STEPS);
       await AsyncStorage.removeItem(STORAGE_KEYS.TODAY_BASE_STEPS);
+      await AsyncStorage.removeItem(STORAGE_KEYS.TODAY_DATA);
+      
+      // Clear cached weekly/monthly data to force refresh
+      await AsyncStorage.removeItem(STORAGE_KEYS.WEEKLY_CACHE);
+      await AsyncStorage.removeItem(STORAGE_KEYS.MONTHLY_CACHE);
 
       console.log("Daily data reset complete");
     } catch (error) {
@@ -149,11 +157,28 @@ class FitnessTrackingService {
   // Load today's data from storage
   async loadTodayData() {
     try {
-      // Load stored step count and base steps
+      // Try to load complete today's data first
+      const todayDataStr = await AsyncStorage.getItem(STORAGE_KEYS.TODAY_DATA);
+      
+      if (todayDataStr) {
+        const todayData = JSON.parse(todayDataStr);
+        const today = new Date().toDateString();
+        
+        // Check if the stored data is from today
+        if (todayData.date === today) {
+          this.todaySteps = todayData.steps || 0;
+          this.baseStepsToday = todayData.baseSteps || 0;
+          this.todayDistance = todayData.distance || 0;
+          this.todayCalories = todayData.calories || 0;
+          
+          console.log(`Loaded complete today's data: ${this.todaySteps} steps (base: ${this.baseStepsToday})`);
+          return;
+        }
+      }
+      
+      // Fallback to old method if complete data not available
       const steps = await AsyncStorage.getItem(STORAGE_KEYS.DAILY_STEPS);
-      const baseSteps = await AsyncStorage.getItem(
-        STORAGE_KEYS.TODAY_BASE_STEPS
-      );
+      const baseSteps = await AsyncStorage.getItem(STORAGE_KEYS.TODAY_BASE_STEPS);
 
       this.todaySteps = steps ? parseInt(steps) : 0;
       this.baseStepsToday = baseSteps ? parseInt(baseSteps) : 0;
@@ -161,9 +186,7 @@ class FitnessTrackingService {
       // Calculate derived metrics
       this.updateDerivedMetrics();
 
-      console.log(
-        `Loaded today's data: ${this.todaySteps} steps (base: ${this.baseStepsToday})`
-      );
+      console.log(`Loaded today's data (fallback): ${this.todaySteps} steps (base: ${this.baseStepsToday})`);
     } catch (error) {
       console.error("Error loading today data:", error);
     }
@@ -194,22 +217,26 @@ class FitnessTrackingService {
           this.baseStepsToday.toString()
         );
         await this.saveStepCount(this.todaySteps);
+        console.log(`First time today - Base steps set to: ${this.baseStepsToday}`);
       } else if (this.baseStepsToday > 0) {
-        // We have base steps, calculate current steps
-        this.todaySteps =
-          this.baseStepsToday + (deviceStepsToday - this.baseStepsToday);
+        // We have base steps, use device steps directly (no need to add base again)
+        this.todaySteps = Math.max(deviceStepsToday, this.baseStepsToday);
+        console.log(`Existing session - Device steps: ${deviceStepsToday}, Using: ${this.todaySteps}`);
       }
+
+      // Store the step count when we start tracking (as baseline for real-time)
+      const startingSteps = this.todaySteps;
 
       // Start real-time step watching
       this.stepSubscription = Pedometer.watchStepCount((result) => {
         // result.steps are incremental steps since watchStepCount started
         this.realTimeSteps = result.steps;
 
-        // Calculate total steps: base steps for today + real-time incremental steps
-        const newTotalSteps = this.todaySteps + this.realTimeSteps;
+        // Calculate total steps: starting steps + new incremental steps
+        const newTotalSteps = startingSteps + this.realTimeSteps;
 
         console.log(
-          `Real-time update: +${result.steps} new steps, total: ${newTotalSteps}`
+          `Real-time update: Starting: ${startingSteps}, +${result.steps} new steps, total: ${newTotalSteps}`
         );
 
         // Update immediately for real-time UI
@@ -278,6 +305,18 @@ class FitnessTrackingService {
   async saveStepCount(steps) {
     try {
       await AsyncStorage.setItem(STORAGE_KEYS.DAILY_STEPS, steps.toString());
+      
+      // Also save complete today's data for better persistence
+      const todayData = {
+        steps: steps,
+        distance: this.todayDistance,
+        calories: this.todayCalories,
+        baseSteps: this.baseStepsToday,
+        lastUpdated: new Date().toISOString(),
+        date: new Date().toDateString(),
+      };
+      
+      await AsyncStorage.setItem(STORAGE_KEYS.TODAY_DATA, JSON.stringify(todayData));
     } catch (error) {
       console.error("Error saving step count:", error);
     }
@@ -351,14 +390,19 @@ class FitnessTrackingService {
       // Get latest device steps and update if needed
       const deviceStepsToday = await this.getDeviceStepsToday();
 
-      // If we have base steps, calculate total
+      // Use device steps directly if we have base steps (no double counting)
       if (this.baseStepsToday > 0) {
-        const calculatedSteps =
-          this.baseStepsToday +
-          (deviceStepsToday - this.baseStepsToday) +
-          this.realTimeSteps;
+        // Use the maximum of device steps or current steps to prevent going backwards
+        const calculatedSteps = Math.max(deviceStepsToday, this.todaySteps);
         if (calculatedSteps !== this.todaySteps) {
+          console.log(`Manual refresh updating steps from ${this.todaySteps} to ${calculatedSteps}`);
           this.updateStepCount(calculatedSteps, true);
+        }
+      } else {
+        // If no base steps, set current device steps as our steps
+        if (deviceStepsToday !== this.todaySteps) {
+          console.log(`Manual refresh setting initial steps to ${deviceStepsToday}`);
+          this.updateStepCount(deviceStepsToday, true);
         }
       }
 
@@ -378,6 +422,10 @@ class FitnessTrackingService {
       isTracking: this.isTracking,
       distance: this.todayDistance,
       calories: this.todayCalories,
+      userProfile: this.userProfile,
+      hasStepSubscription: !!this.stepSubscription,
+      listenerCount: this.listeners.length,
+      timestamp: new Date().toISOString(),
     };
   }
 
@@ -392,9 +440,15 @@ class FitnessTrackingService {
     }
   }
 
-  // Get weekly summary
+  // Get weekly summary with caching
   async getWeeklySummary() {
     try {
+      // Check if we have cached weekly data
+      const cached = await this.getCachedWeeklyData();
+      if (cached) {
+        return cached;
+      }
+
       const history = await this.getFitnessHistory();
       const today = new Date();
       const weekData = [];
@@ -405,11 +459,12 @@ class FitnessTrackingService {
         const dateKey = date.toDateString();
 
         if (i === 0) {
-          // Today's data
+          // Today's data (always fresh)
           weekData.push({
             date: date.toISOString(),
+            day: date.toLocaleDateString('en-US', { weekday: 'short' }),
             steps: this.todaySteps,
-            distance: this.todayDistance,
+            distance: parseFloat(this.todayDistance.toFixed(2)),
             calories: this.todayCalories,
           });
         } else {
@@ -421,10 +476,16 @@ class FitnessTrackingService {
           };
           weekData.push({
             date: date.toISOString(),
-            ...dayData,
+            day: date.toLocaleDateString('en-US', { weekday: 'short' }),
+            steps: dayData.steps || 0,
+            distance: parseFloat((dayData.distance || 0).toFixed(2)),
+            calories: dayData.calories || 0,
           });
         }
       }
+
+      // Cache the result (excluding today's data which changes frequently)
+      await this.cacheWeeklyData(weekData);
 
       return weekData;
     } catch (error) {
@@ -433,9 +494,15 @@ class FitnessTrackingService {
     }
   }
 
-  // Get monthly summary
+  // Get monthly summary with caching
   async getMonthlySummary() {
     try {
+      // Check if we have cached monthly data
+      const cached = await this.getCachedMonthlyData();
+      if (cached) {
+        return cached;
+      }
+
       const history = await this.getFitnessHistory();
       const today = new Date();
       const monthData = [];
@@ -446,11 +513,12 @@ class FitnessTrackingService {
         const dateKey = date.toDateString();
 
         if (i === 0) {
-          // Today's data
+          // Today's data (always fresh)
           monthData.push({
             date: date.toISOString(),
+            day: date.getDate(),
             steps: this.todaySteps,
-            distance: this.todayDistance,
+            distance: parseFloat(this.todayDistance.toFixed(2)),
             calories: this.todayCalories,
           });
         } else {
@@ -462,15 +530,265 @@ class FitnessTrackingService {
           };
           monthData.push({
             date: date.toISOString(),
-            ...dayData,
+            day: date.getDate(),
+            steps: dayData.steps || 0,
+            distance: parseFloat((dayData.distance || 0).toFixed(2)),
+            calories: dayData.calories || 0,
           });
         }
       }
+
+      // Cache the result (excluding today's data)
+      await this.cacheMonthlyData(monthData);
 
       return monthData;
     } catch (error) {
       console.error("Error getting monthly summary:", error);
       return [];
+    }
+  }
+
+  // Cache management methods
+  async getCachedWeeklyData() {
+    try {
+      const cached = await AsyncStorage.getItem(STORAGE_KEYS.WEEKLY_CACHE);
+      if (!cached) return null;
+
+      const cacheData = JSON.parse(cached);
+      const today = new Date().toDateString();
+      
+      // Check if cache is from today
+      if (cacheData.date === today && cacheData.data) {
+        // Update today's data in cached result
+        const weekData = [...cacheData.data];
+        const todayIndex = weekData.length - 1; // Today is last item
+        
+        weekData[todayIndex] = {
+          ...weekData[todayIndex],
+          steps: this.todaySteps,
+          distance: parseFloat(this.todayDistance.toFixed(2)),
+          calories: this.todayCalories,
+        };
+        
+        return weekData;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error("Error getting cached weekly data:", error);
+      return null;
+    }
+  }
+
+  async cacheWeeklyData(weekData) {
+    try {
+      const cacheData = {
+        date: new Date().toDateString(),
+        data: weekData,
+        timestamp: Date.now(),
+      };
+      
+      await AsyncStorage.setItem(STORAGE_KEYS.WEEKLY_CACHE, JSON.stringify(cacheData));
+    } catch (error) {
+      console.error("Error caching weekly data:", error);
+    }
+  }
+
+  async getCachedMonthlyData() {
+    try {
+      const cached = await AsyncStorage.getItem(STORAGE_KEYS.MONTHLY_CACHE);
+      if (!cached) return null;
+
+      const cacheData = JSON.parse(cached);
+      const today = new Date().toDateString();
+      
+      // Check if cache is from today
+      if (cacheData.date === today && cacheData.data) {
+        // Update today's data in cached result
+        const monthData = [...cacheData.data];
+        const todayIndex = monthData.length - 1; // Today is last item
+        
+        monthData[todayIndex] = {
+          ...monthData[todayIndex],
+          steps: this.todaySteps,
+          distance: parseFloat(this.todayDistance.toFixed(2)),
+          calories: this.todayCalories,
+        };
+        
+        return monthData;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error("Error getting cached monthly data:", error);
+      return null;
+    }
+  }
+
+  async cacheMonthlyData(monthData) {
+    try {
+      const cacheData = {
+        date: new Date().toDateString(),
+        data: monthData,
+        timestamp: Date.now(),
+      };
+      
+      await AsyncStorage.setItem(STORAGE_KEYS.MONTHLY_CACHE, JSON.stringify(cacheData));
+    } catch (error) {
+      console.error("Error caching monthly data:", error);
+    }
+  }
+
+  // Clear all caches (useful for force refresh)
+  async clearCaches() {
+    try {
+      await AsyncStorage.removeItem(STORAGE_KEYS.WEEKLY_CACHE);
+      await AsyncStorage.removeItem(STORAGE_KEYS.MONTHLY_CACHE);
+      console.log("Caches cleared");
+    } catch (error) {
+      console.error("Error clearing caches:", error);
+    }
+  }
+
+  // Get comprehensive statistics for FitnessDetailScreen
+  async getFitnessStatistics() {
+    try {
+      const [weeklyData, monthlyData] = await Promise.all([
+        this.getWeeklySummary(),
+        this.getMonthlySummary()
+      ]);
+
+      // Calculate weekly statistics
+      const weeklyTotals = weeklyData.reduce(
+        (totals, day) => ({
+          steps: totals.steps + (day.steps || 0),
+          distance: totals.distance + (day.distance || 0),
+          calories: totals.calories + (day.calories || 0),
+        }),
+        { steps: 0, distance: 0, calories: 0 }
+      );
+
+      const weeklyAverage = {
+        steps: Math.round(weeklyTotals.steps / 7),
+        distance: parseFloat((weeklyTotals.distance / 7).toFixed(2)),
+        calories: Math.round(weeklyTotals.calories / 7),
+      };
+
+      // Calculate monthly statistics
+      const monthlyTotals = monthlyData.reduce(
+        (totals, day) => ({
+          steps: totals.steps + (day.steps || 0),
+          distance: totals.distance + (day.distance || 0),
+          calories: totals.calories + (day.calories || 0),
+        }),
+        { steps: 0, distance: 0, calories: 0 }
+      );
+
+      const monthlyAverage = {
+        steps: Math.round(monthlyTotals.steps / 30),
+        distance: parseFloat((monthlyTotals.distance / 30).toFixed(2)),
+        calories: Math.round(monthlyTotals.calories / 30),
+      };
+
+      // Find best day in each period
+      const bestWeekDay = weeklyData.reduce((best, day) => 
+        (day.steps > best.steps) ? day : best
+      , weeklyData[0] || { steps: 0, distance: 0, calories: 0 });
+
+      const bestMonthDay = monthlyData.reduce((best, day) => 
+        (day.steps > best.steps) ? day : best
+      , monthlyData[0] || { steps: 0, distance: 0, calories: 0 });
+
+      // Calculate streaks
+      const currentStreak = this.calculateCurrentStreak(monthlyData);
+      const longestStreak = this.calculateLongestStreak(monthlyData);
+
+      return {
+        today: {
+          steps: this.todaySteps,
+          distance: parseFloat(this.todayDistance.toFixed(2)),
+          calories: this.todayCalories,
+        },
+        weekly: {
+          data: weeklyData,
+          totals: weeklyTotals,
+          average: weeklyAverage,
+          best: bestWeekDay,
+        },
+        monthly: {
+          data: monthlyData,
+          totals: monthlyTotals,
+          average: monthlyAverage,
+          best: bestMonthDay,
+        },
+        streaks: {
+          current: currentStreak,
+          longest: longestStreak,
+        },
+        goals: {
+          dailyStepGoal: 10000,
+          progress: Math.min((this.todaySteps / 10000) * 100, 100),
+          achieved: this.todaySteps >= 10000,
+        }
+      };
+    } catch (error) {
+      console.error("Error getting fitness statistics:", error);
+      return null;
+    }
+  }
+
+  // Calculate current active streak (consecutive days with steps >= goal)
+  calculateCurrentStreak(monthlyData, stepGoal = 5000) {
+    let streak = 0;
+    
+    // Start from today and go backwards
+    for (let i = monthlyData.length - 1; i >= 0; i--) {
+      if (monthlyData[i].steps >= stepGoal) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+    
+    return streak;
+  }
+
+  // Calculate longest streak in the monthly data
+  calculateLongestStreak(monthlyData, stepGoal = 5000) {
+    let longestStreak = 0;
+    let currentStreak = 0;
+    
+    for (const day of monthlyData) {
+      if (day.steps >= stepGoal) {
+        currentStreak++;
+        longestStreak = Math.max(longestStreak, currentStreak);
+      } else {
+        currentStreak = 0;
+      }
+    }
+    
+    return longestStreak;
+  }
+
+  // Force refresh all data and clear caches
+  async forceRefresh() {
+    try {
+      console.log("Force refresh initiated");
+      
+      await this.clearCaches();
+      await this.manualRefresh();
+      
+      // Pre-load fresh data
+      await Promise.all([
+        this.getWeeklySummary(),
+        this.getMonthlySummary()
+      ]);
+      
+      console.log("Force refresh completed");
+      return this.getCurrentFitnessData();
+    } catch (error) {
+      console.error("Error in force refresh:", error);
+      throw error;
     }
   }
 

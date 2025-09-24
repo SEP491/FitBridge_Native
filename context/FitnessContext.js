@@ -243,6 +243,44 @@ export const FitnessProvider = ({ children }) => {
     return fitnessTrackingService.getDebugInfo();
   };
 
+  // Get comprehensive fitness statistics
+  const getFitnessStatistics = useCallback(async () => {
+    try {
+      return await fitnessTrackingService.getFitnessStatistics();
+    } catch (err) {
+      console.error("Error getting fitness statistics:", err);
+      setError(err.message);
+      return null;
+    }
+  }, []);
+
+  // Force refresh all data
+  const forceRefresh = useCallback(async () => {
+    try {
+      setError(null);
+      const refreshedData = await fitnessTrackingService.forceRefresh();
+      setFitnessData(refreshedData);
+      await loadHistoricalData();
+      return refreshedData;
+    } catch (err) {
+      console.error("Error in force refresh:", err);
+      setError(err.message);
+      throw err;
+    }
+  }, []);
+
+  // Clear caches
+  const clearCaches = useCallback(async () => {
+    try {
+      await fitnessTrackingService.clearCaches();
+      // Reload data after clearing caches
+      await loadHistoricalData();
+    } catch (err) {
+      console.error("Error clearing caches:", err);
+      setError(err.message);
+    }
+  }, []);
+
   const value = {
     // Current data
     fitnessData,
@@ -265,11 +303,14 @@ export const FitnessProvider = ({ children }) => {
     updateUserProfile,
     startTracking,
     stopTracking,
+    forceRefresh,
+    clearCaches,
 
     // Utilities
     getStepGoalProgress,
     loadHistoricalData,
     getDebugInfo,
+    getFitnessStatistics,
   };
 
   return (
