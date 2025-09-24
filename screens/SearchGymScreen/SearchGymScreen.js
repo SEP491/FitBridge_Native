@@ -54,6 +54,7 @@ export default function SearchGymScreen() {
     try {
       if (!append) {
         setLoading(true);
+        setHasSearched(true);
       }
 
       const response = await gymService.searchGyms({
@@ -68,7 +69,6 @@ export default function SearchGymScreen() {
         setSearchResults((prev) => [...prev, ...items]);
       } else {
         setSearchResults(items);
-        setHasSearched(true);
       }
 
       setTotalResults(total);
@@ -152,17 +152,14 @@ export default function SearchGymScreen() {
       {/* Header */}
 
       {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <View style={styles.searchBox}>
-          <TouchableOpacity onPress={handleSearch}>
-            <Ionicons
-              name="search"
-              size={20}
-              color="#999"
-              style={styles.searchIcon}
-            />
-          </TouchableOpacity>
-
+      <View style={styles.searchHeader}>
+        <View style={styles.searchContainer}>
+          <Ionicons
+            name="search"
+            size={20}
+            color="#999"
+            style={styles.searchIcon}
+          />
           <TextInput
             ref={searchInputRef}
             value={searchText}
@@ -174,21 +171,20 @@ export default function SearchGymScreen() {
             onFocus={handleSearchInputFocus}
             returnKeyType="search"
           />
-
           {searchText.length > 0 && (
-            <TouchableOpacity onPress={clearSearch}>
-              <Ionicons name="close-circle" size={18} color="#999" />
+            <TouchableOpacity onPress={clearSearch} style={styles.clearButton}>
+              <Ionicons name="close-circle" size={20} color="#999" />
             </TouchableOpacity>
           )}
         </View>
 
         <TouchableOpacity
-          style={styles.searchButton}
           onPress={handleSearch}
+          style={styles.searchButton}
           disabled={loading}
         >
           {loading ? (
-            <ActivityIndicator size="small" color="white" />
+            <ActivityIndicator size="small" color="#ED2A46" />
           ) : (
             <Text style={styles.searchButtonText}>
               {t("searchGymScreen.searchButton")}
@@ -319,49 +315,50 @@ const styles = StyleSheet.create({
   placeholder: {
     width: 40,
   },
-  searchContainer: {
+  searchHeader: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 15,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderBottomColor: "#F0F0F0",
+    elevation: 2,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 3,
   },
-  searchBox: {
+  searchContainer: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#F8F9FA",
     borderRadius: 25,
     paddingHorizontal: 16,
-    height: 48,
+    height: 44,
     marginRight: 12,
   },
   searchIcon: {
-    marginRight: 12,
+    marginRight: 8,
   },
   searchInput: {
     flex: 1,
     color: "#333",
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: "400",
+    paddingVertical: 0,
+  },
+  clearButton: {
+    padding: 4,
   },
   searchButton: {
-    backgroundColor: "#ED2A46",
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 25,
-    minWidth: 60,
-    alignItems: "center",
-    justifyContent: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
   },
   searchButtonText: {
-    color: "white",
-    fontSize: 14,
+    color: "#ED2A46",
+    fontSize: 16,
     fontWeight: "600",
   },
   resultsContainer: {
