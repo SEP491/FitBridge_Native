@@ -878,6 +878,12 @@
     "startStepTracking": "Bạn có muốn bắt đầu theo dõi bước chân không?",
     "cancel": "Hủy",
     "pause": "Tạm dừng",
-    "start": "Bắt đầu"
+    "start": "Bắt đầu",
+    "achievements": "Thành tích",
+    "streaks": "Chuỗi thành tích",
+    "currentStreak": "Chuỗi hiện tại",
+    "longestStreak": "Chuỗi dài nhất",
+    "bestPerformance": "Thành tích tốt nhất",
+    "forceRefresh": "Làm mới"
   }
 }

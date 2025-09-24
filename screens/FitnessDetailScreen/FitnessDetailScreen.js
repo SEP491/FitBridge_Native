@@ -23,25 +23,53 @@ const FitnessDetailScreen = () => {
     fitnessData,
     isLoading,
     error,
-    weeklyData,
-    monthlyData,
-    weeklyTotals,
-    monthlyTotals,
-    weeklyAverage,
-    monthlyAverage,
-    stepGoalProgress,
     refreshData,
     startTracking,
     stopTracking,
+    getFitnessStatistics,
+    forceRefresh,
   } = useFitnessContext();
 
   const [selectedPeriod, setSelectedPeriod] = useState("daily"); // daily, weekly, monthly
   const [refreshing, setRefreshing] = useState(false);
+  const [statistics, setStatistics] = useState(null);
+  const [loadingStats, setLoadingStats] = useState(false);
+
+  // Load comprehensive statistics on mount and when period changes
+  useEffect(() => {
+    loadComprehensiveStats();
+  }, []);
+
+  const loadComprehensiveStats = async () => {
+    try {
+      setLoadingStats(true);
+      const stats = await getFitnessStatistics();
+      setStatistics(stats);
+    } catch (err) {
+      console.error("Error loading comprehensive statistics:", err);
+    } finally {
+      setLoadingStats(false);
+    }
+  };
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await refreshData();
-    setRefreshing(false);
+    try {
+      await refreshData();
+      await loadComprehensiveStats();
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const handleForceRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await forceRefresh();
+      await loadComprehensiveStats();
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   const handleToggleTracking = () => {
@@ -96,19 +124,21 @@ const FitnessDetailScreen = () => {
   );
 
   const renderCurrentStats = () => {
+    if (!statistics) return null;
+
     let data, title;
 
     switch (selectedPeriod) {
       case "weekly":
-        data = weeklyTotals;
+        data = statistics.weekly.totals;
         title = t("fitness.thisWeek");
         break;
       case "monthly":
-        data = monthlyTotals;
+        data = statistics.monthly.totals;
         title = t("fitness.thisMonth");
         break;
       default:
-        data = fitnessData;
+        data = statistics.today;
         title = t("fitness.today");
     }
 
@@ -128,13 +158,13 @@ const FitnessDetailScreen = () => {
                   <View
                     style={[
                       styles.progressFill,
-                      { width: `${Math.min(stepGoalProgress.progress, 100)}%` },
+                      { width: `${Math.min(statistics.goals.progress, 100)}%` },
                     ]}
                   />
                 </View>
                 <Text style={styles.progressText}>
-                  {stepGoalProgress.progress}% of{" "}
-                  {stepGoalProgress.goal.toLocaleString()}
+                  {statistics.goals.progress.toFixed(1)}% of{" "}
+                  {statistics.goals.dailyStepGoal.toLocaleString()}
                 </Text>
               </View>
             )}
@@ -165,10 +195,12 @@ const FitnessDetailScreen = () => {
   };
 
   const renderAverageStats = () => {
-    if (selectedPeriod === "daily") return null;
+    if (selectedPeriod === "daily" || !statistics) return null;
 
     const averageData =
-      selectedPeriod === "weekly" ? weeklyAverage : monthlyAverage;
+      selectedPeriod === "weekly"
+        ? statistics.weekly.average
+        : statistics.monthly.average;
     const periodText =
       selectedPeriod === "weekly"
         ? t("fitness.dailyAverageWeek")
@@ -205,7 +237,12 @@ const FitnessDetailScreen = () => {
   };
 
   const renderHistoryChart = () => {
-    const data = selectedPeriod === "weekly" ? weeklyData : monthlyData;
+    if (!statistics) return null;
+
+    const data =
+      selectedPeriod === "weekly"
+        ? statistics.weekly.data
+        : statistics.monthly.data;
     if (!data || data.length === 0) return null;
 
     const maxSteps = Math.max(...data.map((d) => d.steps || 0));
@@ -225,11 +262,13 @@ const FitnessDetailScreen = () => {
           <View style={styles.chart}>
             {data.map((day, index) => {
               const height = maxSteps > 0 ? (day.steps / maxSteps) * 100 : 0;
-              const date = new Date(day.date);
               const dayLabel =
-                selectedPeriod === "weekly"
-                  ? date.toLocaleDateString("en", { weekday: "short" })
-                  : date.getDate().toString();
+                day.day ||
+                (selectedPeriod === "weekly"
+                  ? new Date(day.date).toLocaleDateString("en", {
+                      weekday: "short",
+                    })
+                  : new Date(day.date).getDate().toString());
 
               return (
                 <TouchableOpacity key={index} style={styles.chartBar}>
@@ -256,7 +295,81 @@ const FitnessDetailScreen = () => {
     );
   };
 
-  if (isLoading) {
+  // New method to render streak and achievement analytics
+  const renderStreakAnalytics = () => {
+    if (!statistics || selectedPeriod !== "daily") return null;
+
+    const bestWeekDay = statistics.weekly.best;
+    const bestMonthDay = statistics.monthly.best;
+
+    return (
+      <View style={styles.statsCard}>
+        <Text style={styles.cardTitle}>{t("fitness.achievements")}</Text>
+
+        {/* Streak Information */}
+        <View style={styles.achievementSection}>
+          <Text style={styles.sectionTitle}>{t("fitness.streaks")}</Text>
+          <View style={styles.streakContainer}>
+            <View style={styles.streakItem}>
+              <View style={styles.streakIconContainer}>
+                <Ionicons name="flame" size={24} color="#FF6B35" />
+              </View>
+              <Text style={styles.streakValue}>
+                {statistics.streaks.current}
+              </Text>
+              <Text style={styles.streakLabel}>
+                {t("fitness.currentStreak")}
+              </Text>
+            </View>
+            <View style={styles.streakItem}>
+              <View style={styles.streakIconContainer}>
+                <Ionicons name="trophy" size={24} color="#FFD700" />
+              </View>
+              <Text style={styles.streakValue}>
+                {statistics.streaks.longest}
+              </Text>
+              <Text style={styles.streakLabel}>
+                {t("fitness.longestStreak")}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Best Performance */}
+        <View style={styles.achievementSection}>
+          <Text style={styles.sectionTitle}>
+            {t("fitness.bestPerformance")}
+          </Text>
+          <View style={styles.bestPerformanceContainer}>
+            <View style={styles.bestPerformanceItem}>
+              <Text style={styles.bestPeriodLabel}>
+                {t("fitness.thisWeek")}
+              </Text>
+              <Text style={styles.bestValue}>
+                {bestWeekDay.steps?.toLocaleString() || 0}
+              </Text>
+              <Text style={styles.bestLabel}>
+                {t("fitness.steps")} • {bestWeekDay.day}
+              </Text>
+            </View>
+            <View style={styles.bestPerformanceItem}>
+              <Text style={styles.bestPeriodLabel}>
+                {t("fitness.thisMonth")}
+              </Text>
+              <Text style={styles.bestValue}>
+                {bestMonthDay.steps?.toLocaleString() || 0}
+              </Text>
+              <Text style={styles.bestLabel}>
+                {t("fitness.steps")} • Day {bestMonthDay.day}
+              </Text>
+            </View>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  if (isLoading || loadingStats) {
     return (
       <View style={styles.container}>
         <View style={styles.loadingContainer}>
@@ -286,6 +399,7 @@ const FitnessDetailScreen = () => {
         {renderCurrentStats()}
         {renderAverageStats()}
         {renderHistoryChart()}
+        {renderStreakAnalytics()}
 
         <View style={styles.statusCard}>
           <View style={styles.statusHeader}>
@@ -328,30 +442,52 @@ const FitnessDetailScreen = () => {
               </Text>
             </View>
 
-            {/* Tracking Control Button */}
+            {/* Tracking Control Buttons */}
             <View style={styles.trackingControlRow}>
-              <TouchableOpacity
-                onPress={handleToggleTracking}
-                style={[
-                  styles.trackingButton,
-                  {
-                    backgroundColor: fitnessData.isTracking
-                      ? "#FF3B30"
-                      : "#34C759",
-                  },
-                ]}
-              >
-                <Ionicons
-                  name={fitnessData.isTracking ? "pause" : "play"}
-                  size={20}
-                  color="#FFFFFF"
-                />
-                <Text style={styles.trackingButtonText}>
-                  {fitnessData.isTracking
-                    ? t("fitness.pause")
-                    : t("fitness.start")}
-                </Text>
-              </TouchableOpacity>
+              <View style={styles.buttonsContainer}>
+                <TouchableOpacity
+                  onPress={handleToggleTracking}
+                  style={[
+                    styles.trackingButton,
+                    styles.primaryButton,
+                    {
+                      backgroundColor: fitnessData.isTracking
+                        ? "#FF3B30"
+                        : "#34C759",
+                    },
+                  ]}
+                >
+                  <Ionicons
+                    name={fitnessData.isTracking ? "pause" : "play"}
+                    size={20}
+                    color="#FFFFFF"
+                  />
+                  <Text style={styles.trackingButtonText}>
+                    {fitnessData.isTracking
+                      ? t("fitness.pause")
+                      : t("fitness.start")}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={handleForceRefresh}
+                  style={[
+                    styles.trackingButton,
+                    styles.secondaryButton,
+                    { backgroundColor: "#007AFF" },
+                  ]}
+                  disabled={refreshing}
+                >
+                  <Ionicons
+                    name={refreshing ? "hourglass-outline" : "refresh"}
+                    size={20}
+                    color="#FFFFFF"
+                  />
+                  <Text style={styles.trackingButtonText}>
+                    {refreshing ? "Refreshing..." : t("fitness.forceRefresh")}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </View>
@@ -580,19 +716,35 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     borderTopWidth: 1,
     borderTopColor: "#F2F2F7",
+  },
+  buttonsContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
     alignItems: "center",
+    gap: 16,
+    width: "100%",
   },
   trackingButton: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 24,
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+    borderRadius: 28,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 4,
+    minWidth: 140,
+    justifyContent: "center",
+  },
+  primaryButton: {
+    flex: 1,
+    maxWidth: 160,
+  },
+  secondaryButton: {
+    flex: 1,
+    maxWidth: 160,
   },
   trackingButtonText: {
     fontSize: 16,
@@ -609,6 +761,70 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#8E8E93",
     marginTop: 16,
+  },
+  // New styles for streak analytics
+  achievementSection: {
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#1C1C1E",
+    marginBottom: 12,
+    textAlign: "center",
+  },
+  streakContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginBottom: 16,
+  },
+  streakItem: {
+    alignItems: "center",
+    flex: 1,
+  },
+  streakIconContainer: {
+    marginBottom: 8,
+  },
+  streakValue: {
+    fontSize: 28,
+    fontWeight: "700",
+    color: "#1C1C1E",
+    marginBottom: 4,
+  },
+  streakLabel: {
+    fontSize: 12,
+    color: "#8E8E93",
+    fontWeight: "500",
+    textAlign: "center",
+  },
+  bestPerformanceContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+  },
+  bestPerformanceItem: {
+    alignItems: "center",
+    flex: 1,
+    padding: 12,
+    backgroundColor: "#F8F9FA",
+    borderRadius: 8,
+    marginHorizontal: 4,
+  },
+  bestPeriodLabel: {
+    fontSize: 12,
+    color: "#8E8E93",
+    fontWeight: "500",
+    marginBottom: 4,
+  },
+  bestValue: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#007AFF",
+    marginBottom: 2,
+  },
+  bestLabel: {
+    fontSize: 10,
+    color: "#8E8E93",
+    textAlign: "center",
   },
 });
 

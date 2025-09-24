@@ -900,6 +900,12 @@
     "startStepTracking": "Do you want to start step tracking?",
     "cancel": "Cancel",
     "pause": "Pause",
-    "start": "Start"
+    "start": "Start",
+    "achievements": "Achievements",
+    "streaks": "Streaks",
+    "currentStreak": "Current Streak",
+    "longestStreak": "Longest Streak",
+    "bestPerformance": "Best Performance",
+    "forceRefresh": "Refresh"
   }
 }
