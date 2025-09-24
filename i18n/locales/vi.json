@@ -66,7 +66,8 @@
     "login": "Đăng Nhập",
     "forgotPassword": "Quên Mật Khẩu",
     "register": "Đăng Ký",
-    "checkingLogin": "Đang kiểm tra đăng nhập..."
+    "checkingLogin": "Đang kiểm tra đăng nhập...",
+    "fitnessDetail": "Theo dõi sức khỏe"
   },
 
   "home": {

@@ -282,6 +282,7 @@ export default function Navigator() {
           options={{
             headerTitleAlign: "center",
             headerShown: true,
+            title: t("screenTitles.fitnessDetail"),
           }}
         />
       </Stack.Navigator>
