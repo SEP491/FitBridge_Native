@@ -21,6 +21,7 @@ import {
 import Ionicons from "@expo/vector-icons/Ionicons";
 import chatbotService from "../../services/chatbotService";
 import { useLocationContext } from "../../context/LocationContext";
+import { useAvatar } from "../../context/AvatarContext";
 import { useTranslation } from "../../hooks/useTranslation";
 import { t } from "../../i18n";
 import { getYearsFromDob } from "../../lib";
@@ -285,7 +286,7 @@ const TypingIndicator = () => {
   return (
     <View style={styles.typingContainer}>
       <View style={styles.aiAvatar}>
-        <Text style={styles.avatarText}>AI</Text>
+        <Ionicons name="sparkles" size={16} color="#EF4444" />
       </View>
       <View style={styles.typingBubble}>
         <View style={styles.typingDots}>
@@ -386,6 +387,7 @@ const FloatingClearButton = ({ onPress, isVisible }) => {
 
 export default function ChatScreen({ navigation }) {
   const { location, hasLocation, coordinates } = useLocationContext();
+  const { userAvatar } = useAvatar();
   const { t } = useTranslation();
   const [coords, setCoords] = useState({});
   // Add navigation prop
@@ -625,7 +627,11 @@ export default function ChatScreen({ navigation }) {
       >
         {item.isAI && (
           <View style={[styles.aiAvatar, item.isError && styles.errorAvatar]}>
-            <Text style={styles.avatarText}>{item.isError ? "⚠️" : "🤖"}</Text>
+            {item.isError ? (
+              <Text style={styles.avatarText}>⚠️</Text>
+            ) : (
+              <Ionicons name="sparkles" size={20} color="#EF4444" />
+            )}
           </View>
         )}
         <View>
@@ -676,7 +682,15 @@ export default function ChatScreen({ navigation }) {
         </View>
         {!item.isAI && (
           <View style={styles.userAvatar}>
-            <Text style={styles.avatarText}>👤</Text>
+            {userAvatar ? (
+              <Image
+                source={{ uri: userAvatar }}
+                style={styles.userAvatarImage}
+                defaultSource={require("../../assets/icon.png")}
+              />
+            ) : (
+              <Ionicons name="person-circle" size={32} color="#666" />
+            )}
           </View>
         )}
       </View>
@@ -925,6 +939,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3,
     elevation: 3,
+  },
+  userAvatarImage: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
   },
   avatarText: {
     color: "#374151",
