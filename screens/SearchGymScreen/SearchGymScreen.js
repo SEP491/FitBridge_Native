@@ -9,11 +9,12 @@ import {
   RefreshControl,
   Alert,
 } from "react-native";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import GymCard from "../../components/GymCard/GymCard";
+import FullScreenSearch from "../../components/FullScreenSearch/FullScreenSearch";
 import gymService from "../../services/gymService";
 import { useTranslation } from "../../hooks/useTranslation";
 
@@ -26,7 +27,9 @@ export default function SearchGymScreen() {
   const [totalResults, setTotalResults] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMoreData, setHasMoreData] = useState(false);
+  const [showFullScreenSearch, setShowFullScreenSearch] = useState(false);
 
+  const searchInputRef = useRef(null);
   const navigation = useNavigation();
   const route = useRoute();
   const { t } = useTranslation();
@@ -112,6 +115,32 @@ export default function SearchGymScreen() {
     setHasMoreData(false);
   };
 
+  const handleSearchInputFocus = () => {
+    setShowFullScreenSearch(true);
+    // Blur the input to prevent keyboard from showing
+    if (searchInputRef.current) {
+      searchInputRef.current.blur();
+    }
+  };
+
+  const handleFullScreenSearchClose = () => {
+    setShowFullScreenSearch(false);
+  };
+
+  const handleKeywordSelect = (keyword) => {
+    setSearchText(keyword);
+    setShowFullScreenSearch(false);
+    // Perform search with selected keyword
+    performSearch(keyword, 1);
+  };
+
+  const handleFullScreenSearch = (searchQuery) => {
+    setSearchText(searchQuery);
+    setShowFullScreenSearch(false);
+    // Perform search with entered query
+    performSearch(searchQuery, 1);
+  };
+
   const renderGymCard = (gym, index) => (
     <View key={gym.id || index} style={styles.gymCardContainer}>
       <GymCard gym={gym} fullWidth={true} height={200} />
@@ -135,12 +164,14 @@ export default function SearchGymScreen() {
           </TouchableOpacity>
 
           <TextInput
+            ref={searchInputRef}
             value={searchText}
             onChangeText={setSearchText}
             placeholder={t("searchGymScreen.searchPlaceholder")}
             placeholderTextColor="#A39F9F"
             style={styles.searchInput}
             onSubmitEditing={handleSearch}
+            onFocus={handleSearchInputFocus}
             returnKeyType="search"
           />
 
@@ -246,6 +277,16 @@ export default function SearchGymScreen() {
           </View>
         )}
       </ScrollView>
+
+      {/* Full Screen Search */}
+      <FullScreenSearch
+        visible={showFullScreenSearch}
+        onKeywordSelect={handleKeywordSelect}
+        onClose={handleFullScreenSearchClose}
+        initialSearchText={searchText}
+        onSearch={handleFullScreenSearch}
+        showBackButton={false}
+      />
     </View>
   );
 }

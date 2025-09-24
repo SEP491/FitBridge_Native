@@ -26,6 +26,7 @@ export default function FullScreenSearch({
   onClose,
   initialSearchText = "",
   onSearch,
+  showBackButton = true,
 }) {
   const [searchText, setSearchText] = useState(initialSearchText);
   const { t } = useTranslation();
@@ -159,9 +160,11 @@ export default function FullScreenSearch({
       <SafeAreaView style={styles.safeArea}>
         {/* Search Header */}
         <View style={styles.searchHeader}>
-          <TouchableOpacity onPress={onClose} style={styles.backButton}>
-            <Ionicons name="caret-back" size={30} color="#ED2A46" />
-          </TouchableOpacity>
+          {showBackButton && (
+            <TouchableOpacity onPress={onClose} style={styles.backButton}>
+              <Ionicons name="caret-back" size={30} color="#ED2A46" />
+            </TouchableOpacity>
+          )}
 
           <View style={styles.searchContainer}>
             <Ionicons
