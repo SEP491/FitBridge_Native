@@ -12,6 +12,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import cartService from "../../services/cartService";
 import { useTranslation } from "../../hooks/useTranslation";
 import { formatPrice } from "../../lib";
+import { useCart } from "../../context/CartContext";
 
 const THEME_COLORS = {
   primary: "#ED2A46",
@@ -24,6 +25,7 @@ const THEME_COLORS = {
 
 export default function OrderSuccessScreen({ route, navigation }) {
   const { t } = useTranslation();
+  const { clearCart } = useCart();
   const [orderStatus, setOrderStatus] = useState("processing"); // 'processing', 'success', 'failed'
   const [orderData, setOrderData] = useState(null);
 
@@ -43,6 +45,7 @@ export default function OrderSuccessScreen({ route, navigation }) {
           description: t("orderSuccess.successDescription"),
         });
         setOrderStatus("success");
+        clearCart();
       } else if (code === "01") {
         setOrderStatus("failed");
       }

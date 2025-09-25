@@ -24,49 +24,63 @@ export default function PaymentScreen({ navigation }) {
   const handleCheckout = async () => {
     let requestData = {};
 
-    if (cart[0].type === "WithPt" && cart[0].pt) {
-      requestData = {
-        gymCourseId: cart[0]?.id, // Assuming all items in cart are from the same course
-        ptId: cart[0]?.pt?.id || null, // Optional PT ID
-      };
-    } else if (cart[0].type === "Normal") {
-      requestData = {
-        gymCourseId: cart[0]?.id, // Assuming all items in cart are from the same course
-      };
-    } else {
-      showErrorAlert(t("errors.cannotProcessPackage"));
-      return;
-    }
+    requestData = {
+      request: {
+        voucherId: null,
+        shippingFee: 0,
+        addressId: null,
+        paymentMethodId:
+          selectedPaymentMethod === "bank"
+            ? "01997597-d188-7f12-95f4-43ef8d442612"
+            : "01997597-d188-7f12-95f4-43ef8d412633",
+        orderItems: cart.map((item) => ({
+          quantity: item.quantity || 0,
+          productDetailId: null,
+          gymCourseId: item.id,
+          gymPtId: item.pt?.id || null,
+          serviceInformationId: null,
+          freelancePTPackageId: null,
+        })),
+      },
+    };
+    console.log("Checkout request:", requestData);
 
     try {
       let response;
 
-      if (cart[0].type === "WithPt") {
-        response = await cartService.processCartPT(requestData);
-      } else if (cart[0].type === "Normal") {
-        response = await cartService.processCartNormal(requestData);
-      }
-      // console.log("Checkout response:", response);
-      // Check if response has the expected structure
-      let checkoutUrl;
+      response = await cartService.processCart(requestData);
+      console.log("Cart processed successfully:", response);
 
-      if (response.checkoutUrl) {
-        checkoutUrl = response.checkoutUrl;
-      } else if (response.data && response.data.checkoutUrl) {
-        checkoutUrl = response.data.checkoutUrl;
-      } else if (response.result && response.result.checkoutUrl) {
-        checkoutUrl = response.result.checkoutUrl;
-      }
-
-      if (checkoutUrl && typeof checkoutUrl === "string") {
-        Linking.openURL(checkoutUrl);
+      if (
+        response &&
+        response.data &&
+        response.data.data &&
+        response.data.data.checkoutUrl
+      ) {
+        Linking.openURL(response.data.data.checkoutUrl);
       } else {
-        console.error("Invalid or missing checkoutUrl:", checkoutUrl);
+        console.error(
+          "Invalid or missing checkoutUrl:",
+          response &&
+            response.data &&
+            response.data.data &&
+            response.data.data.checkoutUrl
+        );
         showErrorAlert(t("errors.cannotLoadPaymentLink"));
       }
-      clearCart(); // Clear cart after successful checkout
+
+      // if (
+      //   response &&
+      //   response.checkoutUrl &&
+      //   typeof response.checkoutUrl === "string"
+      // ) {
+      //   Linking.openURL(response.checkoutUrl);
+      // } else {
+      //   console.error("Invalid or missing checkoutUrl:", response.checkoutUrl);
+      //   showErrorAlert(t("errors.cannotLoadPaymentLink"));
+      // }
     } catch (error) {
-      console.error("Error processing cart:", error);
+      console.error("Error processing cart:", error.response.data);
       showErrorAlert(t("errors.cartProcessError"));
       return;
     }
