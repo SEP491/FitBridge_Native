@@ -81,7 +81,9 @@ export default function PaymentScreen({ navigation }) {
       // }
     } catch (error) {
       console.error("Error processing cart:", error.response.data);
-      showErrorAlert(t("errors.cartProcessError"));
+      showErrorAlert(
+        error.response.data.message || t("errors.cartProcessError")
+      );
       return;
     }
   };

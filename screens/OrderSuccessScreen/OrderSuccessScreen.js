@@ -34,6 +34,7 @@ export default function OrderSuccessScreen({ route, navigation }) {
   const { code } = route?.params || {};
   const { amount } = route?.params || {};
 
+  console.log("OrderSuccessScreen params:", route?.params);
   useFocusEffect(
     useCallback(() => {
       setOrderStatus(code === "00" ? "success" : "failed"); // Update order status based on API response
