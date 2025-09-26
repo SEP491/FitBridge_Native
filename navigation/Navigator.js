@@ -6,7 +6,6 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useTranslation } from "../hooks/useTranslation";
 import HomeScreen from "../screens/HomeScreen/HomeScreen";
 import Icon from "react-native-vector-icons/FontAwesome";
-import SplashScreen from "../screens/SplashSreen/SplashSreen";
 import UserMenuScreen from "../screens/UserMenuScreen/UserMenuScreen";
 import LoginScreen from "../screens/LoginScreen/LoginScreen";
 import RegisterScreen from "../screens/RegisterScreen/RegisterScreen";
