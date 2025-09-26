@@ -28,6 +28,8 @@ const FitnessDetailScreen = () => {
     stopTracking,
     getFitnessStatistics,
     forceRefresh,
+    getDebugInfo,
+    getDebugFitnessHistory,
   } = useFitnessContext();
 
   const [selectedPeriod, setSelectedPeriod] = useState("daily"); // daily, weekly, monthly
@@ -43,7 +45,21 @@ const FitnessDetailScreen = () => {
   const loadComprehensiveStats = async () => {
     try {
       setLoadingStats(true);
+      console.log("Loading comprehensive fitness statistics...");
+
       const stats = await getFitnessStatistics();
+      console.log(
+        "Received fitness statistics:",
+        JSON.stringify(stats, null, 2)
+      );
+
+      if (stats) {
+        console.log("Weekly data length:", stats.weekly?.data?.length);
+        console.log("Monthly data length:", stats.monthly?.data?.length);
+        console.log("Weekly data sample:", stats.weekly?.data?.slice(-3)); // Last 3 days
+        console.log("Monthly data sample:", stats.monthly?.data?.slice(-7)); // Last 7 days
+      }
+
       setStatistics(stats);
     } catch (err) {
       console.error("Error loading comprehensive statistics:", err);
@@ -65,6 +81,7 @@ const FitnessDetailScreen = () => {
   const handleForceRefresh = async () => {
     setRefreshing(true);
     try {
+      console.log("Force refresh initiated...");
       await forceRefresh();
       await loadComprehensiveStats();
     } finally {
@@ -721,30 +738,31 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    gap: 16,
+    gap: 12,
     width: "100%",
+    flexWrap: "wrap",
   },
   trackingButton: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 28,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
     borderRadius: 28,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.15,
     shadowRadius: 6,
     elevation: 4,
-    minWidth: 140,
+    minWidth: 120,
     justifyContent: "center",
   },
   primaryButton: {
     flex: 1,
-    maxWidth: 160,
+    maxWidth: 140,
   },
   secondaryButton: {
-    flex: 1,
-    maxWidth: 160,
+    flex: 0,
+    minWidth: 100,
   },
   trackingButtonText: {
     fontSize: 16,

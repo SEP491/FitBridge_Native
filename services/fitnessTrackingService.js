@@ -105,6 +105,9 @@ class FitnessTrackingService {
       // Save yesterday's data to history first
       if (this.todaySteps > 0) {
         await this.saveYesterdayData();
+        console.log(
+          `Saved yesterday's data before reset: ${this.todaySteps} steps`
+        );
       }
 
       // Reset all counters
@@ -118,10 +121,14 @@ class FitnessTrackingService {
       await AsyncStorage.removeItem(STORAGE_KEYS.DAILY_STEPS);
       await AsyncStorage.removeItem(STORAGE_KEYS.TODAY_BASE_STEPS);
       await AsyncStorage.removeItem(STORAGE_KEYS.TODAY_DATA);
-      
+
       // Clear cached weekly/monthly data to force refresh
       await AsyncStorage.removeItem(STORAGE_KEYS.WEEKLY_CACHE);
       await AsyncStorage.removeItem(STORAGE_KEYS.MONTHLY_CACHE);
+
+      // Update last reset date
+      const today = new Date().toDateString();
+      await AsyncStorage.setItem(STORAGE_KEYS.LAST_RESET_DATE, today);
 
       console.log("Daily data reset complete");
     } catch (error) {
@@ -137,18 +144,22 @@ class FitnessTrackingService {
       yesterday.setDate(yesterday.getDate() - 1);
       const yesterdayKey = yesterday.toDateString();
 
-      fitnessData[yesterdayKey] = {
+      const dataToSave = {
         steps: this.todaySteps,
         distance: this.todayDistance,
         calories: this.todayCalories,
         date: yesterday.toISOString(),
       };
 
+      fitnessData[yesterdayKey] = dataToSave;
+
       await AsyncStorage.setItem(
         STORAGE_KEYS.FITNESS_DATA,
         JSON.stringify(fitnessData)
       );
-      console.log(`Saved yesterday's data: ${this.todaySteps} steps`);
+
+      console.log(`Saved yesterday's data (${yesterdayKey}):`, dataToSave);
+      console.log(`Total history entries: ${Object.keys(fitnessData).length}`);
     } catch (error) {
       console.error("Error saving yesterday data:", error);
     }
@@ -159,26 +170,30 @@ class FitnessTrackingService {
     try {
       // Try to load complete today's data first
       const todayDataStr = await AsyncStorage.getItem(STORAGE_KEYS.TODAY_DATA);
-      
+
       if (todayDataStr) {
         const todayData = JSON.parse(todayDataStr);
         const today = new Date().toDateString();
-        
+
         // Check if the stored data is from today
         if (todayData.date === today) {
           this.todaySteps = todayData.steps || 0;
           this.baseStepsToday = todayData.baseSteps || 0;
           this.todayDistance = todayData.distance || 0;
           this.todayCalories = todayData.calories || 0;
-          
-          console.log(`Loaded complete today's data: ${this.todaySteps} steps (base: ${this.baseStepsToday})`);
+
+          console.log(
+            `Loaded complete today's data: ${this.todaySteps} steps (base: ${this.baseStepsToday})`
+          );
           return;
         }
       }
-      
+
       // Fallback to old method if complete data not available
       const steps = await AsyncStorage.getItem(STORAGE_KEYS.DAILY_STEPS);
-      const baseSteps = await AsyncStorage.getItem(STORAGE_KEYS.TODAY_BASE_STEPS);
+      const baseSteps = await AsyncStorage.getItem(
+        STORAGE_KEYS.TODAY_BASE_STEPS
+      );
 
       this.todaySteps = steps ? parseInt(steps) : 0;
       this.baseStepsToday = baseSteps ? parseInt(baseSteps) : 0;
@@ -186,7 +201,9 @@ class FitnessTrackingService {
       // Calculate derived metrics
       this.updateDerivedMetrics();
 
-      console.log(`Loaded today's data (fallback): ${this.todaySteps} steps (base: ${this.baseStepsToday})`);
+      console.log(
+        `Loaded today's data (fallback): ${this.todaySteps} steps (base: ${this.baseStepsToday})`
+      );
     } catch (error) {
       console.error("Error loading today data:", error);
     }
@@ -217,11 +234,15 @@ class FitnessTrackingService {
           this.baseStepsToday.toString()
         );
         await this.saveStepCount(this.todaySteps);
-        console.log(`First time today - Base steps set to: ${this.baseStepsToday}`);
+        console.log(
+          `First time today - Base steps set to: ${this.baseStepsToday}`
+        );
       } else if (this.baseStepsToday > 0) {
         // We have base steps, use device steps directly (no need to add base again)
         this.todaySteps = Math.max(deviceStepsToday, this.baseStepsToday);
-        console.log(`Existing session - Device steps: ${deviceStepsToday}, Using: ${this.todaySteps}`);
+        console.log(
+          `Existing session - Device steps: ${deviceStepsToday}, Using: ${this.todaySteps}`
+        );
       }
 
       // Store the step count when we start tracking (as baseline for real-time)
@@ -305,7 +326,7 @@ class FitnessTrackingService {
   async saveStepCount(steps) {
     try {
       await AsyncStorage.setItem(STORAGE_KEYS.DAILY_STEPS, steps.toString());
-      
+
       // Also save complete today's data for better persistence
       const todayData = {
         steps: steps,
@@ -315,8 +336,11 @@ class FitnessTrackingService {
         lastUpdated: new Date().toISOString(),
         date: new Date().toDateString(),
       };
-      
-      await AsyncStorage.setItem(STORAGE_KEYS.TODAY_DATA, JSON.stringify(todayData));
+
+      await AsyncStorage.setItem(
+        STORAGE_KEYS.TODAY_DATA,
+        JSON.stringify(todayData)
+      );
     } catch (error) {
       console.error("Error saving step count:", error);
     }
@@ -395,13 +419,17 @@ class FitnessTrackingService {
         // Use the maximum of device steps or current steps to prevent going backwards
         const calculatedSteps = Math.max(deviceStepsToday, this.todaySteps);
         if (calculatedSteps !== this.todaySteps) {
-          console.log(`Manual refresh updating steps from ${this.todaySteps} to ${calculatedSteps}`);
+          console.log(
+            `Manual refresh updating steps from ${this.todaySteps} to ${calculatedSteps}`
+          );
           this.updateStepCount(calculatedSteps, true);
         }
       } else {
         // If no base steps, set current device steps as our steps
         if (deviceStepsToday !== this.todaySteps) {
-          console.log(`Manual refresh setting initial steps to ${deviceStepsToday}`);
+          console.log(
+            `Manual refresh setting initial steps to ${deviceStepsToday}`
+          );
           this.updateStepCount(deviceStepsToday, true);
         }
       }
@@ -427,6 +455,20 @@ class FitnessTrackingService {
       listenerCount: this.listeners.length,
       timestamp: new Date().toISOString(),
     };
+  }
+
+  // Debug method to check stored fitness history
+  async getDebugFitnessHistory() {
+    try {
+      const history = await this.getFitnessHistory();
+      const keys = Object.keys(history);
+      console.log("Fitness history keys:", keys);
+      console.log("Fitness history data:", history);
+      return history;
+    } catch (error) {
+      console.error("Error getting debug fitness history:", error);
+      return {};
+    }
   }
 
   // Get fitness history
@@ -462,7 +504,7 @@ class FitnessTrackingService {
           // Today's data (always fresh)
           weekData.push({
             date: date.toISOString(),
-            day: date.toLocaleDateString('en-US', { weekday: 'short' }),
+            day: date.toLocaleDateString("en-US", { weekday: "short" }),
             steps: this.todaySteps,
             distance: parseFloat(this.todayDistance.toFixed(2)),
             calories: this.todayCalories,
@@ -476,7 +518,7 @@ class FitnessTrackingService {
           };
           weekData.push({
             date: date.toISOString(),
-            day: date.toLocaleDateString('en-US', { weekday: 'short' }),
+            day: date.toLocaleDateString("en-US", { weekday: "short" }),
             steps: dayData.steps || 0,
             distance: parseFloat((dayData.distance || 0).toFixed(2)),
             calories: dayData.calories || 0,
@@ -556,23 +598,30 @@ class FitnessTrackingService {
 
       const cacheData = JSON.parse(cached);
       const today = new Date().toDateString();
-      
-      // Check if cache is from today
-      if (cacheData.date === today && cacheData.data) {
-        // Update today's data in cached result
+
+      // Check if cache is from today or yesterday (allow some flexibility)
+      const cacheDate = new Date(cacheData.date);
+      const currentDate = new Date();
+      const timeDiff = Math.abs(currentDate.getTime() - cacheDate.getTime());
+      const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+      // Use cache if it's from today or yesterday, but update today's data
+      if (daysDiff <= 1 && cacheData.data) {
+        console.log("Using cached weekly data, updating today's values");
         const weekData = [...cacheData.data];
         const todayIndex = weekData.length - 1; // Today is last item
-        
+
         weekData[todayIndex] = {
           ...weekData[todayIndex],
           steps: this.todaySteps,
           distance: parseFloat(this.todayDistance.toFixed(2)),
           calories: this.todayCalories,
         };
-        
+
         return weekData;
       }
-      
+
+      console.log("Weekly cache expired, will fetch fresh data");
       return null;
     } catch (error) {
       console.error("Error getting cached weekly data:", error);
@@ -587,8 +636,11 @@ class FitnessTrackingService {
         data: weekData,
         timestamp: Date.now(),
       };
-      
-      await AsyncStorage.setItem(STORAGE_KEYS.WEEKLY_CACHE, JSON.stringify(cacheData));
+
+      await AsyncStorage.setItem(
+        STORAGE_KEYS.WEEKLY_CACHE,
+        JSON.stringify(cacheData)
+      );
     } catch (error) {
       console.error("Error caching weekly data:", error);
     }
@@ -601,23 +653,30 @@ class FitnessTrackingService {
 
       const cacheData = JSON.parse(cached);
       const today = new Date().toDateString();
-      
-      // Check if cache is from today
-      if (cacheData.date === today && cacheData.data) {
-        // Update today's data in cached result
+
+      // Check if cache is from today or yesterday (allow some flexibility)
+      const cacheDate = new Date(cacheData.date);
+      const currentDate = new Date();
+      const timeDiff = Math.abs(currentDate.getTime() - cacheDate.getTime());
+      const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+      // Use cache if it's from today or yesterday, but update today's data
+      if (daysDiff <= 1 && cacheData.data) {
+        console.log("Using cached monthly data, updating today's values");
         const monthData = [...cacheData.data];
         const todayIndex = monthData.length - 1; // Today is last item
-        
+
         monthData[todayIndex] = {
           ...monthData[todayIndex],
           steps: this.todaySteps,
           distance: parseFloat(this.todayDistance.toFixed(2)),
           calories: this.todayCalories,
         };
-        
+
         return monthData;
       }
-      
+
+      console.log("Monthly cache expired, will fetch fresh data");
       return null;
     } catch (error) {
       console.error("Error getting cached monthly data:", error);
@@ -632,8 +691,11 @@ class FitnessTrackingService {
         data: monthData,
         timestamp: Date.now(),
       };
-      
-      await AsyncStorage.setItem(STORAGE_KEYS.MONTHLY_CACHE, JSON.stringify(cacheData));
+
+      await AsyncStorage.setItem(
+        STORAGE_KEYS.MONTHLY_CACHE,
+        JSON.stringify(cacheData)
+      );
     } catch (error) {
       console.error("Error caching monthly data:", error);
     }
@@ -655,7 +717,7 @@ class FitnessTrackingService {
     try {
       const [weeklyData, monthlyData] = await Promise.all([
         this.getWeeklySummary(),
-        this.getMonthlySummary()
+        this.getMonthlySummary(),
       ]);
 
       // Calculate weekly statistics
@@ -691,13 +753,15 @@ class FitnessTrackingService {
       };
 
       // Find best day in each period
-      const bestWeekDay = weeklyData.reduce((best, day) => 
-        (day.steps > best.steps) ? day : best
-      , weeklyData[0] || { steps: 0, distance: 0, calories: 0 });
+      const bestWeekDay = weeklyData.reduce(
+        (best, day) => (day.steps > best.steps ? day : best),
+        weeklyData[0] || { steps: 0, distance: 0, calories: 0 }
+      );
 
-      const bestMonthDay = monthlyData.reduce((best, day) => 
-        (day.steps > best.steps) ? day : best
-      , monthlyData[0] || { steps: 0, distance: 0, calories: 0 });
+      const bestMonthDay = monthlyData.reduce(
+        (best, day) => (day.steps > best.steps ? day : best),
+        monthlyData[0] || { steps: 0, distance: 0, calories: 0 }
+      );
 
       // Calculate streaks
       const currentStreak = this.calculateCurrentStreak(monthlyData);
@@ -729,7 +793,7 @@ class FitnessTrackingService {
           dailyStepGoal: 10000,
           progress: Math.min((this.todaySteps / 10000) * 100, 100),
           achieved: this.todaySteps >= 10000,
-        }
+        },
       };
     } catch (error) {
       console.error("Error getting fitness statistics:", error);
@@ -740,7 +804,7 @@ class FitnessTrackingService {
   // Calculate current active streak (consecutive days with steps >= goal)
   calculateCurrentStreak(monthlyData, stepGoal = 5000) {
     let streak = 0;
-    
+
     // Start from today and go backwards
     for (let i = monthlyData.length - 1; i >= 0; i--) {
       if (monthlyData[i].steps >= stepGoal) {
@@ -749,7 +813,7 @@ class FitnessTrackingService {
         break;
       }
     }
-    
+
     return streak;
   }
 
@@ -757,7 +821,7 @@ class FitnessTrackingService {
   calculateLongestStreak(monthlyData, stepGoal = 5000) {
     let longestStreak = 0;
     let currentStreak = 0;
-    
+
     for (const day of monthlyData) {
       if (day.steps >= stepGoal) {
         currentStreak++;
@@ -766,7 +830,7 @@ class FitnessTrackingService {
         currentStreak = 0;
       }
     }
-    
+
     return longestStreak;
   }
 
@@ -774,16 +838,13 @@ class FitnessTrackingService {
   async forceRefresh() {
     try {
       console.log("Force refresh initiated");
-      
+
       await this.clearCaches();
       await this.manualRefresh();
-      
+
       // Pre-load fresh data
-      await Promise.all([
-        this.getWeeklySummary(),
-        this.getMonthlySummary()
-      ]);
-      
+      await Promise.all([this.getWeeklySummary(), this.getMonthlySummary()]);
+
       console.log("Force refresh completed");
       return this.getCurrentFitnessData();
     } catch (error) {

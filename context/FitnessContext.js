@@ -281,6 +281,16 @@ export const FitnessProvider = ({ children }) => {
     }
   }, []);
 
+  // Debug method to get fitness history
+  const getDebugFitnessHistory = useCallback(async () => {
+    try {
+      return await fitnessTrackingService.getDebugFitnessHistory();
+    } catch (err) {
+      console.error("Error getting debug fitness history:", err);
+      return {};
+    }
+  }, []);
+
   const value = {
     // Current data
     fitnessData,
@@ -311,6 +321,7 @@ export const FitnessProvider = ({ children }) => {
     loadHistoricalData,
     getDebugInfo,
     getFitnessStatistics,
+    getDebugFitnessHistory,
   };
 
   return (
