@@ -21,7 +21,7 @@ import {
 import Ionicons from "@expo/vector-icons/Ionicons";
 import chatbotService from "../../services/chatbotService";
 import { useLocationContext } from "../../context/LocationContext";
-import { useAvatar } from "../../context/AvatarContext";
+import { getAvatarUrl } from "../../lib";
 import { useTranslation } from "../../hooks/useTranslation";
 import { t } from "../../i18n";
 import { getYearsFromDob } from "../../lib";
@@ -387,9 +387,9 @@ const FloatingClearButton = ({ onPress, isVisible }) => {
 
 export default function ChatScreen({ navigation }) {
   const { location, hasLocation, coordinates } = useLocationContext();
-  const { userAvatar } = useAvatar();
   const { t } = useTranslation();
   const [coords, setCoords] = useState({});
+  const [avatarUrl, setAvatarUrl] = useState("");
   // Add navigation prop
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState("");
@@ -397,6 +397,15 @@ export default function ChatScreen({ navigation }) {
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const flatListRef = useRef(null);
   const textInputRef = useRef(null);
+
+  // Load avatar
+  useEffect(() => {
+    const loadAvatar = async () => {
+      const url = await getAvatarUrl();
+      setAvatarUrl(url);
+    };
+    loadAvatar();
+  }, []);
 
   // Initialize greeting message
   useEffect(() => {
@@ -682,9 +691,9 @@ export default function ChatScreen({ navigation }) {
         </View>
         {!item.isAI && (
           <View style={styles.userAvatar}>
-            {userAvatar ? (
+            {avatarUrl ? (
               <Image
-                source={{ uri: userAvatar }}
+                source={{ uri: avatarUrl }}
                 style={styles.userAvatarImage}
                 defaultSource={require("../../assets/icon.png")}
               />

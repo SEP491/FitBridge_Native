@@ -3,7 +3,6 @@ import Navigator from "./navigation/Navigator";
 import { Platform, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { CartProvider } from "./context/CartContext";
-import { AvatarProvider } from "./context/AvatarContext";
 import { LocationProvider } from "./context/LocationContext";
 import { FitnessProvider } from "./context/FitnessContext";
 import { useEffect } from "react";
@@ -16,13 +15,11 @@ export default function App() {
       <SafeAreaProvider>
         <LocationProvider>
           <FitnessProvider>
-            <AvatarProvider>
-              <CartProvider>
-                <View style={{ flex: 1 }}>
-                  <Navigator />
-                </View>
-              </CartProvider>
-            </AvatarProvider>
+            <CartProvider>
+              <View style={{ flex: 1 }}>
+                <Navigator />
+              </View>
+            </CartProvider>
           </FitnessProvider>
         </LocationProvider>
       </SafeAreaProvider>

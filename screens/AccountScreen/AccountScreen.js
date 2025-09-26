@@ -20,7 +20,7 @@ import {
 import Icon from "react-native-vector-icons/FontAwesome";
 import * as ImagePicker from "expo-image-picker";
 import * as Device from "expo-device";
-import { useAvatar } from "../../context/AvatarContext";
+import { updateAvatar, getAvatarUrl, syncAvatarFromUserData } from "../../lib";
 import accountService from "../../services/accountService";
 import { useTranslation } from "../../hooks/useTranslation";
 
@@ -28,11 +28,11 @@ const { width } = Dimensions.get("window");
 
 const AccountScreen = () => {
   const navigation = useNavigation();
-  const { updateAvatar, getAvatarUrl, syncAvatarFromUserData } = useAvatar(); // Use avatar context
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState("");
 
   // Original profile from API
   const [userProfile, setUserProfile] = useState({});
@@ -46,7 +46,13 @@ const AccountScreen = () => {
 
   useEffect(() => {
     fetchUserData();
+    loadAvatar();
   }, []);
+
+  const loadAvatar = async () => {
+    const url = await getAvatarUrl();
+    setAvatarUrl(url);
+  };
 
   const fetchUserData = async () => {
     setLoading(true);
@@ -54,8 +60,9 @@ const AccountScreen = () => {
       const response = await accountService.getProfile();
       setUserProfile(response.data);
       console.log("Fetched user profile:", response.data);
-      // Sync avatar with context
+      // Sync avatar with utilities
       await syncAvatarFromUserData(response.data);
+      await loadAvatar(); // Reload avatar after sync
 
       // Initialize form data with user profile
       setFormData({
@@ -303,8 +310,9 @@ const AccountScreen = () => {
             newAvatarUrl
           );
 
-          // Update avatar across the entire app using context
+          // Update avatar using utilities
           await updateAvatar(newAvatarUrl);
+          await loadAvatar(); // Reload local avatar state
 
           // Update local user profile state
           setUserProfile((prev) => ({
@@ -321,8 +329,9 @@ const AccountScreen = () => {
         const newAvatarUrl = response.data?.avatar || response.avatar;
 
         if (newAvatarUrl) {
-          // Update avatar across the entire app using context
+          // Update avatar using utilities
           await updateAvatar(newAvatarUrl);
+          await loadAvatar(); // Reload local avatar state
 
           // Update local user profile state
           setUserProfile((prev) => ({
@@ -383,7 +392,7 @@ const AccountScreen = () => {
           <View style={styles.avatarContainer}>
             <Image
               source={{
-                uri: getAvatarUrl(),
+                uri: avatarUrl,
               }}
               style={[styles.avatar, uploadingAvatar && styles.avatarUploading]}
             />

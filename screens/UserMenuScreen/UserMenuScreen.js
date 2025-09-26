@@ -14,7 +14,7 @@ import {
 import { TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useCart } from "../../context/CartContext";
-import { useAvatar } from "../../context/AvatarContext";
+import { getAvatarUrl, clearAvatar } from "../../lib";
 import authService from "../../services/authService";
 import DeleteAccountBottomSheet from "../../components/DeleteAccountBottomSheet/DeleteAccountBottomSheet";
 import { useTranslation } from "../../hooks/useTranslation";
@@ -22,15 +22,20 @@ import { useTranslation } from "../../hooks/useTranslation";
 export default function UserMenuScreen() {
   const [user, setUser] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState("");
   const { clearCart } = useCart(); // Assuming useCart is defined in your context or service
   const { t } = useTranslation();
-  const { getAvatarUrl, clearAvatar } = useAvatar(); // Use avatar context
+
   useEffect(() => {
     const fetchUser = async () => {
       const userData = await AsyncStorage.getItem("user");
       if (userData) {
         setUser(JSON.parse(userData));
       }
+
+      // Load avatar
+      const url = await getAvatarUrl();
+      setAvatarUrl(url);
     };
     fetchUser();
 
@@ -132,7 +137,8 @@ export default function UserMenuScreen() {
 
                   if (logoutSuccess) {
                     clearCart(); // Clear cart data
-                    clearAvatar(); // Clear avatar data
+                    await clearAvatar(); // Clear avatar data
+                    setAvatarUrl(""); // Clear local avatar state
                     if (global.updateNavigationUser) {
                       global.updateNavigationUser();
                     }
@@ -190,7 +196,7 @@ export default function UserMenuScreen() {
             <View style={styles.avatarContainer}>
               <Image
                 source={{
-                  uri: getAvatarUrl() || user?.avatar,
+                  uri: avatarUrl || user?.avatar,
                 }}
                 style={styles.userAvatar}
               />

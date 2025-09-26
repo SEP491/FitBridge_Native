@@ -15,14 +15,14 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-import { useAvatar } from "../../context/AvatarContext";
+import { getAvatarUrl } from "../../lib";
 import accountService from "./../../services/accountService";
 import { useTranslation } from "../../hooks/useTranslation";
 import { formatNumber, formatDate, formatDateForAPI } from "../../lib";
 
 const ProfileScreen = () => {
-  const { getAvatarUrl } = useAvatar(); // Use avatar context
   const { t } = useTranslation();
+  const [avatarUrl, setAvatarUrl] = useState("");
   const [userProfile, setUserProfile] = useState({
     fullName: "",
     email: "",
@@ -103,7 +103,13 @@ const ProfileScreen = () => {
 
   useEffect(() => {
     fetchProfileData();
+    loadAvatar();
   }, []);
+
+  const loadAvatar = async () => {
+    const url = await getAvatarUrl();
+    setAvatarUrl(url);
+  };
 
   useEffect(() => {
     if (userProfile.dob) {
@@ -265,7 +271,7 @@ const ProfileScreen = () => {
             <View style={styles.avatarContainer}>
               <Image
                 source={{
-                  uri: userProfile.avatar || getAvatarUrl(),
+                  uri: userProfile.avatar || avatarUrl,
                 }}
                 style={styles.avatar}
               />
