@@ -330,7 +330,7 @@ export default function Navigator() {
             ) : null,
         })}
       >
-        <Stack.Screen
+        {/* <Stack.Screen
           name="ScheduleTabs"
           options={{
             headerShown: true,
@@ -374,23 +374,16 @@ export default function Navigator() {
                   title: t("screenTitles.bookSession"),
                 }}
               />
-              {/* <TopTab.Screen
-                name="PTBookingHistoryScreen"
-                component={PTBookingHistoryScreen}
-                options={{
-                  title: "Slot với khách",
-                }}
-              /> */}
             </TopTab.Navigator>
           )}
-        </Stack.Screen>
+        </Stack.Screen> */}
 
-        {/* <Stack.Screen
+        <Stack.Screen
           name="CalendarScheduleScreen"
           component={CalendarScheduleScreen}
           options={{
             headerShown: true,
-            title: t("screenTitles.choosePTForSchedule"),
+            title: t("screenTitles.calendarSchedule"),
             headerTitleAlign: "center",
             headerTitleStyle: {
               fontWeight: "bold",
@@ -398,14 +391,14 @@ export default function Navigator() {
               color: "#ED2A46",
             },
           }}
-        /> */}
+        />
 
-        {/* <Stack.Screen
+        <Stack.Screen
           name="ChoosingCourseScreen"
           component={ChoosingCourseScreen}
           options={{
             headerShown: true,
-            title: t("screenTitles.choosePTForSchedule"),
+            title: t("screenTitles.bookSession"),
             headerTitleAlign: "center",
             headerTitleStyle: {
               fontWeight: "bold",
@@ -413,7 +406,7 @@ export default function Navigator() {
               color: "#ED2A46",
             },
           }}
-        /> */}
+        />
 
         <Stack.Screen
           name="ScheduleScreen"
