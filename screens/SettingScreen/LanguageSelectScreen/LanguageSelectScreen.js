@@ -188,7 +188,7 @@ export default function LanguageSelectScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8F9FA",
+    backgroundColor: "#F8F9FA"
   },
 
   bottomContainer: {
@@ -205,9 +205,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
     borderRadius: 12,
     elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
+    shadowColor: "#000",shadowOpacity: 0.2,
     shadowRadius: 4,
   },
   saveButtonDisabled: {
@@ -259,9 +257,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#E0E0E0",
     elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
+    shadowColor: "#000",shadowOpacity: 0.1,
     shadowRadius: 2,
   },
   selectedLanguageOption: {

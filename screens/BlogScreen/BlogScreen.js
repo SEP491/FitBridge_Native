@@ -1,6 +1,16 @@
 // BlogScreen.js
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, Image, TextInput, Platform } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  ActivityIndicator,
+  TouchableOpacity,
+  Image,
+  TextInput,
+  Platform,
+} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
 export default function BlogScreen() {
@@ -20,20 +30,26 @@ export default function BlogScreen() {
         {
           id: 1,
           title: "5 Bài Tập Đốt Mỡ Nhanh Nhất Cho Người Mới",
-          imageUrl: "https://i.pinimg.com/736x/0f/f6/69/0ff6690ae16b9358fb62ed4934d8e598.jpg",
-          shortDescription: "Khám phá 5 bài tập đơn giản giúp bạn đốt cháy mỡ và săn chắc cơ thể.",
+          imageUrl:
+            "https://i.pinimg.com/736x/0f/f6/69/0ff6690ae16b9358fb62ed4934d8e598.jpg",
+          shortDescription:
+            "Khám phá 5 bài tập đơn giản giúp bạn đốt cháy mỡ và săn chắc cơ thể.",
         },
         {
           id: 2,
           title: "Thực Đơn Dinh Dưỡng Cho Gymer 7 Ngày",
-          imageUrl: "https://i.pinimg.com/736x/0e/fc/b5/0efcb577e982d3b47739b3d10d47ce42.jpg",
-          shortDescription: "Chế độ ăn chuẩn khoa học giúp tăng cơ, giảm mỡ hiệu quả.",
+          imageUrl:
+            "https://i.pinimg.com/736x/0e/fc/b5/0efcb577e982d3b47739b3d10d47ce42.jpg",
+          shortDescription:
+            "Chế độ ăn chuẩn khoa học giúp tăng cơ, giảm mỡ hiệu quả.",
         },
         {
           id: 3,
           title: "Cách Phục Hồi Cơ Sau Tập Luyện",
-          imageUrl: "https://i.pinimg.com/736x/63/69/ab/6369ab27dca3a6331a12c517441fabd2.jpg",
-          shortDescription: "Các kỹ thuật thư giãn giúp phục hồi cơ bắp nhanh chóng.",
+          imageUrl:
+            "https://i.pinimg.com/736x/63/69/ab/6369ab27dca3a6331a12c517441fabd2.jpg",
+          shortDescription:
+            "Các kỹ thuật thư giãn giúp phục hồi cơ bắp nhanh chóng.",
         },
       ];
       setBlogs(data);
@@ -54,13 +70,19 @@ export default function BlogScreen() {
     </View>
   );
 
-const renderBlogItem = ({ item }) => (
-  <TouchableOpacity onPress={() => navigation.navigate("BlogDetailScreen", { blog: item })}>
-    <BlogCard title={item.title} imageUrl={item.imageUrl} shortDescription={item.shortDescription} />
-  </TouchableOpacity>
-);
+  const renderBlogItem = ({ item }) => (
+    <TouchableOpacity
+      onPress={() => navigation.navigate("BlogDetailScreen", { blog: item })}
+    >
+      <BlogCard
+        title={item.title}
+        imageUrl={item.imageUrl}
+        shortDescription={item.shortDescription}
+      />
+    </TouchableOpacity>
+  );
 
-  const filteredBlogs = blogs.filter(blog =>
+  const filteredBlogs = blogs.filter((blog) =>
     blog.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -112,18 +134,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderRadius: 12,
     backgroundColor: "#fff",
-    overflow: Platform.OS === 'android' ? "hidden" : "visible",
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-      },
-      android: {
-        elevation: 5,
-      },
-    }),
+    overflow: Platform.OS === "android" ? "hidden" : "visible",
   },
   image: {
     width: "100%",

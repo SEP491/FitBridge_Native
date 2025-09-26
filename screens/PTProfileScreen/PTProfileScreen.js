@@ -296,7 +296,7 @@ const PTProfileScreen = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: "#f8f9fa",
-    paddingBottom: 20,
+    paddingBottom: 20
   },
   loadingContainer: {
     flex: 1,
@@ -325,9 +325,7 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     borderWidth: 4,
     borderColor: "#fff",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowColor: "#000",shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
   },
@@ -377,9 +375,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderRadius: 16,
     padding: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowColor: "#000",shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
   },
@@ -490,45 +486,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     color: "#333",
-  },
-  actionContainer: {
-    flexDirection: "row",
-    gap: 12,
-    paddingHorizontal: 16,
-    marginTop: 8,
-  },
-  primaryButton: {
-    flex: 1,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#FF914D",
-    paddingVertical: 16,
-    borderRadius: 12,
-    gap: 8,
-  },
-  primaryButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  secondaryButton: {
-    flex: 1,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#fff",
-    paddingVertical: 16,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: "#FF914D",
-    gap: 8,
-  },
-  secondaryButtonText: {
-    color: "#FF914D",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-});
+  },});
 
 export default PTProfileScreen;

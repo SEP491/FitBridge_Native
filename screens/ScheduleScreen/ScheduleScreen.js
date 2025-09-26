@@ -484,38 +484,12 @@ export default function ScheduleScreen({ route }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#FFFFFF"
   },
   container: {
     flex: 1,
     backgroundColor: "#f8f9fa",
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: "#FFFFFF",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E9ECEF",
-  },
-  backButton: {
-    marginRight: 16,
-  },
-  headerTextContainer: {
-    flex: 1,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#212529",
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: "#6C757D",
-    marginTop: 2,
-  },
-  weekNavigationContainer: {
+  },weekNavigationContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -667,12 +641,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginBottom: 16,
     elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
+    shadowColor: "#000",shadowOpacity: 0.1,
     shadowRadius: 4,
   },
   slotHeader: {

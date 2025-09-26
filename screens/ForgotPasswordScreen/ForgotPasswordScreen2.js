@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     backgroundColor: "#fff",
-    paddingTop: 60,
+    paddingTop: 60
   },
 
   label: {
@@ -132,9 +132,7 @@ const styles = StyleSheet.create({
 
   otpInputActive: {
     borderColor: "#FF914D", // màu viền khi focus
-    shadowColor: "#fff",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
+    shadowColor: "#fff",shadowOpacity: 0.8,
     shadowRadius: 5,
     elevation: 5,
   },
@@ -146,9 +144,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 40,
     alignSelf: "center",
-    shadowColor: "#FF9351",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
+    shadowColor: "#FF9351",shadowOpacity: 0.3,
     shadowRadius: 4,
   },
 

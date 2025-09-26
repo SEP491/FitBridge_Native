@@ -145,7 +145,7 @@ export default function CartScreen() {
 const styles = StyleSheet.create({
   cartScreen: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: "#ffffff"
   },
   button: {
     backgroundColor: "#FF914D",
@@ -156,12 +156,7 @@ const styles = StyleSheet.create({
     marginTop: 30,
     width: "50%",
     alignSelf: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
+    shadowColor: "#000",shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
   },
@@ -178,12 +173,7 @@ const styles = StyleSheet.create({
     right: 0,
     paddingVertical: 40,
     borderColor: "#ccc",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 2,
-      height: 2,
-    },
-    shadowOpacity: 0.5,
+    shadowColor: "#000",shadowOpacity: 0.5,
     shadowRadius: 3.84,
     elevation: 9,
     borderTopLeftRadius: 20,
@@ -205,12 +195,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 30,
     fontWeight: "bold",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
+    shadowColor: "#000",shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
   },

@@ -779,7 +779,7 @@ export default function CalendarScheduleScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8f9fa",
+    backgroundColor: "#f8f9fa"
   },
   modeSwitcherContainer: {
     flexDirection: "row",
@@ -808,12 +808,7 @@ const styles = StyleSheet.create({
   },
   activeModeButton: {
     backgroundColor: colors.red,
-    shadowColor: colors.red,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
+    shadowColor: colors.red,shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
   },
@@ -833,12 +828,7 @@ const styles = StyleSheet.create({
     minWidth: 100,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: colors.red,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
+    shadowColor: colors.red,shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
   },
@@ -894,39 +884,7 @@ const styles = StyleSheet.create({
     color: "#1a1a1a",
     marginRight: 8,
   },
-  // Week Navigation
-  weekNavigation: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    backgroundColor: colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e9ecef",
-  },
-  weekLabel: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1a1a1a",
-  },
-  weekNavButtons: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  weekNavButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#f8f9fa",
-    justifyContent: "center",
-    alignItems: "center",
-    marginHorizontal: 4,
-  },
-  disabledWeekNavButton: {
-    backgroundColor: "#e9ecef",
-  },
-  // Full Width Date Container
+  // Week Navigation// Full Width Date Container
   fullWidthDateContainer: {
     flexDirection: "row",
     backgroundColor: colors.white,
@@ -983,39 +941,7 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
     backgroundColor: "#f8f9fa",
-  },
-  dayName: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#6c757d",
-    marginBottom: 4,
-  },
-  selectedDayName: {
-    color: colors.white,
-  },
-  todayDayName: {
-    color: "#2196f3",
-  },
-  pastDayName: {
-    color: "#adb5bd",
-  },
-  dateNumber: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#212529",
-    marginBottom: 2,
-  },
-  selectedDateNumber: {
-    color: colors.white,
-  },
-  todayDateNumber: {
-    color: "#2196f3",
-  },
-  pastDateNumber: {
-    color: "#adb5bd",
-  },
-
-  emptyContainer: {
+  },emptyContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
@@ -1054,12 +980,7 @@ const styles = StyleSheet.create({
     width: width * 0.85,
     maxHeight: height * 0.7,
     elevation: 10,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 5,
-    },
-    shadowOpacity: 0.25,
+    shadowColor: "#000",shadowOpacity: 0.25,
     shadowRadius: 10,
   },
   modalHeader: {

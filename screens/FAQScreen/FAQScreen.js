@@ -110,25 +110,14 @@ export default function FAQScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F5F5F5" },
-  header: {
-    paddingTop: 50,
-    paddingBottom: 12,
-    paddingHorizontal: 16,
-    backgroundColor: "#fff",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  headerTitle: { fontSize: 20, fontWeight: "bold", color: "#ED2A46" },
-  searchBox: {
+  container: { flex: 1, backgroundColor: "#F5F5F5" },searchBox: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#D6EFF2",
     margin: 16,
     borderRadius: 20,
     paddingHorizontal: 8,
-    height: 36,
+    height: 36
   },
   searchInput: { flex: 1, fontSize: 14, color: "#000" },
   sectionTitle: {

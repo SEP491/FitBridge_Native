@@ -290,32 +290,8 @@ export default function SearchGymScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
-  },
-  header: {
-    paddingTop: 50,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
-  },
-  headerContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  backButton: {
-    padding: 8,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#FFFFFF",
-    textAlign: "center",
-    flex: 1,
-  },
-  placeholder: {
-    width: 40,
-  },
-  searchHeader: {
+    backgroundColor: "#FFFFFF"
+  },searchHeader: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
@@ -324,9 +300,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#F0F0F0",
     elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowColor: "#000",shadowOpacity: 0.1,
     shadowRadius: 4,
   },
   searchContainer: {

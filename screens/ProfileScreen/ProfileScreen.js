@@ -723,7 +723,7 @@ const ProfileScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8f9fa",
+    backgroundColor: "#f8f9fa"
   },
   scrollContainer: {
     flex: 1,
@@ -747,28 +747,10 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     borderWidth: 4,
     borderColor: "#fff",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowColor: "#000",shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
-  },
-  statusBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 20,
-    marginTop: 8,
-  },
-  statusText: {
-    marginLeft: 4,
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#333",
-  },
-  name: {
+  },name: {
     color: "#fff",
     fontSize: 24,
     fontWeight: "700",
@@ -814,9 +796,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flex: 1,
     marginHorizontal: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowColor: "#000",shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
   },
@@ -836,9 +816,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderRadius: 16,
     padding: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowColor: "#000",shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
   },

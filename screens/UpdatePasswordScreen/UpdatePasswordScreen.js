@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
     paddingTop: 30,
     height: 500,
     marginTop: 70,
-    marginBottom: 20,
+    marginBottom: 20
   },
   inputContainer: {
     marginBottom: 25,
@@ -164,9 +164,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     marginTop: 10,
     alignItems: "center",
-    shadowColor: "#ED2A46",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
+    shadowColor: "#ED2A46",shadowOpacity: 0.5,
     shadowRadius: 5,
     width: 250,
     alignSelf: "center",
@@ -189,9 +187,7 @@ const styles = StyleSheet.create({
     paddingVertical: 30,
     paddingHorizontal: 20,
     alignItems: "center",
-    shadowColor: "#ED2A46",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.7,
+    shadowColor: "#ED2A46",shadowOpacity: 0.7,
     shadowRadius: 10,
   },
   iconCircle: {

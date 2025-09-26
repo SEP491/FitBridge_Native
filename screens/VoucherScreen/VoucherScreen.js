@@ -141,41 +141,8 @@ export default function VoucherScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F5F5F5",
-  },
-  header: {
-    paddingTop: 50,
-    paddingBottom: 12,
-    paddingHorizontal: 16,
-    backgroundColor: "#fff",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#ED2A46",
-  },
-  backButton: {
-    width: 24,
-    height: 24,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  triangle: {
-    width: 0,
-    height: 0,
-    borderTopWidth: 8,
-    borderBottomWidth: 8,
-    borderRightWidth: 12,
-    borderTopColor: "transparent",
-    borderBottomColor: "transparent",
-    borderRightColor: "#ED2A46", // màu đỏ của mũi tên
-  },
-
-  banner: {
+    backgroundColor: "#F5F5F5"
+  },banner: {
     height: 120,
     // backgroundColor: "#FFA750",
     marginHorizontal: 50,
@@ -233,9 +200,7 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 12,
     shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 1,
+    shadowOpacity: 0.05,elevation: 1,
   },
   detailTopRight: {
     position: "absolute",
@@ -284,26 +249,4 @@ const styles = StyleSheet.create({
   },
   appliedTextInactive: {
     color: "#6B6B6B",
-  },
-
-  bottomNav: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 60,
-    backgroundColor: "#ED2A46",
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-    paddingBottom: 8,
-  },
-  navItem: {
-    alignItems: "center",
-  },
-  navText: {
-    fontSize: 11,
-    color: "#fff",
-    marginTop: 2,
-  },
-});
+  },});

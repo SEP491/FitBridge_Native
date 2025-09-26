@@ -139,7 +139,7 @@ export default function ChoosingCourseScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#FFFFFF"
   },
   container: {
     flex: 1,
@@ -218,12 +218,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     elevation: 8,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
+    shadowColor: "#000",shadowOpacity: 0.3,
     shadowRadius: 4.65,
   },
 });

@@ -546,7 +546,7 @@ export default function GymDetailScreen({ route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8F9FA",
+    backgroundColor: "#F8F9FA"
   },
 
   loadingContainer: {
@@ -574,9 +574,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 255, 255, 0.95)",
     borderRadius: 25,
     padding: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
+    shadowColor: "#000",shadowOpacity: 0.25,
     shadowRadius: 8,
     elevation: 8,
   },
@@ -619,9 +617,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     marginHorizontal: 16,
     marginTop: -20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
+    shadowColor: "#000",shadowOpacity: 0.15,
     shadowRadius: 12,
     elevation: 8,
     padding: 24,
@@ -744,9 +740,7 @@ const styles = StyleSheet.create({
 
   primaryButton: {
     backgroundColor: "#ED2A46",
-    shadowColor: "#ED2A46",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowColor: "#ED2A46",shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
   },
@@ -840,9 +834,7 @@ const styles = StyleSheet.create({
     marginBottom: 100,
     borderRadius: 25,
     padding: 24,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
+    shadowColor: "#000",shadowOpacity: 0.15,
     shadowRadius: 12,
     elevation: 8,
   },
@@ -868,16 +860,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
-  },
-
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginRight: 12,
-  },
-
-  userDetails: {
+  },userDetails: {
     flex: 1,
   },
 
@@ -927,9 +910,7 @@ const styles = StyleSheet.create({
     height: 50,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#ED2A46",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
+    shadowColor: "#ED2A46",shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 4,
   },

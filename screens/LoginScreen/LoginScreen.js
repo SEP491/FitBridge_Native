@@ -235,7 +235,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8F9FA",
+    backgroundColor: "#F8F9FA"
   },
   scrollContainer: {
     flexGrow: 1,
@@ -269,12 +269,7 @@ const styles = StyleSheet.create({
   formContainer: {
     borderRadius: 24,
     padding: 2,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 8,
-    },
-    shadowOpacity: 0.15,
+    shadowColor: "#000",shadowOpacity: 0.15,
     shadowRadius: 16,
     elevation: 8,
   },
@@ -333,12 +328,7 @@ const styles = StyleSheet.create({
   loginButton: {
     borderRadius: 16,
     marginBottom: 32,
-    shadowColor: "#FF914D",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
+    shadowColor: "#FF914D",shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
   },
@@ -355,50 +345,7 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 18,
     fontWeight: "bold",
-  },
-  socialSection: {
-    marginBottom: 32,
-  },
-  dividerContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  divider: {
-    flex: 1,
-    height: 1,
-    backgroundColor: "#E5E7EB",
-  },
-  orText: {
-    fontSize: 14,
-    color: "#6B7280",
-    marginHorizontal: 16,
-    fontWeight: "500",
-  },
-  socialButtonsContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 16,
-  },
-  socialButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
-    backgroundColor: "#FFFFFF",
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  signUpSection: {
+  },signUpSection: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",

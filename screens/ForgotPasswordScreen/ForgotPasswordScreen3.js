@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
-    paddingHorizontal: 20,
+    paddingHorizontal: 20
   },
   titleContainer: {
     marginTop: 30,
@@ -185,9 +185,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     alignSelf: "center",
-    shadowColor: "#FF914D",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
+    shadowColor: "#FF914D",shadowOpacity: 0.4,
     shadowRadius: 8,
     elevation: 5,
   },

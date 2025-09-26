@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
-    paddingHorizontal: 0,
+    paddingHorizontal: 0
   },
   backgroundGradient: {
     marginTop: "40%",
@@ -85,9 +85,7 @@ input: {
     paddingVertical: 10,
     paddingHorizontal: 40,
     alignSelf: "center",
-    shadowColor: "#FF9351",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
+    shadowColor: "#FF9351",shadowOpacity: 0.3,
     shadowRadius: 4,
   },
   buttonText: {

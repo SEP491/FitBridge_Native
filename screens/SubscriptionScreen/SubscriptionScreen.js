@@ -381,7 +381,7 @@ export default function SubscriptionScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#FFFFFF"
   },
   header: {
     paddingHorizontal: 24,
@@ -414,12 +414,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#E5E5E5",
     position: "relative",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
+    shadowColor: "#000",shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
   },
@@ -594,12 +589,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: "center",
-    shadowColor: "#ED2A46",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
+    shadowColor: "#ED2A46",shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
   },

@@ -181,20 +181,12 @@ export default function PTinCourseScreen({ route }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#FFFFFF"
   },
   container: {
     flex: 1,
     backgroundColor: "#FFFFFF",
-  },
-  header: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: "#FFFFFF",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E9ECEF",
-  },
-  searchContainer: {
+  },searchContainer: {
     paddingHorizontal: 20,
     paddingVertical: 16,
     backgroundColor: "#FFFFFF",
@@ -216,18 +208,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: "#212529",
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#212529",
-    marginBottom: 4,
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: "#6C757D",
-  },
-  scrollView: {
+  },scrollView: {
     flex: 1,
   },
   scrollContent: {

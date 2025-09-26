@@ -552,7 +552,7 @@ const AccountScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8F9FA",
+    backgroundColor: "#F8F9FA"
   },
   loadingContainer: {
     flex: 1,
@@ -635,12 +635,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 20,
     marginBottom: 20,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
+    shadowColor: "#000",shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
   },
@@ -654,57 +649,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     color: "#000",
-  },
-  editButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: "#FFF5F5",
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "#ED2A46",
-  },
-  editButtonText: {
-    color: "#ED2A46",
-    fontSize: 14,
-    fontWeight: "600",
-    marginLeft: 6,
-  },
-  actionButtons: {
-    flexDirection: "row",
-    gap: 10,
-  },
-  cancelButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: "#F5F5F5",
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "#DDD",
-  },
-  cancelButtonText: {
-    color: "#666",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  saveButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-    backgroundColor: "#ED2A46",
-    borderRadius: 20,
-    minWidth: 70,
-    alignItems: "center",
-  },
-  saveButtonText: {
-    color: "#FFFFFF",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  disabledButton: {
-    opacity: 0.7,
-  },
-  formSection: {
+  },formSection: {
     gap: 20,
   },
   inputGroup: {
@@ -745,12 +690,7 @@ const styles = StyleSheet.create({
     padding: 16,
     flexDirection: "row",
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
+    shadowColor: "#000",shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
   },

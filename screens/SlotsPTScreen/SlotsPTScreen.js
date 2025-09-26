@@ -459,7 +459,7 @@ export default function SlotsPTScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8f9fa",
+    backgroundColor: "#f8f9fa"
   },
   weekNavigationContainer: {
     flexDirection: "row",
@@ -471,12 +471,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#e9ecef",
     elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.1,
+    shadowColor: "#000",shadowOpacity: 0.1,
     shadowRadius: 3,
   },
   navButton: {
@@ -487,12 +482,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.15,
+    shadowColor: "#000",shadowOpacity: 0.15,
     shadowRadius: 3,
   },
   navButtonText: {
@@ -530,12 +520,7 @@ const styles = StyleSheet.create({
     borderBottomColor: "#e9ecef",
     paddingVertical: 16,
     elevation: 1,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
+    shadowColor: "#000",shadowOpacity: 0.05,
     shadowRadius: 2,
   },
   dateScrollContent: {
@@ -557,12 +542,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.red,
     borderColor: colors.red,
     elevation: 3,
-    shadowColor: colors.red,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.3,
+    shadowColor: colors.red,shadowOpacity: 0.3,
     shadowRadius: 4,
   },
   todayDateItem: {
@@ -621,25 +601,7 @@ const styles = StyleSheet.create({
   },
   pastMonthText: {
     color: "#adb5bd",
-  },
-  selectedDateInfo: {
-    backgroundColor: colors.white,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e9ecef",
-  },
-  selectedDateText: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#1a1a1a",
-  },
-  selectedDateSubText: {
-    fontSize: 14,
-    color: "#6c757d",
-    marginTop: 2,
-  },
-  scrollView: {
+  },scrollView: {
     flex: 1,
     paddingHorizontal: 20,
     paddingTop: 20,
@@ -677,12 +639,7 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 16,
     elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
+    shadowColor: "#000",shadowOpacity: 0.1,
     shadowRadius: 4,
     borderLeftWidth: 4,
     borderLeftColor: colors.red,
@@ -818,12 +775,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     elevation: 8,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
+    shadowColor: "#000",shadowOpacity: 0.3,
     shadowRadius: 4.65,
   },
 });

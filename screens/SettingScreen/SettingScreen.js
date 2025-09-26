@@ -75,37 +75,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff", // Header màu trắng
-  },
-  header: {
-    backgroundColor: "#fff",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingTop: 40,
-    paddingBottom: 12,
-    borderBottomWidth: 0.5,
-    borderBottomColor: "#ccc",
-  },
-  backButton: {
-    padding: 10,
-  },
-  triangle: {
-    width: 0,
-    height: 0,
-    borderTopWidth: 10,
-    borderBottomWidth: 10,
-    borderRightWidth: 14,
-    borderTopColor: "transparent",
-    borderBottomColor: "transparent",
-    borderRightColor: "#ED2A46",
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#ED2A46",
-  },
-  content: {
+  },content: {
     flex: 1,
     backgroundColor: "#F5F5F5", // phần sau header là xám
   },
@@ -117,7 +87,7 @@ const styles = StyleSheet.create({
     margin: 16,
     borderRadius: 25,
     paddingHorizontal: 8,
-    height: 36,
+    height: 36
   },
   searchInput: {
     flex: 1,

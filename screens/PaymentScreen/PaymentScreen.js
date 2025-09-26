@@ -231,7 +231,7 @@ export default function PaymentScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#fff"
   },
   innerContainer: {
     flex: 1,
@@ -246,9 +246,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginTop: 20,
     padding: 15,
-    shadowColor: "#000",
-    shadowOffset: { width: 1, height: 1 },
-    shadowOpacity: 0.25,
+    shadowColor: "#000",shadowOpacity: 0.25,
     shadowRadius: 3,
     elevation: 6,
   },
@@ -256,22 +254,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-  },
-  cartComponent1: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    paddingVertical: 10,
-  },
-  cartComponent2: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    paddingVertical: 10,
-    borderTopWidth: 1,
-    borderTopColor: "#DDD9D9",
-  },
-  cardUnder: {
+  },cardUnder: {
     marginTop: 10,
   },
   row: {
@@ -293,9 +276,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     backgroundColor: "#fff",
-    shadowColor: "#000",
-    shadowOffset: { width: 2, height: -2 },
-    shadowOpacity: 0.2,
+    shadowColor: "#000",shadowOpacity: 0.2,
     shadowRadius: 3.84,
     elevation: 9,
   },
@@ -313,9 +294,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 30,
     fontWeight: "bold",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
+    shadowColor: "#000",shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
   },

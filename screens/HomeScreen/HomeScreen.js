@@ -292,7 +292,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   carouselContainer: {
     justifyContent: "center",
-    alignItems: "center",
+    alignItems: "center"
   },
   carousel: {
     borderRadius: 10,
@@ -335,12 +335,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: "#ED2A46",
-    shadowColor: "#ED2A46",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
+    shadowColor: "#ED2A46",shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
