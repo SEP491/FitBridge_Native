@@ -68,7 +68,9 @@
     "forgotPassword": "Forgot Password",
     "register": "Register",
     "checkingLogin": "Checking login...",
-    "fitnessDetail": "Fitness Tracking"
+    "fitnessDetail": "Fitness Tracking",
+    "calendarSchedule": "Training Schedule",
+    "bookSession": "Book Session"
   },
 
   "home": {
@@ -563,6 +565,20 @@
     "loadSlotsError": "Cannot load time slots list. Please try again."
   },
 
+  "calendar": {
+    "title": "PT Schedule",
+    "week": "Week",
+    "month": "Month",
+    "noPTSessions": "No PT sessions scheduled",
+    "bookPTSession": "Book a session with your personal trainer",
+    "strengthTraining": "Strength Training with",
+    "cardioSession": "Cardio Session with",
+    "weightTraining": "Weight Training with",
+    "yogaSession": "Yoga Session with",
+    "hiitTraining": "HIIT Training with",
+    "personalTraining": "Personal Training with"
+  },
+
   "pt": {
     "registerPTSession": "Register PT Session",
     "register": "Register",
@@ -683,6 +699,22 @@
     "noPTAtGym": "Currently no PT available at this gym",
     "yearsExperience": "years of experience",
     "noPTInSchedule": "You currently have no PT in your schedule"
+  },
+
+  "courseScreen": {
+    "loading": "Loading...",
+    "searchPlaceholder": "Search courses or PT...",
+    "noCourseFound": "No courses found",
+    "tryDifferentKeyword": "Try different keywords to search for courses",
+    "noCourseInSchedule": "You don't have any courses yet",
+    "courseWithPT": "Course with PT",
+    "courseWithoutPT": "Self-guided course",
+    "sessionsRemaining": "sessions remaining",
+    "expiresOn": "Expires on",
+    "sessions": "sessions",
+    "yearsExperience": "years of experience",
+    "male": "Male",
+    "female": "Female"
   },
 
   "searchGymScreen": {

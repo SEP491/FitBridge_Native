@@ -8,7 +8,8 @@ const accountService = {
       "Content-Type": "multipart/form-data",
     }),
 
-  getPtTransactions: () => request("GET", "v1/user/pts"),
+  getCourseForUser: () =>
+    request("GET", "v1/customer-purchased/customer-schedule"),
   getPTSlotforUser: (id, params) =>
     request("GET", `v1/pt-slot/${id}/user`, null, {}, params),
   bookingSlot: (data) => request("POST", "v1/booking", data),

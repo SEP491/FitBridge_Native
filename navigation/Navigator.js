@@ -43,11 +43,12 @@ import ChatScreen from "../screens/ChatScreen/ChatScreen";
 import SearchGymScreen from "../screens/SearchGymScreen/SearchGymScreen";
 import * as Linking from "expo-linking";
 import authService from "../services/authService";
-import ChoosingPTScreen from "../screens/ChoosingPTScreen/ChoosingPTScreen";
+import ChoosingCourseScreen from "../screens/ChoosingCourseScreen/ChoosingCourseScreen";
 import ScheduleScreen from "../screens/ScheduleScreen/ScheduleScreen";
 import BookingHistoryScreen from "../screens/BookingHistoryScreen/BookingHistoryScreen";
 import LanguageSelectScreen from "../screens/SettingScreen/LanguageSelectScreen/LanguageSelectScreen";
 import FitnessDetailScreen from "../screens/FitnessDetailScreen/FitnessDetailScreen";
+import CalendarScheduleScreen from "../screens/CalendarScheduleScreen/CalendarScheduleScreen";
 
 export default function Navigator() {
   const { t } = useTranslation();
@@ -330,8 +331,63 @@ export default function Navigator() {
         })}
       >
         <Stack.Screen
-          name="ChoosingPTScreen"
-          component={ChoosingPTScreen}
+          name="ScheduleTabs"
+          options={{
+            headerShown: true,
+            title: t("screenTitles.schedule"),
+          }}
+        >
+          {() => (
+            <TopTab.Navigator
+              screenOptions={{
+                tabBarIndicatorStyle: {
+                  backgroundColor: "#ED2A46",
+                  height: 3,
+                },
+                tabBarStyle: {
+                  backgroundColor: "#FFFFFF",
+                  elevation: 0,
+                  shadowOpacity: 0,
+                  borderBottomWidth: 1,
+                  borderBottomColor: "#E0E0E0",
+                },
+                tabBarActiveTintColor: "#ED2A46",
+                tabBarInactiveTintColor: "#666",
+                tabBarLabelStyle: {
+                  fontWeight: "bold",
+                  fontSize: 14,
+                },
+                swipeEnabled: false,
+              }}
+            >
+              <TopTab.Screen
+                name="CalendarScheduleScreen"
+                component={CalendarScheduleScreen}
+                options={{
+                  title: t("screenTitles.calendarSchedule"),
+                }}
+              />
+              <TopTab.Screen
+                name="ChoosingCourseScreen"
+                component={ChoosingCourseScreen}
+                options={{
+                  title: t("screenTitles.bookSession"),
+                }}
+              />
+              {/* <TopTab.Screen
+                name="PTBookingHistoryScreen"
+                component={PTBookingHistoryScreen}
+                options={{
+                  title: "Slot với khách",
+                }}
+              /> */}
+            </TopTab.Navigator>
+          )}
+        </Stack.Screen>
+
+        {/* <Stack.Screen
+          name="CalendarScheduleScreen"
+          component={CalendarScheduleScreen}
           options={{
             headerShown: true,
             title: t("screenTitles.choosePTForSchedule"),
@@ -342,7 +398,23 @@ export default function Navigator() {
               color: "#ED2A46",
             },
           }}
-        />
+        /> */}
+
+        {/* <Stack.Screen
+          name="ChoosingCourseScreen"
+          component={ChoosingCourseScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.choosePTForSchedule"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        /> */}
+
         <Stack.Screen
           name="ScheduleScreen"
           component={ScheduleScreen}
@@ -417,6 +489,7 @@ export default function Navigator() {
                   fontWeight: "bold",
                   fontSize: 14,
                 },
+                swipeEnabled: false,
               }}
             >
               <TopTab.Screen

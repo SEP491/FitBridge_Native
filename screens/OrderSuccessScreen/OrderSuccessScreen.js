@@ -13,6 +13,7 @@ import cartService from "../../services/cartService";
 import { useTranslation } from "../../hooks/useTranslation";
 import { formatPrice } from "../../lib";
 import { useCart } from "../../context/CartContext";
+import paymentService from "../../services/paymentService";
 
 const THEME_COLORS = {
   primary: "#ED2A46",
@@ -34,6 +35,17 @@ export default function OrderSuccessScreen({ route, navigation }) {
   const { code } = route?.params || {};
   const { amount } = route?.params || {};
 
+  const updateOrderFailed = async () => {
+    const requestData = {
+      orderCode: orderCode,
+    };
+    try {
+      const response = await paymentService.updatePaymentCancel(requestData);
+      console.log("updatePaymentCancel response:", response.data);
+    } catch (error) {
+      console.error("Error updating payment:", error.response.data);
+    }
+  };
   console.log("OrderSuccessScreen params:", route?.params);
   useFocusEffect(
     useCallback(() => {
@@ -49,6 +61,7 @@ export default function OrderSuccessScreen({ route, navigation }) {
         clearCart();
       } else if (code === "01") {
         setOrderStatus("failed");
+        updateOrderFailed();
       }
     }, [code, orderCode, amount])
   );
@@ -118,7 +131,7 @@ export default function OrderSuccessScreen({ route, navigation }) {
                   {t("orderSuccess.amount")}
                 </Text>
                 <Text style={styles.detailValue}>
-                  {formatAmount(orderData.amount)}
+                  {formatAmount(parseInt(orderData.amount))}
                 </Text>
               </View>
 

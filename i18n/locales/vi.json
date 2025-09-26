@@ -67,7 +67,9 @@
     "forgotPassword": "Quên Mật Khẩu",
     "register": "Đăng Ký",
     "checkingLogin": "Đang kiểm tra đăng nhập...",
-    "fitnessDetail": "Theo dõi sức khỏe"
+    "fitnessDetail": "Theo dõi sức khỏe",
+    "calendarSchedule": "Lịch Tập",
+    "bookSession": "Đặt Lịch"
   },
 
   "home": {
@@ -562,6 +564,20 @@
     "loadSlotsError": "Không thể tải danh sách khung giờ. Vui lòng thử lại."
   },
 
+  "calendar": {
+    "title": "Lịch PT",
+    "week": "Tuần",
+    "month": "Tháng",
+    "noPTSessions": "Chưa có buổi tập PT nào được lên lịch",
+    "bookPTSession": "Đặt lịch tập với huấn luyện viên cá nhân của bạn",
+    "strengthTraining": "Tập sức mạnh với",
+    "cardioSession": "Tập cardio với",
+    "weightTraining": "Tập tạ với",
+    "yogaSession": "Tập yoga với",
+    "hiitTraining": "Tập HIIT với",
+    "personalTraining": "Tập cá nhân với"
+  },
+
   "pt": {
     "registerPTSession": "Đăng ký buổi tập PT",
     "register": "Đăng ký",
@@ -632,6 +648,22 @@
     "noPTAtGym": "Hiện tại chưa có PT nào tại phòng gym này",
     "yearsExperience": "năm kinh nghiệm",
     "noPTInSchedule": "Hiện tại bạn chưa có PT nào trong lịch trình"
+  },
+
+  "courseScreen": {
+    "loading": "Đang tải...",
+    "searchPlaceholder": "Tìm kiếm khóa học hoặc PT...",
+    "noCourseFound": "Không tìm thấy khóa học nào",
+    "tryDifferentKeyword": "Thử từ khóa khác để tìm kiếm khóa học",
+    "noCourseInSchedule": "Bạn chưa có khóa học nào",
+    "courseWithPT": "Khóa học với PT",
+    "courseWithoutPT": "Khóa học tự do",
+    "sessionsRemaining": "buổi còn lại",
+    "expiresOn": "Hết hạn",
+    "sessions": "buổi",
+    "yearsExperience": "năm kinh nghiệm",
+    "male": "Nam",
+    "female": "Nữ"
   },
 
   "searchGymScreen": {
