@@ -506,13 +506,6 @@ export default function CalendarScheduleScreen() {
             {/* Combined Month and Week Selector */}
             <View style={styles.combinedSelectorContainer}>
               {/* Month Selector */}
-              <TouchableOpacity
-                style={styles.monthSelector}
-                onPress={() => setShowMonthDropdown(true)}
-              >
-                <Text style={styles.monthText}>{getCurrentMonth()}</Text>
-                <Ionicons name="chevron-down" size={20} color="#666" />
-              </TouchableOpacity>
 
               {/* Week Selector */}
               <TouchableOpacity
@@ -522,6 +515,14 @@ export default function CalendarScheduleScreen() {
                 <Text style={styles.weekText}>
                   {t("calendar.week")} {selectedWeekInMonth}
                 </Text>
+                <Ionicons name="chevron-down" size={20} color="#666" />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.monthSelector}
+                onPress={() => setShowMonthDropdown(true)}
+              >
+                <Text style={styles.monthText}>{getCurrentMonth()}</Text>
                 <Ionicons name="chevron-down" size={20} color="#666" />
               </TouchableOpacity>
             </View>
@@ -664,7 +665,6 @@ export default function CalendarScheduleScreen() {
         )}
       </View>
 
-      {/* Month Selection Modal */}
       <Modal
         visible={showMonthDropdown}
         transparent={true}
@@ -720,7 +720,6 @@ export default function CalendarScheduleScreen() {
         </TouchableOpacity>
       </Modal>
 
-      {/* Week Selection Modal */}
       <Modal
         visible={showWeekDropdown}
         transparent={true}
@@ -779,7 +778,7 @@ export default function CalendarScheduleScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8f9fa"
+    backgroundColor: "#f8f9fa",
   },
   modeSwitcherContainer: {
     flexDirection: "row",
@@ -808,7 +807,8 @@ const styles = StyleSheet.create({
   },
   activeModeButton: {
     backgroundColor: colors.red,
-    shadowColor: colors.red,shadowOpacity: 0.25,
+    shadowColor: colors.red,
+    shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
   },
@@ -828,7 +828,8 @@ const styles = StyleSheet.create({
     minWidth: 100,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: colors.red,shadowOpacity: 0.25,
+    shadowColor: colors.red,
+    shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
   },
@@ -860,9 +861,11 @@ const styles = StyleSheet.create({
   monthSelector: {
     flexDirection: "row",
     alignItems: "center",
-    flex: 1,
+
     paddingVertical: 8,
-    paddingRight: 16,
+    paddingLeft: 16,
+    borderLeftWidth: 1,
+    borderLeftColor: "#e9ecef",
   },
   monthText: {
     fontSize: 16,
@@ -873,10 +876,9 @@ const styles = StyleSheet.create({
   weekSelector: {
     flexDirection: "row",
     alignItems: "center",
+    flex: 1,
     paddingVertical: 8,
-    paddingLeft: 16,
-    borderLeftWidth: 1,
-    borderLeftColor: "#e9ecef",
+    paddingRight: 16,
   },
   weekText: {
     fontSize: 16,
@@ -941,7 +943,8 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
     backgroundColor: "#f8f9fa",
-  },emptyContainer: {
+  },
+  emptyContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
@@ -980,7 +983,8 @@ const styles = StyleSheet.create({
     width: width * 0.85,
     maxHeight: height * 0.7,
     elevation: 10,
-    shadowColor: "#000",shadowOpacity: 0.25,
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
     shadowRadius: 10,
   },
   modalHeader: {
