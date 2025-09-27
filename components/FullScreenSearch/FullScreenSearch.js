@@ -12,7 +12,6 @@ import {
 import React, { useEffect, useRef, useState } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useTranslation } from "../../hooks/useTranslation";
-import hotKeywordsService from "../../services/hotKeywordsService";
 import {
   getRecentSearches,
   addRecentSearch,

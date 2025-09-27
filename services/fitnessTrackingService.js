@@ -45,7 +45,7 @@ class FitnessTrackingService {
       await this.registerBackgroundTask();
       return true;
     } catch (error) {
-      console.error("Error initializing fitness tracking service:", error);
+      console.error("Error initializing fitness service:", error.message);
       return false;
     }
   }
@@ -61,7 +61,7 @@ class FitnessTrackingService {
         };
       }
     } catch (error) {
-      console.error("Error loading user profile:", error);
+      console.error("Error loading profile:", error.message);
     }
   }
 
@@ -77,7 +77,7 @@ class FitnessTrackingService {
       this.updateDerivedMetrics();
       this.notifyListeners();
     } catch (error) {
-      console.error("Error updating user profile:", error);
+      console.error("Error updating profile:", error.message);
     }
   }
 
@@ -90,12 +90,12 @@ class FitnessTrackingService {
       );
 
       if (lastResetDate !== today) {
-        console.log("New day detected, resetting daily data");
+        console.log("New day detected");
         await this.resetDailyData();
         await AsyncStorage.setItem(STORAGE_KEYS.LAST_RESET_DATE, today);
       }
     } catch (error) {
-      console.error("Error checking daily data:", error);
+      console.error("Error checking daily data:", error.message);
     }
   }
 
@@ -105,9 +105,7 @@ class FitnessTrackingService {
       // Save yesterday's data to history first
       if (this.todaySteps > 0) {
         await this.saveYesterdayData();
-        console.log(
-          `Saved yesterday's data before reset: ${this.todaySteps} steps`
-        );
+        console.log(`Saved yesterday's data: ${this.todaySteps} steps`);
       }
 
       // Reset all counters
@@ -130,9 +128,9 @@ class FitnessTrackingService {
       const today = new Date().toDateString();
       await AsyncStorage.setItem(STORAGE_KEYS.LAST_RESET_DATE, today);
 
-      console.log("Daily data reset complete");
+      console.log("Daily data reset");
     } catch (error) {
-      console.error("Error resetting daily data:", error);
+      console.error("Error resetting daily data:", error.message);
     }
   }
 
@@ -157,11 +155,8 @@ class FitnessTrackingService {
         STORAGE_KEYS.FITNESS_DATA,
         JSON.stringify(fitnessData)
       );
-
-      console.log(`Saved yesterday's data (${yesterdayKey}):`, dataToSave);
-      console.log(`Total history entries: ${Object.keys(fitnessData).length}`);
     } catch (error) {
-      console.error("Error saving yesterday data:", error);
+      console.error("Error saving yesterday data:", error.message);
     }
   }
 
@@ -182,9 +177,7 @@ class FitnessTrackingService {
           this.todayDistance = todayData.distance || 0;
           this.todayCalories = todayData.calories || 0;
 
-          console.log(
-            `Loaded complete today's data: ${this.todaySteps} steps (base: ${this.baseStepsToday})`
-          );
+          console.log(`Loaded today's data: ${this.todaySteps} steps`);
           return;
         }
       }
@@ -201,11 +194,9 @@ class FitnessTrackingService {
       // Calculate derived metrics
       this.updateDerivedMetrics();
 
-      console.log(
-        `Loaded today's data (fallback): ${this.todaySteps} steps (base: ${this.baseStepsToday})`
-      );
+      console.log(`Today's data loaded: ${this.todaySteps} steps`);
     } catch (error) {
-      console.error("Error loading today data:", error);
+      console.error("Error loading today data:", error.message);
     }
   }
 
@@ -270,10 +261,10 @@ class FitnessTrackingService {
       this.updateDerivedMetrics();
       this.notifyListeners();
 
-      console.log(`Started real-time tracking: ${this.todaySteps} steps`);
+      console.log(`Started tracking: ${this.todaySteps} steps`);
       return true;
     } catch (error) {
-      console.error("Error starting step tracking:", error);
+      console.error("Error starting step tracking:", error.message);
       return false;
     }
   }
@@ -291,7 +282,7 @@ class FitnessTrackingService {
       const result = await Pedometer.getStepCountAsync(startOfDay, today);
       return result ? result.steps : 0;
     } catch (error) {
-      console.error("Error getting device steps:", error);
+      console.error("Error getting device steps:", error.message);
       return 0;
     }
   }
@@ -342,7 +333,7 @@ class FitnessTrackingService {
         JSON.stringify(todayData)
       );
     } catch (error) {
-      console.error("Error saving step count:", error);
+      console.error("Error saving step count:", error.message);
     }
   }
 
@@ -436,7 +427,7 @@ class FitnessTrackingService {
 
       return this.getCurrentFitnessData();
     } catch (error) {
-      console.error("Error in manual refresh:", error);
+      console.error("Error in manual refresh:", error.message);
       return this.getCurrentFitnessData();
     }
   }

@@ -31,14 +31,14 @@ const authService = {
         };
       }
 
-      console.log("validateToken - user data:", user);
+      console.log("Token valid for user:", user?.email || "unknown");
 
       return {
         isValid: true,
         user: user,
       };
     } catch (error) {
-      console.error("Token validation failed:", error);
+      console.error("Token validation failed:", error.message);
       // Token is invalid, remove it
       await AsyncStorage.multiRemove(["token", "user", "userAvatar"]);
       return { isValid: false };
@@ -51,7 +51,7 @@ const authService = {
       await AsyncStorage.multiRemove(["token", "user", "userAvatar"]);
       return true;
     } catch (error) {
-      console.error("Logout error:", error);
+      console.error("Logout error:", error.message);
       return false;
     }
   },

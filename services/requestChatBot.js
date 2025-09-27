@@ -22,7 +22,7 @@ const requestChatBot = async (
 
     return response.data;
   } catch (error) {
-    console.error("API Error:", error);
+    console.error("ChatBot API Error:", error.message);
     throw error;
   }
 };

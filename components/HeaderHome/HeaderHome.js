@@ -18,7 +18,6 @@ import { capitalizeFirst } from "../../lib";
 import { useTranslation } from "../../hooks/useTranslation";
 import axios from "axios";
 import FullScreenSearch from "../FullScreenSearch/FullScreenSearch";
-import hotKeywordsService from "../../services/hotKeywordsService";
 
 export default function HeaderHome({ user }) {
   const [searchText, setSearchText] = useState("");
@@ -120,10 +119,6 @@ export default function HeaderHome({ user }) {
     setShowFullScreenSearch(false);
     Keyboard.dismiss();
 
-    // Save the search for analytics
-    hotKeywordsService.saveSearch(keyword);
-    hotKeywordsService.saveRecentSearch(keyword);
-
     // Navigate to search screen with the selected keyword
     navigation.navigate("SearchGymScreen", {
       searchQuery: keyword,
@@ -138,10 +133,6 @@ export default function HeaderHome({ user }) {
 
   // Handle search submission from full screen
   const handleFullScreenSearch = (query) => {
-    // Save the search for analytics
-    hotKeywordsService.saveSearch(query);
-    hotKeywordsService.saveRecentSearch(query);
-
     // Navigate to search screen
     navigation.navigate("SearchGymScreen", {
       searchQuery: query,
@@ -152,10 +143,6 @@ export default function HeaderHome({ user }) {
   const handleSearchSubmit = () => {
     if (searchText.trim()) {
       setShowFullScreenSearch(false);
-
-      // Save the search for analytics
-      hotKeywordsService.saveSearch(searchText.trim());
-      hotKeywordsService.saveRecentSearch(searchText.trim());
 
       navigation.navigate("SearchGymScreen", {
         searchQuery: searchText.trim(),

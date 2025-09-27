@@ -69,7 +69,8 @@
       ],
       "expo-localization",
       "expo-background-fetch",
-      "expo-task-manager"
+      "expo-task-manager",
+      "expo-splash-screen"
     ]
   }
 }

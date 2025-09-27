@@ -49,14 +49,25 @@ import LanguageSelectScreen from "../screens/SettingScreen/LanguageSelectScreen/
 import FitnessDetailScreen from "../screens/FitnessDetailScreen/FitnessDetailScreen";
 import CalendarScheduleScreen from "../screens/CalendarScheduleScreen/CalendarScheduleScreen";
 
-export default function Navigator() {
+export default function Navigator({
+  isAuthenticated: propIsAuthenticated,
+  user: propUser,
+}) {
   const { t } = useTranslation();
   const Tab = createBottomTabNavigator();
   const Stack = createNativeStackNavigator();
   const TopTab = createMaterialTopTabNavigator();
-  const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Use authentication state from App.js props
+  const [user, setUser] = useState(propUser);
+  const [isAuthenticated, setIsAuthenticated] = useState(propIsAuthenticated);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Update local state when props change
+  useEffect(() => {
+    setUser(propUser);
+    setIsAuthenticated(propIsAuthenticated);
+  }, [propUser, propIsAuthenticated]);
 
   const linking = {
     prefixes: [
@@ -93,39 +104,6 @@ export default function Navigator() {
     },
   };
 
-  // Check authentication on app start
-  useEffect(() => {
-    const checkAuthentication = async () => {
-      try {
-        setIsLoading(true);
-        const authResult = await authService.validateToken();
-
-        if (authResult.isValid) {
-          setIsAuthenticated(true);
-          setUser(authResult.user);
-          console.log("Authentication successful - user:", authResult.user);
-          // Update AsyncStorage with fresh user data
-          await AsyncStorage.setItem("user", JSON.stringify(authResult.user));
-        } else {
-          setIsAuthenticated(false);
-          setUser(null);
-          console.log("Authentication failed - clearing data");
-          // Clear any invalid stored data
-          await AsyncStorage.multiRemove(["token", "user"]);
-        }
-      } catch (error) {
-        console.error("Authentication check failed:", error);
-        setIsAuthenticated(false);
-        setUser(null);
-        await AsyncStorage.multiRemove(["token", "user"]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAuthentication();
-  }, []);
-
   // Expose a method to update navigation when auth state changes
   React.useEffect(() => {
     if (global.updateNavigationUser === undefined) {
@@ -136,17 +114,14 @@ export default function Navigator() {
           if (authResult.isValid) {
             setIsAuthenticated(true);
             setUser(authResult.user);
-            console.log(
-              "updateNavigationUser - user updated:",
-              authResult.user
-            );
+            console.log("User updated:", authResult.user?.email || "unknown");
             await AsyncStorage.setItem("user", JSON.stringify(authResult.user));
 
             // Avatar will be automatically updated when screens refresh
           } else {
             setIsAuthenticated(false);
             setUser(null);
-            console.log("updateNavigationUser - user cleared");
+            console.log("User cleared");
             await AsyncStorage.multiRemove(["token", "user"]);
           }
         } catch (error) {
@@ -329,54 +304,6 @@ export default function Navigator() {
             ) : null,
         })}
       >
-        {/* <Stack.Screen
-          name="ScheduleTabs"
-          options={{
-            headerShown: true,
-            title: t("screenTitles.schedule"),
-          }}
-        >
-          {() => (
-            <TopTab.Navigator
-              screenOptions={{
-                tabBarIndicatorStyle: {
-                  backgroundColor: "#ED2A46",
-                  height: 3,
-                },
-                tabBarStyle: {
-                  backgroundColor: "#FFFFFF",
-                  elevation: 0,
-                  shadowOpacity: 0,
-                  borderBottomWidth: 1,
-                  borderBottomColor: "#E0E0E0",
-                },
-                tabBarActiveTintColor: "#ED2A46",
-                tabBarInactiveTintColor: "#666",
-                tabBarLabelStyle: {
-                  fontWeight: "bold",
-                  fontSize: 14,
-                },
-                swipeEnabled: false,
-              }}
-            >
-              <TopTab.Screen
-                name="CalendarScheduleScreen"
-                component={CalendarScheduleScreen}
-                options={{
-                  title: t("screenTitles.calendarSchedule"),
-                }}
-              />
-              <TopTab.Screen
-                name="ChoosingCourseScreen"
-                component={ChoosingCourseScreen}
-                options={{
-                  title: t("screenTitles.bookSession"),
-                }}
-              />
-            </TopTab.Navigator>
-          )}
-        </Stack.Screen> */}
-
         <Stack.Screen
           name="CalendarScheduleScreen"
           component={CalendarScheduleScreen}
@@ -706,8 +633,7 @@ export default function Navigator() {
 
   const MainTab = () => {
     // Debug log to check user role
-    console.log("MainTab rendering with user:", user);
-    console.log("User role:", user?.role);
+    console.log("MainTab user role:", user?.role || "guest");
 
     return (
       <Tab.Navigator
@@ -828,9 +754,6 @@ export default function Navigator() {
         }}
       >
         <ActivityIndicator size="large" color="#FF914D" />
-        <Text style={{ marginTop: 16, fontSize: 16, color: "#666" }}>
-          {t("screenTitles.checkingLogin")}
-        </Text>
       </View>
     );
   }
