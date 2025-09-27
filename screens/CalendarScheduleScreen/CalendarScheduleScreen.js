@@ -446,6 +446,54 @@ export default function CalendarScheduleScreen() {
     setShowWeekDropdown(false);
   };
 
+  const renderEvent = (event, touchableOpacityProps) => {
+    // Get the date of this event
+    const eventDate = new Date(event.start.toDateString());
+
+    // Count all sessions on this date
+    const sessionsOnDate = mockPTSessions.filter(
+      (session) => session.start.toDateString() === eventDate.toDateString()
+    );
+
+    // Only render for the first event of the day to avoid duplicates
+    const isFirstEventOfDay =
+      mockPTSessions
+        .filter(
+          (session) => session.start.toDateString() === eventDate.toDateString()
+        )
+        .sort((a, b) => a.start - b.start)[0].id === event.id;
+
+    if (!isFirstEventOfDay) {
+      return null;
+    }
+
+    return (
+      <TouchableOpacity
+        {...touchableOpacityProps}
+        style={{
+          backgroundColor: colors.red,
+          borderRadius: 4,
+          padding: 2,
+          marginHorizontal: 1,
+          marginVertical: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: 16,
+        }}
+      >
+        <Text
+          style={{
+            color: "white",
+            fontSize: 10,
+            fontWeight: "bold",
+            textAlign: "center",
+          }}
+        >
+          {sessionsOnDate.length} {t("calendar.session")}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
   return (
     <View style={styles.container}>
       <StatusBar backgroundColor={colors.red} barStyle="light-content" />
@@ -640,6 +688,7 @@ export default function CalendarScheduleScreen() {
             })}
             calendarHeaderStyle={styles.calendarHeader}
             bodyContainerStyle={styles.calendarBody}
+            renderEvent={renderEvent}
             showTime={true}
             swipeEnabled={true}
             scrollOffsetMinutes={480} // Start view at 8:00 AM

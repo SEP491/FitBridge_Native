@@ -606,7 +606,9 @@
     "wednesday": "T4",
     "thursday": "T5",
     "friday": "T6",
-    "saturday": "T7"
+    "saturday": "T7",
+    "session": "buổi",
+    "sessions": "buổi"
   },
 
   "pt": {
