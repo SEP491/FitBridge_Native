@@ -69,7 +69,25 @@
     "register": "Register",
     "fitnessDetail": "Fitness Tracking",
     "calendarSchedule": "Training Schedule",
-    "bookSession": "Book Session"
+    "bookSession": "Book Session",
+    "myPackage": "My Package"
+  },
+
+  "myPackage": {
+    "current": "Current",
+    "expired": "Expired",
+    "today": "Today",
+    "daysRemaining": "{{count}} days left",
+    "sessions": "sessions",
+    "expiresOn": "Expires on",
+    "renew": "Renew",
+    "addPT": "Add PT",
+    "empty": {
+      "currentTitle": "No packages yet",
+      "currentSubtitle": "Sign up for a package to start training",
+      "expiredTitle": "No expired packages",
+      "expiredSubtitle": "All your packages are active"
+    }
   },
 
   "home": {
@@ -422,7 +440,8 @@
     "account": "Account",
     "services": "Services",
     "support": "Support",
-    "subscription": "Subscription"
+    "subscription": "Subscription",
+    "myPackage": "My Package"
   },
 
   "updatePassword": {

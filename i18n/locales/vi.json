@@ -68,7 +68,25 @@
     "register": "Đăng Ký",
     "fitnessDetail": "Theo dõi sức khỏe",
     "calendarSchedule": "Lịch Tập",
-    "bookSession": "Đặt Lịch"
+    "bookSession": "Đặt Lịch",
+    "myPackage": "Gói Tập Của Tôi"
+  },
+
+  "myPackage": {
+    "current": "Gói hiện tại",
+    "expired": "Gói hết hạn",
+    "today": "Hôm nay",
+    "daysRemaining": "còn {{count}} ngày",
+    "sessions": "buổi",
+    "expiresOn": "Hết hạn",
+    "renew": "Gia hạn",
+    "addPT": "Thêm PT",
+    "empty": {
+      "currentTitle": "Chưa có gói tập",
+      "currentSubtitle": "Hãy đăng ký gói tập để bắt đầu luyện tập",
+      "expiredTitle": "Không có gói hết hạn",
+      "expiredSubtitle": "Tất cả gói tập đều còn hiệu lực"
+    }
   },
 
   "home": {
@@ -421,7 +439,8 @@
     "account": "Tài khoản",
     "services": "Dịch vụ",
     "support": "Hỗ trợ",
-    "subscription": "Đăng ký Premium"
+    "subscription": "Đăng ký Premium",
+    "myPackage": "Gói Tập Của Tôi"
   },
 
   "updatePassword": {

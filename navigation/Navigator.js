@@ -48,6 +48,7 @@ import BookingHistoryScreen from "../screens/BookingHistoryScreen/BookingHistory
 import LanguageSelectScreen from "../screens/SettingScreen/LanguageSelectScreen/LanguageSelectScreen";
 import FitnessDetailScreen from "../screens/FitnessDetailScreen/FitnessDetailScreen";
 import CalendarScheduleScreen from "../screens/CalendarScheduleScreen/CalendarScheduleScreen";
+import MyPackageScreen from "../screens/MyPackageScreen/MyPackageScreen";
 
 export default function Navigator({
   isAuthenticated: propIsAuthenticated,
@@ -591,6 +592,20 @@ export default function Navigator({
           options={{
             headerShown: true,
             title: t("screenTitles.transactionHistory"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="MyPackageScreen"
+          component={MyPackageScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.myPackage"),
             headerTitleAlign: "center",
             headerTitleStyle: {
               fontWeight: "bold",

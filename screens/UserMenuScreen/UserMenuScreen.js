@@ -88,6 +88,12 @@ export default function UserMenuScreen() {
         navigation: "TransactionHistoryScreen",
         category: "services",
       },
+      {
+        icon: <Ionicons name="time-outline" size={28} color="#ED2A46" />,
+        label: t("userMenu.myPackage"),
+        navigation: "MyPackageScreen",
+        category: "services",
+      },
     ];
   }
 
