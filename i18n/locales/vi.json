@@ -69,7 +69,8 @@
     "fitnessDetail": "Theo dõi sức khỏe",
     "calendarSchedule": "Lịch Tập",
     "bookSession": "Đặt Lịch",
-    "myPackage": "Gói Tập Của Tôi"
+    "myPackage": "Gói Tập Của Tôi",
+    "ptInCourseExtend": "Mua Thêm PT Cho Gói Tập"
   },
 
   "myPackage": {
@@ -80,6 +81,10 @@
     "sessions": "buổi",
     "expiresOn": "Hết hạn",
     "renew": "Gia hạn",
+    "confirmRenewTitle": "Xác nhận gia hạn",
+    "confirmRenewMessage": "Bạn có chắc chắn muốn gia hạn gói này?",
+    "extendSuccessTitle": "Đã gia hạn",
+    "extendSuccessMessage": "Gia hạn gói thành công.",
     "addPT": "Thêm PT",
     "empty": {
       "currentTitle": "Chưa có gói tập",
@@ -294,7 +299,7 @@
     "save": "Lưu",
     "cancel": "Hủy",
     "confirm": "Xác nhận",
-    "delete": "Xóa",
+    "ok": "OK",
     "edit": "Sửa",
     "close": "Đóng",
     "next": "Tiếp theo",

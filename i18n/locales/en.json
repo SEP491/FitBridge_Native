@@ -70,7 +70,8 @@
     "fitnessDetail": "Fitness Tracking",
     "calendarSchedule": "Training Schedule",
     "bookSession": "Book Session",
-    "myPackage": "My Package"
+    "myPackage": "My Package",
+    "ptInCourseExtend": "Buy PT for Course"
   },
 
   "myPackage": {
@@ -81,6 +82,10 @@
     "sessions": "sessions",
     "expiresOn": "Expires on",
     "renew": "Renew",
+    "confirmRenewTitle": "Confirm renew",
+    "confirmRenewMessage": "Are you sure you want to renew this package?",
+    "extendSuccessTitle": "Renewed",
+    "extendSuccessMessage": "Package renewed successfully.",
     "addPT": "Add PT",
     "empty": {
       "currentTitle": "No packages yet",
@@ -292,6 +297,7 @@
   },
 
   "common": {
+    "ok": "OK",
     "save": "Save",
     "cancel": "Cancel",
     "confirm": "Confirm",

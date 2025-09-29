@@ -6,17 +6,21 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Image,
+  Alert,
+  Linking,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "../../hooks/useTranslation";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import packageService from "../../services/packageService";
 import colors from "../../constants/color";
+import { useNavigation } from "@react-navigation/native";
 
 export default function MyPackageScreen() {
   const { t } = useTranslation();
   const [packages, setPackages] = useState([]);
   const [activeTab, setActiveTab] = useState("current");
+  const navigation = useNavigation();
 
   useEffect(() => {
     const fetchPackageGymCourse = async () => {
@@ -64,6 +68,50 @@ export default function MyPackageScreen() {
     const expired = isPackageExpired(pkg.expirationDate);
     return activeTab === "expired" ? expired : !expired;
   });
+
+  const handleRenew = (customerPurchaseId) => async () => {
+    // Show confirmation alert first. If user confirms, proceed to call the extend API.
+    Alert.alert(
+      t("myPackage.confirmRenewTitle"),
+      t("myPackage.confirmRenewMessage"),
+      [
+        {
+          text: t("common.cancel"),
+          style: "cancel",
+        },
+        {
+          text: t("common.ok") || "OK",
+          onPress: async () => {
+            try {
+              const response = await packageService.extendPackage({
+                customerPurchasedIdToExtend: customerPurchaseId,
+                paymentMethodId: "01997597-d188-7f12-95f4-43ef8d442612",
+                quantity: 1,
+              });
+              console.log("Extend Package Response:", response.data);
+
+              if (
+                response.data &&
+                response.data.data &&
+                response.data.data.checkoutUrl
+              ) {
+                Linking.openURL(response.data.data.checkoutUrl);
+              }
+            } catch (error) {
+              console.error(
+                "Error extending package:",
+                error?.response?.data || error
+              );
+              Alert.alert(t("common.error"), t("errors.cannotLoadPaymentLink"));
+            }
+          },
+        },
+      ],
+      {
+        cancelable: true,
+      }
+    );
+  };
 
   const renderPackageItem = ({ item }) => {
     const expired = isPackageExpired(item.expirationDate);
@@ -124,19 +172,14 @@ export default function MyPackageScreen() {
           </View>
 
           <View style={styles.actionButtons}>
-            {expired && (
-              <TouchableOpacity style={styles.renewButton}>
+            {!expired && (
+              <TouchableOpacity
+                style={styles.renewButton}
+                onPress={handleRenew(item.id)}
+              >
                 <Text style={styles.renewButtonText}>
                   {t("myPackage.renew")}
                 </Text>
-              </TouchableOpacity>
-            )}
-
-            {item.canAssignPT && (
-              <TouchableOpacity
-                style={[styles.ptButton, expired && styles.ptButtonFullWidth]}
-              >
-                <Text style={styles.ptButtonText}>{t("myPackage.addPT")}</Text>
               </TouchableOpacity>
             )}
           </View>

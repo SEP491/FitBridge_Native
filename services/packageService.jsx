@@ -18,6 +18,8 @@ const packageService = {
       {},
       params
     ),
+
+  extendPackage: (data) => request("POST", "v1/gym-courses/extend", data),
 };
 
 export default packageService;

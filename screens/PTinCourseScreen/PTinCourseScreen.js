@@ -181,12 +181,13 @@ export default function PTinCourseScreen({ route }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#FFFFFF"
+    backgroundColor: "#FFFFFF",
   },
   container: {
     flex: 1,
     backgroundColor: "#FFFFFF",
-  },searchContainer: {
+  },
+  searchContainer: {
     paddingHorizontal: 20,
     paddingVertical: 16,
     backgroundColor: "#FFFFFF",
@@ -208,7 +209,8 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: "#212529",
-  },scrollView: {
+  },
+  scrollView: {
     flex: 1,
   },
   scrollContent: {
