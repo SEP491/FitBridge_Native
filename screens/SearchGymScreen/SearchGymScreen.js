@@ -58,7 +58,7 @@ export default function SearchGymScreen() {
       }
 
       const response = await gymService.searchGyms({
-        name: query.trim(),
+        searchTerm: query.trim(),
         page: page,
         size: 10,
       });
@@ -290,8 +290,9 @@ export default function SearchGymScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFFFFF"
-  },searchHeader: {
+    backgroundColor: "#FFFFFF",
+  },
+  searchHeader: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
@@ -300,7 +301,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#F0F0F0",
     elevation: 2,
-    shadowColor: "#000",shadowOpacity: 0.1,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
     shadowRadius: 4,
   },
   searchContainer: {

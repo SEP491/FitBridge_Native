@@ -17,7 +17,7 @@ import { useCart } from "../../context/CartContext";
 import colors from "../../constants/color";
 import { useTranslation } from "../../hooks/useTranslation";
 import PTCard from "../../components/PTCard/PTCard";
-
+import Foundation from "@expo/vector-icons/Foundation";
 export default function PTinCourseScreen({ route }) {
   const { t } = useTranslation();
   const { gymPackage } = route.params;

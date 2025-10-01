@@ -725,7 +725,7 @@ export default function Navigator({
           />
         )}
 
-        {user?.role === "PT" && (
+        {user?.role === "GymPT" && (
           <Tab.Screen
             name={t("navigation.ptSchedule")}
             component={SchedulePTStack}

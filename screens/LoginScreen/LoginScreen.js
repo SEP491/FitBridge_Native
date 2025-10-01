@@ -49,7 +49,11 @@ export default function LoginScreen() {
       console.log("Login response:", response);
       const userData = jwtDecode(response.data.idToken);
       console.log("Decoded user data:", userData);
-      if (userData.role === "Customer" || userData.role === "PT") {
+      if (
+        userData.role === "Customer" ||
+        userData.role === "GymPT" ||
+        userData.role === "FreelancePT"
+      ) {
         // Store token and user data
         await AsyncStorage.setItem("token", response.data.accessToken);
         const user = {
@@ -235,7 +239,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8F9FA"
+    backgroundColor: "#F8F9FA",
   },
   scrollContainer: {
     flexGrow: 1,
@@ -269,7 +273,8 @@ const styles = StyleSheet.create({
   formContainer: {
     borderRadius: 24,
     padding: 2,
-    shadowColor: "#000",shadowOpacity: 0.15,
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
     shadowRadius: 16,
     elevation: 8,
   },
@@ -328,7 +333,8 @@ const styles = StyleSheet.create({
   loginButton: {
     borderRadius: 16,
     marginBottom: 32,
-    shadowColor: "#FF914D",shadowOpacity: 0.3,
+    shadowColor: "#FF914D",
+    shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
   },
@@ -345,7 +351,8 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 18,
     fontWeight: "bold",
-  },signUpSection: {
+  },
+  signUpSection: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
