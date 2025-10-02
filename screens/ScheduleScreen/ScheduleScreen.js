@@ -9,80 +9,189 @@ import {
   RefreshControl,
   SafeAreaView,
   StatusBar,
+  Modal,
+  FlatList,
+  Dimensions,
 } from "react-native";
 import React, { useState, useEffect } from "react";
-import { useNavigation } from "@react-navigation/native";
-import accountService from "../../services/accountService";
 import colors from "../../constants/color";
-import Ionicons from "@expo/vector-icons/Ionicons";
 import { useTranslation } from "../../hooks/useTranslation";
-import { formatDateForAPI } from "../../lib";
+import { fetchUserFromStorage, formatDateForAPI } from "../../lib";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import accountService from "../../services/accountService";
+
+const { width, height } = Dimensions.get("window");
 
 export default function ScheduleScreen({ route }) {
   const { t } = useTranslation();
-  const navigation = useNavigation();
-  const [ptData, setPtData] = useState(null);
   const [slots, setSlots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [registering, setRegistering] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [currentWeekOffset, setCurrentWeekOffset] = useState(0);
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
-  const { ptId } = route.params || {};
+  // Dropdown states
+  const [showMonthDropdown, setShowMonthDropdown] = useState(false);
+  const [showWeekDropdown, setShowWeekDropdown] = useState(false);
 
-  // Get array of 7 days for the current week (starting from Monday)
-  const getCurrentWeekDays = (weekOffset = 0) => {
-    const today = new Date();
-    const targetDate = new Date(today);
-    targetDate.setDate(today.getDate() + weekOffset * 7);
+  // Helper function to get current week number
+  const getCurrentWeekInMonth = (date = new Date()) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const currentDate = date.getDate();
 
-    const currentMonday = new Date(targetDate);
-    const dayOfWeek = targetDate.getDay();
-    const daysFromMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-    currentMonday.setDate(targetDate.getDate() + daysFromMonday);
+    const firstDay = new Date(year, month, 1);
+    const firstMonday = new Date(firstDay);
+    const firstDayOfWeek = firstDay.getDay();
+    const daysToSubtract = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
+    firstMonday.setDate(firstDay.getDate() - daysToSubtract);
+
+    // Calculate which week the current date falls into
+    let weekNum = 1;
+    let currentWeekStart = new Date(firstMonday);
+
+    while (
+      currentWeekStart.getMonth() <= month &&
+      currentWeekStart.getFullYear() <= year
+    ) {
+      const currentWeekEnd = new Date(currentWeekStart);
+      currentWeekEnd.setDate(currentWeekStart.getDate() + 6);
+
+      // Check if current date falls in this week
+      if (
+        currentDate >= currentWeekStart.getDate() &&
+        currentDate <= currentWeekEnd.getDate() &&
+        currentWeekStart.getMonth() <= month &&
+        currentWeekEnd.getMonth() >= month
+      ) {
+        return weekNum;
+      }
+
+      currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+      weekNum++;
+
+      if (weekNum > 6) break; // Safety check
+    }
+
+    return 1; // Default to week 1 if calculation fails
+  };
+
+  // Initialize with current week number
+  const [selectedWeekInMonth, setSelectedWeekInMonth] = useState(() =>
+    getCurrentWeekInMonth()
+  );
+
+  // Get day name with translation
+  const getDayName = (date) => {
+    const dayKeys = [
+      "calendar.sunday",
+      "calendar.monday",
+      "calendar.tuesday",
+      "calendar.wednesday",
+      "calendar.thursday",
+      "calendar.friday",
+      "calendar.saturday",
+    ];
+    return t(dayKeys[date.getDay()]);
+  };
+
+  // Get current month and year for header with translation
+  const getCurrentMonth = () => {
+    const monthKeys = [
+      "calendar.january",
+      "calendar.february",
+      "calendar.march",
+      "calendar.april",
+      "calendar.may",
+      "calendar.june",
+      "calendar.july",
+      "calendar.august",
+      "calendar.september",
+      "calendar.october",
+      "calendar.november",
+      "calendar.december",
+    ];
+    return `${t(monthKeys[selectedMonth])} ${t(
+      "calendar.year"
+    )} ${selectedYear}`;
+  };
+
+  // Get total weeks in selected month
+  const getWeeksInMonth = (month, year) => {
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+
+    // Get the Monday of the week containing the first day
+    const firstMonday = new Date(firstDay);
+    const firstDayOfWeek = firstDay.getDay();
+    const daysToSubtract = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
+    firstMonday.setDate(firstDay.getDate() - daysToSubtract);
+
+    // Count weeks that contain days from the selected month
+    let weekCount = 0;
+    let currentWeekStart = new Date(firstMonday);
+
+    while (
+      currentWeekStart.getMonth() <= month &&
+      currentWeekStart.getFullYear() <= year
+    ) {
+      const currentWeekEnd = new Date(currentWeekStart);
+      currentWeekEnd.setDate(currentWeekStart.getDate() + 6);
+
+      // Check if this week contains any days from the selected month
+      if (
+        (currentWeekStart.getMonth() === month &&
+          currentWeekStart.getFullYear() === year) ||
+        (currentWeekEnd.getMonth() === month &&
+          currentWeekEnd.getFullYear() === year) ||
+        (currentWeekStart.getMonth() < month &&
+          currentWeekEnd.getMonth() > month)
+      ) {
+        weekCount++;
+      }
+
+      currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+
+      if (weekCount > 6) break; // Safety check
+    }
+
+    return Math.max(1, weekCount);
+  };
+
+  // Get the current week days based on selected month and week
+  const getCurrentWeekDaysForMonth = () => {
+    const firstDay = new Date(selectedYear, selectedMonth, 1);
+    const firstMonday = new Date(firstDay);
+    const firstDayOfWeek = firstDay.getDay();
+    const daysToSubtract = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
+    firstMonday.setDate(firstDay.getDate() - daysToSubtract);
+
+    // Get the start of the selected week
+    const weekStart = new Date(firstMonday);
+    weekStart.setDate(firstMonday.getDate() + (selectedWeekInMonth - 1) * 7);
 
     const days = [];
     for (let i = 0; i < 7; i++) {
-      const day = new Date(currentMonday);
-      day.setDate(currentMonday.getDate() + i);
+      const day = new Date(weekStart);
+      day.setDate(weekStart.getDate() + i);
       days.push(day);
     }
     return days;
   };
 
-  // Format date for display
-  const formatDateDisplay = (date) => {
-    return date.toLocaleDateString("vi-VN", {
-      day: "2-digit",
-      month: "2-digit",
-    });
-  };
-
-  // Get day name in Vietnamese
-  const getDayName = (date) => {
-    const days = t("schedule.daysShort");
-    return days[date.getDay()];
-  };
-
-  // Load PT slots for user
-  const loadPtSlotForUser = async (date = selectedDate) => {
-    if (!ptId) return;
-
-    setLoading(true);
+  const loadPTSlotOfUser = async (date = selectedDate) => {
     try {
-      const dateParam = formatDateForAPI(date);
-      const response = await accountService.getPTSlotforUser(ptId, {
-        date: dateParam,
+      const registerDate = formatDateForAPI(date);
+      const response = await accountService.getPTSlotforUser({
+        registerDate,
       });
-      console.log("PT Slots Response:", response.data);
-
-      if (response.data) {
-        setPtData(response.data);
-        setSlots(response.data.ptSlots || []);
-      }
+      setSlots(response.data?.items || []);
+      console.log("Slots data:", response.data?.items || []);
     } catch (error) {
-      console.error("Error loading PT slots:", error);
-      Alert.alert(t("schedule.error"), t("schedule.errorLoadingSlots"));
+      console.error("Error loading gym slots:", error);
+      Alert.alert(t("schedule.error"), t("schedule.loadSlotsError"));
     } finally {
       setLoading(false);
     }
@@ -91,21 +200,117 @@ export default function ScheduleScreen({ route }) {
   // Handle date selection
   const handleDateSelect = (date) => {
     setSelectedDate(date);
-    loadPtSlotForUser(date);
+    setLoading(true);
+    loadPTSlotOfUser(date);
   };
 
-  // Navigate to previous week (limited to not go past current week)
-  const goToPreviousWeek = () => {
-    if (currentWeekOffset > 0) {
-      setCurrentWeekOffset(currentWeekOffset - 1);
+  // Generate months data for dropdown - only current and future months
+  const generateMonthsData = () => {
+    const monthKeys = [
+      "calendar.january",
+      "calendar.february",
+      "calendar.march",
+      "calendar.april",
+      "calendar.may",
+      "calendar.june",
+      "calendar.july",
+      "calendar.august",
+      "calendar.september",
+      "calendar.october",
+      "calendar.november",
+      "calendar.december",
+    ];
+
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth();
+    const data = [];
+
+    // Generate data for current year (from current month onwards) and next year
+    for (let year = currentYear; year <= currentYear + 1; year++) {
+      monthKeys.forEach((monthKey, index) => {
+        // For current year, only include current month and future months
+        // For next year, include all months
+        if (year === currentYear && index < currentMonth) {
+          return; // Skip past months in current year
+        }
+
+        data.push({
+          id: `${year}-${index}`,
+          month: index,
+          year: year,
+          display: `${t(monthKey)} ${t("calendar.year")} ${year}`,
+        });
+      });
     }
+    return data;
   };
 
-  // Navigate to next week (limited to only 1 week ahead)
-  const goToNextWeek = () => {
-    if (currentWeekOffset < 1) {
-      setCurrentWeekOffset(currentWeekOffset + 1);
+  // Generate weeks data for selected month - only current and future weeks
+  const generateWeeksData = () => {
+    const totalWeeks = getWeeksInMonth(selectedMonth, selectedYear);
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth();
+    const data = [];
+
+    for (let week = 1; week <= totalWeeks; week++) {
+      // If this is the current month and year, check if the week is in the past
+      if (selectedYear === currentYear && selectedMonth === currentMonth) {
+        // Get the days for this week
+        const firstDay = new Date(selectedYear, selectedMonth, 1);
+        const firstMonday = new Date(firstDay);
+        const firstDayOfWeek = firstDay.getDay();
+        const daysToSubtract = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
+        firstMonday.setDate(firstDay.getDate() - daysToSubtract);
+
+        // Get the start of the selected week
+        const weekStart = new Date(firstMonday);
+        weekStart.setDate(firstMonday.getDate() + (week - 1) * 7);
+
+        // Get the end of the week (Sunday)
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 6);
+        weekEnd.setHours(23, 59, 59, 999); // End of Sunday
+
+        // If the entire week is in the past, skip it
+        if (weekEnd < currentDate) {
+          continue;
+        }
+      }
+
+      data.push({
+        id: week,
+        week: week,
+        display: `${t("calendar.week")} ${week}`,
+      });
     }
+    return data;
+  };
+
+  // Handle month selection
+  const handleMonthSelect = (monthData) => {
+    setSelectedMonth(monthData.month);
+    setSelectedYear(monthData.year);
+
+    // If selecting current month, set to current week; otherwise set to week 1
+    const currentDate = new Date();
+    if (
+      monthData.year === currentDate.getFullYear() &&
+      monthData.month === currentDate.getMonth()
+    ) {
+      setSelectedWeekInMonth(getCurrentWeekInMonth());
+    } else {
+      setSelectedWeekInMonth(1);
+    }
+
+    setShowMonthDropdown(false);
+  };
+
+  // Handle week selection
+  const handleWeekSelect = (weekData) => {
+    setSelectedWeekInMonth(weekData.week);
+    setShowWeekDropdown(false);
   };
 
   // Check if date is today
@@ -119,15 +324,73 @@ export default function ScheduleScreen({ route }) {
     return date.toDateString() === selectedDate.toDateString();
   };
 
-  // Check if date is in the past
-  const isPastDate = (date) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    date.setHours(0, 0, 0, 0);
-    return date < today;
+  const handleToggleSlotActivation = async (slot) => {
+    const action = slot.isActivated ? "deactivate" : "activate";
+    const actionText = slot.isActivated
+      ? t("schedule.deactivate")
+      : t("schedule.activate");
+
+    Alert.alert(
+      t("schedule.confirmAction"),
+      t("schedule.toggleSlotConfirm", {
+        slotName: slot.name,
+        action: actionText,
+      }),
+      [
+        {
+          text: t("schedule.cancel"),
+          style: "cancel",
+        },
+        {
+          text: actionText,
+          onPress: async () => {
+            setRegistering(slot.slotId);
+            try {
+              if (slot.isActivated) {
+                await ptService.deactivateSlot({
+                  ptGymSlotId: slot.ptGymSlotId,
+                });
+              } else {
+                await ptService.registerSlot({
+                  slotId: slot.slotId,
+                  registerDate: formatDateForAPI(selectedDate),
+                });
+              }
+              Alert.alert(
+                t("schedule.success"),
+                t("schedule.toggleSlotSuccess", { action: actionText })
+              );
+              loadPTSlotOfUser(selectedDate); // Refresh the slots
+            } catch (error) {
+              console.error("Error toggling slot activation:", error);
+              Alert.alert(t("schedule.error"), t("schedule.toggleSlotError"));
+            } finally {
+              setRegistering(null);
+            }
+          },
+        },
+      ]
+    );
   };
 
-  // Format time for display
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadSlotOfGym(selectedDate);
+    setRefreshing(false);
+  };
+
+  useEffect(() => {
+    const loadData = async () => {
+      const today = new Date();
+      setSelectedDate(today);
+      setSelectedMonth(today.getMonth());
+      setSelectedYear(today.getFullYear());
+      setSelectedWeekInMonth(getCurrentWeekInMonth(today));
+      loadPTSlotOfUser(today);
+    };
+    loadData();
+  }, []);
+
   const formatTime = (timeString) => {
     const [hours, minutes] = timeString.split(":");
     const hour = parseInt(hours);
@@ -137,7 +400,6 @@ export default function ScheduleScreen({ route }) {
     return `${displayHour}:${minute.toString().padStart(2, "0")} ${period}`;
   };
 
-  // Calculate duration
   const calculateDuration = (startTime, endTime) => {
     const start = new Date(`1970-01-01T${startTime}`);
     const end = new Date(`1970-01-01T${endTime}`);
@@ -158,207 +420,73 @@ export default function ScheduleScreen({ route }) {
     }
   };
 
-  // Get current week range text
-  const getWeekRangeText = () => {
-    const weekDays = getCurrentWeekDays(currentWeekOffset);
-    const startDate = weekDays[0];
-    const endDate = weekDays[6];
-
-    if (startDate.getMonth() === endDate.getMonth()) {
-      return `${startDate.getDate()} - ${endDate.getDate()} ${t(
-        "schedule.month"
-      )} ${startDate.getMonth() + 1}, ${startDate.getFullYear()}`;
-    } else {
-      return `${startDate.getDate()}/${
-        startDate.getMonth() + 1
-      } - ${endDate.getDate()}/${
-        endDate.getMonth() + 1
-      }, ${startDate.getFullYear()}`;
-    }
-  };
-
-  // Handle slot booking
-  const handleBookSlot = (slot) => {
-    if (!slot.active) {
-      Alert.alert(
-        t("schedule.notificationTitle"),
-        t("schedule.slotNotActivated")
-      );
-      return;
-    }
-
-    if (slot.isBooking) {
-      Alert.alert(
-        t("schedule.notificationTitle"),
-        t("schedule.slotAlreadyBooked")
-      );
-      return;
-    }
-
-    Alert.alert(
-      t("schedule.confirmBooking"),
-      t("schedule.bookingConfirmMessage", {
-        slotName: slot.slot.name,
-        startTime: formatTime(slot.slot.startTime),
-        endTime: formatTime(slot.slot.endTime),
-      }),
-      [
-        { text: t("schedule.cancel"), style: "cancel" },
-        {
-          text: t("schedule.bookSlot"),
-          onPress: async () => {
-            const bookingData = {
-              ptSlotId: slot.id,
-              date: formatDateForAPI(selectedDate),
-            };
-            const response = await accountService.bookingSlot(bookingData);
-            console.log("Booking Response:", response);
-            loadPtSlotForUser(selectedDate);
-            // Navigate to booking confirmation or handle booking
-            Alert.alert(t("schedule.success"), t("schedule.bookingSuccess"));
-          },
-        },
-      ]
-    );
-  };
-
-  // Refresh function
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await loadPtSlotForUser(selectedDate);
-    setRefreshing(false);
-  };
-
-  useEffect(() => {
-    const today = new Date();
-    setSelectedDate(today);
-    loadPtSlotForUser(today);
-  }, [ptId]);
-
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar barStyle="light-content" backgroundColor={colors.red} />
 
       <View style={styles.container}>
-        {/* Week Navigation Header */}
-        <View style={styles.weekNavigationContainer}>
+        {/* Combined Month and Week Selector */}
+        <View style={styles.combinedSelectorContainer}>
+          {/* Week Selector */}
           <TouchableOpacity
-            style={[
-              styles.navButton,
-              currentWeekOffset <= 0 && styles.disabledNavButton,
-            ]}
-            onPress={goToPreviousWeek}
-            activeOpacity={0.7}
-            disabled={currentWeekOffset <= 0}
+            style={styles.weekSelector}
+            onPress={() => setShowWeekDropdown(true)}
           >
-            <Text
-              style={[
-                styles.navButtonText,
-                currentWeekOffset <= 0 && styles.disabledNavButtonText,
-              ]}
-            >
-              ‹
+            <Text style={styles.weekText}>
+              {t("calendar.week")} {selectedWeekInMonth}
             </Text>
+            <Ionicons name="chevron-down" size={20} color="#666" />
           </TouchableOpacity>
 
-          <View style={styles.weekInfoContainer}>
-            <Text style={styles.weekText}>{getWeekRangeText()}</Text>
-          </View>
-
+          {/* Month Selector */}
           <TouchableOpacity
-            style={[
-              styles.navButton,
-              currentWeekOffset >= 1 && styles.disabledNavButton,
-            ]}
-            onPress={goToNextWeek}
-            activeOpacity={0.7}
-            disabled={currentWeekOffset >= 1}
+            style={styles.monthSelector}
+            onPress={() => setShowMonthDropdown(true)}
           >
-            <Text
-              style={[
-                styles.navButtonText,
-                currentWeekOffset >= 1 && styles.disabledNavButtonText,
-              ]}
-            >
-              ›
-            </Text>
+            <Text style={styles.monthText}>{getCurrentMonth()}</Text>
+            <Ionicons name="chevron-down" size={20} color="#666" />
           </TouchableOpacity>
         </View>
 
-        {/* Date Picker */}
-        <View style={styles.datePickerContainer}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.dateScrollContent}
-          >
-            {getCurrentWeekDays(currentWeekOffset).map((date, index) => {
-              const isSelectedDate = isSelected(date);
-              const isTodayDate = isToday(date);
-              const isPast = isPastDate(date);
+        {/* Full Width Date Picker - 7 days without scroll */}
+        <View style={styles.fullWidthDateContainer}>
+          {getCurrentWeekDaysForMonth().map((date, index) => {
+            const isSelectedDate = isSelected(date);
+            const isTodayDate = isToday(date);
 
-              return (
-                <TouchableOpacity
-                  key={index}
+            return (
+              <TouchableOpacity
+                key={index}
+                style={[
+                  styles.fullWidthDateItem,
+                  isSelectedDate && styles.selectedFullWidthDateItem,
+                  isTodayDate &&
+                    !isSelectedDate &&
+                    styles.todayFullWidthDateItem,
+                ]}
+                onPress={() => handleDateSelect(date)}
+                activeOpacity={0.7}
+              >
+                <Text
                   style={[
-                    styles.dateItem,
-                    isSelectedDate && styles.selectedDateItem,
-                    isTodayDate && !isSelectedDate && styles.todayDateItem,
-                    isPast &&
-                      !isSelectedDate &&
-                      !isTodayDate &&
-                      styles.pastDateItem,
+                    styles.fullWidthDayName,
+                    isSelectedDate && styles.selectedFullWidthDayName,
                   ]}
-                  onPress={() => handleDateSelect(date)}
-                  activeOpacity={0.7}
-                  disabled={isPast}
                 >
-                  <Text
-                    style={[
-                      styles.dayName,
-                      isSelectedDate && styles.selectedDayName,
-                      isTodayDate && !isSelectedDate && styles.todayDayName,
-                      isPast &&
-                        !isSelectedDate &&
-                        !isTodayDate &&
-                        styles.pastDayName,
-                    ]}
-                  >
-                    {getDayName(date)}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.dateNumber,
-                      isSelectedDate && styles.selectedDateNumber,
-                      isTodayDate && !isSelectedDate && styles.todayDateNumber,
-                      isPast &&
-                        !isSelectedDate &&
-                        !isTodayDate &&
-                        styles.pastDateNumber,
-                    ]}
-                  >
-                    {date.getDate()}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.monthText,
-                      isSelectedDate && styles.selectedMonthText,
-                      isTodayDate && !isSelectedDate && styles.todayMonthText,
-                      isPast &&
-                        !isSelectedDate &&
-                        !isTodayDate &&
-                        styles.pastMonthText,
-                    ]}
-                  >
-                    {t("schedule.month").slice(0, 2)}
-                    {date.getMonth() + 1}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
+                  {getDayName(date)}
+                </Text>
+                <Text
+                  style={[
+                    styles.fullWidthDateNumber,
+                    isSelectedDate && styles.selectedFullWidthDateNumber,
+                  ]}
+                >
+                  {date.getDate()}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
-
         {/* Slots List */}
         <ScrollView
           style={styles.scrollView}
@@ -380,36 +508,41 @@ export default function ScheduleScreen({ route }) {
           ) : slots.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Ionicons name="calendar-outline" size={64} color="#ccc" />
-              <Text style={styles.emptyText}>{t("schedule.noTimeSlots")}</Text>
+              <Text style={styles.emptyText}>
+                {t("schedule.noSlotsAvailable")}
+              </Text>
               <Text style={styles.emptySubText}>
                 {t("schedule.onDate", {
-                  date: formatDateDisplay(selectedDate),
+                  date: selectedDate.toLocaleDateString("vi-VN", {
+                    day: "2-digit",
+                    month: "2-digit",
+                  }),
                 })}
               </Text>
             </View>
           ) : (
-            slots.map((ptSlot) => (
-              <View key={ptSlot.id} style={styles.slotCard}>
+            slots.map((slot) => (
+              <View key={slot.slotId} style={styles.slotCard}>
                 <View style={styles.slotHeader}>
-                  <Text style={styles.slotName}>{ptSlot.slot.name}</Text>
+                  <Text style={styles.slotName}>{slot.name}</Text>
                   <View style={styles.statusContainer}>
-                    {ptSlot.isBooking && (
-                      <View style={styles.bookingBadge}>
-                        <Text style={styles.bookingText}>
-                          {t("schedule.booked")}
-                        </Text>
-                      </View>
-                    )}
                     <View
                       style={[
                         styles.statusBadge,
-                        ptSlot.active
+                        slot.isActivated
                           ? styles.activeBadge
                           : styles.inactiveBadge,
                       ]}
                     >
-                      <Text style={styles.statusText}>
-                        {ptSlot.active
+                      <Text
+                        style={[
+                          styles.statusText,
+                          slot.isActivated
+                            ? styles.activeStatusText
+                            : styles.inactiveStatusText,
+                        ]}
+                      >
+                        {slot.isActivated
                           ? t("schedule.active")
                           : t("schedule.inactive")}
                       </Text>
@@ -423,7 +556,7 @@ export default function ScheduleScreen({ route }) {
                       {t("schedule.startTime")}
                     </Text>
                     <Text style={styles.timeValue}>
-                      {formatTime(ptSlot.slot.startTime)}
+                      {formatTime(slot.startTime)}
                     </Text>
                   </View>
                   <View style={styles.timeSeparator} />
@@ -432,7 +565,7 @@ export default function ScheduleScreen({ route }) {
                       {t("schedule.endTime")}
                     </Text>
                     <Text style={styles.timeValue}>
-                      {formatTime(ptSlot.slot.endTime)}
+                      {formatTime(slot.endTime)}
                     </Text>
                   </View>
                 </View>
@@ -442,40 +575,152 @@ export default function ScheduleScreen({ route }) {
                     {t("schedule.duration")}
                   </Text>
                   <Text style={styles.durationValue}>
-                    {calculateDuration(
-                      ptSlot.slot.startTime,
-                      ptSlot.slot.endTime
-                    )}
+                    {calculateDuration(slot.startTime, slot.endTime)}
                   </Text>
                 </View>
 
                 <TouchableOpacity
                   style={[
-                    styles.bookButton,
-                    (!ptSlot.active || ptSlot.isBooking) &&
-                      styles.disabledBookButton,
+                    styles.toggleButton,
+                    registering === slot.slotId && styles.toggleButtonDisabled,
+                    slot.isActivated
+                      ? styles.deactivateButton
+                      : styles.activateButton,
                   ]}
-                  onPress={() => handleBookSlot(ptSlot)}
-                  disabled={!ptSlot.active || ptSlot.isBooking}
+                  onPress={() => handleToggleSlotActivation(slot)}
+                  disabled={registering === slot.slotId}
                 >
-                  <Text
-                    style={[
-                      styles.bookButtonText,
-                      (!ptSlot.active || ptSlot.isBooking) &&
-                        styles.disabledBookButtonText,
-                    ]}
-                  >
-                    {ptSlot.isBooking
-                      ? t("schedule.alreadyBooked")
-                      : ptSlot.active
-                      ? t("schedule.bookNow")
-                      : t("schedule.notAvailable")}
-                  </Text>
+                  {registering === slot.slotId ? (
+                    <ActivityIndicator size="small" color={colors.white} />
+                  ) : (
+                    <Text style={styles.toggleButtonText}>
+                      {slot.isActivated
+                        ? t("schedule.deactivateSlot")
+                        : t("schedule.activateSlot")}
+                    </Text>
+                  )}
                 </TouchableOpacity>
               </View>
             ))
           )}
         </ScrollView>
+
+        {/* Month Dropdown Modal */}
+        <Modal
+          visible={showMonthDropdown}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setShowMonthDropdown(false)}
+        >
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setShowMonthDropdown(false)}
+          >
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>
+                  {t("calendar.selectMonth")}
+                </Text>
+                <TouchableOpacity onPress={() => setShowMonthDropdown(false)}>
+                  <Ionicons name="close" size={24} color="#666" />
+                </TouchableOpacity>
+              </View>
+
+              <FlatList
+                data={generateMonthsData()}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={[
+                      styles.dropdownItem,
+                      item.month === selectedMonth &&
+                        item.year === selectedYear &&
+                        styles.selectedDropdownItem,
+                    ]}
+                    onPress={() => handleMonthSelect(item)}
+                  >
+                    <Text
+                      style={[
+                        styles.dropdownItemText,
+                        item.month === selectedMonth &&
+                          item.year === selectedYear &&
+                          styles.selectedDropdownItemText,
+                      ]}
+                    >
+                      {item.display}
+                    </Text>
+                    {item.month === selectedMonth &&
+                      item.year === selectedYear && (
+                        <Ionicons
+                          name="checkmark"
+                          size={20}
+                          color={colors.red}
+                        />
+                      )}
+                  </TouchableOpacity>
+                )}
+                style={styles.dropdownList}
+                showsVerticalScrollIndicator={false}
+              />
+            </View>
+          </TouchableOpacity>
+        </Modal>
+
+        {/* Week Dropdown Modal */}
+        <Modal
+          visible={showWeekDropdown}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setShowWeekDropdown(false)}
+        >
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setShowWeekDropdown(false)}
+          >
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>
+                  {t("calendar.selectWeek")}
+                </Text>
+                <TouchableOpacity onPress={() => setShowWeekDropdown(false)}>
+                  <Ionicons name="close" size={24} color="#666" />
+                </TouchableOpacity>
+              </View>
+
+              <FlatList
+                data={generateWeeksData()}
+                keyExtractor={(item) => item.id.toString()}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={[
+                      styles.dropdownItem,
+                      item.week === selectedWeekInMonth &&
+                        styles.selectedDropdownItem,
+                    ]}
+                    onPress={() => handleWeekSelect(item)}
+                  >
+                    <Text
+                      style={[
+                        styles.dropdownItemText,
+                        item.week === selectedWeekInMonth &&
+                          styles.selectedDropdownItemText,
+                      ]}
+                    >
+                      {item.display}
+                    </Text>
+                    {item.week === selectedWeekInMonth && (
+                      <Ionicons name="checkmark" size={20} color={colors.red} />
+                    )}
+                  </TouchableOpacity>
+                )}
+                style={styles.dropdownList}
+                showsVerticalScrollIndicator={false}
+              />
+            </View>
+          </TouchableOpacity>
+        </Modal>
       </View>
     </SafeAreaView>
   );
@@ -484,12 +729,12 @@ export default function ScheduleScreen({ route }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#FFFFFF"
   },
   container: {
     flex: 1,
     backgroundColor: "#f8f9fa",
-  },weekNavigationContainer: {
+  },
+  combinedSelectorContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -499,117 +744,81 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#e9ecef",
   },
-  navButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.red,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  disabledNavButton: {
-    backgroundColor: "#e9ecef",
-  },
-  navButtonText: {
-    color: colors.white,
-    fontSize: 24,
-    fontWeight: "700",
-  },
-  disabledNavButtonText: {
-    color: "#6c757d",
-  },
-  weekInfoContainer: {
+  weekSelector: {
+    flexDirection: "row",
     alignItems: "center",
     flex: 1,
-    paddingHorizontal: 16,
+    paddingVertical: 8,
+    paddingRight: 16,
+  },
+  monthSelector: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+    paddingLeft: 16,
+    borderLeftWidth: 1,
+    borderLeftColor: "#e9ecef",
   },
   weekText: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: "600",
     color: "#1a1a1a",
-    textAlign: "center",
+    marginRight: 8,
   },
-  datePickerContainer: {
+  monthText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#1a1a1a",
+    marginRight: 8,
+  },
+  fullWidthDateContainer: {
+    flexDirection: "row",
     backgroundColor: colors.white,
     paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: "#e9ecef",
   },
-  dateScrollContent: {
-    paddingHorizontal: 20,
-  },
-  dateItem: {
+  fullWidthDateItem: {
+    flex: 1,
     alignItems: "center",
     paddingVertical: 12,
-    paddingHorizontal: 16,
-    marginRight: 8,
-    borderRadius: 12,
-    backgroundColor: "#f8f9fa",
-    minWidth: 70,
   },
-  selectedDateItem: {
+  selectedFullWidthDateItem: {
     backgroundColor: colors.red,
+    marginHorizontal: 4,
+    borderRadius: 12,
   },
-  todayDateItem: {
+  todayFullWidthDateItem: {
     backgroundColor: "#e3f2fd",
+    marginHorizontal: 4,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: "#2196f3",
   },
-  pastDateItem: {
-    backgroundColor: "#f5f5f5",
-  },
-  dayName: {
+  fullWidthDayName: {
     fontSize: 12,
     fontWeight: "600",
     color: "#6c757d",
     marginBottom: 4,
   },
-  selectedDayName: {
+  selectedFullWidthDayName: {
     color: colors.white,
   },
-  todayDayName: {
-    color: "#2196f3",
-  },
-  pastDayName: {
-    color: "#adb5bd",
-  },
-  dateNumber: {
+  fullWidthDateNumber: {
     fontSize: 18,
     fontWeight: "700",
     color: "#212529",
-    marginBottom: 2,
   },
-  selectedDateNumber: {
+  selectedFullWidthDateNumber: {
     color: colors.white,
-  },
-  todayDateNumber: {
-    color: "#2196f3",
-  },
-  pastDateNumber: {
-    color: "#adb5bd",
-  },
-  monthText: {
-    fontSize: 10,
-    fontWeight: "500",
-    color: "#6c757d",
-  },
-  selectedMonthText: {
-    color: colors.white,
-  },
-  todayMonthText: {
-    color: "#2196f3",
-  },
-  pastMonthText: {
-    color: "#adb5bd",
   },
   scrollView: {
     flex: 1,
   },
   loadingContainer: {
-    flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    paddingVertical: 40,
+    paddingVertical: 60,
   },
   loadingText: {
     fontSize: 16,
@@ -641,7 +850,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginBottom: 16,
     elevation: 3,
-    shadowColor: "#000",shadowOpacity: 0.1,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
     shadowRadius: 4,
   },
   slotHeader: {
@@ -662,8 +872,8 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 12,
   },
   activeBadge: {
@@ -676,16 +886,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
   },
-  bookingBadge: {
-    backgroundColor: "#fff3cd",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
+  activeStatusText: {
+    color: "#155724",
   },
-  bookingText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#856404",
+  inactiveStatusText: {
+    color: "#721c24",
   },
   timeContainer: {
     flexDirection: "row",
@@ -700,6 +905,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#6c757d",
     marginBottom: 4,
+    textTransform: "uppercase",
+    fontWeight: "600",
   },
   timeValue: {
     fontSize: 16,
@@ -727,22 +934,79 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#212529",
   },
-  bookButton: {
-    backgroundColor: colors.red,
+  toggleButton: {
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 8,
     alignItems: "center",
+    justifyContent: "center",
+    minHeight: 48,
   },
-  disabledBookButton: {
-    backgroundColor: "#e9ecef",
+  activateButton: {
+    backgroundColor: colors.red,
   },
-  bookButtonText: {
+  deactivateButton: {
+    backgroundColor: "#6c757d",
+  },
+  toggleButtonDisabled: {
+    backgroundColor: "#ccc",
+  },
+  toggleButtonText: {
     color: colors.white,
     fontSize: 16,
     fontWeight: "600",
   },
-  disabledBookButtonText: {
-    color: "#6c757d",
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    padding: 0,
+    width: width * 0.85,
+    maxHeight: height * 0.7,
+    elevation: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e9ecef",
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1a1a1a",
+  },
+  dropdownList: {
+    maxHeight: height * 0.5,
+  },
+  dropdownItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+  },
+  selectedDropdownItem: {
+    backgroundColor: "#fff5f5",
+  },
+  dropdownItemText: {
+    fontSize: 16,
+    color: "#1a1a1a",
+    flex: 1,
+  },
+  selectedDropdownItemText: {
+    color: colors.red,
+    fontWeight: "600",
   },
 });

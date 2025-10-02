@@ -115,7 +115,6 @@ export default function Navigator({
           if (authResult.isValid) {
             setIsAuthenticated(true);
             setUser(authResult.user);
-            console.log("User updated:", authResult.user?.email || "unknown");
             await AsyncStorage.setItem("user", JSON.stringify(authResult.user));
 
             // Avatar will be automatically updated when screens refresh
@@ -382,7 +381,7 @@ export default function Navigator({
             ) : null,
         })}
       >
-        <Stack.Screen
+        {/* <Stack.Screen
           name="SchedulePTTabs"
           options={{
             headerShown: true,
@@ -426,16 +425,37 @@ export default function Navigator({
                   title: t("screenTitles.viewBookedSlots"),
                 }}
               />
-              {/* <TopTab.Screen
-                name="PTBookingHistoryScreen"
-                component={PTBookingHistoryScreen}
-                options={{
-                  title: "Slot với khách",
-                }}
-              /> */}
             </TopTab.Navigator>
           )}
-        </Stack.Screen>
+        </Stack.Screen> */}
+        <Stack.Screen
+          name="SchedulePTScreen"
+          component={SchedulePTScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.registerSlot"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="SlotsPTScreen"
+          component={SlotsPTScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.viewBookedSlots"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
         <Stack.Screen
           name="PTBookingHistoryScreen"
           component={PTBookingHistoryScreen}
@@ -648,7 +668,6 @@ export default function Navigator({
 
   const MainTab = () => {
     // Debug log to check user role
-    console.log("MainTab user role:", user?.role || "guest");
 
     return (
       <Tab.Navigator

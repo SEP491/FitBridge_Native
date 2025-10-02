@@ -571,8 +571,8 @@
     "onDate": "Vào ngày {{date}}",
     "active": "Hoạt động",
     "inactive": "Không hoạt động",
-    "startTime": "Thời gian bắt đầu",
-    "endTime": "Thời gian kết thúc",
+    "startTime": "Bắt đầu",
+    "endTime": "Kết thúc",
     "duration": "Thời lượng:",
     "alreadyBooked": "Đã được đặt",
     "bookNow": "Đặt ngay",
@@ -584,7 +584,15 @@
     "registerSlotConfirm": "Bạn có chắc chắn muốn đăng ký khung giờ {{slotName}}?",
     "registerSlotSuccess": "Đăng ký Khung giờ thành công!",
     "registerSlotError": "Không thể đăng ký khung giờ. Vui lòng thử lại.",
-    "loadSlotsError": "Không thể tải danh sách khung giờ. Vui lòng thử lại."
+    "loadSlotsError": "Không thể tải danh sách khung giờ. Vui lòng thử lại.",
+    "activate": "Kích hoạt",
+    "deactivate": "Hủy kích hoạt",
+    "activateSlot": "Kích hoạt khung giờ",
+    "deactivateSlot": "Hủy kích hoạt khung giờ",
+    "confirmAction": "Xác nhận hành động",
+    "toggleSlotConfirm": "Bạn có chắc chắn muốn {{action}} khung giờ {{slotName}}?",
+    "toggleSlotSuccess": "{{action}} khung giờ thành công!",
+    "toggleSlotError": "Không thể thay đổi trạng thái khung giờ. Vui lòng thử lại."
   },
 
   "calendar": {

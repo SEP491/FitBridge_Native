@@ -586,7 +586,15 @@
     "registerSlotConfirm": "Are you sure you want to register for time slot {{slotName}}?",
     "registerSlotSuccess": "Time slot registration successful!",
     "registerSlotError": "Cannot register for time slot. Please try again.",
-    "loadSlotsError": "Cannot load time slots list. Please try again."
+    "loadSlotsError": "Cannot load time slots list. Please try again.",
+    "activate": "Activate",
+    "deactivate": "Deactivate",
+    "activateSlot": "Activate Slot",
+    "deactivateSlot": "Deactivate Slot",
+    "confirmAction": "Confirm Action",
+    "toggleSlotConfirm": "Are you sure you want to {{action}} time slot {{slotName}}?",
+    "toggleSlotSuccess": "Time slot {{action}} successful!",
+    "toggleSlotError": "Cannot toggle time slot. Please try again."
   },
 
   "calendar": {
