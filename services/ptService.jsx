@@ -13,6 +13,9 @@ const ptService = {
 
   getPTForUser: (id, params) =>
     request("GET", `v1/pt-slot/${id}/user`, null, {}, params),
+
+  checkMinimumSlot: (data) =>
+    request("POST", "v1/gym-slots/check-minimum-slot", data),
 };
 
 export default ptService;

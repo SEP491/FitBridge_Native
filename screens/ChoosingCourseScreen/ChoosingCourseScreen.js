@@ -112,7 +112,7 @@ export default function ChoosingCourseScreen() {
                 course={course}
                 onPress={() =>
                   navigation.navigate("ScheduleScreen", {
-                    customerPurchasedId: course.id,
+                    customerPurchasedId: course.customerPurchasedId,
                     ptId: course.gymPtId,
                   })
                 }

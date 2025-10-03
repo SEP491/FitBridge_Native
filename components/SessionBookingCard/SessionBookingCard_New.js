@@ -1,0 +1,350 @@
+import React from "react";
+import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import colors from "../../constants/color";
+
+const SessionBookingCard = ({
+  booking,
+  formatTime,
+  calculateDuration,
+  buttonText,
+  buttonAction,
+  t, // translation function
+  ptName, // PT name from props
+  ptAvatar = null, // optional PT avatar
+  currentLanguage = "en", // language for date formatting
+}) => {
+  // Extract data from booking API response
+  const sessionStatus = booking.sessionStatus;
+
+  // Use gym slot times from the API response
+  const startTime = booking.gymSlotStartTime;
+  const endTime = booking.gymSlotEndTime;
+
+  // Use translation with fallbacks
+  const displayPtName =
+    ptName || (t ? t("common.personalTrainer") : "Personal Trainer");
+  const sessionTitle =
+    booking.slotName || (t ? t("schedule.ptSession") : "PT Training Session");
+  const cancelText =
+    buttonText || (t ? t("calendar.cancelSession") : "Cancel Session");
+
+  // Determine status badge color and icon
+  const getStatusInfo = (status) => {
+    switch (status?.toLowerCase()) {
+      case "booked":
+        return {
+          color: colors.orange,
+          backgroundColor: "#FFF8F0",
+          icon: "calendar-outline",
+          text: t ? t("calendar.statusBooked") : "Booked",
+        };
+      case "completed":
+        return {
+          color: "#28a745",
+          backgroundColor: "#F0F8F0",
+          icon: "checkmark-circle-outline",
+          text: t ? t("calendar.statusCompleted") : "Completed",
+        };
+      case "cancelled":
+        return {
+          color: "#6c757d",
+          backgroundColor: "#F8F9FA",
+          icon: "close-circle-outline",
+          text: t ? t("calendar.statusCancelled") : "Cancelled",
+        };
+      default:
+        return {
+          color: colors.red,
+          backgroundColor: "#FFF5F5",
+          icon: "time-outline",
+          text: t ? t("calendar.statusPending") : "Pending",
+        };
+    }
+  };
+
+  const statusInfo = getStatusInfo(sessionStatus);
+
+  // Format booking date for display
+  const formatBookingDate = (dateString) => {
+    if (!dateString) return "";
+    try {
+      const date = new Date(dateString);
+      const locale = currentLanguage === "vi" ? "vi-VN" : "en-US";
+      return date.toLocaleDateString(locale, {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+    } catch (error) {
+      return dateString;
+    }
+  };
+
+  const isActionDisabled =
+    sessionStatus?.toLowerCase() === "cancelled" ||
+    sessionStatus?.toLowerCase() === "completed";
+
+  // Check if the booking is in the past
+  const isBookingInPast = (() => {
+    try {
+      const now = new Date();
+
+      // Create a date object from the booking date
+      const bookingDate = new Date(booking.date);
+
+      // Extract hours and minutes from startTime (format: "HH:MM")
+      if (startTime && startTime.includes(":")) {
+        const [hours, minutes] = startTime.split(":").map(Number);
+
+        // Set the exact booking datetime
+        bookingDate.setHours(hours, minutes, 0, 0);
+
+        // Check if this datetime is in the past
+        return bookingDate < now;
+      }
+
+      return false;
+    } catch (error) {
+      console.log("Error checking booking date and time:", error);
+      return false;
+    }
+  })();
+
+  // Hide button if booking is in the past or disabled by status
+  const shouldHideButton = isBookingInPast || isActionDisabled;
+
+  return (
+    <View style={styles.sessionCard}>
+      {/* Header with status */}
+      <View style={[styles.cardHeader, { backgroundColor: statusInfo.color }]}>
+        <View style={styles.headerContent}>
+          <View style={styles.statusIndicator}>
+            <Ionicons name={statusInfo.icon} size={16} color={colors.white} />
+          </View>
+          <Text style={styles.statusText}>{statusInfo.text}</Text>
+        </View>
+      </View>
+
+      {/* Main content */}
+      <View style={styles.cardBody}>
+        <View style={styles.mainContent}>
+          <View style={styles.imageContainer}>
+            <Image
+              source={{
+                uri:
+                  ptAvatar ||
+                  `https://cdn-icons-png.flaticon.com/512/12620/12620371.png`,
+              }}
+              style={styles.avatar}
+              defaultSource={{
+                uri: `https://cdn-icons-png.flaticon.com/512/12620/12620371.png`,
+              }}
+            />
+            <View
+              style={[
+                styles.onlineIndicator,
+                sessionStatus?.toLowerCase() === "completed" &&
+                  styles.completedIndicator,
+              ]}
+            />
+          </View>
+
+          <View style={styles.content}>
+            <Text style={styles.title}>{sessionTitle}</Text>
+            <View style={styles.trainerInfo}>
+              <Ionicons name="person-outline" size={14} color={colors.red} />
+              <Text style={styles.trainerName}>{displayPtName}</Text>
+            </View>
+
+            <View style={styles.infoContainer}>
+              <View style={styles.infoItem}>
+                <Ionicons name="time-outline" size={14} color={colors.orange} />
+                <Text style={styles.infoText}>
+                  {formatTime(startTime)} - {formatTime(endTime)}
+                </Text>
+              </View>
+
+              <View style={styles.infoItem}>
+                <Ionicons
+                  name="stopwatch-outline"
+                  size={14}
+                  color={colors.orange}
+                />
+                <Text style={styles.infoText}>
+                  {calculateDuration(startTime, endTime)}
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Action button - only show if not in past and not disabled */}
+        {!shouldHideButton && (
+          <TouchableOpacity
+            style={[
+              styles.actionButton,
+              isActionDisabled && styles.disabledButton,
+            ]}
+            onPress={buttonAction}
+            disabled={isActionDisabled}
+          >
+            <Ionicons
+              name={isActionDisabled ? "ban-outline" : "close-circle-outline"}
+              size={16}
+              color={isActionDisabled ? "#999" : colors.red}
+            />
+            <Text
+              style={[
+                styles.actionButtonText,
+                isActionDisabled && styles.disabledButtonText,
+              ]}
+            >
+              {cancelText}
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  sessionCard: {
+    backgroundColor: colors.white,
+    borderRadius: 20,
+    marginHorizontal: 16,
+    marginVertical: 8,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 5,
+    overflow: "hidden",
+  },
+  cardHeader: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  headerContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  statusIndicator: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  statusText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: colors.white,
+  },
+  bookingId: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "rgba(255, 255, 255, 0.9)",
+  },
+  cardBody: {
+    padding: 20,
+  },
+  mainContent: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: 16,
+  },
+  imageContainer: {
+    position: "relative",
+    marginRight: 16,
+  },
+  avatar: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    borderWidth: 3,
+    borderColor: colors.white,
+  },
+  onlineIndicator: {
+    position: "absolute",
+    bottom: 2,
+    right: 2,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: "#4CAF50",
+    borderWidth: 3,
+    borderColor: colors.white,
+  },
+  completedIndicator: {
+    backgroundColor: "#2196F3",
+  },
+  content: {
+    flex: 1,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1a1a1a",
+    marginBottom: 8,
+  },
+  trainerInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  trainerName: {
+    fontSize: 15,
+    fontWeight: "500",
+    color: "#333",
+    marginLeft: 6,
+  },
+  infoContainer: {
+    gap: 8,
+  },
+  infoItem: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  infoText: {
+    fontSize: 14,
+    color: "#555",
+    marginLeft: 8,
+    fontWeight: "500",
+  },
+  actionButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFF5F5",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: "#FFE5E5",
+    gap: 8,
+  },
+  actionButtonText: {
+    fontSize: 15,
+    color: colors.red,
+    fontWeight: "600",
+  },
+  disabledButton: {
+    backgroundColor: "#F8F9FA",
+    borderColor: "#E9ECEF",
+  },
+  disabledButtonText: {
+    color: "#999",
+  },
+});
+
+export default SessionBookingCard;

@@ -14,6 +14,7 @@ const accountService = {
     request("GET", `v1/bookings/get-gym-slot-for-booking`, null, {}, params),
   bookingSlot: (data) =>
     request("POST", "v1/gym-slots/customer-register-slot", data),
+  cancelBooking: (data) => request("POST", "v1/bookings/cancel-booking", data),
   getBookingForUser: (params) =>
     request("GET", "v1/bookings/get-customer-bookings", null, {}, params),
 };

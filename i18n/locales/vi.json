@@ -313,7 +313,8 @@
     "error": "Lỗi",
     "warning": "Cảnh báo",
     "info": "Thông tin",
-    "optional": "Tùy chọn"
+    "optional": "Tùy chọn",
+    "personalTrainer": "Huấn Luyện Viên"
   },
 
   "account": {
@@ -545,9 +546,12 @@
 
   "schedule": {
     "bookSlot": "Đặt lịch",
+    "booking": "Đang đặt...",
     "success": "Thành công",
     "bookingSuccess": "Đặt lịch thành công!",
     "booked": "Đã được đặt",
+    "available": "Còn trống",
+    "customer": "Khách hàng",
     "bookSchedule": "Đặt lịch",
     "days": ["Chủ nhật", "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7"],
     "daysShort": ["CN", "T2", "T3", "T4", "T5", "T6", "T7"],
@@ -564,6 +568,9 @@
     "slotNotActivated": "Slot thời gian này chưa được PT kích hoạt.",
     "slotAlreadyBooked": "Slot thời gian này đã được đặt.",
     "confirmBooking": "Xác nhận đặt lịch",
+    "bookSlotConfirm": "Bạn có chắc chắn muốn đặt {{slotName}} không?",
+    "confirmBook": "Đặt ngay",
+    "cannotBookPastDate": "Không thể đặt lịch cho ngày đã qua",
     "bookingConfirmMessage": "Bạn có chắc chắn muốn đặt {{slotName}} từ {{startTime}} đến {{endTime}} không?",
     "cancel": "Hủy",
     "loadingSchedule": "Đang tải lịch trình...",
@@ -593,6 +600,8 @@
     "toggleSlotConfirm": "Bạn có chắc chắn muốn {{action}} khung giờ {{slotName}}?",
     "toggleSlotSuccess": "{{action}} khung giờ thành công!",
     "toggleSlotError": "Không thể thay đổi trạng thái khung giờ. Vui lòng thử lại.",
+    "slotActivatedSuccessfully": "Kích hoạt khung giờ thành công!",
+    "slotDeactivatedSuccessfully": "Hủy kích hoạt khung giờ thành công!",
     "ptSession": "Buổi Tập PT",
     "bookingConfirmation": "Xác Nhận Đặt Lịch",
     "confirmBookSlot": "Bạn có chắc chắn muốn đặt lịch với {{ptName}} từ {{time}} vào {{date}}?",
@@ -646,7 +655,20 @@
     "friday": "T6",
     "saturday": "T7",
     "session": "buổi",
-    "sessions": "buổi"
+    "sessions": "buổi",
+    "loadingSessions": "Đang tải buổi tập...",
+    "success": "Thành công",
+    "cancellationSuccess": "Hủy buổi tập thành công",
+    "error": "Lỗi",
+    "cancellationError": "Không thể hủy buổi tập",
+    "personalTrainingSession": "Tập Cá Nhân",
+    "statusBooked": "Đã Đặt",
+    "statusCompleted": "Hoàn Thành",
+    "statusCancelled": "Đã Hủy",
+    "statusPending": "Chờ Xử Lý",
+    "confirmCancelSession": "Bạn có chắc chắn muốn hủy buổi tập này?",
+    "yes": "Có",
+    "no": "Không"
   },
 
   "pt": {

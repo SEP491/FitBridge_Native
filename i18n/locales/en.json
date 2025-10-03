@@ -315,7 +315,8 @@
     "error": "Error",
     "warning": "Warning",
     "info": "Information",
-    "optional": "Optional"
+    "optional": "Optional",
+    "personalTrainer": "Personal Trainer"
   },
 
   "account": {
@@ -547,9 +548,12 @@
 
   "schedule": {
     "bookSlot": "Book Slot",
+    "booking": "Booking...",
     "success": "Success",
     "bookingSuccess": "Booking successful!",
     "booked": "Booked",
+    "available": "Available",
+    "customer": "Customer",
     "bookSchedule": "Book Schedule",
     "days": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
     "daysShort": ["SU", "MO", "TU", "WE", "TH", "FR", "SA"],
@@ -566,6 +570,9 @@
     "slotNotActivated": "This time slot has not been activated by PT.",
     "slotAlreadyBooked": "This time slot has already been booked.",
     "confirmBooking": "Confirm Booking",
+    "bookSlotConfirm": "Are you sure you want to book {{slotName}}?",
+    "confirmBook": "Book Now",
+    "cannotBookPastDate": "Cannot book slots for past dates",
     "bookingConfirmMessage": "Are you sure you want to book {{slotName}} from {{startTime}} to {{endTime}}?",
     "cancel": "Cancel",
     "loadingSchedule": "Loading schedule...",
@@ -595,6 +602,8 @@
     "toggleSlotConfirm": "Are you sure you want to {{action}} time slot {{slotName}}?",
     "toggleSlotSuccess": "Time slot {{action}} successful!",
     "toggleSlotError": "Cannot toggle time slot. Please try again.",
+    "slotActivatedSuccessfully": "Time slot activated successfully!",
+    "slotDeactivatedSuccessfully": "Time slot deactivated successfully!",
     "ptSession": "PT Training Session",
     "bookingConfirmation": "Booking Confirmation",
     "confirmBookSlot": "Are you sure you want to book a session with {{ptName}} from {{time}} on {{date}}?",
@@ -647,7 +656,20 @@
     "thursday": "Thu",
     "friday": "Fri",
     "saturday": "Sat",
-    "session": "session"
+    "session": "session",
+    "loadingSessions": "Loading sessions...",
+    "success": "Success",
+    "cancellationSuccess": "Session cancelled successfully",
+    "error": "Error",
+    "cancellationError": "Failed to cancel session",
+    "personalTrainingSession": "Personal Training",
+    "statusBooked": "Booked",
+    "statusCompleted": "Completed",
+    "statusCancelled": "Cancelled",
+    "statusPending": "Pending",
+    "confirmCancelSession": "Are you sure you want to cancel this session?",
+    "yes": "Yes",
+    "no": "No"
   },
 
   "pt": {
