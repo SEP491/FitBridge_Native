@@ -10,11 +10,12 @@ const accountService = {
 
   getCourseForUser: () =>
     request("GET", "v1/customer-purchased/customer-schedule"),
-  getPTSlotforUser: (id, params) =>
-    request("GET", `v1/pt-slot/${id}/user`, null, {}, params),
-  bookingSlot: (data) => request("POST", "v1/booking", data),
-  getBookingHistory: (params) =>
-    request("GET", "v1/booking/user", null, {}, params),
+  getPTSlotforUser: (params) =>
+    request("GET", `v1/bookings/get-gym-slot-for-booking`, null, {}, params),
+  bookingSlot: (data) =>
+    request("POST", "v1/gym-slots/customer-register-slot", data),
+  getBookingForUser: (params) =>
+    request("GET", "v1/bookings/get-customer-bookings", null, {}, params),
 };
 
 export default accountService;

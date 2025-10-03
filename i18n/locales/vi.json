@@ -592,7 +592,13 @@
     "confirmAction": "Xác nhận hành động",
     "toggleSlotConfirm": "Bạn có chắc chắn muốn {{action}} khung giờ {{slotName}}?",
     "toggleSlotSuccess": "{{action}} khung giờ thành công!",
-    "toggleSlotError": "Không thể thay đổi trạng thái khung giờ. Vui lòng thử lại."
+    "toggleSlotError": "Không thể thay đổi trạng thái khung giờ. Vui lòng thử lại.",
+    "ptSession": "Buổi Tập PT",
+    "bookingConfirmation": "Xác Nhận Đặt Lịch",
+    "confirmBookSlot": "Bạn có chắc chắn muốn đặt lịch với {{ptName}} từ {{time}} vào {{date}}?",
+    "slotBookedSuccessfully": "Đặt lịch thành công!",
+    "bookingError": "Đặt lịch thất bại. Vui lòng thử lại.",
+    "with": "với"
   },
 
   "calendar": {

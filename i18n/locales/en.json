@@ -594,7 +594,13 @@
     "confirmAction": "Confirm Action",
     "toggleSlotConfirm": "Are you sure you want to {{action}} time slot {{slotName}}?",
     "toggleSlotSuccess": "Time slot {{action}} successful!",
-    "toggleSlotError": "Cannot toggle time slot. Please try again."
+    "toggleSlotError": "Cannot toggle time slot. Please try again.",
+    "ptSession": "PT Training Session",
+    "bookingConfirmation": "Booking Confirmation",
+    "confirmBookSlot": "Are you sure you want to book a session with {{ptName}} from {{time}} on {{date}}?",
+    "slotBookedSuccessfully": "Slot booked successfully!",
+    "bookingError": "Failed to book slot. Please try again.",
+    "with": "with"
   },
 
   "calendar": {

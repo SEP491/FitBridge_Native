@@ -112,7 +112,7 @@ export default function ChoosingCourseScreen() {
                 course={course}
                 onPress={() =>
                   navigation.navigate("ScheduleScreen", {
-                    courseId: course.id,
+                    customerPurchasedId: course.id,
                     ptId: course.gymPtId,
                   })
                 }
@@ -139,7 +139,7 @@ export default function ChoosingCourseScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#FFFFFF"
+    backgroundColor: "#FFFFFF",
   },
   container: {
     flex: 1,
@@ -218,7 +218,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     elevation: 8,
-    shadowColor: "#000",shadowOpacity: 0.3,
+    shadowColor: "#000",
+    shadowOpacity: 0.3,
     shadowRadius: 4.65,
   },
 });

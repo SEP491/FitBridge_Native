@@ -16,9 +16,10 @@ import {
 import React, { useState, useEffect } from "react";
 import colors from "../../constants/color";
 import { useTranslation } from "../../hooks/useTranslation";
-import { fetchUserFromStorage, formatDateForAPI } from "../../lib";
+import { formatDateForAPI } from "../../lib";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import accountService from "../../services/accountService";
+import SessionCard from "../../components/SessionCard/SessionCard";
 
 const { width, height } = Dimensions.get("window");
 
@@ -27,11 +28,12 @@ export default function ScheduleScreen({ route }) {
   const [slots, setSlots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [registering, setRegistering] = useState(null);
+  const [booking, setBooking] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-
+  const { ptId } = route.params || {};
+  const { customerPurchasedId } = route.params || {};
   // Dropdown states
   const [showMonthDropdown, setShowMonthDropdown] = useState(false);
   const [showWeekDropdown, setShowWeekDropdown] = useState(false);
@@ -183,9 +185,10 @@ export default function ScheduleScreen({ route }) {
 
   const loadPTSlotOfUser = async (date = selectedDate) => {
     try {
-      const registerDate = formatDateForAPI(date);
+      const selectDate = formatDateForAPI(date);
       const response = await accountService.getPTSlotforUser({
-        registerDate,
+        date: selectDate,
+        ptId,
       });
       setSlots(response.data?.items || []);
       console.log("Slots data:", response.data?.items || []);
@@ -324,59 +327,64 @@ export default function ScheduleScreen({ route }) {
     return date.toDateString() === selectedDate.toDateString();
   };
 
-  const handleToggleSlotActivation = async (slot) => {
-    const action = slot.isActivated ? "deactivate" : "activate";
-    const actionText = slot.isActivated
-      ? t("schedule.deactivate")
-      : t("schedule.activate");
-
-    Alert.alert(
-      t("schedule.confirmAction"),
-      t("schedule.toggleSlotConfirm", {
-        slotName: slot.name,
-        action: actionText,
-      }),
-      [
-        {
-          text: t("schedule.cancel"),
-          style: "cancel",
-        },
-        {
-          text: actionText,
-          onPress: async () => {
-            setRegistering(slot.slotId);
-            try {
-              if (slot.isActivated) {
-                await ptService.deactivateSlot({
-                  ptGymSlotId: slot.ptGymSlotId,
-                });
-              } else {
-                await ptService.registerSlot({
-                  slotId: slot.slotId,
-                  registerDate: formatDateForAPI(selectedDate),
-                });
-              }
-              Alert.alert(
-                t("schedule.success"),
-                t("schedule.toggleSlotSuccess", { action: actionText })
-              );
-              loadPTSlotOfUser(selectedDate); // Refresh the slots
-            } catch (error) {
-              console.error("Error toggling slot activation:", error);
-              Alert.alert(t("schedule.error"), t("schedule.toggleSlotError"));
-            } finally {
-              setRegistering(null);
-            }
-          },
-        },
-      ]
-    );
-  };
-
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadSlotOfGym(selectedDate);
+    await loadPTSlotOfUser(selectedDate);
     setRefreshing(false);
+  };
+
+  // Handle booking a PT slot
+  const handleBookSlot = async (slot) => {
+    try {
+      setBooking(slot.ptGymSlotId);
+
+      Alert.alert(
+        t("schedule.bookingConfirmation"),
+        t("schedule.confirmBookSlot", {
+          ptName: slot.ptName,
+          time: `${slot.startTime} - ${slot.endTime}`,
+          date: selectedDate.toLocaleDateString("vi-VN", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+          }),
+        }),
+        [
+          {
+            text: t("common.cancel"),
+            style: "cancel",
+          },
+          {
+            text: t("common.confirm"),
+            onPress: async () => {
+              try {
+                const response = await accountService.bookingSlot({
+                  ptGymSlotId: slot.ptGymSlotId,
+                  customerPurchasedId: customerPurchasedId,
+                });
+
+                console.log("Booking response:", response);
+                Alert.alert(
+                  t("schedule.success"),
+                  t("schedule.slotBookedSuccessfully")
+                );
+
+                // Refresh the slots after booking
+                await loadPTSlotOfUser(selectedDate);
+              } catch (error) {
+                console.error("Error booking slot:", error);
+                Alert.alert(t("schedule.error"), t("schedule.bookingError"));
+              }
+            },
+          },
+        ]
+      );
+    } catch (error) {
+      console.error("Error in handleBookSlot:", error);
+      Alert.alert(t("schedule.error"), t("schedule.bookingError"));
+    } finally {
+      setBooking(null);
+    }
   };
 
   useEffect(() => {
@@ -392,12 +400,23 @@ export default function ScheduleScreen({ route }) {
   }, []);
 
   const formatTime = (timeString) => {
-    const [hours, minutes] = timeString.split(":");
-    const hour = parseInt(hours);
-    const minute = parseInt(minutes);
-    const period = hour >= 12 ? t("schedule.pm") : t("schedule.am");
-    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-    return `${displayHour}:${minute.toString().padStart(2, "0")} ${period}`;
+    let hours, minutes;
+
+    if (timeString instanceof Date) {
+      // If it's a Date object, extract hours and minutes
+      hours = timeString.getHours();
+      minutes = timeString.getMinutes();
+    } else if (typeof timeString === "string") {
+      // If it's a string, split and parse
+      [hours, minutes] = timeString.split(":").map(Number);
+    } else {
+      console.error("formatTime received invalid input:", timeString);
+      return "";
+    }
+
+    const period = hours >= 12 ? t("schedule.pm") : t("schedule.am");
+    const displayHour = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+    return `${displayHour}:${minutes.toString().padStart(2, "0")} ${period}`;
   };
 
   const calculateDuration = (startTime, endTime) => {
@@ -418,6 +437,20 @@ export default function ScheduleScreen({ route }) {
         diffHours === 1 ? t("schedule.hour") : t("schedule.hours")
       } ${diffMinutes} ${t("schedule.minutes")}`;
     }
+  };
+
+  // Transform slot data to session format for SessionCard
+  const transformSlotToSession = (slot) => {
+    return {
+      ptGymSlotId: slot.ptGymSlotId,
+      slotId: slot.slotId,
+      ptId: slot.ptId,
+      ptName: slot.ptName,
+      avatarUrl: slot.avatarUrl,
+      startTime: slot.startTime, // Keep as string format
+      endTime: slot.endTime, // Keep as string format
+      title: t("schedule.ptSession"), // "PT Training Session" or similar
+    };
   };
 
   return (
@@ -521,87 +554,57 @@ export default function ScheduleScreen({ route }) {
               </Text>
             </View>
           ) : (
-            slots.map((slot) => (
-              <View key={slot.slotId} style={styles.slotCard}>
-                <View style={styles.slotHeader}>
-                  <Text style={styles.slotName}>{slot.name}</Text>
-                  <View style={styles.statusContainer}>
-                    <View
-                      style={[
-                        styles.statusBadge,
-                        slot.isActivated
-                          ? styles.activeBadge
-                          : styles.inactiveBadge,
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.statusText,
-                          slot.isActivated
-                            ? styles.activeStatusText
-                            : styles.inactiveStatusText,
-                        ]}
-                      >
-                        {slot.isActivated
-                          ? t("schedule.active")
-                          : t("schedule.inactive")}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
+            slots
+              .sort((a, b) => {
+                // Sort by start time (earliest first)
+                const timeA = a.startTime;
+                const timeB = b.startTime;
+                return timeA.localeCompare(timeB);
+              })
+              .map((slot) => {
+                const session = transformSlotToSession(slot);
+                return (
+                  <SessionCard
+                    key={slot.ptGymSlotId}
+                    session={session}
+                    formatTime={formatTime}
+                    calculateDuration={(start, end) => {
+                      // Convert time strings to minutes for calculation
+                      const parseTime = (timeStr) => {
+                        if (!timeStr || typeof timeStr !== "string") return 0;
+                        const [hours, minutes] = timeStr.split(":").map(Number);
+                        return hours * 60 + minutes;
+                      };
 
-                <View style={styles.timeContainer}>
-                  <View style={styles.timeItem}>
-                    <Text style={styles.timeLabel}>
-                      {t("schedule.startTime")}
-                    </Text>
-                    <Text style={styles.timeValue}>
-                      {formatTime(slot.startTime)}
-                    </Text>
-                  </View>
-                  <View style={styles.timeSeparator} />
-                  <View style={styles.timeItem}>
-                    <Text style={styles.timeLabel}>
-                      {t("schedule.endTime")}
-                    </Text>
-                    <Text style={styles.timeValue}>
-                      {formatTime(slot.endTime)}
-                    </Text>
-                  </View>
-                </View>
+                      const startMinutes = parseTime(start);
+                      const endMinutes = parseTime(end);
+                      const diffMinutes = endMinutes - startMinutes;
+                      const diffHours = Math.floor(diffMinutes / 60);
+                      const remainingMinutes = diffMinutes % 60;
 
-                <View style={styles.durationContainer}>
-                  <Text style={styles.durationLabel}>
-                    {t("schedule.duration")}
-                  </Text>
-                  <Text style={styles.durationValue}>
-                    {calculateDuration(slot.startTime, slot.endTime)}
-                  </Text>
-                </View>
-
-                <TouchableOpacity
-                  style={[
-                    styles.toggleButton,
-                    registering === slot.slotId && styles.toggleButtonDisabled,
-                    slot.isActivated
-                      ? styles.deactivateButton
-                      : styles.activateButton,
-                  ]}
-                  onPress={() => handleToggleSlotActivation(slot)}
-                  disabled={registering === slot.slotId}
-                >
-                  {registering === slot.slotId ? (
-                    <ActivityIndicator size="small" color={colors.white} />
-                  ) : (
-                    <Text style={styles.toggleButtonText}>
-                      {slot.isActivated
-                        ? t("schedule.deactivateSlot")
-                        : t("schedule.activateSlot")}
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              </View>
-            ))
+                      if (diffHours === 0) {
+                        return `${remainingMinutes} ${t("schedule.minutes")}`;
+                      } else if (remainingMinutes === 0) {
+                        return `${diffHours} ${
+                          diffHours === 1
+                            ? t("schedule.hour")
+                            : t("schedule.hours")
+                        }`;
+                      } else {
+                        return `${diffHours} ${
+                          diffHours === 1
+                            ? t("schedule.hour")
+                            : t("schedule.hours")
+                        } ${remainingMinutes} ${t("schedule.minutes")}`;
+                      }
+                    }}
+                    buttonText={t("schedule.bookSlot")}
+                    withText={t("schedule.with")}
+                    t={t}
+                    buttonAction={() => handleBookSlot(slot)}
+                  />
+                );
+              })
           )}
         </ScrollView>
 

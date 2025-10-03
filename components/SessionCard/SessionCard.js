@@ -5,7 +5,6 @@ import colors from "../../constants/color";
 
 const SessionCard = ({
   session,
-  onPress,
   formatTime,
   calculateDuration,
   buttonText = "Hủy lịch",
@@ -13,14 +12,28 @@ const SessionCard = ({
   t, // translation function
   withText = "với", // default Vietnamese text for "with"
 }) => {
+  // Use API response format directly
+  const ptName = session.ptName;
+  const ptAvatar = session.avatarUrl;
+  const ptInitials = ptName?.charAt(0)?.toUpperCase() || "PT";
+  const sessionTitle = session.title || t("schedule.ptSession");
+
+  // Use API time format directly
+  const startTime = session.startTime;
+  const endTime = session.endTime;
+
   return (
     <View style={styles.sessionCard}>
       <View style={styles.imageContainer}>
         <Image
-          source={{ uri: session.pt.avatar }}
+          source={{
+            uri:
+              ptAvatar ||
+              `https://via.placeholder.com/60x60/f0f0f0/666?text=${ptInitials}`,
+          }}
           style={styles.avatar}
           defaultSource={{
-            uri: `https://via.placeholder.com/60x60/f0f0f0/666?text=${session.pt.initials}`,
+            uri: `https://via.placeholder.com/60x60/f0f0f0/666?text=${ptInitials}`,
           }}
         />
         <View style={styles.badge}>
@@ -29,14 +42,14 @@ const SessionCard = ({
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.title}>{session.title}</Text>
+        <Text style={styles.title}>{sessionTitle}</Text>
         <Text style={styles.trainerName}>
-          {withText} {session.pt.name}
+          {withText} {ptName}
         </Text>
         <View style={styles.details}>
           <Ionicons name="time-outline" size={16} color="#666" />
           <Text style={styles.detailText}>
-            {formatTime(session.start)} - {formatTime(session.end)}
+            {formatTime(startTime)} - {formatTime(endTime)}
           </Text>
           <Ionicons
             name="stopwatch-outline"
@@ -45,15 +58,12 @@ const SessionCard = ({
             style={{ marginLeft: 12 }}
           />
           <Text style={styles.detailText}>
-            {calculateDuration(session.start, session.end)}
+            {calculateDuration(startTime, endTime)}
           </Text>
         </View>
       </View>
 
-      <TouchableOpacity
-        style={styles.actionButton}
-        onPress={buttonAction || onPress}
-      >
+      <TouchableOpacity style={styles.actionButton} onPress={buttonAction}>
         <Text style={styles.actionButtonText}>{buttonText}</Text>
       </TouchableOpacity>
     </View>

@@ -8,28 +8,62 @@ import {
   ScrollView,
   Modal,
   FlatList,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import React, { useState, useEffect } from "react";
-import { Calendar } from "react-native-big-calendar";
 import { useTranslation } from "../../hooks/useTranslation";
 import { useNavigation } from "@react-navigation/native";
 import colors from "../../constants/color";
-import dayjs from "dayjs";
-import "dayjs/locale/vi";
-import "dayjs/locale/en";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import SessionCard from "../../components/SessionCard/SessionCard";
+import accountService from "../../services/accountService";
+import { fetchUserFromStorage, formatDateForAPI } from "../../lib";
 
 const { width, height } = Dimensions.get("window");
 
 export default function CalendarScheduleScreen() {
   const { t, currentLanguage } = useTranslation();
   const navigation = useNavigation();
-  const [mode, setMode] = useState("week"); // Can be 'month', 'week'
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const loadBookingOfUser = async (date = selectedDate) => {
+    try {
+      const user = await fetchUserFromStorage();
+      const selectDate = formatDateForAPI(date);
+      const response = await accountService.getBookingForUser({
+        customerId: user.id,
+        date: selectDate,
+      });
+      console.log("Slots data:", response.data?.items || []);
 
+      // Transform booking data to match SessionCard expected format
+      const transformedBookings = (response.data?.items || []).map(
+        (booking) => ({
+          ...booking,
+          // Map API fields to SessionCard expected fields
+          ptGymSlotId: booking.ptGymSlotId,
+          startTime: booking.gymSlotStartTime,
+          endTime: booking.gymSlotEndTime,
+          ptName: booking.ptName || "Personal Trainer", // Default if not available
+          avatarUrl: booking.avatarUrl, // May be null
+          title: t("calendar.ptSession") || "PT Session",
+          status: booking.sessionStatus,
+        })
+      );
+
+      setBookings(transformedBookings);
+      console.log("Transformed bookings data:", transformedBookings);
+    } catch (error) {
+      console.error("Error loading gym bookings:", error);
+      Alert.alert(t("schedule.error"), t("schedule.loadSlotsError"));
+    } finally {
+      setLoading(false);
+    }
+  };
   // Helper function to get current week number
   const getCurrentWeekInMonth = (date = new Date()) => {
     const year = date.getFullYear();
@@ -82,11 +116,6 @@ export default function CalendarScheduleScreen() {
   const [showMonthDropdown, setShowMonthDropdown] = useState(false);
   const [showWeekDropdown, setShowWeekDropdown] = useState(false);
 
-  // Set dayjs locale based on current language
-  useEffect(() => {
-    dayjs.locale(currentLanguage === "vi" ? "vi" : "en");
-  }, [currentLanguage]);
-
   // Get day name with translation
   const getDayName = (date) => {
     const dayKeys = [
@@ -119,7 +148,15 @@ export default function CalendarScheduleScreen() {
   // Handle date selection
   const handleDateSelect = (date) => {
     setSelectedDate(date);
+    setLoading(true);
+    loadBookingOfUser(date);
   };
+
+  // Load bookings when component mounts
+  useEffect(() => {
+    setLoading(true);
+    loadBookingOfUser();
+  }, []);
 
   // Get current month and year for header with translation
   const getCurrentMonth = () => {
@@ -205,135 +242,113 @@ export default function CalendarScheduleScreen() {
     return days;
   };
 
-  // Mock data for PT sessions with enhanced details
-  const mockPTSessions = [
-    {
-      id: 1,
-      title: "Strength Training",
-      pt: {
-        name: "John Smith",
-        avatar:
-          "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&w=150&h=150&fit=crop&crop=face",
-        initials: "JS",
-      },
-      start: new Date(2025, 8, 26, 10, 0), // September 26, 2025, 10:00 AM
-      end: new Date(2025, 8, 26, 11, 0), // September 26, 2025, 11:00 AM
-      color: colors.red,
-      category: "Strength",
-    },
-    {
-      id: 2,
-      title: "Cardio Session",
-      pt: {
-        name: "Sarah Wilson",
-        avatar:
-          "https://images.unsplash.com/photo-1494790108755-2616b25aa3cc?ixlib=rb-4.0.3&w=150&h=150&fit=crop&crop=face",
-        initials: "SW",
-      },
-      start: new Date(2025, 8, 26, 14, 30), // September 26, 2025, 2:30 PM
-      end: new Date(2025, 8, 26, 15, 30), // September 26, 2025, 3:30 PM
-      color: "#4CAF50",
-      category: "Cardio",
-    },
-    {
-      id: 3,
-      title: "Weight Training",
-      pt: {
-        name: "Mike Johnson",
-        avatar:
-          "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&w=150&h=150&fit=crop&crop=face",
-        initials: "MJ",
-      },
-      start: new Date(2025, 8, 27, 9, 0), // September 27, 2025, 9:00 AM
-      end: new Date(2025, 8, 27, 10, 0), // September 27, 2025, 10:00 AM
-      color: colors.orange,
-      category: "Weight Training",
-    },
-    {
-      id: 4,
-      title: "Yoga Session",
-      pt: {
-        name: "Lisa Chen",
-        avatar:
-          "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&w=150&h=150&fit=crop&crop=face",
-        initials: "LC",
-      },
-      start: new Date(2025, 8, 28, 16, 0), // September 28, 2025, 4:00 PM
-      end: new Date(2025, 8, 28, 17, 0), // September 28, 2025, 5:00 PM
-      color: "#9C27B0",
-      category: "Yoga",
-    },
-    {
-      id: 5,
-      title: "HIIT Training",
-      pt: {
-        name: "Alex Rodriguez",
-        avatar:
-          "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&w=150&h=150&fit=crop&crop=face",
-        initials: "AR",
-      },
-      start: new Date(2025, 8, 29, 11, 0), // September 29, 2025, 11:00 AM
-      end: new Date(2025, 8, 29, 12, 0), // September 29, 2025, 12:00 PM
-      color: "#F44336",
-      category: "HIIT",
-    },
-    {
-      id: 6,
-      title: "Personal Training",
-      pt: {
-        name: "David Brown",
-        avatar:
-          "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&w=150&h=150&fit=crop&crop=face",
-        initials: "DB",
-      },
-      start: new Date(2026, 9, 30, 9, 0), // October 30, 2026, 9:00 AM
-      end: new Date(2026, 9, 30, 9, 30), // October 30, 2026, 9:30 AM
-      color: "#2196F3",
-      category: "Personal Training",
-    },
-  ];
-
-  const handleEventPress = (event) => {
-    // Handle event press - could navigate to session details
-  };
+  // Mock data for PT sessions matching API response format
 
   const handleDatePress = (date) => {
-    // Handle date press - could show add session option
-  };
-
-  const handleModeChange = (newMode) => {
-    setMode(newMode);
+    setSelectedDate(date);
   };
 
   const handleBookSession = () => {
     navigation.navigate("ChoosingCourseScreen");
   };
 
-  // Helper functions for session display
-  const formatTime = (date) => {
-    return date.toLocaleTimeString("vi-VN", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
+  // Helper function to check if session is on selected date
+  const isSessionOnDate = (session, targetDate) => {
+    // Validate inputs
+    if (!session || !session.bookingDate || !targetDate) {
+      console.warn("Invalid session or target date:", { session, targetDate });
+      return false;
+    }
+
+    try {
+      // Convert bookingDate (YYYY-MM-DD) to comparable format
+      const sessionDate = new Date(session.bookingDate);
+
+      // Check if date is valid
+      if (isNaN(sessionDate.getTime())) {
+        console.warn("Invalid session date:", session.bookingDate);
+        return false;
+      }
+
+      return sessionDate.toDateString() === targetDate.toDateString();
+    } catch (error) {
+      console.error("Error comparing dates:", error, { session, targetDate });
+      return false;
+    }
   };
 
-  const calculateDuration = (start, end) => {
-    const diffMs = end.getTime() - start.getTime();
-    const diffMins = Math.round(diffMs / 60000);
+  // Helper functions for session display
+  const formatTime = (timeString) => {
+    // Validate input parameter
+    if (!timeString || typeof timeString !== "string") {
+      console.warn("Invalid time string:", timeString);
+      return "--:--";
+    }
 
-    if (diffMins < 60) {
-      return `${diffMins} ${t("calendar.minutes")}`;
-    } else {
-      const hours = Math.floor(diffMins / 60);
-      const minutes = diffMins % 60;
-      if (minutes === 0) {
-        return `${hours} ${t(
-          hours === 1 ? "calendar.hour" : "calendar.hours"
-        )}`;
-      } else {
-        return `${hours}h ${minutes}m`;
+    try {
+      // Handle time strings from API (e.g., "10:00:00")
+      const timeParts = timeString.split(":");
+      if (timeParts.length < 2) {
+        console.warn("Invalid time format:", timeString);
+        return "--:--";
       }
+
+      const [hours, minutes] = timeParts;
+      return `${hours}:${minutes}`;
+    } catch (error) {
+      console.error("Error formatting time:", error, timeString);
+      return "--:--";
+    }
+  };
+
+  const calculateDuration = (startTime, endTime) => {
+    // Validate input parameters
+    if (
+      !startTime ||
+      !endTime ||
+      typeof startTime !== "string" ||
+      typeof endTime !== "string"
+    ) {
+      console.warn("Invalid time parameters:", { startTime, endTime });
+      return "0 minutes";
+    }
+
+    try {
+      // Handle time strings from API (e.g., "10:00:00", "11:00:00")
+      const start = new Date(`1970-01-01T${startTime}`);
+      const end = new Date(`1970-01-01T${endTime}`);
+
+      // Check if dates are valid
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        console.warn("Invalid date objects created from:", {
+          startTime,
+          endTime,
+        });
+        return "0 minutes";
+      }
+
+      const diffMs = end.getTime() - start.getTime();
+      const diffMins = Math.round(diffMs / 60000);
+
+      if (diffMins < 60) {
+        return `${diffMins} ${t("calendar.minutes")}`;
+      } else {
+        const hours = Math.floor(diffMins / 60);
+        const minutes = diffMins % 60;
+        if (minutes === 0) {
+          return `${hours} ${t(
+            hours === 1 ? "calendar.hour" : "calendar.hours"
+          )}`;
+        } else {
+          return `${hours}h ${minutes}m`;
+        }
+      }
+    } catch (error) {
+      console.error("Error calculating duration:", error, {
+        startTime,
+        endTime,
+      });
+      return "0 minutes";
     }
   };
 
@@ -446,99 +461,14 @@ export default function CalendarScheduleScreen() {
     setShowWeekDropdown(false);
   };
 
-  const renderEvent = (event, touchableOpacityProps) => {
-    // Get the date of this event
-    const eventDate = new Date(event.start.toDateString());
-
-    // Count all sessions on this date
-    const sessionsOnDate = mockPTSessions.filter(
-      (session) => session.start.toDateString() === eventDate.toDateString()
-    );
-
-    // Only render for the first event of the day to avoid duplicates
-    const isFirstEventOfDay =
-      mockPTSessions
-        .filter(
-          (session) => session.start.toDateString() === eventDate.toDateString()
-        )
-        .sort((a, b) => a.start - b.start)[0].id === event.id;
-
-    if (!isFirstEventOfDay) {
-      return null;
-    }
-
-    return (
-      <TouchableOpacity
-        {...touchableOpacityProps}
-        style={{
-          backgroundColor: colors.red,
-          borderRadius: 4,
-          padding: 2,
-          marginHorizontal: 1,
-          marginVertical: 1,
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: 16,
-        }}
-      >
-        <Text
-          style={{
-            color: "white",
-            fontSize: 10,
-            fontWeight: "bold",
-            textAlign: "center",
-          }}
-        >
-          {sessionsOnDate.length} {t("calendar.session")}
-        </Text>
-      </TouchableOpacity>
-    );
-  };
   return (
     <View style={styles.container}>
       <StatusBar backgroundColor={colors.red} barStyle="light-content" />
 
       {/* Calendar */}
       <View style={styles.calendarContainer}>
-        {/* Mode switcher and Book Session button row */}
-        <View style={styles.modeSwitcherContainer}>
-          <View style={styles.modeSwitcher}>
-            <TouchableOpacity
-              style={[
-                styles.modeButton,
-                mode === "week" && styles.activeModeButton,
-              ]}
-              onPress={() => handleModeChange("week")}
-            >
-              <Text
-                style={[
-                  styles.modeButtonText,
-                  mode === "week" && styles.activeModeButtonText,
-                ]}
-              >
-                {t("calendar.week") || "Week"}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.modeButton,
-                mode === "month" && styles.activeModeButton,
-              ]}
-              onPress={() => handleModeChange("month")}
-            >
-              <Text
-                style={[
-                  styles.modeButtonText,
-                  mode === "month" && styles.activeModeButtonText,
-                ]}
-              >
-                {t("calendar.month") || "Month"}
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Book Session Button */}
+        {/* Book Session button */}
+        <View style={styles.bookSessionContainer}>
           <TouchableOpacity
             style={styles.bookSessionButton}
             onPress={handleBookSession}
@@ -548,170 +478,137 @@ export default function CalendarScheduleScreen() {
             </Text>
           </TouchableOpacity>
         </View>
-        {mode === "week" ? (
-          // Week View with ScheduleScreen-style layout
-          <View style={styles.weekViewContainer}>
-            {/* Combined Month and Week Selector */}
-            <View style={styles.combinedSelectorContainer}>
-              {/* Month Selector */}
 
-              {/* Week Selector */}
-              <TouchableOpacity
-                style={styles.weekSelector}
-                onPress={() => setShowWeekDropdown(true)}
-              >
-                <Text style={styles.weekText}>
-                  {t("calendar.week")} {selectedWeekInMonth}
-                </Text>
-                <Ionicons name="chevron-down" size={20} color="#666" />
-              </TouchableOpacity>
+        {/* Week View with ScheduleScreen-style layout */}
+        <View style={styles.weekViewContainer}>
+          {/* Combined Month and Week Selector */}
+          <View style={styles.combinedSelectorContainer}>
+            {/* Month Selector */}
 
-              <TouchableOpacity
-                style={styles.monthSelector}
-                onPress={() => setShowMonthDropdown(true)}
-              >
-                <Text style={styles.monthText}>{getCurrentMonth()}</Text>
-                <Ionicons name="chevron-down" size={20} color="#666" />
-              </TouchableOpacity>
-            </View>
-
-            {/* Full Width Date Picker - 7 days without scroll */}
-            <View style={styles.fullWidthDateContainer}>
-              {getCurrentWeekDaysForMonth().map((date, index) => {
-                const isSelectedDate = isSelected(date);
-                const isTodayDate = isToday(date);
-                const isPast = isPastDate(date);
-
-                return (
-                  <TouchableOpacity
-                    key={index}
-                    style={[
-                      styles.fullWidthDateItem,
-                      isSelectedDate && styles.selectedFullWidthDateItem,
-                      isTodayDate &&
-                        !isSelectedDate &&
-                        styles.todayFullWidthDateItem,
-                    ]}
-                    onPress={() => handleDateSelect(date)}
-                    activeOpacity={0.7}
-                  >
-                    <Text
-                      style={[
-                        styles.fullWidthDayName,
-                        isSelectedDate && styles.selectedFullWidthDayName,
-                      ]}
-                    >
-                      {getDayName(date)}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.fullWidthDateNumber,
-                        isSelectedDate && styles.selectedFullWidthDateNumber,
-                      ]}
-                    >
-                      {date.getDate()}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-
-            {/* Sessions List Header */}
-            <View style={styles.sessionsHeader}>
-              <Text style={styles.sessionsHeaderText}>
-                {t("calendar.sessionsList")}
-              </Text>
-            </View>
-
-            {/* Sessions List - New Layout */}
-            <ScrollView
-              style={styles.scrollView}
-              showsVerticalScrollIndicator={false}
+            {/* Week Selector */}
+            <TouchableOpacity
+              style={styles.weekSelector}
+              onPress={() => setShowWeekDropdown(true)}
             >
-              {mockPTSessions
-                .filter(
-                  (session) =>
-                    session.start.toDateString() === selectedDate.toDateString()
-                )
-                .map((session, index) => (
-                  <SessionCard
-                    key={session.id}
-                    session={session}
-                    formatTime={formatTime}
-                    calculateDuration={calculateDuration}
-                    buttonText={t("calendar.cancelSession")}
-                    withText={t("calendar.with")}
-                    t={t}
-                    buttonAction={() => {
-                      // Handle cancel session action
-                      console.log("Cancel session:", session.id);
-                    }}
-                  />
-                ))}
+              <Text style={styles.weekText}>
+                {t("calendar.week")} {selectedWeekInMonth}
+              </Text>
+              <Ionicons name="chevron-down" size={20} color="#666" />
+            </TouchableOpacity>
 
-              {mockPTSessions.filter(
-                (session) =>
-                  session.start.toDateString() === selectedDate.toDateString()
-              ).length === 0 && (
-                <View style={styles.emptyContainer}>
-                  <Ionicons name="calendar-outline" size={64} color="#ccc" />
-                  <Text style={styles.emptyText}>
-                    {t("calendar.noSessionsScheduled")}
-                  </Text>
-                  <Text style={styles.emptySubText}>
-                    {t("calendar.noSessionsFor")}{" "}
-                    {selectedDate.toLocaleDateString(
-                      currentLanguage === "vi" ? "vi-VN" : "en-US",
-                      {
-                        day: "2-digit",
-                        month: "2-digit",
-                      }
-                    )}
-                  </Text>
-                </View>
-              )}
-            </ScrollView>
+            <TouchableOpacity
+              style={styles.monthSelector}
+              onPress={() => setShowMonthDropdown(true)}
+            >
+              <Text style={styles.monthText}>{getCurrentMonth()}</Text>
+              <Ionicons name="chevron-down" size={20} color="#666" />
+            </TouchableOpacity>
           </View>
-        ) : (
-          // Month View with Big Calendar
-          <Calendar
-            events={mockPTSessions}
-            height={height - 280}
-            width={width - 32}
-            mode="month"
-            onPressEvent={handleEventPress}
-            onPressDate={handleDatePress}
-            eventCellStyle={(event) => ({
-              backgroundColor: event.color || colors.red,
-              borderRadius: 8,
-              padding: 4,
+
+          {/* Full Width Date Picker - 7 days without scroll */}
+          <View style={styles.fullWidthDateContainer}>
+            {getCurrentWeekDaysForMonth().map((date, index) => {
+              const isSelectedDate = isSelected(date);
+              const isTodayDate = isToday(date);
+              const isPast = isPastDate(date);
+
+              return (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.fullWidthDateItem,
+                    isSelectedDate && styles.selectedFullWidthDateItem,
+                    isTodayDate &&
+                      !isSelectedDate &&
+                      styles.todayFullWidthDateItem,
+                  ]}
+                  onPress={() => handleDateSelect(date)}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={[
+                      styles.fullWidthDayName,
+                      isSelectedDate && styles.selectedFullWidthDayName,
+                    ]}
+                  >
+                    {getDayName(date)}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.fullWidthDateNumber,
+                      isSelectedDate && styles.selectedFullWidthDateNumber,
+                    ]}
+                  >
+                    {date.getDate()}
+                  </Text>
+                </TouchableOpacity>
+              );
             })}
-            calendarHeaderStyle={styles.calendarHeader}
-            bodyContainerStyle={styles.calendarBody}
-            renderEvent={renderEvent}
-            showTime={true}
-            swipeEnabled={true}
-            scrollOffsetMinutes={480} // Start view at 8:00 AM
-            date={new Date()} // Current date
-            locale={currentLanguage}
-            showAdjacentMonths={true}
-            theme={{
-              palette: {
-                primary: {
-                  main: colors.red,
-                  contrastText: colors.white,
-                },
-                gray: {
-                  100: "#f8f9fa",
-                  200: "#e9ecef",
-                  300: "#dee2e6",
-                  500: "#6c757d",
-                  800: "#495057",
-                },
-              },
-            }}
-          />
-        )}
+          </View>
+
+          {/* Sessions List Header */}
+          <View style={styles.sessionsHeader}>
+            <Text style={styles.sessionsHeaderText}>
+              {t("calendar.sessionsList")}
+            </Text>
+          </View>
+
+          {/* Sessions List - New Layout */}
+          <ScrollView
+            style={styles.scrollView}
+            showsVerticalScrollIndicator={false}
+          >
+            {loading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={colors.red} />
+                <Text style={styles.loadingText}>
+                  {t("calendar.loadingSessions")}
+                </Text>
+              </View>
+            ) : (
+              <>
+                {bookings
+                  .filter((session) => isSessionOnDate(session, selectedDate))
+                  .map((session, index) => (
+                    <SessionCard
+                      key={session.bookingId}
+                      session={session}
+                      formatTime={formatTime}
+                      calculateDuration={calculateDuration}
+                      buttonText={t("calendar.cancelSession")}
+                      withText={t("calendar.with")}
+                      t={t}
+                      buttonAction={() => {
+                        // Handle cancel session action
+                        console.log("Cancel session:", session.bookingId);
+                      }}
+                    />
+                  ))}
+
+                {bookings.filter((session) =>
+                  isSessionOnDate(session, selectedDate)
+                ).length === 0 && (
+                  <View style={styles.emptyContainer}>
+                    <Ionicons name="calendar-outline" size={64} color="#ccc" />
+                    <Text style={styles.emptyText}>
+                      {t("calendar.noSessionsScheduled")}
+                    </Text>
+                    <Text style={styles.emptySubText}>
+                      {t("calendar.noSessionsFor")}{" "}
+                      {selectedDate.toLocaleDateString(
+                        currentLanguage === "vi" ? "vi-VN" : "en-US",
+                        {
+                          day: "2-digit",
+                          month: "2-digit",
+                        }
+                      )}
+                    </Text>
+                  </View>
+                )}
+              </>
+            )}
+          </ScrollView>
+        </View>
       </View>
 
       <Modal
@@ -829,45 +726,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f8f9fa",
   },
-  modeSwitcherContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+  bookSessionContainer: {
     backgroundColor: colors.white,
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
     borderBottomColor: "#e9ecef",
-  },
-  modeSwitcher: {
-    flexDirection: "row",
-    backgroundColor: "#f0f0f0",
-    borderRadius: 6,
-    padding: 3,
-    flex: 1,
-    marginRight: 12,
-  },
-  modeButton: {
-    flex: 1,
-    paddingVertical: 8,
-    borderRadius: 4,
-    alignItems: "center",
-    marginHorizontal: 1,
-  },
-  activeModeButton: {
-    backgroundColor: colors.red,
-    shadowColor: colors.red,
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  modeButtonText: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#666",
-  },
-  activeModeButtonText: {
-    color: colors.white,
+    alignItems: "flex-end",
   },
   bookSessionButton: {
     backgroundColor: colors.red,
@@ -1009,6 +874,18 @@ const styles = StyleSheet.create({
   emptySubText: {
     fontSize: 14,
     color: "#adb5bd",
+    textAlign: "center",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 60,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: "#6c757d",
+    marginTop: 16,
     textAlign: "center",
   },
   calendarHeader: {
