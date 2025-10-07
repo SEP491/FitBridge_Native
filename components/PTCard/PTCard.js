@@ -68,7 +68,6 @@ export default function PTCard({
               </View>
             </View>
 
-            {/* Show arrow for GymPTScreen (when no buttons) */}
             {!showButtons && (
               <View style={styles.arrowContainer}>
                 <Ionicons

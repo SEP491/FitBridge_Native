@@ -4,59 +4,57 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useTranslation } from "../hooks/useTranslation";
-import HomeScreen from "../screens/HomeScreen/HomeScreen";
 import Icon from "react-native-vector-icons/FontAwesome";
-import UserMenuScreen from "../screens/UserMenuScreen/UserMenuScreen";
-import LoginScreen from "../screens/LoginScreen/LoginScreen";
-import RegisterScreen from "../screens/RegisterScreen/RegisterScreen";
-import { Platform } from "react-native";
-import Ionicons from "react-native-vector-icons/Ionicons";
-import SettingScreen from "../screens/SettingScreen/SettingScreen";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import GymDetailScreen from "../screens/GymDetailScreen/GymDetailScreen";
-import GymPTScreen from "../screens/GymPTScreen/GymPTScreen";
-import CartScreen from "../screens/CartScreen/CartScreen";
 import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
-import MapScreen from "../screens/MapScreen/MapScreen";
-import TransactionHistoryScreen from "../screens/TransactionHistoryScreen/TransactionHistoryScreen";
-import VoucherScreen from "../screens/VoucherScreen/VoucherScreen";
-import FAQScreen from "../screens/FAQScreen/FAQScreen";
-import ProfileScreen from "../screens/ProfileScreen/ProfileScreen";
-import AccountScreen from "../screens/AccountScreen/AccountScreen";
-import UpdatePasswordScreen from "../screens/UpdatePasswordScreen/UpdatePasswordScreen";
-import PTProfileScreen from "../screens/PTProfileScreen/PTProfileScreen";
-import SchedulePTScreen from "../screens/SchedulePTScreen/SchedulePTScreen";
-import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
-import SlotsPTScreen from "../screens/SlotsPTScreen/SlotsPTScreen";
-import ForgotPasswordScreen1 from "../screens/ForgotPasswordScreen/ForgotPasswordScreen1";
-import ForgotPasswordScreen2 from "../screens/ForgotPasswordScreen/ForgotPasswordScreen2";
-import ForgotPasswordScreen3 from "../screens/ForgotPasswordScreen/ForgotPasswordScreen3";
-import PTinCourseScreen from "../screens/PTinCourseScreen/PTinCourseScreen";
-import BlogScreen from "../screens/BlogScreen/BlogScreen";
-import BlogDetailScreen from "../screens/BlogDetailScreen/BlogDetailScreen";
-import PaymentScreen from "../screens/PaymentScreen/PaymentScreen";
-import SubscriptionScreen from "../screens/SubscriptionScreen/SubscriptionScreen";
-import PTBookingHistoryScreen from "../screens/PTBookingHistoryScreen/PTBookingHistoryScreen";
-import OrderSuccessScreen from "../screens/OrderSuccessScreen/OrderSuccessScreen";
-import ChatScreen from "../screens/ChatScreen/ChatScreen";
-import SearchGymScreen from "../screens/SearchGymScreen/SearchGymScreen";
 import * as Linking from "expo-linking";
 import authService from "../services/authService";
-import ChoosingCourseScreen from "../screens/ChoosingCourseScreen/ChoosingCourseScreen";
-import ScheduleScreen from "../screens/ScheduleScreen/ScheduleScreen";
-import BookingHistoryScreen from "../screens/BookingHistoryScreen/BookingHistoryScreen";
-import LanguageSelectScreen from "../screens/SettingScreen/LanguageSelectScreen/LanguageSelectScreen";
-import FitnessDetailScreen from "../screens/FitnessDetailScreen/FitnessDetailScreen";
-import CalendarScheduleScreen from "../screens/CalendarScheduleScreen/CalendarScheduleScreen";
-import MyPackageScreen from "../screens/MyPackageScreen/MyPackageScreen";
-import ManageVoucherScreen from "../screens/FreelancePTScreen/ManageVoucherScreen/ManageVoucherScreen";
-import ManagePackageScreen from "../screens/FreelancePTScreen/ManagePackageScreen/ManagePackageScreen";
-import ManageTransactionScreen from "../screens/FreelancePTScreen/ManageTransactionScreen/ManageTransactionScreen";
-import MyCustomerScreen from "../screens/FreelancePTScreen/MyCustomerScreen/MyCustomerScreen";
-import FreelancePTDashboard from "../screens/FreelancePTScreen/FreelancePTDashboard/FreelancePTDashboard";
-import FreelancePTChatScreen from "../screens/FreelancePTScreen/FreelancePTChatScreen/FreelancePTChatScreen";
-import FreelancePTSchedule from "../screens/FreelancePTScreen/FreelancePTSchedule/FreelancePTSchedule";
-import WithdrawalScreen from "../screens/WithdrawalScreen/WithdrawalScreen";
+import HomeScreen from "../screens/CommonScreen/HomeScreen/HomeScreen";
+import GymDetailScreen from "../screens/CommonScreen/GymDetailScreen/GymDetailScreen";
+import PTInGymScreen from "../screens/CommonScreen/PTInGymScreen/PTInGymScreen";
+import BlogScreen from "../screens/CommonScreen/BlogScreen/BlogScreen";
+import BlogDetailScreen from "../screens/CommonScreen/BlogDetailScreen/BlogDetailScreen";
+import SearchGymScreen from "../screens/CommonScreen/SearchGymScreen/SearchGymScreen";
+import PTProfileScreen from "../screens/CommonScreen/PTProfileScreen/PTProfileScreen";
+import CartScreen from "../screens/CommonScreen/CartScreen/CartScreen";
+import PTinCourseScreen from "../screens/CustomerScreen/PTinCourseScreen/PTinCourseScreen";
+import PaymentScreen from "../screens/CommonScreen/PaymentScreen/PaymentScreen";
+import OrderSuccessScreen from "../screens/CommonScreen/OrderSuccessScreen/OrderSuccessScreen";
+import FitnessDetailScreen from "../screens/CustomerScreen/FitnessDetailScreen/FitnessDetailScreen";
+import MapScreen from "../screens/CommonScreen/MapScreen/MapScreen";
+import CalendarScheduleScreen from "../screens/CustomerScreen/CalendarScheduleScreen/CalendarScheduleScreen";
+import ChoosingCourseScreen from "../screens/CustomerScreen/ChoosingCourseScreen/ChoosingCourseScreen";
+import ScheduleScreen from "../screens/CustomerScreen/ScheduleScreen/ScheduleScreen";
+import BookingHistoryScreen from "../screens/CustomerScreen/BookingHistoryScreen/BookingHistoryScreen";
+import SchedulePTScreen from "../screens/GymPTScreen/SchedulePTScreen/SchedulePTScreen";
+import SlotsPTScreen from "../screens/GymPTScreen/SlotsPTScreen/SlotsPTScreen";
+import PTBookingHistoryScreen from "../screens/GymPTScreen/PTBookingHistoryScreen/PTBookingHistoryScreen";
+import ChatScreen from "../screens/CommonScreen/ChatScreen/ChatScreen";
+import WithdrawalScreen from "../screens/FreelancePTScreen/WithdrawalScreen/WithdrawalScreen";
+import FreelancePTDashboard from "./../screens/FreelancePTScreen/FreelancePTDashboard/FreelancePTDashboard";
+import FreelancePTSchedule from "./../screens/FreelancePTScreen/FreelancePTSchedule/FreelancePTSchedule";
+import FreelancePTChatScreen from "./../screens/FreelancePTScreen/FreelancePTChatScreen/FreelancePTChatScreen";
+import UserMenuScreen from "../screens/CommonScreen/UserMenuScreen/UserMenuScreen";
+import SettingScreen from "../screens/CommonScreen/SettingScreen/SettingScreen";
+import LanguageSelectScreen from "../screens/CommonScreen/SettingScreen/LanguageSelectScreen/LanguageSelectScreen";
+import ProfileScreen from "../screens/CustomerScreen/ProfileScreen/ProfileScreen";
+import AccountScreen from "../screens/CustomerScreen/AccountScreen/AccountScreen";
+import UpdatePasswordScreen from "../screens/AuthenticationScreen/UpdatePasswordScreen/UpdatePasswordScreen";
+import SubscriptionScreen from "../screens/CustomerScreen/SubscriptionScreen/SubscriptionScreen";
+import TransactionHistoryScreen from "../screens/CustomerScreen/TransactionHistoryScreen/TransactionHistoryScreen";
+import MyPackageScreen from "../screens/CustomerScreen/MyPackageScreen/MyPackageScreen";
+import VoucherScreen from "../screens/CustomerScreen/VoucherScreen/VoucherScreen";
+import FAQScreen from "../screens/CommonScreen/FAQScreen/FAQScreen";
+import ManageVoucherScreen from "./../screens/FreelancePTScreen/ManageVoucherScreen/ManageVoucherScreen";
+import ManagePackageScreen from "./../screens/FreelancePTScreen/ManagePackageScreen/ManagePackageScreen";
+import ManageTransactionScreen from "./../screens/FreelancePTScreen/ManageTransactionScreen/ManageTransactionScreen";
+import MyCustomerScreen from "./../screens/FreelancePTScreen/MyCustomerScreen/MyCustomerScreen";
+import LoginScreen from "../screens/AuthenticationScreen/LoginScreen/LoginScreen";
+import ForgotPasswordScreen1 from "../screens/AuthenticationScreen/ForgotPasswordScreen/ForgotPasswordScreen1";
+import ForgotPasswordScreen2 from "../screens/AuthenticationScreen/ForgotPasswordScreen/ForgotPasswordScreen2";
+import ForgotPasswordScreen3 from "../screens/AuthenticationScreen/ForgotPasswordScreen/ForgotPasswordScreen3";
+import RegisterScreen from "../screens/AuthenticationScreen/RegisterScreen/RegisterScreen";
 
 export default function Navigator({
   isAuthenticated: propIsAuthenticated,
@@ -65,7 +63,6 @@ export default function Navigator({
   const { t } = useTranslation();
   const Tab = createBottomTabNavigator();
   const Stack = createNativeStackNavigator();
-  const TopTab = createMaterialTopTabNavigator();
 
   // Use authentication state from App.js props
   const [user, setUser] = useState(propUser);
@@ -176,8 +173,8 @@ export default function Navigator({
           }}
         />
         <Stack.Screen
-          name="GymPTScreen"
-          component={GymPTScreen}
+          name="PTInGymScreen"
+          component={PTInGymScreen}
           options={{
             headerTitleAlign: "center",
             headerShown: true,
@@ -389,53 +386,6 @@ export default function Navigator({
             ) : null,
         })}
       >
-        {/* <Stack.Screen
-          name="SchedulePTTabs"
-          options={{
-            headerShown: true,
-            title: t("screenTitles.ptScheduleRegistration"),
-          }}
-        >
-          {() => (
-            <TopTab.Navigator
-              screenOptions={{
-                tabBarIndicatorStyle: {
-                  backgroundColor: "#ED2A46",
-                  height: 3,
-                },
-                tabBarStyle: {
-                  backgroundColor: "#FFFFFF",
-                  elevation: 0,
-                  shadowOpacity: 0,
-                  borderBottomWidth: 1,
-                  borderBottomColor: "#E0E0E0",
-                },
-                tabBarActiveTintColor: "#ED2A46",
-                tabBarInactiveTintColor: "#666",
-                tabBarLabelStyle: {
-                  fontWeight: "bold",
-                  fontSize: 14,
-                },
-                swipeEnabled: false,
-              }}
-            >
-              <TopTab.Screen
-                name="SchedulePTScreen"
-                component={SchedulePTScreen}
-                options={{
-                  title: t("screenTitles.registerSlot"),
-                }}
-              />
-              <TopTab.Screen
-                name="SlotsPTScreen"
-                component={SlotsPTScreen}
-                options={{
-                  title: t("screenTitles.viewBookedSlots"),
-                }}
-              />
-            </TopTab.Navigator>
-          )}
-        </Stack.Screen> */}
         <Stack.Screen
           name="SchedulePTScreen"
           component={SchedulePTScreen}
