@@ -607,7 +607,10 @@
     "confirmBookSlot": "Bạn có chắc chắn muốn đặt lịch với {{ptName}} từ {{time}} vào {{date}}?",
     "slotBookedSuccessfully": "Đặt lịch thành công!",
     "bookingError": "Đặt lịch thất bại. Vui lòng thử lại.",
-    "with": "với"
+    "with": "với",
+    "warning": "Cảnh Báo",
+    "minimumSlotRequired": "Chưa đạt số slot tối thiểu. Bạn cần đăng ký tối thiểu {{minimumSlot}} slot",
+    "understood": "Tôi đã hiểu"
   },
 
   "calendar": {

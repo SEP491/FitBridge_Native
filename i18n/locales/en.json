@@ -609,7 +609,10 @@
     "confirmBookSlot": "Are you sure you want to book a session with {{ptName}} from {{time}} on {{date}}?",
     "slotBookedSuccessfully": "Slot booked successfully!",
     "bookingError": "Failed to book slot. Please try again.",
-    "with": "with"
+    "with": "with",
+    "warning": "Warning",
+    "minimumSlotRequired": "Minimum slot requirement not met. You need to register at least {{minimumSlot}} slots",
+    "understood": "I understood"
   },
 
   "calendar": {

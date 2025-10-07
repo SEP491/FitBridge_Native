@@ -66,16 +66,19 @@ export default function SchedulePTScreen() {
       console.log("Minimum slot check result:", response);
       console.log("Date range checked:", dateRange);
 
-      // You can handle the response here, for example:
-      // - Show alerts or notifications based on the response
-      // - Update UI to show warnings if minimum slots are not met
-      // - Store the result in state for later use
-
       // Example: If the API returns a flag indicating insufficient slots
       if (!response.isAccepted) {
         Alert.alert(
-          "Canh Bao",
-          `chưa đạt số slot tối thiểu, Bạn cần đăng ký tối thiểu ${response.minimumSlot} slot`
+          t("schedule.warning"),
+          t("schedule.minimumSlotRequired", {
+            minimumSlot: response.minimumSlot,
+          }),
+          [
+            {
+              text: t("schedule.understood"),
+              style: "destructive",
+            },
+          ]
         );
       }
     }
