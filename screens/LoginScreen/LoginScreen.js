@@ -49,7 +49,7 @@ export default function LoginScreen() {
       console.log("Login response:", response);
       const userData = jwtDecode(response.data.idToken);
       console.log("Decoded user data:", userData);
-      if (userData.role === "Customer" || userData.role === "PT") {
+      if (userData.role === "Customer" || userData.role === "PT" || userData.role === "FreelancePT") {
         // Store token and user data
         await AsyncStorage.setItem("token", response.data.accessToken);
         const user = {

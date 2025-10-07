@@ -244,6 +244,58 @@ export default function UserMenuScreen() {
             </View>
           )}
 
+          {/* Management Section (only for FreelancePT) */}
+          {user && user.role === "FreelancePT" && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>{t("userMenu.management")}</Text>
+              <View style={styles.managementGrid}>
+                <TouchableOpacity 
+                  style={styles.managementButton}
+                  onPress={() => navigation.navigate("ManageVoucherScreen")}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.managementIconContainer}>
+                    <Ionicons name="ticket-outline" size={32} color="#ED2A46" />
+                  </View>
+                  <Text style={styles.managementButtonText}>{t("userMenu.manageVoucher")}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={styles.managementButton}
+                  onPress={() => navigation.navigate("ManagePackageScreen")}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.managementIconContainer}>
+                    <Ionicons name="cube-outline" size={32} color="#ED2A46" />
+                  </View>
+                  <Text style={styles.managementButtonText}>{t("userMenu.managePackage")}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={styles.managementButton}
+                  onPress={() => navigation.navigate("ManageTransactionScreen")}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.managementIconContainer}>
+                    <Ionicons name="card-outline" size={32} color="#ED2A46" />
+                  </View>
+                  <Text style={styles.managementButtonText}>{t("userMenu.manageTransaction")}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={styles.managementButton}
+                  onPress={() => navigation.navigate("MyCustomerScreen")}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.managementIconContainer}>
+                    <Ionicons name="people-outline" size={32} color="#ED2A46" />
+                  </View>
+                  <Text style={styles.managementButtonText}>{t("userMenu.myCustomer")}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
           {/* Support Section */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{t("userMenu.support")}</Text>
@@ -420,5 +472,44 @@ const styles = {
     fontSize: 14,
     color: "#95A5A6",
     fontWeight: "500",
+  },
+  managementGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  managementButton: {
+    width: "48%",
+    backgroundColor: "white",
+    borderRadius: 16,
+    padding: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+    minHeight: 120,
+  },
+  managementIconContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "rgba(237, 42, 70, 0.1)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  managementButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#2C3E50",
+    textAlign: "center",
+    lineHeight: 18,
   },
 };

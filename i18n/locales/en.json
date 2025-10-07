@@ -34,7 +34,11 @@
     "schedule": "Schedule",
     "aiChatbox": "AI Chatbox",
     "me": "Me",
-    "ptSchedule": "PT Schedule"
+    "ptSchedule": "PT Schedule",
+    "withdrawal": "Withdrawal",
+    "freelancePTSchedule": "Schedule",
+    "freelancePTHome": "Home",
+    "freelancePTChat": "Messages"
   },
 
   "screenTitles": {
@@ -69,7 +73,9 @@
     "register": "Register",
     "fitnessDetail": "Fitness Tracking",
     "calendarSchedule": "Training Schedule",
-    "bookSession": "Book Session"
+    "bookSession": "Book Session",
+    "withdrawal": "Withdrawal",
+    "freelancePTSchedule": "Freelance PT Schedule"
   },
 
   "home": {
@@ -422,7 +428,12 @@
     "account": "Account",
     "services": "Services",
     "support": "Support",
-    "subscription": "Subscription"
+    "subscription": "Subscription",
+    "management": "Management",
+    "manageVoucher": "Manage Voucher",
+    "managePackage": "Manage Package",
+    "manageTransaction": "Manage Transaction",
+    "myCustomer": "My Customer"
   },
 
   "updatePassword": {

@@ -33,7 +33,11 @@
     "schedule": "Lịch Tập",
     "aiChatbox": "AI Chatbox",
     "me": "Tôi",
-    "ptSchedule": "Đăng Ký Lịch PT"
+    "ptSchedule": "Đăng Ký Lịch PT",
+    "withdrawal": "Rút Tiền",
+    "freelancePTSchedule": "Lịch Tập",
+    "freelancePTHome": "Trang chủ",
+    "freelancePTChat": "Nhắn tin"
   },
 
   "screenTitles": {
@@ -68,7 +72,9 @@
     "register": "Đăng Ký",
     "fitnessDetail": "Theo dõi sức khỏe",
     "calendarSchedule": "Lịch Tập",
-    "bookSession": "Đặt Lịch"
+    "bookSession": "Đặt Lịch",
+    "withdrawal": "Rút Tiền",
+    "freelancePTSchedule": "Lịch Tập FreelancePT"
   },
 
   "home": {
@@ -421,7 +427,12 @@
     "account": "Tài khoản",
     "services": "Dịch vụ",
     "support": "Hỗ trợ",
-    "subscription": "Đăng ký Premium"
+    "subscription": "Đăng ký Premium",
+    "management": "Quản lý",
+    "manageVoucher": "Quản lý Voucher",
+    "managePackage": "Quản lý Gói tập",
+    "manageTransaction": "Quản lý Giao dịch",
+    "myCustomer": "Khách hàng của tôi"
   },
 
   "updatePassword": {
