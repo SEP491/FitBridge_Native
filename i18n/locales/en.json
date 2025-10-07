@@ -75,7 +75,8 @@
     "calendarSchedule": "Training Schedule",
     "bookSession": "Book Session",
     "myPackage": "My Package",
-    "ptInCourseExtend": "Buy PT for Course"
+    "ptInCourseExtend": "Buy PT for Course",
+    "freelancePTSchedule": "Freelance PT Schedule"
   },
 
   "myPackage": {
