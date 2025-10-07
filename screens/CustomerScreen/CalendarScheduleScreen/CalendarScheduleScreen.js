@@ -67,10 +67,6 @@ export default function CalendarScheduleScreen() {
     loadBookingOfUser();
   }, []);
 
-  const handleBookSession = () => {
-    navigation.navigate("ChoosingCourseScreen");
-  };
-
   // Helper function to check if session is on selected date
   const isSessionOnDate = (session, targetDate) => {
     // Validate inputs
@@ -198,18 +194,6 @@ export default function CalendarScheduleScreen() {
 
       {/* Calendar */}
       <View style={styles.calendarContainer}>
-        {/* Book Session button */}
-        <View style={styles.bookSessionContainer}>
-          <TouchableOpacity
-            style={styles.bookSessionButton}
-            onPress={handleBookSession}
-          >
-            <Text style={styles.bookSessionButtonText}>
-              {t("calendar.bookSession")}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
         {/* Week View Container */}
         <View style={styles.weekViewContainer}>
           {/* Week Calendar Component */}
@@ -286,32 +270,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f8f9fa",
   },
-  bookSessionContainer: {
-    backgroundColor: colors.white,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e9ecef",
-    alignItems: "flex-end",
-  },
-  bookSessionButton: {
-    backgroundColor: colors.red,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 6,
-    minWidth: 100,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: colors.red,
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  bookSessionButtonText: {
-    color: colors.white,
-    fontSize: 13,
-    fontWeight: "600",
-  },
+
   calendarContainer: {
     flex: 1,
     backgroundColor: "#f8f9fa",

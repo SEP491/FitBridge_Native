@@ -37,7 +37,8 @@
     "withdrawal": "Rút Tiền",
     "freelancePTSchedule": "Lịch Tập",
     "freelancePTHome": "Trang chủ",
-    "freelancePTChat": "Nhắn tin"
+    "freelancePTChat": "Nhắn tin",
+    "Booking": "Đặt lịch"
   },
 
   "screenTitles": {
@@ -110,9 +111,10 @@
     "refreshing": "Đang làm mới...",
     "featuredGyms": "Phòng Gym Nổi Bật",
     "nearbyGymsTitle": "Phòng Gym Gần Tôi",
-    "viewMore": "Xem thêm",
+    "viewMap": "Xem Bản Đồ",
     "noNearbyGyms": "Hiện không có phòng gym nào gần bạn",
-    "blog": "Blog"
+    "blog": "Blog",
+    "viewMore": "Xem thêm"
   },
 
   "gym": {
@@ -629,6 +631,8 @@
     "title": "Lịch PT",
     "week": "Tuần",
     "month": "Tháng",
+    "weekView": "Xem theo tuần",
+    "monthView": "Xem theo tháng",
     "noPTSessions": "Chưa có buổi tập PT nào được lên lịch",
     "bookPTSession": "Đặt lịch tập với huấn luyện viên cá nhân của bạn",
     "strengthTraining": "Tập sức mạnh với",

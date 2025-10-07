@@ -38,7 +38,8 @@
     "withdrawal": "Withdrawal",
     "freelancePTSchedule": "Schedule",
     "freelancePTHome": "Home",
-    "freelancePTChat": "Messages"
+    "freelancePTChat": "Messages",
+    "Booking": "Booking"
   },
 
   "screenTitles": {
@@ -111,9 +112,10 @@
     "refreshing": "Refreshing...",
     "featuredGyms": "Featured Gyms",
     "nearbyGymsTitle": "Nearby Gyms",
-    "viewMore": "View More",
+    "viewMap": "View Map",
     "noNearbyGyms": "No gyms found nearby",
-    "blog": "Blog"
+    "blog": "Blog",
+    "viewMore": "View More"
   },
 
   "gym": {
@@ -631,6 +633,8 @@
     "title": "PT Schedule",
     "week": "Week",
     "month": "Month",
+    "weekView": "Week View",
+    "monthView": "Month View",
     "noPTSessions": "No PT sessions scheduled",
     "bookPTSession": "Book a session with your personal trainer",
     "strengthTraining": "Strength Training with",
