@@ -1,136 +1,217 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
   FlatList,
-  Alert
-} from 'react-native';
-import { useTranslation } from '../../../hooks/useTranslation';
-import Icon from 'react-native-vector-icons/FontAwesome';
+  Alert,
+  ActivityIndicator,
+  RefreshControl,
+} from "react-native";
+import { useTranslation } from "../../../hooks/useTranslation";
 import { Ionicons } from "@expo/vector-icons";
+import couponService from "../../../services/couponService";
+import CreateVoucherModal from "./CreateVoucherModal";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { VoucherCardWithGradient } from "../../../components/VoucherCard/VoucherCard";
+import VoucherCardVertical from "../../../components/VoucherCard/VoucherCardVertical";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const ManageVoucherScreen = ({ navigation }) => {
   const { t } = useTranslation();
-  const [vouchers, setVouchers] = useState([
-    {
-      id: 1,
-      code: 'WELCOME20',
-      discount: 20,
-      type: 'percentage',
-      description: 'Welcome discount for new clients',
-      status: 'active',
-      usageCount: 15,
-      maxUsage: 100,
-      expiryDate: '2024-12-31'
-    },
-    {
-      id: 2,
-      code: 'SUMMER50',
-      discount: 50,
-      type: 'fixed',
-      description: 'Summer special discount',
-      status: 'active',
-      usageCount: 8,
-      maxUsage: 50,
-      expiryDate: '2024-08-31'
-    },
-    {
-      id: 3,
-      code: 'STUDENT15',
-      discount: 15,
-      type: 'percentage',
-      description: 'Student discount',
-      status: 'inactive',
-      usageCount: 25,
-      maxUsage: 200,
-      expiryDate: '2024-06-30'
-    }
-  ]);
+  const [vouchers, setVouchers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [userName, setUserName] = useState('');
+  const [pagination, setPagination] = useState({
+    page: 1,
+    size: 10,
+    total: 0,
+    totalPages: 0,
+  });
 
-  const getStatusColor = (status) => {
-    return status === 'active' ? '#4CAF50' : '#F44336';
+  useEffect(() => {
+    fetchCoupons();
+    loadUserName();
+  }, []);
+
+  const loadUserName = async () => {
+    try {
+      const userDataString = await AsyncStorage.getItem('user');
+      if (userDataString) {
+        const userData = JSON.parse(userDataString);
+        setUserName(userData.fullName || userData.name || '');
+      }
+    } catch (error) {
+      console.error('Error loading user name:', error);
+    }
   };
 
-  const VoucherCard = ({ voucher }) => (
-    <View style={styles.voucherCard}>
-      <View style={styles.voucherHeader}>
-        <View style={styles.voucherInfo}>
-          <Text style={styles.voucherCode}>{voucher.code}</Text>
-          <Text style={styles.voucherDescription}>{voucher.description}</Text>
-        </View>
-        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(voucher.status) }]}>
-          <Text style={styles.statusText}>{voucher.status.toUpperCase()}</Text>
-        </View>
-      </View>
-      
-      <View style={styles.voucherDetails}>
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Discount:</Text>
-          <Text style={styles.detailValue}>
-            {voucher.type === 'percentage' ? `${voucher.discount}%` : `$${voucher.discount}`}
-          </Text>
-        </View>
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Usage:</Text>
-          <Text style={styles.detailValue}>{voucher.usageCount}/{voucher.maxUsage}</Text>
-        </View>
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Expires:</Text>
-          <Text style={styles.detailValue}>{voucher.expiryDate}</Text>
-        </View>
-      </View>
+  const fetchCoupons = async (page = 1) => {
+    try {
+      setLoading(true);
+      const response = await couponService.getCoupons({ page, size: 10 });
 
-      <View style={styles.voucherActions}>
-        <TouchableOpacity style={styles.editButton}>
-          <Ionicons name="pencil" size={16} color="#fff" />
-          <Text style={styles.actionButtonText}>Edit</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.toggleButton, { backgroundColor: voucher.status === 'active' ? '#F44336' : '#4CAF50' }]}
-        >
-          <Ionicons name={voucher.status === 'active' ? 'pause' : 'play'} size={16} color="#fff" />
-          <Text style={styles.actionButtonText}>
-            {voucher.status === 'active' ? 'Deactivate' : 'Activate'}
-          </Text>
-        </TouchableOpacity>
+      if (response.status === "200" && response.data) {
+        setVouchers(response.data.items);
+        setPagination({
+          page: response.data.page,
+          size: response.data.size,
+          total: response.data.total,
+          totalPages: response.data.totalPages,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching coupons:", error);
+      Alert.alert(t("manageVoucher.error"), t("manageVoucher.failedToLoad"));
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchCoupons(pagination.page);
+  };
+
+  const handleVoucherCreated = () => {
+    fetchCoupons(1); // Refresh the list from page 1
+  };
+
+  if (loading && vouchers.length === 0) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <ActivityIndicator size="large" color="#ED2A46" />
+        <Text style={styles.loadingText}>
+          {t("manageVoucher.loadingVouchers")}
+        </Text>
       </View>
-    </View>
-  );
+    );
+  }
 
   return (
     <View style={styles.container}>
-      {/* Header Stats */}
-      <View style={styles.statsContainer}>
+      {/* Header Stats - 3x2 Grid */}
+      <View style={styles.statsGrid}>
         <View style={styles.statCard}>
-          <Text style={styles.statNumber}>{vouchers.filter(v => v.status === 'active').length}</Text>
-          <Text style={styles.statLabel}>Active Vouchers</Text>
+          <Ionicons name="pricetag" size={24} color="#ED2A46" />
+          <Text style={styles.statNumber}>{pagination.total}</Text>
+          <Text style={styles.statLabel}>
+            {t("manageVoucher.totalVouchers")}
+          </Text>
         </View>
         <View style={styles.statCard}>
-          <Text style={styles.statNumber}>{vouchers.reduce((sum, v) => sum + v.usageCount, 0)}</Text>
-          <Text style={styles.statLabel}>Total Usage</Text>
+          <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
+          <Text style={styles.statNumber}>
+            {vouchers.filter((v) => v.isActive).length}
+          </Text>
+          <Text style={styles.statLabel}>{t("manageVoucher.active")}</Text>
+        </View>
+        <View style={styles.statCard}>
+          <Ionicons name="close-circle" size={24} color="#F44336" />
+          <Text style={styles.statNumber}>
+            {vouchers.filter((v) => !v.isActive).length}
+          </Text>
+          <Text style={styles.statLabel}>{t("manageVoucher.inactive")}</Text>
+        </View>
+        <View style={styles.statCard}>
+          <Ionicons name="people" size={24} color="#2196F3" />
+          <Text style={styles.statNumber}>
+            {vouchers.reduce((sum, v) => sum + v.numberOfUsedCoupon, 0)}
+          </Text>
+          <Text style={styles.statLabel}>{t("manageVoucher.totalUsage")}</Text>
+        </View>
+        <View style={styles.statCard}>
+          <Ionicons name="trending-up" size={24} color="#FF9800" />
+          <Text style={styles.statNumber}>
+            {vouchers.length > 0
+              ? Math.round(
+                  (vouchers.reduce((sum, v) => sum + v.numberOfUsedCoupon, 0) /
+                    vouchers.reduce((sum, v) => sum + v.quantity, 0)) *
+                    100
+                )
+              : 0}
+            %
+          </Text>
+          <Text style={styles.statLabel}>{t("manageVoucher.usageRate")}</Text>
+        </View>
+        <View style={styles.statCard}>
+          <Ionicons name="gift" size={24} color="#9C27B0" />
+          <Text style={styles.statNumber}>
+            {vouchers.reduce((sum, v) => sum + v.quantity, 0) -
+              vouchers.reduce((sum, v) => sum + v.numberOfUsedCoupon, 0)}
+          </Text>
+          <Text style={styles.statLabel}>{t("manageVoucher.remaining")}</Text>
         </View>
       </View>
 
       {/* Add New Voucher Button */}
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.addButton}
-        onPress={() => Alert.alert('Info', 'Add new voucher functionality')}
+        onPress={() => setShowCreateModal(true)}
       >
         <Ionicons name="add" size={20} color="#fff" />
-        <Text style={styles.addButtonText}>Create New Voucher</Text>
+        <Text style={styles.addButtonText}>
+          {t("manageVoucher.createNewVoucher")}
+        </Text>
       </TouchableOpacity>
 
       {/* Vouchers List */}
-      <FlatList
-        data={vouchers}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => <VoucherCard voucher={item} />}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.vouchersList}
-      />
+      <SafeAreaView style={{ width: "100%", paddingTop: -45, paddingBottom: 250 }}>
+        <FlatList
+          data={vouchers}a
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <TouchableOpacity onPress={() => navigation.navigate('VoucherDetailScreen', { voucherId: item.id })}>
+              <VoucherCardWithGradient voucher={item} userName={userName} />
+            </TouchableOpacity>
+          )}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.vouchersList}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={["#ED2A46"]}
+              tintColor="#ED2A46"
+            />
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Ionicons name="pricetag-outline" size={64} color="#ccc" />
+              <Text style={styles.emptyText}>
+                {t("manageVoucher.noVouchers")}
+              </Text>
+              <Text style={styles.emptySubText}>
+                {t("manageVoucher.createFirstVoucher")}
+              </Text>
+            </View>
+          }
+        />
+      </SafeAreaView>
+
+      {/* Create Voucher Modal */}
+      <View
+        style={{
+          height: "120%",
+          width: "120%",
+          position: "absolute",
+          justifyContent: "center",
+          alignItems: "center",
+          display: showCreateModal ? "flex" : "none",
+          zIndex: 1000,
+          backgroundColor: "rgba(0, 0, 0, 0.5)",
+        }}
+      >
+        <CreateVoucherModal
+          visible={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          onSuccess={handleVoucherCreated}
+        />
+      </View>
     </View>
   );
 };
@@ -138,138 +219,86 @@ const ManageVoucherScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: "#f8f9fa",
     padding: 16,
+    alignItems: "center",
+    width: "100%",
   },
-  statsContainer: {
-    flexDirection: 'row',
+  statsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
     marginBottom: 20,
     gap: 12,
+    width: "100%",
   },
   statCard: {
-    flex: 1,
-    backgroundColor: '#fff',
+    width: "31%",
+    backgroundColor: "#fff",
     borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
+    padding: 12,
+    alignItems: "center",
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
   statNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#ED2A46',
-    marginBottom: 4,
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#333",
+    marginTop: 6,
+    marginBottom: 2,
   },
   statLabel: {
-    fontSize: 12,
-    color: '#666',
-    textAlign: 'center',
+    fontSize: 10,
+    color: "#666",
+    textAlign: "center",
   },
   addButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#ED2A46',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#ED2A46",
     borderRadius: 12,
     padding: 16,
-    marginBottom: 20,
+    width: "90%",
   },
   addButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginLeft: 8,
   },
   vouchersList: {
     paddingBottom: 20,
   },
-  voucherCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+  centerContent: {
+    justifyContent: "center",
+    alignItems: "center",
   },
-  voucherHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: "#666",
   },
-  voucherInfo: {
-    flex: 1,
+  emptyContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 60,
+    width: "100%",
   },
-  voucherCode: {
+  emptyText: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 4,
+    fontWeight: "600",
+    color: "#666",
+    marginTop: 16,
   },
-  voucherDescription: {
+  emptySubText: {
     fontSize: 14,
-    color: '#666',
-  },
-  statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  statusText: {
-    fontSize: 10,
-    color: '#fff',
-    fontWeight: '600',
-  },
-  voucherDetails: {
-    marginBottom: 16,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-  },
-  detailLabel: {
-    fontSize: 14,
-    color: '#666',
-  },
-  detailValue: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
-  },
-  voucherActions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  editButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#2196F3',
-    borderRadius: 8,
-    paddingVertical: 10,
-  },
-  toggleButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 8,
-    paddingVertical: 10,
-  },
-  actionButtonText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
-    marginLeft: 4,
+    color: "#999",
+    marginTop: 8,
+    textAlign: "center",
   },
 });
 

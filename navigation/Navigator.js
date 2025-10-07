@@ -55,6 +55,7 @@ import ForgotPasswordScreen1 from "../screens/AuthenticationScreen/ForgotPasswor
 import ForgotPasswordScreen2 from "../screens/AuthenticationScreen/ForgotPasswordScreen/ForgotPasswordScreen2";
 import ForgotPasswordScreen3 from "../screens/AuthenticationScreen/ForgotPasswordScreen/ForgotPasswordScreen3";
 import RegisterScreen from "../screens/AuthenticationScreen/RegisterScreen/RegisterScreen";
+import VoucherDetailScreen from "../screens/FreelancePTScreen/VoucherDetailScreen/VoucherDetailScreen";
 
 export default function Navigator({
   isAuthenticated: propIsAuthenticated,
@@ -554,6 +555,7 @@ export default function Navigator({
             },
           }}
         />
+         
       </Stack.Navigator>
     );
   };
@@ -746,7 +748,8 @@ export default function Navigator({
             },
           }}
         />
-        <Stack.Screen
+
+         <Stack.Screen
           name="ManageVoucherScreen"
           component={ManageVoucherScreen}
           options={{
@@ -760,6 +763,22 @@ export default function Navigator({
             },
           }}
         />
+
+        <Stack.Screen
+          name="VoucherDetailScreen"
+          component={VoucherDetailScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.voucherDetails"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+
         <Stack.Screen
           name="ManagePackageScreen"
           component={ManagePackageScreen}
@@ -802,6 +821,7 @@ export default function Navigator({
             },
           }}
         />
+      
       </Stack.Navigator>
     );
   };
