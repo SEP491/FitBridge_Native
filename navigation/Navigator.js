@@ -49,6 +49,14 @@ import LanguageSelectScreen from "../screens/SettingScreen/LanguageSelectScreen/
 import FitnessDetailScreen from "../screens/FitnessDetailScreen/FitnessDetailScreen";
 import CalendarScheduleScreen from "../screens/CalendarScheduleScreen/CalendarScheduleScreen";
 import MyPackageScreen from "../screens/MyPackageScreen/MyPackageScreen";
+import ManageVoucherScreen from "../screens/FreelancePTScreen/ManageVoucherScreen/ManageVoucherScreen";
+import ManagePackageScreen from "../screens/FreelancePTScreen/ManagePackageScreen/ManagePackageScreen";
+import ManageTransactionScreen from "../screens/FreelancePTScreen/ManageTransactionScreen/ManageTransactionScreen";
+import MyCustomerScreen from "../screens/FreelancePTScreen/MyCustomerScreen/MyCustomerScreen";
+import FreelancePTDashboard from "../screens/FreelancePTScreen/FreelancePTDashboard/FreelancePTDashboard";
+import FreelancePTChatScreen from "../screens/FreelancePTScreen/FreelancePTChatScreen/FreelancePTChatScreen";
+import FreelancePTSchedule from "../screens/FreelancePTScreen/FreelancePTSchedule/FreelancePTSchedule";
+import WithdrawalScreen from "../screens/WithdrawalScreen/WithdrawalScreen";
 
 export default function Navigator({
   isAuthenticated: propIsAuthenticated,
@@ -501,6 +509,132 @@ export default function Navigator({
     );
   };
 
+  const WithdrawalStack = () => {
+    return (
+      <Stack.Navigator
+        screenOptions={({ navigation, route }) => ({
+          headerTitleAlign: "center",
+          headerShown: false,
+          headerTintColor: "#ED2A46",
+          headerLeft: (props) =>
+            navigation.canGoBack() ? (
+              <TouchableOpacity onPress={() => navigation.goBack()}>
+                <Ionicons name="caret-back" size={30} color="#ED2A46" />
+              </TouchableOpacity>
+            ) : null,
+        })}
+      >
+        <Stack.Screen
+          name="WithdrawalScreen"
+          component={WithdrawalScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.withdrawal"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+      </Stack.Navigator>
+    );
+  };
+
+  const FreelancePTHomeStack = () => {
+    return (
+      <Stack.Navigator
+        screenOptions={({ navigation, route }) => ({
+          headerTitleAlign: "center",
+          headerShown: false,
+          headerTintColor: "#ED2A46",
+          headerLeft: (props) =>
+            navigation.canGoBack() ? (
+              <TouchableOpacity onPress={() => navigation.goBack()}>
+                <Ionicons name="caret-back" size={30} color="#ED2A46" />
+              </TouchableOpacity>
+            ) : null,
+        })}
+      >
+        <Stack.Screen
+          name="FreelancePTDashboard"
+          component={FreelancePTDashboard}
+          options={{
+            headerTitleAlign: "center",
+            headerShown: true,
+            title: "Dashboard",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+      </Stack.Navigator>
+    );
+  };
+
+  const FreelancePTScheduleStack = () => {
+    return (
+      <Stack.Navigator
+        screenOptions={({ navigation, route }) => ({
+          headerTitleAlign: "center",
+          headerShown: false,
+          headerTintColor: "#ED2A46",
+          headerLeft: (props) =>
+            navigation.canGoBack() ? (
+              <TouchableOpacity onPress={() => navigation.goBack()}>
+                <Ionicons name="caret-back" size={30} color="#ED2A46" />
+              </TouchableOpacity>
+            ) : null,
+        })}
+      >
+        <Stack.Screen
+          name="FreelancePTSchedule"
+          component={FreelancePTSchedule}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.freelancePTSchedule"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+      </Stack.Navigator>
+    );
+  };
+
+  const FreelancePTChatStack = () => {
+    return (
+      <Stack.Navigator
+        screenOptions={({ navigation, route }) => ({
+          headerTitleAlign: "center",
+          headerShown: false,
+          headerTintColor: "#ED2A46",
+        })}
+      >
+        <Stack.Screen
+          name="FreelancePTChatScreen"
+          component={FreelancePTChatScreen}
+          options={{
+            headerShown: true,
+            title: "Messages",
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+      </Stack.Navigator>
+    );
+  };
+
   const ProfileStack = () => {
     return (
       <Stack.Navigator
@@ -662,6 +796,62 @@ export default function Navigator({
             },
           }}
         />
+        <Stack.Screen
+          name="ManageVoucherScreen"
+          component={ManageVoucherScreen}
+          options={{
+            headerShown: true,
+            title: t("userMenu.manageVoucher"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="ManagePackageScreen"
+          component={ManagePackageScreen}
+          options={{
+            headerShown: true,
+            title: t("userMenu.managePackage"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="ManageTransactionScreen"
+          component={ManageTransactionScreen}
+          options={{
+            headerShown: true,
+            title: t("userMenu.manageTransaction"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="MyCustomerScreen"
+          component={MyCustomerScreen}
+          options={{
+            headerShown: true,
+            title: t("userMenu.myCustomer"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
       </Stack.Navigator>
     );
   };
@@ -706,6 +896,14 @@ export default function Navigator({
                 iconName = "user";
               } else if (route.name === t("navigation.ptSchedule")) {
                 iconName = "calendar";
+              } else if (route.name === t("navigation.freelancePTSchedule")) {
+                iconName = "calendar";
+              } else if (route.name === t("navigation.withdrawal")) {
+                iconName = "money";
+              } else if (route.name === t("navigation.freelancePTHome")) {
+                iconName = "home";
+              } else if (route.name === t("navigation.freelancePTChat")) {
+                iconName = "comments";
               }
 
               return (
@@ -717,21 +915,24 @@ export default function Navigator({
           };
         }}
       >
-        {/* Common tabs for all users */}
-        <Tab.Screen
-          name={t("navigation.home")}
-          component={HomeStack}
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Tab.Screen
-          name={t("navigation.map")}
-          component={MapStack}
-          options={{
-            headerShown: false,
-          }}
-        />
+        {/* Home tabs - different for FreelancePT */}
+        {user?.role === "FreelancePT" ? (
+          <Tab.Screen
+            name={t("navigation.freelancePTHome")}
+            component={FreelancePTHomeStack}
+            options={{
+              headerShown: false,
+            }}
+          />
+        ) : (
+          <Tab.Screen
+            name={t("navigation.home")}
+            component={HomeStack}
+            options={{
+              headerShown: false,
+            }}
+          />
+        )}
 
         {/* Role-specific tabs */}
         {user?.role === "Customer" && (
@@ -744,10 +945,50 @@ export default function Navigator({
           />
         )}
 
+        {user?.role === "Customer" && (
+          <Tab.Screen
+            name={t("navigation.map")}
+            component={MapStack}
+            options={{
+              headerShown: false,
+            }}
+          />
+        )}
+
         {user?.role === "GymPT" && (
           <Tab.Screen
             name={t("navigation.ptSchedule")}
             component={SchedulePTStack}
+            options={{
+              headerShown: false,
+            }}
+          />
+        )}
+
+        {user?.role === "FreelancePT" && (
+          <Tab.Screen
+            name={t("navigation.freelancePTSchedule")}
+            component={FreelancePTScheduleStack}
+            options={{
+              headerShown: false,
+            }}
+          />
+        )}
+
+        {user?.role === "FreelancePT" && (
+          <Tab.Screen
+            name={t("navigation.withdrawal")}
+            component={WithdrawalStack}
+            options={{
+              headerShown: false,
+            }}
+          />
+        )}
+
+        {user?.role === "FreelancePT" && (
+          <Tab.Screen
+            name={t("navigation.freelancePTChat")}
+            component={FreelancePTChatStack}
             options={{
               headerShown: false,
             }}
@@ -765,6 +1006,7 @@ export default function Navigator({
         )}
 
         {/* Profile tab - available for all authenticated users */}
+
         <Tab.Screen
           name={t("navigation.me")}
           component={ProfileStack}

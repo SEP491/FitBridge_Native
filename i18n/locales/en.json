@@ -34,7 +34,11 @@
     "schedule": "Schedule",
     "aiChatbox": "AI Chatbox",
     "me": "Me",
-    "ptSchedule": "PT Schedule"
+    "ptSchedule": "PT Schedule",
+    "withdrawal": "Withdrawal",
+    "freelancePTSchedule": "Schedule",
+    "freelancePTHome": "Home",
+    "freelancePTChat": "Messages"
   },
 
   "screenTitles": {
@@ -92,7 +96,9 @@
       "currentSubtitle": "Sign up for a package to start training",
       "expiredTitle": "No expired packages",
       "expiredSubtitle": "All your packages are active"
-    }
+    },
+    "withdrawal": "Withdrawal",
+    "freelancePTSchedule": "Freelance PT Schedule"
   },
 
   "home": {
@@ -448,7 +454,12 @@
     "services": "Services",
     "support": "Support",
     "subscription": "Subscription",
-    "myPackage": "My Package"
+    "myPackage": "My Package",
+    "management": "Management",
+    "manageVoucher": "Manage Voucher",
+    "managePackage": "Manage Package",
+    "manageTransaction": "Manage Transaction",
+    "myCustomer": "My Customer"
   },
 
   "updatePassword": {

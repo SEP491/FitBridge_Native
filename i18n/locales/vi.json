@@ -33,7 +33,11 @@
     "schedule": "Lịch Tập",
     "aiChatbox": "AI Chatbox",
     "me": "Tôi",
-    "ptSchedule": "Đăng Ký Lịch PT"
+    "ptSchedule": "Đăng Ký Lịch PT",
+    "withdrawal": "Rút Tiền",
+    "freelancePTSchedule": "Lịch Tập",
+    "freelancePTHome": "Trang chủ",
+    "freelancePTChat": "Nhắn tin"
   },
 
   "screenTitles": {
@@ -91,7 +95,9 @@
       "currentSubtitle": "Hãy đăng ký gói tập để bắt đầu luyện tập",
       "expiredTitle": "Không có gói hết hạn",
       "expiredSubtitle": "Tất cả gói tập đều còn hiệu lực"
-    }
+    },
+    "withdrawal": "Rút Tiền",
+    "freelancePTSchedule": "Lịch Tập FreelancePT"
   },
 
   "home": {
@@ -446,7 +452,12 @@
     "services": "Dịch vụ",
     "support": "Hỗ trợ",
     "subscription": "Đăng ký Premium",
-    "myPackage": "Gói Tập Của Tôi"
+    "myPackage": "Gói Tập Của Tôi",
+    "management": "Quản lý",
+    "manageVoucher": "Quản lý Voucher",
+    "managePackage": "Quản lý Gói tập",
+    "manageTransaction": "Quản lý Giao dịch",
+    "myCustomer": "Khách hàng của tôi"
   },
 
   "updatePassword": {
