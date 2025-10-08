@@ -415,8 +415,7 @@ export default function GymDetailScreen({ route }) {
                 <TouchableOpacity
                   style={styles.mapOverlay}
                   onPress={() => {
-                    navigation.navigate("MapStack", {
-                      screen: "MapScreen",
+                    navigation.navigate("MapScreen", {
                       params: {
                         longitude: gymDetail?.longitude,
                         latitude: gymDetail?.latitude,

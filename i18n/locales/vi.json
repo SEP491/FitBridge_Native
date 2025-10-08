@@ -736,7 +736,8 @@
     "typing": "Đang nhập...",
     "aiGreeting": "Tôi là PT AI của FitBridge, tôi có thể giúp gì cho bạn ?",
     "operatingSince": "Hoạt động từ:",
-    "showMoreGyms": "Hiển thị thêm 5 gym",
+    "showMoreGyms": "Xem thêm 5 gym",
+    "showMoreTrainers": "Xem thêm 5 huấn luyện viên",
     "remaining": "còn lại",
     "collapse": "Thu gọn",
     "clearChat": "Xóa cuộc trò chuyện",
@@ -744,10 +745,14 @@
     "cancel": "Hủy",
     "delete": "Xóa",
     "gymsForYou": "Đây là những phòng gym phù hợp với bạn:",
+    "trainersForYou": "Đây là những huấn luyện viên phù hợp với bạn:",
     "cannotProcess": "Xin lỗi, tôi không thể xử lý yêu cầu của bạn lúc này.",
     "connectionError": "Xin lỗi, đã có lỗi xảy ra khi kết nối với server. Vui lòng thử lại sau.",
     "connectionErrorTitle": "Lỗi kết nối",
-    "serverConnectionFailed": "Không thể kết nối với server. Vui lòng kiểm tra kết nối internet và thử lại."
+    "serverConnectionFailed": "Không thể kết nối với server. Vui lòng kiểm tra kết nối internet và thử lại.",
+    "yearsOld": "tuổi",
+    "yearsExp": "năm KN",
+    "specializations": "Chuyên môn"
   },
 
   "ptScreen": {

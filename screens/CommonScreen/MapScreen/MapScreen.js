@@ -83,21 +83,22 @@ export default function MapScreen({ route }) {
   };
 
   useEffect(() => {
-    const fetchGym = async (page = 1, pageSize = 50) => {
+    const fetchGym = async (page = 1, pageSize = 500) => {
       setLoading(true);
       try {
         const response = await gymService.getAllGyms({
           page,
           size: pageSize,
+          doApplyPaging: false,
         });
         const { items, total, page: currentPage } = response.data;
 
         setAllGyms(items);
-        // console.log("Gyms:", items);
-        // console.log(
-        //   "Valid gyms:",
-        //   items.filter((gym) => isValidCoordinate(gym.latitude, gym.longitude))
-        // );
+        console.log("Gyms:", items);
+        console.log(
+          "Valid gyms:",
+          items.filter((gym) => isValidCoordinate(gym.latitude, gym.longitude))
+        );
       } catch (error) {
         console.error("Error fetching hot research gym:", error);
       } finally {

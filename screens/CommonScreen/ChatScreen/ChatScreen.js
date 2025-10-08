@@ -24,7 +24,10 @@ import { useLocationContext } from "../../../context/LocationContext";
 import { getAvatarUrl } from "../../../lib";
 import { useTranslation } from "../../../hooks/useTranslation";
 import { t } from "../../../i18n";
-import { getYearsFromDob } from "../../../lib";
+import {
+  GymCardsList,
+  TrainerCardsList,
+} from "../../../components/ChatComponents";
 
 const { width } = Dimensions.get("window");
 const MarkdownText = ({ text, style }) => {
@@ -134,113 +137,6 @@ const MarkdownText = ({ text, style }) => {
   };
 
   return <Text style={style}>{parseMarkdownText(text)}</Text>;
-};
-// Gym Card Component
-const GymCard = ({ gym, onPress }) => {
-  return (
-    <TouchableOpacity
-      style={styles.gymCard}
-      onPress={() => onPress(gym)}
-      activeOpacity={0.8}
-    >
-      <View style={styles.gymCardContent}>
-        {/* Gym Image */}
-        <View style={styles.gymImageContainer}>
-          {gym.mainImage ? (
-            <Image
-              source={{ uri: gym.mainImage }}
-              style={styles.gymImage}
-              resizeMode="cover"
-            />
-          ) : (
-            <Image
-              source={{
-                uri: "https://thesaigontimes.vn/wp-content/uploads/2024/12/g1-2.jpeg",
-              }}
-              style={styles.gymImage}
-              resizeMode="cover"
-            />
-          )}
-          {/* Distance Badge */}
-          {gym.distance_km !== undefined && (
-            <View style={styles.distanceBadge}>
-              <Text style={styles.distanceBadgeText}>
-                {gym.distance_km === 0 ? "< 0.1 km" : `${gym.distance_km} km`}
-              </Text>
-            </View>
-          )}
-        </View>
-
-        {/* Gym Info */}
-        <View style={styles.gymInfo}>
-          <Text style={styles.gymName} numberOfLines={1}>
-            {gym.gymName}
-          </Text>
-          <Text style={styles.gymAddress} numberOfLines={2}>
-            📍 {gym.address}
-          </Text>
-          <Text style={styles.gymSince}>
-            {t("chat.operatingSince")} {getYearsFromDob(gym.dob)}
-          </Text>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-};
-
-// Gym Cards List Component
-const GymCardsList = ({ gyms, onGymPress }) => {
-  const [visibleCount, setVisibleCount] = useState(
-    Math.max(3, Math.min(gyms.length, 3))
-  );
-  const initialCount = Math.max(3, Math.min(gyms.length, 3));
-  const hasMore = visibleCount < gyms.length;
-  const canCollapse = visibleCount > initialCount;
-
-  const handleShowMore = () => {
-    setVisibleCount((prev) => Math.min(prev + 5, gyms.length));
-  };
-
-  const handleCollapse = () => {
-    setVisibleCount(initialCount);
-  };
-
-  return (
-    <View style={styles.gymCardsContainer}>
-      <FlatList
-        data={gyms.slice(0, visibleCount)}
-        renderItem={({ item }) => <GymCard gym={item} onPress={onGymPress} />}
-        keyExtractor={(item) => item.id}
-        showsVerticalScrollIndicator={false}
-        scrollEnabled={false}
-      />
-
-      <View style={styles.buttonContainer}>
-        {hasMore && (
-          <TouchableOpacity
-            style={styles.showMoreButton}
-            onPress={handleShowMore}
-          >
-            <Text style={styles.showMoreText}>
-              {t("chat.showMoreGyms")} ({gyms.length - visibleCount}{" "}
-              {t("chat.remaining")})
-            </Text>
-            <Ionicons name="chevron-down" size={16} color="#ED2A46" />
-          </TouchableOpacity>
-        )}
-
-        {canCollapse && (
-          <TouchableOpacity
-            style={styles.collapseButton}
-            onPress={handleCollapse}
-          >
-            <Text style={styles.collapseText}>{t("chat.collapse")}</Text>
-            <Ionicons name="chevron-up" size={16} color="#666" />
-          </TouchableOpacity>
-        )}
-      </View>
-    </View>
-  );
 };
 
 // Typing indicator component similar to Facebook Messenger
@@ -379,7 +275,7 @@ const FloatingClearButton = ({ onPress, isVisible }) => {
         onPress={onPress}
         activeOpacity={0.8}
       >
-        <Text style={styles.clearButtonIcon}>🗑️</Text>
+        <Ionicons name="trash-outline" size={24} color="#EF4444" />
       </TouchableOpacity>
     </Animated.View>
   );
@@ -509,6 +405,13 @@ export default function ChatScreen({ navigation }) {
     });
   };
 
+  // Handle trainer card press (can be expanded later if needed)
+  const handleTrainerPress = (trainer) => {
+    // For now, this can be left empty or show a message
+    // You can implement navigation to PT profile if needed
+    console.log("Trainer pressed:", trainer);
+  };
+
   const handleClearChat = () => {
     Alert.alert(t("chat.clearChat"), t("chat.clearChatConfirm"), [
       {
@@ -553,12 +456,17 @@ export default function ChatScreen({ navigation }) {
 
       let aiResponseText = "";
       let gyms = null;
+      let trainers = null;
 
       // Check if response contains gyms data
       if (response.gyms && response.gyms.length > 0) {
         // Only show the prompt response, gyms will be shown as cards
         aiResponseText = response.promptResponse || t("chat.gymsForYou");
         gyms = response.gyms;
+      } else if (response.trainers && response.trainers.length > 0) {
+        // Handle trainers data
+        aiResponseText = response.promptResponse || t("chat.trainersForYou");
+        trainers = response.trainers;
       } else if (response.message) {
         aiResponseText = response.message;
       } else if (response.promptResponse) {
@@ -575,6 +483,8 @@ export default function ChatScreen({ navigation }) {
         role: "assistant",
         gyms: gyms, // Store gyms data for card rendering
         hasGyms: gyms && gyms.length > 0, // Flag to indicate this message has gym cards
+        trainers: trainers, // Store trainers data for card rendering
+        hasTrainers: trainers && trainers.length > 0, // Flag to indicate this message has trainer cards
       };
 
       setMessages((prev) => [...prev, aiResponse]);
@@ -688,6 +598,15 @@ export default function ChatScreen({ navigation }) {
           {item.hasGyms && item.gyms && (
             <GymCardsList gyms={item.gyms} onGymPress={handleGymPress} />
           )}
+
+          {/* Render trainer cards if available */}
+          {item.hasTrainers && item.trainers && (
+            <TrainerCardsList
+              trainers={item.trainers}
+              onTrainerPress={handleTrainerPress}
+              onGymPress={handleGymPress}
+            />
+          )}
         </View>
         {!item.isAI && (
           <View style={styles.userAvatar}>
@@ -740,7 +659,9 @@ export default function ChatScreen({ navigation }) {
   const renderEmptyState = () => (
     <View style={styles.emptyStateContainer}>
       <View style={styles.emptyStateContent}>
-        <Text style={styles.emptyStateIcon}>🏋️‍♂️</Text>
+        <View style={styles.emptyStateIconContainer}>
+          <Ionicons name="barbell" size={64} color="#EF4444" />
+        </View>
         <Text style={styles.emptyStateTitle}>
           Chào mừng đến với FitBridge AI!
         </Text>
@@ -806,7 +727,7 @@ export default function ChatScreen({ navigation }) {
             ]}
           >
             <TouchableOpacity style={styles.addButton}>
-              <Text style={styles.addButtonText}>+</Text>
+              <Ionicons name="add" size={24} color="#fff" />
             </TouchableOpacity>
 
             <TextInput
@@ -841,7 +762,7 @@ export default function ChatScreen({ navigation }) {
               {isLoading ? (
                 <ActivityIndicator size="small" color="#fff" />
               ) : (
-                <Text style={styles.sendButtonText}>➤</Text>
+                <Ionicons name="send" size={18} color="#fff" />
               )}
             </TouchableOpacity>
           </View>
@@ -1020,8 +941,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     maxWidth: 300,
   },
-  emptyStateIcon: {
-    fontSize: 64,
+  emptyStateIconContainer: {
     marginBottom: 16,
   },
   emptyStateTitle: {
@@ -1089,131 +1009,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E5E7EB",
   },
-  clearButtonIcon: {
-    fontSize: 20,
-  },
-  // Gym Cards Styles
-  gymCardsContainer: {
-    marginTop: 12,
-    width: width * 0.75,
-  },
-  gymCard: {
-    backgroundColor: "#ffffff",
-    borderRadius: 16,
-    marginVertical: 6,
-    shadowColor: "#000",
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-  },
-  gymCardContent: {
-    // flexDirection: "row",
-    // padding: 16,
-    alignItems: "center",
-  },
-  gymImageContainer: {
-    width: "100%",
-    height: 200,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-    position: "relative",
-    overflow: "hidden",
-    // marginRight: 16,
-  },
-  gymImage: {
-    width: "100%",
-    height: "100%",
-  },
-  distanceBadge: {
-    position: "absolute",
-    top: 12,
-    right: 12,
-    backgroundColor: "rgba(0, 0, 0, 0.75)",
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 16,
-    shadowColor: "#000",
-    shadowOpacity: 0.25,
-    shadowRadius: 3,
-    elevation: 4,
-  },
-  distanceBadgeText: {
-    color: "#ffffff",
-    fontSize: 12,
-    fontWeight: "600",
-    textAlign: "center",
-  },
-  gymInfo: {
-    // flex: 1,
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "flex-start",
-    // paddingRight: 8,
-    padding: 16,
-  },
-  gymName: {
-    fontSize: 17,
-    fontWeight: "700",
-    color: "#1F2937",
-    marginBottom: 6,
-  },
-  gymAddress: {
-    fontSize: 14,
-    color: "#6B7280",
-    marginBottom: 4,
-    lineHeight: 18,
-  },
-  gymSince: {
-    fontSize: 13,
-    color: "#9CA3AF",
-  },
-
-  // Show More Button Styles
-  buttonContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 12,
-    marginHorizontal: 8,
-    gap: 8,
-  },
-  showMoreButton: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#FFF5F6",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#ED2A46",
-  },
-  showMoreText: {
-    fontSize: 14,
-    color: "#ED2A46",
-    fontWeight: "600",
-    marginRight: 8,
-  },
-  collapseButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#F8F9FA",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    minWidth: 100,
-  },
-  collapseText: {
-    fontSize: 14,
-    color: "#666",
-    fontWeight: "600",
-    marginRight: 8,
-  },
 
   // Typing indicator styles
   typingContainer: {
@@ -1273,11 +1068,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginRight: 12,
   },
-  addButtonText: {
-    fontSize: 20,
-    color: "#fff",
-    fontWeight: "bold",
-  },
   textInput: {
     flex: 1,
     minHeight: 36,
@@ -1304,10 +1094,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 3,
     elevation: 3,
-  },
-  sendButtonText: {
-    fontSize: 18,
-    color: "#fff",
   },
 
   boldText: {
