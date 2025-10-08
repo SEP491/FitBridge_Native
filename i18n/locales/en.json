@@ -573,7 +573,11 @@
     "delete": "Delete",
     "voucherDeleted": "Voucher deleted successfully",
     "failedToDelete": "Failed to delete voucher",
-    "shareVoucher": "Share Voucher"
+    "shareVoucher": "Share Voucher",
+    "addQuantity": "Add Quantity",
+    "enterAddQuantity": "Enter quantity to add",
+    "currentlyHave": "Currently have"
+
   },
 
   "languageSelect": {

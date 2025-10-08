@@ -277,12 +277,25 @@ const VoucherDetailScreen = ({ route, navigation }) => {
       )}
 
       {/* Edit Voucher Modal */}
-      <EditVoucherModal
+      <View
+        style={{
+          height: "120%",
+          width: "120%",
+          position: "absolute",
+          justifyContent: "center",
+          alignItems: "center",
+          display: showEditModal ? "flex" : "none",
+          zIndex: 1000,
+          backgroundColor: "rgba(0, 0, 0, 0.5)",
+        }}
+      >
+        <EditVoucherModal
         visible={showEditModal}
         onClose={() => setShowEditModal(false)}
         onSuccess={handleVoucherUpdated}
         voucher={voucher}
       />
+      </View>
     </SafeAreaView>
   );
 };

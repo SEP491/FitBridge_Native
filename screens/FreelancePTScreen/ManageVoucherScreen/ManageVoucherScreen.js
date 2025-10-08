@@ -35,7 +35,7 @@ const ManageVoucherScreen = ({ navigation }) => {
   useEffect(() => {
     fetchCoupons();
     loadUserName();
-  }, []);
+  }, [navigation]);
 
   const loadUserName = async () => {
     try {

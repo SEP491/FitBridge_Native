@@ -43,6 +43,20 @@
         "android.permission.ACTIVITY_RECOGNITION",
         "android.permission.BODY_SENSORS"
       ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "fitbridge.shop",
+              "pathPrefix": "/voucherDetails"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ],
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyA6qi4i55mqDQ1UumM4rmfjmuN8kws0nKk"

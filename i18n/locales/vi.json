@@ -571,7 +571,10 @@
     "delete": "Xóa",
     "voucherDeleted": "Xóa voucher thành công",
     "failedToDelete": "Không thể xóa voucher",
-    "shareVoucher": "Chia sẻ Voucher"
+    "shareVoucher": "Chia sẻ Voucher",
+    "addQuantity": "Thêm Số Lượng",
+    "enterNumberofAddQuantity": "Nhập số lượng muốn thêm",
+    "currentlyHave": "Hiện có"
   },
 
   "languageSelect": {

@@ -209,13 +209,12 @@ const EditVoucherModal = ({ visible, onClose, onSuccess, voucher }) => {
             {/* Quantity */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>
-                {t('manageVoucher.quantity')} <Text style={styles.required}>*</Text>
+                {t('manageVoucher.addQuantity')} <Text style={styles.required}>*</Text>
               </Text>
               <View style={styles.inputWithIcon}>
                 <TextInput
                   style={styles.input}
-                  placeholder="Enter total quantity"
-                  value={formData.quantity}
+                  placeholder={t('manageVoucher.enterNumberofAddQuantity')}
                   onChangeText={(value) => handleInputChange('quantity', value)}
                   keyboardType="numeric"
                   editable={!loading}
@@ -226,7 +225,7 @@ const EditVoucherModal = ({ visible, onClose, onSuccess, voucher }) => {
               </View>
               {voucher && (
                 <Text style={styles.helperText}>
-                  Currently used: {voucher.numberOfUsedCoupon} / {voucher.quantity}
+                  {t('manageVoucher.currentlyHave')}: {voucher.quantity} <Text>Voucher</Text>
                 </Text>
               )}
             </View>
@@ -265,7 +264,7 @@ const EditVoucherModal = ({ visible, onClose, onSuccess, voucher }) => {
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    // backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
   },
   modalContent: {

@@ -1,31 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   Image,
   TouchableOpacity,
-  Share,
 } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { Ionicons } from '@expo/vector-icons';
 import LogoColor from '../../assets/LogoColor.png';
 import { LinearGradient } from 'expo-linear-gradient';
+import VoucherShareModal from './VoucherShareModal';
 
 const VoucherCardVertical = ({ voucher, userName }) => {
+  const [showShareModal, setShowShareModal] = useState(false);
+
   if (!voucher) {
     return null;
   }
 
-  const handleShare = async () => {
-    try {
-      await Share.share({
-        message: `🎁 Voucher Code: ${voucher.couponCode}\n💰 Discount: ${voucher.discountPercent}%\n📌 Max Discount: ${voucher.maxDiscount?.toLocaleString('vi-VN')} ₫\n\nGet your discount at FitBridge!`,
-        title: 'Share Voucher',
-      });
-    } catch (error) {
-      console.error('Error sharing voucher:', error);
-    }
+  const handleShare = () => {
+    setShowShareModal(true);
   };
 
   return (
@@ -126,6 +121,13 @@ const VoucherCardVertical = ({ voucher, userName }) => {
 
       {/* Dashed Line Separator */}
       <View style={styles.dashedLine} />
+
+      {/* Share Modal */}
+      <VoucherShareModal
+        visible={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        voucher={voucher}
+      />
     </View>
   );
 };
@@ -277,7 +279,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
   },
   footerText: {
     fontSize: 12,

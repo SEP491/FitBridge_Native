@@ -80,6 +80,8 @@ export default function Navigator({
     prefixes: [
       Linking.createURL("/"),
       "fitbridge://", // Thêm scheme custom của bạn
+      "https://fitbridge.shop",
+      "http://fitbridge.shop",
     ],
     config: {
       screens: {
@@ -91,6 +93,7 @@ export default function Navigator({
                 OrderSuccessScreen: "orderprocess",
                 GymDetailScreen: "gym/:gymId",
                 SearchGymScreen: "search",
+                VoucherDetailScreen: "voucherDetails/:voucherId",
               },
             },
             [t("navigation.map")]: {
@@ -105,6 +108,7 @@ export default function Navigator({
         Login: "login",
         Register: "register",
         Splash: "splash",
+        VoucherDetailScreen: "voucherDetails/:voucherId",
 
         // Thêm các màn khác nếu cần
       },
