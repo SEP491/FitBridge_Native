@@ -577,6 +577,41 @@
     "currentlyHave": "Hiện có"
   },
 
+  "managePackage": {
+    "totalPackages": "Tổng Gói Tập",
+    "totalDays": "Tổng Số Ngày",
+    "totalSessions": "Tổng Buổi Tập",
+    "totalValue": "Tổng Giá Trị",
+    "totalMinutes": "Tổng Phút",
+    "avgPrice": "Giá Trung Bình",
+    "createNewPackage": "Tạo Gói Tập Mới",
+    "loadingPackages": "Đang tải gói tập...",
+    "noPackages": "Không có gói tập nào",
+    "createFirstPackage": "Tạo gói tập đầu tiên của bạn để bắt đầu",
+    "error": "Lỗi",
+    "failedToLoad": "Không thể tải gói tập. Vui lòng thử lại.",
+    "days": "ngày",
+    "minutes": "phút",
+    "sessions": "buổi",
+    "price": "Giá",
+    "packageInformation": "Thông Tin Gói Tập",
+    "packageName": "Tên Gói Tập",
+    "description": "Mô tả",
+    "duration": "Thời gian",
+    "sessionDuration": "Thời lượng buổi tập",
+    "numberOfSessions": "Số buổi tập",
+    "success": "Thành công",
+    "packageCreated": "Tạo gói tập thành công",
+    "packageUpdated": "Cập nhật gói tập thành công",
+    "packageDeleted": "Xóa gói tập thành công",
+    "failedToCreate": "Không thể tạo gói tập",
+    "failedToUpdate": "Không thể cập nhật gói tập",
+    "failedToDelete": "Không thể xóa gói tập",
+    "averageDays":"Ngày Trung Bình",
+    "averageSessions":"Buổi Trung Bình",
+    "averageMinutes":"Phút Trung Bình"
+  },
+
   "languageSelect": {
     "englishDescription": "Chọn Tiếng Anh làm ngôn ngữ ưa thích",
     "vietnameseDescription": "Chọn Tiếng Việt làm ngôn ngữ ưa thích"

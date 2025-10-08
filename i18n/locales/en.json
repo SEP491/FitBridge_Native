@@ -580,6 +580,38 @@
 
   },
 
+  "managePackage": {
+    "totalPackages": "Total Packages",
+    "totalDays": "Total Days",
+    "totalSessions": "Total Sessions",
+    "totalValue": "Total Value",
+    "totalMinutes": "Total Minutes",
+    "avgPrice": "Avg Price",
+    "createNewPackage": "Create New Package",
+    "loadingPackages": "Loading packages...",
+    "noPackages": "No packages available",
+    "createFirstPackage": "Create your first package to get started",
+    "error": "Error",
+    "failedToLoad": "Failed to load packages. Please try again.",
+    "days": "days",
+    "minutes": "min",
+    "sessions": "sessions",
+    "price": "Price",
+    "packageInformation": "Package Information",
+    "packageName": "Package Name",
+    "description": "Description",
+    "duration": "Duration",
+    "sessionDuration": "Session Duration",
+    "numberOfSessions": "Number of Sessions",
+    "success": "Success",
+    "packageCreated": "Package created successfully",
+    "packageUpdated": "Package updated successfully",
+    "packageDeleted": "Package deleted successfully",
+    "failedToCreate": "Failed to create package",
+    "failedToUpdate": "Failed to update package",
+    "failedToDelete": "Failed to delete package"
+  },
+
   "languageSelect": {
     "englishDescription": "Select English as your preferred language",
     "vietnameseDescription": "Choose Vietnamese as your preferred language"

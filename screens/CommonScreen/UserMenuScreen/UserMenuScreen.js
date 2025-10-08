@@ -52,6 +52,7 @@ export default function UserMenuScreen() {
       navigation: "AccountScreen",
       category: "account",
     },
+    
     {
       icon: <Ionicons name="document-text-outline" size={28} color="#ED2A46" />,
       label: t("userMenu.profile"),

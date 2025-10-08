@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,161 +6,221 @@ import {
   ScrollView,
   TouchableOpacity,
   FlatList,
-  Alert
+  Alert,
+  ActivityIndicator,
+  RefreshControl,
+  Image,
 } from 'react-native';
 import { useTranslation } from '../../../hooks/useTranslation';
 import { Ionicons } from "@expo/vector-icons";
+import { SafeAreaView } from 'react-native-safe-area-context';
+import freelancePTPackageService from '../../../services/freelancePTPackageService';
+import PackageCard from './PackageCard';
+import CreatePackageModal from './CreatePackageModal';
+import EditPackageModal from './EditPackageModal';
 
 const ManagePackageScreen = ({ navigation }) => {
   const { t } = useTranslation();
-  const [packages, setPackages] = useState([
-    {
-      id: 1,
-      name: 'Basic Strength Training',
-      duration: '1 hour',
-      price: 50,
-      description: 'Individual strength training session',
-      location: 'Client\'s Home',
-      status: 'active',
-      bookings: 15,
-      rating: 4.8
-    },
-    {
-      id: 2,
-      name: 'Premium Cardio Package',
-      duration: '1.5 hours',
-      price: 75,
-      description: 'Intensive cardio workout with nutrition guidance',
-      location: 'Local Gym / Outdoor',
-      status: 'active',
-      bookings: 8,
-      rating: 4.9
-    },
-    {
-      id: 3,
-      name: 'Weight Loss Program',
-      duration: '1 hour',
-      price: 60,
-      description: 'Customized weight loss training program',
-      location: 'Flexible',
-      status: 'inactive',
-      bookings: 22,
-      rating: 4.7
-    },
-    {
-      id: 4,
-      name: 'Group Training Session',
-      duration: '45 minutes',
-      price: 30,
-      description: 'Small group training (2-4 people)',
-      location: 'Local Park',
-      status: 'active',
-      bookings: 5,
-      rating: 4.6
-    }
-  ]);
+  const [packages, setPackages] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    size: 10,
+    total: 0,
+    totalPages: 0,
+  });
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedPackage, setSelectedPackage] = useState(null);
 
-  const getStatusColor = (status) => {
-    return status === 'active' ? '#4CAF50' : '#F44336';
+  useEffect(() => {
+    fetchPackages();
+  }, []);
+
+  const fetchPackages = async (page = 1) => {
+    try {
+      setLoading(true);
+      const response = await freelancePTPackageService.getFreelancePTPackages({ page, size: 10 });
+
+      if (response.status === "200" && response.data) {
+        setPackages(response.data.items);
+        setPagination({
+          page: response.data.page,
+          size: response.data.size,
+          total: response.data.total,
+          totalPages: response.data.totalPages,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching packages:", error);
+      Alert.alert(t("managePackage.error"), t("managePackage.failedToLoad"));
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   };
 
-  const PackageCard = ({ package: pkg }) => (
-    <View style={styles.packageCard}>
-      <View style={styles.packageHeader}>
-        <View style={styles.packageInfo}>
-          <Text style={styles.packageName}>{pkg.name}</Text>
-          <Text style={styles.packageDescription}>{pkg.description}</Text>
-        </View>
-        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(pkg.status) }]}>
-          <Text style={styles.statusText}>{pkg.status.toUpperCase()}</Text>
-        </View>
-      </View>
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchPackages(pagination.page);
+  };
 
-      <View style={styles.packageDetails}>
-        <View style={styles.detailRow}>
-          <Ionicons name="time-outline" size={16} color="#666" />
-          <Text style={styles.detailText}>{pkg.duration}</Text>
-        </View>
-        <View style={styles.detailRow}>
-          <Ionicons name="cash-outline" size={16} color="#666" />
-          <Text style={styles.detailText}>${pkg.price}</Text>
-        </View>
-        <View style={styles.detailRow}>
-          <Ionicons name="location-outline" size={16} color="#666" />
-          <Text style={styles.detailText}>{pkg.location}</Text>
-        </View>
-      </View>
+  const handlePackageCreated = () => {
+    fetchPackages(1); // Refresh the list from page 1
+  };
 
-      <View style={styles.packageStats}>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{pkg.bookings}</Text>
-          <Text style={styles.statLabel}>Bookings</Text>
-        </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{pkg.rating}</Text>
-          <Text style={styles.statLabel}>Rating</Text>
-        </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>${pkg.price * pkg.bookings}</Text>
-          <Text style={styles.statLabel}>Revenue</Text>
-        </View>
-      </View>
+  const handlePackageUpdated = () => {
+    fetchPackages(pagination.page); // Refresh the current page
+  };
 
-      <View style={styles.packageActions}>
-        <TouchableOpacity style={styles.editButton}>
-          <Ionicons name="pencil" size={16} color="#fff" />
-          <Text style={styles.actionButtonText}>Edit</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.duplicateButton}
-          onPress={() => Alert.alert('Info', 'Duplicate package functionality')}
-        >
-          <Ionicons name="copy" size={16} color="#fff" />
-          <Text style={styles.actionButtonText}>Duplicate</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.toggleButton, { backgroundColor: pkg.status === 'active' ? '#F44336' : '#4CAF50' }]}
-        >
-          <Ionicons name={pkg.status === 'active' ? 'pause' : 'play'} size={16} color="#fff" />
-        </TouchableOpacity>
+  const handleEditPackage = async (packageId) => {
+    try {
+      const response = await freelancePTPackageService.getFreelancePTPackageById(packageId);
+      if (response.status === "200" && response.data) {
+        setSelectedPackage(response.data);
+        setShowEditModal(true);
+      }
+    } catch (error) {
+      console.error("Error fetching package details:", error);
+      Alert.alert(t("managePackage.error"), "Failed to load package details");
+    }
+  };
+
+  const calculateTotalRevenue = () => {
+    return packages.reduce((sum, pkg) => sum + pkg.price, 0);
+  };
+
+  if (loading && packages.length === 0) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <ActivityIndicator size="large" color="#ED2A46" />
+        <Text style={styles.loadingText}>
+          {t("managePackage.loadingPackages")}
+        </Text>
       </View>
-    </View>
-  );
+    );
+  }
 
   return (
     <View style={styles.container}>
-      {/* Header Stats */}
-      <View style={styles.statsContainer}>
+      {/* Header Stats - 3x2 Grid */}
+      <View style={styles.statsGrid}>
         <View style={styles.statCard}>
-          <Text style={styles.statCardNumber}>{packages.filter(p => p.status === 'active').length}</Text>
-          <Text style={styles.statCardLabel}>Active Packages</Text>
+          <Ionicons name="cube" size={24} color="#ED2A46" />
+          <Text style={styles.statNumber}>{pagination.total}</Text>
+          <Text style={styles.statLabel}>
+            {t("managePackage.totalPackages")}
+          </Text>
         </View>
         <View style={styles.statCard}>
-          <Text style={styles.statCardNumber}>{packages.reduce((sum, p) => sum + p.bookings, 0)}</Text>
-          <Text style={styles.statCardLabel}>Total Bookings</Text>
+          <Ionicons name="calendar" size={24} color="#4CAF50" />
+          <Text style={styles.statNumber}>
+            {packages.length > 0 
+              ? Math.round(packages.reduce((sum, p) => sum + p.durationInDays, 0) / packages.length)
+              : 0}
+          </Text>
+          <Text style={styles.statLabel}>{t("managePackage.averageDays")}</Text>
         </View>
         <View style={styles.statCard}>
-          <Text style={styles.statCardNumber}>${packages.reduce((sum, p) => sum + (p.price * p.bookings), 0)}</Text>
-          <Text style={styles.statCardLabel}>Total Revenue</Text>
+          <Ionicons name="barbell" size={24} color="#2196F3" />
+          <Text style={styles.statNumber}>
+            {packages.length > 0 
+              ? Math.round(packages.reduce((sum, p) => sum + p.numOfSessions, 0) / packages.length)
+              : 0}
+          </Text>
+          <Text style={styles.statLabel}>{t("managePackage.averageSessions")}</Text>
+        </View>
+        <View style={styles.statCard}>
+          <Ionicons name="cash" size={24} color="#FF9800" />
+          <Text style={styles.statNumber}>
+            {calculateTotalRevenue().toLocaleString('vi-VN', { maximumFractionDigits: 0 })}₫
+          </Text>
+          <Text style={styles.statLabel}>{t("managePackage.totalValue")}</Text>
+        </View>
+        <View style={styles.statCard}>
+          <Ionicons name="time" size={24} color="#9C27B0" />
+          <Text style={styles.statNumber}>
+            {packages.length > 0 
+              ? Math.round(packages.reduce((sum, p) => sum + p.sessionDurationInMinutes, 0) / packages.length)
+              : 0}
+          </Text>
+          <Text style={styles.statLabel}>{t("managePackage.averageMinutes")}</Text>
+        </View>
+        <View style={styles.statCard}>
+          <Ionicons name="stats-chart" size={24} color="#00BCD4" />
+          <Text style={styles.statNumber}>
+            {packages.length > 0 
+              ? Math.round(packages.reduce((sum, p) => sum + p.price, 0) / packages.length).toLocaleString('vi-VN', { maximumFractionDigits: 0 })
+              : 0}₫
+          </Text>
+          <Text style={styles.statLabel}>{t("managePackage.avgPrice")}</Text>
         </View>
       </View>
 
       {/* Add New Package Button */}
       <TouchableOpacity 
         style={styles.addButton}
-        onPress={() => Alert.alert('Info', 'Add new package functionality')}
+        onPress={() => setShowCreateModal(true)}
       >
         <Ionicons name="add" size={20} color="#fff" />
-        <Text style={styles.addButtonText}>Create New Package</Text>
+        <Text style={styles.addButtonText}>
+          {t("managePackage.createNewPackage")}
+        </Text>
       </TouchableOpacity>
 
       {/* Packages List */}
-      <FlatList
-        data={packages}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => <PackageCard package={item} />}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.packagesList}
+      <SafeAreaView style={{ width: "100%", flex: 1 }}>
+        <FlatList
+          data={packages}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <PackageCard 
+              package={item}
+              onPress={() => navigation.navigate('PackageDetailScreen', { packageId: item.id })}
+              onEdit={() => handleEditPackage(item.id)}
+            />
+          )}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.packagesList}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={["#ED2A46"]}
+              tintColor="#ED2A46"
+            />
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Ionicons name="cube-outline" size={64} color="#ccc" />
+              <Text style={styles.emptyText}>
+                {t("managePackage.noPackages")}
+              </Text>
+              <Text style={styles.emptySubText}>
+                {t("managePackage.createFirstPackage")}
+              </Text>
+            </View>
+          }
+        />
+      </SafeAreaView>
+
+      {/* Create Package Modal */}
+      <CreatePackageModal
+        visible={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onPackageCreated={handlePackageCreated}
+      />
+
+      {/* Edit Package Modal */}
+      <EditPackageModal
+        visible={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setSelectedPackage(null);
+        }}
+        packageData={selectedPackage}
+        onPackageUpdated={handlePackageUpdated}
       />
     </View>
   );
@@ -171,14 +231,27 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8f9fa',
     padding: 16,
+    alignItems: 'center',
+    width: '100%',
   },
-  statsContainer: {
+  centerContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#666',
+  },
+  statsGrid: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     marginBottom: 20,
-    gap: 8,
+    gap: 12,
+    width: '100%',
   },
   statCard: {
-    flex: 1,
+    width: '31%',
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 12,
@@ -189,13 +262,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
-  statCardNumber: {
-    fontSize: 20,
+  statNumber: {
+    fontSize: 16,
     fontWeight: 'bold',
-    color: '#ED2A46',
-    marginBottom: 4,
+    color: '#333',
+    marginTop: 6,
+    marginBottom: 2,
   },
-  statCardLabel: {
+  statLabel: {
     fontSize: 10,
     color: '#666',
     textAlign: 'center',
@@ -207,7 +281,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ED2A46',
     borderRadius: 12,
     padding: 16,
-    marginBottom: 20,
+    width: '90%',
   },
   addButtonText: {
     color: '#fff',
@@ -218,114 +292,23 @@ const styles = StyleSheet.create({
   packagesList: {
     paddingBottom: 20,
   },
-  packageCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+    width: '100%',
   },
-  packageHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  packageInfo: {
-    flex: 1,
-  },
-  packageName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 4,
-  },
-  packageDescription: {
-    fontSize: 14,
-    color: '#666',
-  },
-  statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  statusText: {
-    fontSize: 10,
-    color: '#fff',
+  emptyText: {
+    fontSize: 18,
     fontWeight: '600',
+    color: '#666',
+    marginTop: 16,
   },
-  packageDetails: {
-    marginBottom: 16,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  detailText: {
+  emptySubText: {
     fontSize: 14,
-    color: '#666',
-    marginLeft: 8,
-  },
-  packageStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 16,
-    paddingVertical: 12,
-    backgroundColor: '#f8f9fa',
-    borderRadius: 8,
-  },
-  statItem: {
-    alignItems: 'center',
-  },
-  statNumber: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#ED2A46',
-    marginBottom: 2,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#666',
-  },
-  packageActions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  editButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#2196F3',
-    borderRadius: 8,
-    paddingVertical: 10,
-  },
-  duplicateButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FF9800',
-    borderRadius: 8,
-    paddingVertical: 10,
-  },
-  toggleButton: {
-    width: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 8,
-    paddingVertical: 10,
-  },
-  actionButtonText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
-    marginLeft: 4,
+    color: '#999',
+    marginTop: 8,
+    textAlign: 'center',
   },
 });
 
