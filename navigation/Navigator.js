@@ -6,6 +6,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useTranslation } from "../hooks/useTranslation";
 import Icon from "react-native-vector-icons/FontAwesome";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import TabBarIcon from "../components/TabBarIcon/TabBarIcon";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
 import * as Linking from "expo-linking";
@@ -267,6 +268,15 @@ export default function Navigator({
             title: t("screenTitles.fitnessDetail"),
           }}
         />
+        <Stack.Screen
+          name="MapScreen"
+          component={MapScreen}
+          options={{
+            headerTitleAlign: "center",
+            headerShown: true,
+            title: t("screenTitles.map"),
+          }}
+        />
       </Stack.Navigator>
     );
   };
@@ -329,7 +339,7 @@ export default function Navigator({
           }}
         />
 
-        <Stack.Screen
+        {/* <Stack.Screen
           name="ChoosingCourseScreen"
           component={ChoosingCourseScreen}
           options={{
@@ -342,36 +352,7 @@ export default function Navigator({
               color: "#ED2A46",
             },
           }}
-        />
-
-        <Stack.Screen
-          name="ScheduleScreen"
-          component={ScheduleScreen}
-          options={{
-            headerShown: true,
-            title: t("screenTitles.schedule"),
-            headerTitleAlign: "center",
-            headerTitleStyle: {
-              fontWeight: "bold",
-              fontSize: 20,
-              color: "#ED2A46",
-            },
-          }}
-        />
-        <Stack.Screen
-          name="BookingHistoryScreen"
-          component={BookingHistoryScreen}
-          options={{
-            headerShown: true,
-            title: t("screenTitles.bookingHistory"),
-            headerTitleAlign: "center",
-            headerTitleStyle: {
-              fontWeight: "bold",
-              fontSize: 20,
-              color: "#ED2A46",
-            },
-          }}
-        />
+        /> */}
       </Stack.Navigator>
     );
   };
@@ -464,6 +445,66 @@ export default function Navigator({
     );
   };
 
+  const BookingStack = () => {
+    return (
+      <Stack.Navigator
+        screenOptions={({ navigation, route }) => ({
+          headerTitleAlign: "center",
+          headerShown: false,
+          headerTintColor: "#ED2A46",
+          headerLeft: (props) =>
+            navigation.canGoBack() ? (
+              <TouchableOpacity onPress={() => navigation.goBack()}>
+                <Ionicons name="caret-back" size={30} color="#ED2A46" />
+              </TouchableOpacity>
+            ) : null,
+        })}
+      >
+        <Stack.Screen
+          name="ChoosingCourseScreen"
+          component={ChoosingCourseScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.bookSession"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="ScheduleScreen"
+          component={ScheduleScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.schedule"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="BookingHistoryScreen"
+          component={BookingHistoryScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.bookingHistory"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+      </Stack.Navigator>
+    );
+  };
   const WithdrawalStack = () => {
     return (
       <Stack.Navigator
@@ -559,7 +600,6 @@ export default function Navigator({
             },
           }}
         />
-         
       </Stack.Navigator>
     );
   };
@@ -753,7 +793,7 @@ export default function Navigator({
           }}
         />
 
-         <Stack.Screen
+        <Stack.Screen
           name="ManageVoucherScreen"
           component={ManageVoucherScreen}
           options={{
@@ -825,7 +865,6 @@ export default function Navigator({
             },
           }}
         />
-      
       </Stack.Navigator>
     );
   };
@@ -856,34 +895,13 @@ export default function Navigator({
               fontWeight: "bold",
             },
             tabBarIcon: ({ focused, color, size }) => {
-              let iconName;
-
-              if (route.name === t("navigation.home")) {
-                iconName = "home";
-              } else if (route.name === t("navigation.map")) {
-                iconName = "map-marker";
-              } else if (route.name === t("navigation.schedule")) {
-                iconName = "calendar";
-              } else if (route.name === t("navigation.aiChatbox")) {
-                iconName = "wechat";
-              } else if (route.name === t("navigation.me")) {
-                iconName = "user";
-              } else if (route.name === t("navigation.ptSchedule")) {
-                iconName = "calendar";
-              } else if (route.name === t("navigation.freelancePTSchedule")) {
-                iconName = "calendar";
-              } else if (route.name === t("navigation.withdrawal")) {
-                iconName = "money";
-              } else if (route.name === t("navigation.freelancePTHome")) {
-                iconName = "home";
-              } else if (route.name === t("navigation.freelancePTChat")) {
-                iconName = "comments";
-              }
-
               return (
-                <View>
-                  <Icon name={iconName} size={25} color={color} />
-                </View>
+                <TabBarIcon
+                  routeName={route.name}
+                  focused={focused}
+                  color={color}
+                  size={size}
+                />
               );
             },
           };
@@ -921,8 +939,17 @@ export default function Navigator({
 
         {user?.role === "Customer" && (
           <Tab.Screen
-            name={t("navigation.map")}
-            component={MapStack}
+            name={t("navigation.Booking")}
+            component={BookingStack}
+            options={{
+              headerShown: false,
+            }}
+          />
+        )}
+        {user?.role === "Customer" && (
+          <Tab.Screen
+            name={t("navigation.aiChatbox")}
+            component={ChatStack}
             options={{
               headerShown: false,
             }}
@@ -969,15 +996,15 @@ export default function Navigator({
           />
         )}
 
-        {user?.role === "Customer" && (
-          <Tab.Screen
-            name={t("navigation.aiChatbox")}
-            component={ChatStack}
-            options={{
-              headerShown: false,
-            }}
-          />
-        )}
+        {/* {user?.role === "Customer" && (
+            <Tab.Screen
+              name={t("navigation.aiChatbox")}
+              component={ChatStack}
+              options={{
+                headerShown: false,
+              }}
+            />
+          )} */}
 
         {/* Profile tab - available for all authenticated users */}
 

@@ -106,24 +106,24 @@ export default function HomeScreen() {
   const blog = [
     {
       id: 1,
-      title: t("home.blogPost1Title"),
+      title: "home.blogPost1Title",
       imageUrl:
         "https://i.pinimg.com/736x/0f/f6/69/0ff6690ae16b9358fb62ed4934d8e598.jpg",
-      summary: t("home.blogPost1Summary"),
+      summary: "home.blogPost1Summary",
     },
     {
       id: 2,
-      title: t("home.blogPost2Title"),
+      title: "home.blogPost2Title",
       imageUrl:
         "https://i.pinimg.com/736x/0e/fc/b5/0efcb577e982d3b47739b3d10d47ce42.jpg",
-      summary: t("home.blogPost2Summary"),
+      summary: "home.blogPost2Summary",
     },
     {
       id: 3,
-      title: t("home.blogPost3Title"),
+      title: "home.blogPost3Title",
       imageUrl:
         "https://i.pinimg.com/736x/63/69/ab/6369ab27dca3a6331a12c517441fabd2.jpg",
-      summary: t("home.blogPost3Summary"),
+      summary: "home.blogPost3Summary",
     },
   ];
 
@@ -223,12 +223,10 @@ export default function HomeScreen() {
             </View>
             <TouchableOpacity
               style={styles.viewMoreButton}
-              onPress={() =>
-                navigation.navigate("Bản Đồ", { screen: "MapScreen" })
-              }
+              onPress={() => navigation.navigate("MapScreen")}
               activeOpacity={0.7}
             >
-              <Text style={styles.viewMoreText}>{t("home.viewMore")}</Text>
+              <Text style={styles.viewMoreText}>{t("home.viewMap")}</Text>
             </TouchableOpacity>
           </View>
 

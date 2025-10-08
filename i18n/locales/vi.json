@@ -37,7 +37,8 @@
     "withdrawal": "Rút Tiền",
     "freelancePTSchedule": "Lịch Tập",
     "freelancePTHome": "Trang chủ",
-    "freelancePTChat": "Nhắn tin"
+    "freelancePTChat": "Nhắn tin",
+    "Booking": "Đặt lịch"
   },
 
   "screenTitles": {
@@ -111,9 +112,10 @@
     "refreshing": "Đang làm mới...",
     "featuredGyms": "Phòng Gym Nổi Bật",
     "nearbyGymsTitle": "Phòng Gym Gần Tôi",
-    "viewMore": "Xem thêm",
+    "viewMap": "Xem Bản Đồ",
     "noNearbyGyms": "Hiện không có phòng gym nào gần bạn",
-    "blog": "Blog"
+    "blog": "Blog",
+    "viewMore": "Xem thêm"
   },
 
   "gym": {
@@ -730,6 +732,8 @@
     "title": "Lịch PT",
     "week": "Tuần",
     "month": "Tháng",
+    "weekView": "Xem theo tuần",
+    "monthView": "Xem theo tháng",
     "noPTSessions": "Chưa có buổi tập PT nào được lên lịch",
     "bookPTSession": "Đặt lịch tập với huấn luyện viên cá nhân của bạn",
     "strengthTraining": "Tập sức mạnh với",
@@ -833,7 +837,8 @@
     "typing": "Đang nhập...",
     "aiGreeting": "Tôi là PT AI của FitBridge, tôi có thể giúp gì cho bạn ?",
     "operatingSince": "Hoạt động từ:",
-    "showMoreGyms": "Hiển thị thêm 5 gym",
+    "showMoreGyms": "Xem thêm 5 gym",
+    "showMoreTrainers": "Xem thêm 5 huấn luyện viên",
     "remaining": "còn lại",
     "collapse": "Thu gọn",
     "clearChat": "Xóa cuộc trò chuyện",
@@ -841,10 +846,14 @@
     "cancel": "Hủy",
     "delete": "Xóa",
     "gymsForYou": "Đây là những phòng gym phù hợp với bạn:",
+    "trainersForYou": "Đây là những huấn luyện viên phù hợp với bạn:",
     "cannotProcess": "Xin lỗi, tôi không thể xử lý yêu cầu của bạn lúc này.",
     "connectionError": "Xin lỗi, đã có lỗi xảy ra khi kết nối với server. Vui lòng thử lại sau.",
     "connectionErrorTitle": "Lỗi kết nối",
-    "serverConnectionFailed": "Không thể kết nối với server. Vui lòng kiểm tra kết nối internet và thử lại."
+    "serverConnectionFailed": "Không thể kết nối với server. Vui lòng kiểm tra kết nối internet và thử lại.",
+    "yearsOld": "tuổi",
+    "yearsExp": "năm KN",
+    "specializations": "Chuyên môn"
   },
 
   "ptScreen": {

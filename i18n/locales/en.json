@@ -38,7 +38,8 @@
     "withdrawal": "Withdrawal",
     "freelancePTSchedule": "Schedule",
     "freelancePTHome": "Home",
-    "freelancePTChat": "Messages"
+    "freelancePTChat": "Messages",
+    "Booking": "Booking"
   },
 
   "screenTitles": {
@@ -112,9 +113,10 @@
     "refreshing": "Refreshing...",
     "featuredGyms": "Featured Gyms",
     "nearbyGymsTitle": "Nearby Gyms",
-    "viewMore": "View More",
+    "viewMap": "View Map",
     "noNearbyGyms": "No gyms found nearby",
-    "blog": "Blog"
+    "blog": "Blog",
+    "viewMore": "View More"
   },
 
   "gym": {
@@ -730,6 +732,8 @@
     "title": "PT Schedule",
     "week": "Week",
     "month": "Month",
+    "weekView": "Week View",
+    "monthView": "Month View",
     "noPTSessions": "No PT sessions scheduled",
     "bookPTSession": "Book a session with your personal trainer",
     "strengthTraining": "Strength Training with",
@@ -883,6 +887,7 @@
     "aiGreeting": "I'm FitBridge's PT AI, how can I help you?",
     "operatingSince": "Operating since:",
     "showMoreGyms": "Show 5 more gyms",
+    "showMoreTrainers": "Show 5 more trainers",
     "remaining": "remaining",
     "collapse": "Collapse",
     "clearChat": "Clear Chat",
@@ -890,10 +895,14 @@
     "cancel": "Cancel",
     "delete": "Delete",
     "gymsForYou": "Here are the suitable gyms for you:",
+    "trainersForYou": "Here are the suitable trainers for you:",
     "cannotProcess": "Sorry, I cannot process your request at this time.",
     "connectionError": "Sorry, an error occurred while connecting to the server. Please try again later.",
     "connectionErrorTitle": "Connection Error",
-    "serverConnectionFailed": "Cannot connect to server. Please check your internet connection and try again."
+    "serverConnectionFailed": "Cannot connect to server. Please check your internet connection and try again.",
+    "yearsOld": "years old",
+    "yearsExp": "years exp",
+    "specializations": "Specializations"
   },
 
   "ptScreen": {
