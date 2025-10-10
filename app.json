@@ -81,10 +81,25 @@
           "cameraPermission": "FitBridge needs access to your camera to allow you to take photos for your profile and gym photos."
         }
       ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#ED2A46",
+          "sounds": ["./assets/notification-sound.wav"],
+          "mode": "production"
+        }
+      ],
       "expo-localization",
       "expo-background-fetch",
       "expo-task-manager",
       "expo-splash-screen"
-    ]
+    ],
+    "notification": {
+      "icon": "./assets/icon.png",
+      "color": "#ED2A46",
+      "androidMode": "default",
+      "androidCollapsedTitle": "#{unread_notifications} new notifications"
+    }
   }
 }

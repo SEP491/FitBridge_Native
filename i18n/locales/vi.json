@@ -77,7 +77,8 @@
     "myPackage": "Gói Tập Của Tôi",
     "ptInCourseExtend": "Mua Thêm PT Cho Gói Tập",
     "freelancePTSchedule": "Lịch Tập Freelance PT",
-    "voucherDetails": "Chi Tiết Voucher"
+    "voucherDetails": "Chi Tiết Voucher",
+    "notification": "Thông Báo"
   },
 
   "myPackage": {
@@ -609,9 +610,9 @@
     "failedToCreate": "Không thể tạo gói tập",
     "failedToUpdate": "Không thể cập nhật gói tập",
     "failedToDelete": "Không thể xóa gói tập",
-    "averageDays":"Ngày Trung Bình",
-    "averageSessions":"Buổi Trung Bình",
-    "averageMinutes":"Phút Trung Bình"
+    "averageDays": "Ngày Trung Bình",
+    "averageSessions": "Buổi Trung Bình",
+    "averageMinutes": "Phút Trung Bình"
   },
 
   "languageSelect": {

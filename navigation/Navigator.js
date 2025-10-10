@@ -57,6 +57,7 @@ import ForgotPasswordScreen2 from "../screens/AuthenticationScreen/ForgotPasswor
 import ForgotPasswordScreen3 from "../screens/AuthenticationScreen/ForgotPasswordScreen/ForgotPasswordScreen3";
 import RegisterScreen from "../screens/AuthenticationScreen/RegisterScreen/RegisterScreen";
 import VoucherDetailScreen from "../screens/FreelancePTScreen/VoucherDetailScreen/VoucherDetailScreen";
+import NotificationScreen from "../screens/CommonScreen/NotificationScreen/NotificationScreen";
 
 export default function Navigator({
   isAuthenticated: propIsAuthenticated,
@@ -275,6 +276,16 @@ export default function Navigator({
             headerTitleAlign: "center",
             headerShown: true,
             title: t("screenTitles.map"),
+          }}
+        />
+
+        <Stack.Screen
+          name="NotificationScreen"
+          component={NotificationScreen}
+          options={{
+            headerTitleAlign: "center",
+            headerShown: true,
+            title: t("screenTitles.notification"),
           }}
         />
       </Stack.Navigator>

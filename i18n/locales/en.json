@@ -78,7 +78,8 @@
     "myPackage": "My Package",
     "ptInCourseExtend": "Buy PT for Course",
     "freelancePTSchedule": "Freelance PT Schedule",
-    "voucherDetails": "Voucher Detail"
+    "voucherDetails": "Voucher Detail",
+    "notification": "Notifications"
   },
 
   "myPackage": {
@@ -579,7 +580,6 @@
     "addQuantity": "Add Quantity",
     "enterAddQuantity": "Enter quantity to add",
     "currentlyHave": "Currently have"
-
   },
 
   "managePackage": {

@@ -231,7 +231,11 @@ export default function HeaderHome({ user }) {
                 </TouchableOpacity>
               )}
 
-              <TouchableOpacity style={styles.actionButton} activeOpacity={0.7}>
+              <TouchableOpacity
+                style={styles.actionButton}
+                activeOpacity={0.7}
+                onPress={() => navigation.navigate("NotificationScreen")}
+              >
                 <View style={styles.iconContainer}>
                   <Ionicons name="notifications" size={30} color="white" />
                   <View style={styles.notificationDot} />
