@@ -5,6 +5,9 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { CartProvider } from "./context/CartContext";
 import { LocationProvider } from "./context/LocationContext";
 import { FitnessProvider } from "./context/FitnessContext";
+import { SignalRProvider } from "./context/SignalRContext";
+import { WebRTCProvider } from "./context/WebRTCContext";
+import { VideoCallProvider } from "./context/VideoCallContext";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 import authService from "./services/authService";
@@ -82,15 +85,21 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <LocationProvider>
-          <FitnessProvider>
-            <CartProvider>
-              <View style={{ flex: 1 }}>
-                <Navigator isAuthenticated={isAuthenticated} user={user} />
-              </View>
-            </CartProvider>
-          </FitnessProvider>
-        </LocationProvider>
+        <SignalRProvider>
+          <WebRTCProvider>
+            <VideoCallProvider>
+              <LocationProvider>
+                <FitnessProvider>
+                  <CartProvider>
+                    <View style={{ flex: 1 }}>
+                      <Navigator isAuthenticated={isAuthenticated} user={user} />
+                    </View>
+                  </CartProvider>
+                </FitnessProvider>
+              </LocationProvider>
+            </VideoCallProvider>
+          </WebRTCProvider>
+        </SignalRProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

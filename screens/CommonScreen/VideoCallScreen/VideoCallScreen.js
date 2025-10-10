@@ -14,17 +14,18 @@ import {
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Constants from 'expo-constants';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import videoCallService from '../../../services/videoCallService';
 
 // Check if running in Expo Go
 const isExpoGo = Constants.appOwnership === 'expo';
 
 // Conditionally import WebRTC (only in development builds)
-let RTCView, mediaDevices;
+let RTCView;
 if (!isExpoGo) {
   try {
     const webrtc = require('react-native-webrtc');
     RTCView = webrtc.RTCView;
-    mediaDevices = webrtc.mediaDevices;
   } catch (error) {
     console.log('WebRTC not available:', error);
   }
@@ -33,25 +34,27 @@ if (!isExpoGo) {
 const { width, height } = Dimensions.get('window');
 
 export default function VideoCallScreen({ route, navigation }) {
+  // Get params from navigation (roomId, recipientName, etc.)
+  const { roomId, recipientId, recipientName, recipientAvatar, isOutgoing = true } = route.params || {};
+  
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [isSpeakerOn, setIsSpeakerOn] = useState(true);
   const [isFlipped, setIsFlipped] = useState(false);
   const [callDuration, setCallDuration] = useState(0);
-  const [connectionStatus, setConnectionStatus] = useState('connecting'); // connecting, connected, reconnecting
-  const [hasCameraPermission, setHasCameraPermission] = useState(null);
-  const [hasAudioPermission, setHasAudioPermission] = useState(null);
+  const [connectionStatus, setConnectionStatus] = useState('connecting'); // connecting, connected, reconnecting, expo-go
   const [localStream, setLocalStream] = useState(null);
   const [remoteStream, setRemoteStream] = useState(null);
   const [showExpoGoWarning, setShowExpoGoWarning] = useState(false);
+  const [username, setUsername] = useState('You');
   
   const localStreamRef = useRef(null);
   const remoteStreamRef = useRef(null);
   
   const callerInfo = {
-    name: 'Sarah Williams',
+    name: recipientName || 'Sarah Williams',
     role: 'Personal Trainer',
-    avatar: 'SW',
+    avatar: recipientAvatar || 'SW',
   };
 
   const scaleAnim = new Animated.Value(1);
@@ -94,7 +97,7 @@ export default function VideoCallScreen({ route, navigation }) {
 
   // Request permissions and initialize media
   useEffect(() => {
-    const initializeMedia = async () => {
+    const initializeCall = async () => {
       // Check if running in Expo Go
       if (isExpoGo) {
         setShowExpoGoWarning(true);
@@ -103,7 +106,7 @@ export default function VideoCallScreen({ route, navigation }) {
       }
 
       // Check if WebRTC is available
-      if (!mediaDevices) {
+      if (!RTCView) {
         Alert.alert(
           'Development Build Required',
           'Video calling with real camera requires a development build. WebRTC is not available in Expo Go.\n\nTo test this feature:\n1. Run: npx expo run:android (or run:ios)\n2. Or build a development build',
@@ -113,20 +116,53 @@ export default function VideoCallScreen({ route, navigation }) {
       }
 
       try {
-        const hasPermissions = await requestPermissions();
+        // Get user info
+        const userData = await AsyncStorage.getItem('user');
+        const user = userData ? JSON.parse(userData) : null;
+        const currentUsername = user?.fullName || 'User';
+        setUsername(currentUsername);
+
+        // Determine room ID (use provided roomId or generate one)
+        const callRoomId = roomId || `room_${Date.now()}`;
         
-        if (hasPermissions) {
-          // Get local media stream
-          await startLocalStream();
-          setConnectionStatus('connected');
-        }
+        console.log('Initializing video call:', {
+          roomId: callRoomId,
+          username: currentUsername,
+          recipientName,
+        });
+
+        // Initialize video call service
+        await videoCallService.initialize(callRoomId, currentUsername);
+
+        // Set up stream callbacks
+        videoCallService.setLocalStreamCallback((stream) => {
+          console.log('Local stream received:', stream?.id);
+          setLocalStream(stream);
+          localStreamRef.current = stream;
+        });
+
+        videoCallService.setOnTrackCallback((stream) => {
+          console.log('Remote stream received:', stream?.id);
+          setRemoteStream(stream);
+          remoteStreamRef.current = stream;
+          if (stream) {
+            setConnectionStatus('connected');
+          }
+        });
+
+        setConnectionStatus('waiting'); // Waiting for other person
+
       } catch (error) {
-        console.error('Error initializing media:', error);
-        Alert.alert('Error', 'Failed to access camera or microphone.');
+        console.error('Error initializing call:', error);
+        Alert.alert(
+          'Connection Error',
+          'Failed to initialize video call. Please check your internet connection and try again.',
+          [{ text: 'OK', onPress: () => navigation.goBack() }]
+        );
       }
     };
 
-    initializeMedia();
+    initializeCall();
 
     // Call duration timer
     const interval = setInterval(() => {
@@ -135,56 +171,12 @@ export default function VideoCallScreen({ route, navigation }) {
 
     return () => {
       clearInterval(interval);
-      stopLocalStream();
+      // Cleanup video call service
+      videoCallService.cleanup();
     };
-  }, []);
+  }, [roomId, recipientName]);
 
-  // Start local video stream
-  const startLocalStream = async () => {
-    if (!mediaDevices) {
-      console.log('MediaDevices not available');
-      return;
-    }
 
-    try {
-      const isFront = !isFlipped;
-      const constraints = {
-        audio: true,
-        video: {
-          mandatory: {
-            minWidth: 640,
-            minHeight: 480,
-            minFrameRate: 30,
-          },
-          facingMode: isFront ? 'user' : 'environment',
-        },
-      };
-
-      const stream = await mediaDevices.getUserMedia(constraints);
-      setLocalStream(stream);
-      localStreamRef.current = stream;
-
-      // Enable/disable tracks based on current state
-      stream.getAudioTracks()[0].enabled = !isMuted;
-      stream.getVideoTracks()[0].enabled = !isVideoOff;
-
-      console.log('Local stream started:', stream.toURL());
-    } catch (error) {
-      console.error('Error starting local stream:', error);
-      Alert.alert('Error', 'Failed to start camera.');
-    }
-  };
-
-  // Stop local video stream
-  const stopLocalStream = () => {
-    if (localStreamRef.current) {
-      localStreamRef.current.getTracks().forEach(track => {
-        track.stop();
-      });
-      localStreamRef.current.release();
-      setLocalStream(null);
-    }
-  };
 
   // Pulse animation for connecting
   useEffect(() => {
@@ -213,69 +205,42 @@ export default function VideoCallScreen({ route, navigation }) {
   };
 
   // Toggle microphone
-  const toggleMicrophone = () => {
-    if (localStream) {
-      const audioTrack = localStream.getAudioTracks()[0];
-      if (audioTrack) {
-        audioTrack.enabled = isMuted;
-        setIsMuted(!isMuted);
-      }
+  const toggleMicrophone = async () => {
+    try {
+      await videoCallService.toggleAudio();
+      setIsMuted(!isMuted);
+    } catch (error) {
+      console.error('Error toggling microphone:', error);
     }
   };
 
   // Toggle camera
-  const toggleCamera = () => {
-    if (localStream) {
-      const videoTrack = localStream.getVideoTracks()[0];
-      if (videoTrack) {
-        videoTrack.enabled = isVideoOff;
-        setIsVideoOff(!isVideoOff);
-      }
+  const toggleCamera = async () => {
+    try {
+      await videoCallService.toggleVideo();
+      setIsVideoOff(!isVideoOff);
+    } catch (error) {
+      console.error('Error toggling camera:', error);
     }
   };
 
   // Flip camera (switch between front and back)
   const flipCamera = async () => {
-    if (!mediaDevices) {
-      return;
-    }
-
     try {
-      // Stop current stream
-      stopLocalStream();
-      
-      // Toggle facing mode
+      await videoCallService.toggleFlipCamera();
       setIsFlipped(!isFlipped);
-      
-      // Start new stream with flipped camera
-      const isFront = isFlipped; // Will be opposite after toggle
-      const constraints = {
-        audio: true,
-        video: {
-          mandatory: {
-            minWidth: 640,
-            minHeight: 480,
-            minFrameRate: 30,
-          },
-          facingMode: isFront ? 'user' : 'environment',
-        },
-      };
-
-      const stream = await mediaDevices.getUserMedia(constraints);
-      setLocalStream(stream);
-      localStreamRef.current = stream;
-
-      // Restore audio/video state
-      stream.getAudioTracks()[0].enabled = !isMuted;
-      stream.getVideoTracks()[0].enabled = !isVideoOff;
     } catch (error) {
       console.error('Error flipping camera:', error);
       Alert.alert('Error', 'Failed to flip camera.');
     }
   };
 
-  const handleEndCall = () => {
-    stopLocalStream();
+  const handleEndCall = async () => {
+    try {
+      await videoCallService.cleanup();
+    } catch (error) {
+      console.error('Error cleaning up video call:', error);
+    }
     navigation.goBack();
   };
 

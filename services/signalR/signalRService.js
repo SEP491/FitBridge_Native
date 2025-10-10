@@ -31,8 +31,9 @@ class SignalRService {
         throw new Error("HUB_URL not found in environment variables");
       }
 
-      const accessToken = await AsyncStorage.getItem("accessToken");
-      console.log("accessToken", accessToken);
+      // const accessToken = await AsyncStorage.getItem("token");
+      const accessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiJhNzU3MDU2My1kYzJlLTQwZGItYWM5YS04MzFiZjc5MDQxODciLCJ1bmlxdWVfbmFtZSI6ImpvaG5kb2UiLCJuYmYiOjE3NjAwODQyMTgsImV4cCI6MTc2MDA4NzgxOCwiaWF0IjoxNzYwMDg0MjE4fQ.qKEZPEAYag26wkt2kBAArKQfv1emvhhVfajfqYQkZns";
+      console.log("accessTokenSignalR", accessToken);
 
       // Build connection with authentication
       this.#connection = new HubConnectionBuilder()

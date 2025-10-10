@@ -62,7 +62,7 @@ export default function UserMenuScreen() {
     {
       label: "Join Call Video",
       icon: <Ionicons name="videocam-outline" size={28} color="#ED2A46" />,
-      navigation: "JoinCallVideoScreen",
+      navigation: "VideoCallPrep",
       category: "account",
     },
     {
