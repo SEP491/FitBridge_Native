@@ -60,6 +60,12 @@ export default function UserMenuScreen() {
       category: "account",
     },
     {
+      label: "Join Call Video",
+      icon: <Ionicons name="videocam-outline" size={28} color="#ED2A46" />,
+      navigation: "JoinCallVideoScreen",
+      category: "account",
+    },
+    {
       icon: <Ionicons name="settings-outline" size={28} color="#ED2A46" />,
       label: t("userMenu.settings"),
       navigation: "SettingScreen",
