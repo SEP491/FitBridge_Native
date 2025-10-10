@@ -17,50 +17,40 @@ import { useTranslation } from "../../../hooks/useTranslation";
 import colors from "../../../constants/color";
 import { formatDate, formatTime } from "../../../lib";
 import notificationService from "../../../services/notificationService";
-import NotificationTestHelper from "../../../components/NotificationTestHelper/NotificationTestHelper";
+import { useNotification } from "../../../context/NotificationContext";
+import { useSignalR } from "../../../context/SignalRContext";
+import { ConnectionStates } from "../../../services/signalR/ConnectionStates";
 
 export default function NotificationScreen() {
   const { t } = useTranslation();
-  const [notifications, setNotifications] = useState([]);
+  const {
+    notifications,
+    unreadCount,
+    refreshing,
+    expoPushToken,
+    isSignalRConnected,
+    fetchNotifications,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification: deleteNotif,
+  } = useNotification();
+
+  const { service: signalrService } = useSignalR();
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState("all"); // all, unread, read
-  const [expoPushToken, setExpoPushToken] = useState("");
   const [permissionStatus, setPermissionStatus] = useState("undetermined");
 
   const notificationListener = useRef();
   const responseListener = useRef();
 
   useEffect(() => {
-    // Register for push notifications
-    registerForPushNotificationsAsync();
+    // Check permissions
+    checkNotificationPermissions();
 
-    // Load notifications
-    loadNotifications();
+    // Load initial data
+    setLoading(false);
 
-    // Listen for notifications received while app is open
-    notificationListener.current =
-      notificationService.addNotificationReceivedListener((notification) => {
-        console.log("Notification received:", notification);
-        // Add to local notifications list
-        const newNotif = {
-          id: Date.now(),
-          type: notification.request.content.data?.type || "system",
-          title: notification.request.content.title,
-          message: notification.request.content.body,
-          timestamp: new Date(),
-          isRead: false,
-          icon: getIconForType(
-            notification.request.content.data?.type || "system"
-          ),
-          color: getColorForType(
-            notification.request.content.data?.type || "system"
-          ),
-        };
-        setNotifications((prev) => [newNotif, ...prev]);
-      });
-
-    // Listen for notification taps
+    // Listen for notification taps (the actual notification receiving is handled in NotificationContext)
     responseListener.current =
       notificationService.addNotificationResponseReceivedListener(
         (response) => {
@@ -72,158 +62,60 @@ export default function NotificationScreen() {
       );
 
     return () => {
-      if (notificationListener.current) {
-        notificationListener.current.remove();
-      }
       if (responseListener.current) {
         responseListener.current.remove();
       }
     };
   }, []);
 
-  const registerForPushNotificationsAsync = async () => {
+  const checkNotificationPermissions = async () => {
     try {
-      const token = await notificationService.registerForPushNotifications();
-      if (token) {
-        setExpoPushToken(token);
-        console.log("Push token registered:", token);
-      }
-
       const permissions = await notificationService.checkPermissions();
       setPermissionStatus(permissions.status);
     } catch (error) {
-      console.error("Error registering for push notifications:", error);
+      console.error("Error checking notification permissions:", error);
     }
   };
 
   const handleNotificationTap = (data) => {
-    // TODO: Navigate to appropriate screen based on notification data
+    // Parse additional payload if needed
+    if (data.additionalPayload) {
+      try {
+        const payload = JSON.parse(data.additionalPayload);
+        console.log("Notification payload:", payload);
+        // TODO: Navigate based on notification type and payload
+        // Example: navigation.navigate('UserProfile', { userId: payload.userId });
+      } catch (error) {
+        console.error("Failed to parse additionalPayload:", error);
+      }
+    }
     console.log("Handle notification tap:", data);
-    // Example:
-    // if (data.type === 'booking') navigation.navigate('BookingHistoryScreen');
-    // if (data.type === 'payment') navigation.navigate('TransactionHistoryScreen');
   };
 
-  const getIconForType = (type) => {
-    switch (type) {
-      case "booking":
-        return "calendar";
-      case "payment":
-        return "card";
-      case "promotion":
-        return "pricetag";
-      case "system":
-        return "person";
-      default:
-        return "notifications";
-    }
-  };
-
-  const getColorForType = (type) => {
-    switch (type) {
-      case "booking":
-        return "#17a2b8";
-      case "payment":
-        return "#28a745";
-      case "promotion":
-        return "#FF914D";
-      case "system":
-        return "#6f42c1";
-      default:
-        return colors.red;
-    }
-  };
-
-  const loadNotifications = async () => {
-    try {
-      setLoading(true);
-      // TODO: Replace with actual API call
-      // const response = await notificationService.getNotifications();
-
-      // Mock data for demonstration
-      const mockData = [
-        {
-          id: 1,
-          type: "booking",
-          title: "Booking Confirmed",
-          message:
-            "Your session with PT John Smith has been confirmed for tomorrow at 10:00 AM",
-          timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-          isRead: false,
-          icon: "calendar",
-          color: "#17a2b8",
-        },
-        {
-          id: 2,
-          type: "payment",
-          title: "Payment Successful",
-          message: "Your payment of $50.00 has been processed successfully",
-          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-          isRead: false,
-          icon: "card",
-          color: "#28a745",
-        },
-        {
-          id: 3,
-          type: "promotion",
-          title: "Special Offer! 🎉",
-          message: "Get 20% off on all premium packages this week!",
-          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5), // 5 hours ago
-          isRead: true,
-          icon: "pricetag",
-          color: "#FF914D",
-        },
-        {
-          id: 4,
-          type: "system",
-          title: "Profile Updated",
-          message: "Your profile information has been updated successfully",
-          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-          isRead: true,
-          icon: "person",
-          color: "#6f42c1",
-        },
-        {
-          id: 5,
-          type: "booking",
-          title: "Session Reminder",
-          message:
-            "Your session starts in 1 hour. Don't forget to bring your gear!",
-          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2), // 2 days ago
-          isRead: true,
-          icon: "alarm",
-          color: "#ED2A46",
-        },
-      ];
-
-      setNotifications(mockData);
-    } catch (error) {
-      console.error("Error loading notifications:", error);
-      Alert.alert("Error", "Failed to load notifications");
-    } finally {
-      setLoading(false);
-    }
+  // Helper function to clean HTML from notification body
+  const cleanNotificationBody = (body) => {
+    if (!body) return "";
+    // Remove HTML tags and decode HTML entities
+    return body
+      .replace(/<br\s*\/?>/gi, "\n") // Replace <br/> with newline
+      .replace(/<[^>]*>/g, "") // Remove all other HTML tags
+      .replace(/&nbsp;/g, " ")
+      .replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"')
+      .trim();
   };
 
   const onRefresh = async () => {
-    setRefreshing(true);
-    await loadNotifications();
-    setRefreshing(false);
+    await fetchNotifications();
   };
 
-  const markAsRead = async (id) => {
-    setNotifications((prev) =>
-      prev.map((notif) =>
-        notif.id === id ? { ...notif, isRead: true } : notif
-      )
-    );
-
-    // Update badge count
-    const unread = notifications.filter((n) => !n.isRead && n.id !== id).length;
-    await notificationService.setBadgeCount(unread);
+  const handleMarkAsRead = async (id) => {
+    await markAsRead(id);
   };
 
-  const deleteNotification = (id) => {
+  const handleDeleteNotification = (id) => {
     Alert.alert(
       t("common.confirm") || "Confirm",
       "Are you sure you want to delete this notification?",
@@ -233,23 +125,15 @@ export default function NotificationScreen() {
           text: t("common.delete") || "Delete",
           style: "destructive",
           onPress: async () => {
-            setNotifications((prev) => prev.filter((notif) => notif.id !== id));
-            // Update badge count
-            const unread = notifications.filter(
-              (n) => !n.isRead && n.id !== id
-            ).length;
-            await notificationService.setBadgeCount(unread);
+            await deleteNotif(id);
           },
         },
       ]
     );
   };
 
-  const markAllAsRead = async () => {
-    setNotifications((prev) =>
-      prev.map((notif) => ({ ...notif, isRead: true }))
-    );
-    await notificationService.setBadgeCount(0);
+  const handleMarkAllAsRead = async () => {
+    await markAllAsRead();
   };
 
   const clearAll = () => {
@@ -262,8 +146,8 @@ export default function NotificationScreen() {
           text: t("common.clear") || "Clear",
           style: "destructive",
           onPress: async () => {
-            setNotifications([]);
-            await notificationService.setBadgeCount(0);
+            // Clear all notifications via context
+            // TODO: Implement clearAll in NotificationContext
           },
         },
       ]
@@ -274,7 +158,6 @@ export default function NotificationScreen() {
   const requestPermissions = async () => {
     const token = await notificationService.registerForPushNotifications();
     if (token) {
-      setExpoPushToken(token);
       const permissions = await notificationService.checkPermissions();
       setPermissionStatus(permissions.status);
       Alert.alert("Success", "Notifications enabled successfully!");
@@ -307,15 +190,14 @@ export default function NotificationScreen() {
     return true;
   });
 
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
-
   const renderNotificationItem = ({ item, index }) => {
     return (
       <NotificationCard
         item={item}
-        onPress={markAsRead}
-        onDelete={deleteNotification}
+        onPress={handleMarkAsRead}
+        onDelete={handleDeleteNotification}
         getTimeAgo={getTimeAgo}
+        cleanBody={cleanNotificationBody}
       />
     );
   };
@@ -347,6 +229,20 @@ export default function NotificationScreen() {
 
   return (
     <View style={styles.container}>
+      {/* SignalR Connection Status (for debugging) */}
+      {__DEV__ && (
+        <View style={styles.debugBanner}>
+          <Text style={styles.debugText}>
+            SignalR: {isSignalRConnected ? "Connected ✓" : "Disconnected ✗"}
+          </Text>
+          {expoPushToken && (
+            <Text style={styles.debugText} numberOfLines={1}>
+              Token: {expoPushToken.substring(0, 20)}...
+            </Text>
+          )}
+        </View>
+      )}
+
       {/* Permission Banner */}
       {permissionStatus !== "granted" && (
         <View style={styles.permissionBanner}>
@@ -447,7 +343,7 @@ export default function NotificationScreen() {
           {unreadCount > 0 && (
             <TouchableOpacity
               style={styles.actionButton}
-              onPress={markAllAsRead}
+              onPress={handleMarkAllAsRead}
             >
               <Ionicons name="checkmark-done" size={16} color={colors.red} />
               <Text style={styles.actionButtonText}>Mark all as read</Text>
@@ -466,7 +362,7 @@ export default function NotificationScreen() {
       <FlatList
         data={filteredNotifications}
         renderItem={renderNotificationItem}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={renderEmptyState}
         refreshControl={
@@ -483,7 +379,13 @@ export default function NotificationScreen() {
   );
 }
 
-const NotificationCard = ({ item, onPress, onDelete, getTimeAgo }) => {
+const NotificationCard = ({
+  item,
+  onPress,
+  onDelete,
+  getTimeAgo,
+  cleanBody,
+}) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () => {
@@ -501,6 +403,32 @@ const NotificationCard = ({ item, onPress, onDelete, getTimeAgo }) => {
     }).start();
   };
 
+  // Get notification type mapping (icon, color, badge)
+  const getNotificationTypeMapping = (notificationType) => {
+    const mappings = {
+      Info: {
+        icon: "information-circle",
+        color: "#17a2b8",
+        label: "Info",
+      },
+      Warning: {
+        icon: "warning",
+        color: "#ffc107",
+        label: "Warning",
+      },
+      Error: {
+        icon: "alert-circle",
+        color: "#dc3545",
+        label: "Error",
+      },
+    };
+    return mappings[notificationType] || mappings.Info;
+  };
+
+  const typeMapping = getNotificationTypeMapping(item.notificationType);
+  const iconName = item.icon || typeMapping.icon;
+  const iconColor = item.color || typeMapping.color;
+
   return (
     <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
       <TouchableOpacity
@@ -510,7 +438,7 @@ const NotificationCard = ({ item, onPress, onDelete, getTimeAgo }) => {
         ]}
         activeOpacity={0.9}
         onPress={() => onPress(item.id)}
-        onPressIn={handlePressIn}
+        onPren={handlePressIn}
         onPressOut={handlePressOut}
       >
         {/* Unread Indicator */}
@@ -520,10 +448,10 @@ const NotificationCard = ({ item, onPress, onDelete, getTimeAgo }) => {
         <View
           style={[
             styles.notificationIcon,
-            { backgroundColor: `${item.color}15` },
+            { backgroundColor: `${iconColor}15` },
           ]}
         >
-          <Ionicons name={item.icon} size={24} color={item.color} />
+          <Ionicons name={iconName} size={24} color={iconColor} />
         </View>
 
         {/* Content */}
@@ -536,8 +464,10 @@ const NotificationCard = ({ item, onPress, onDelete, getTimeAgo }) => {
               {getTimeAgo(item.timestamp)}
             </Text>
           </View>
-          <Text style={styles.notificationMessage} numberOfLines={2}>
-            {item.message}
+
+          {/* Message with HTML cleaned */}
+          <Text style={styles.notificationMessage} numberOfLines={3}>
+            {cleanBody(item.body || item.message)}
           </Text>
         </View>
 
@@ -550,7 +480,6 @@ const NotificationCard = ({ item, onPress, onDelete, getTimeAgo }) => {
           <Ionicons name="close-circle" size={20} color="#9ca3af" />
         </TouchableOpacity>
       </TouchableOpacity>
-      <NotificationTestHelper />
     </Animated.View>
   );
 };
@@ -559,6 +488,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f8f9fa",
+  },
+  debugBanner: {
+    backgroundColor: "#e3f2fd",
+    padding: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#90caf9",
+  },
+  debugText: {
+    fontSize: 10,
+    color: "#1976d2",
+    fontFamily: Platform.OS === "ios" ? "Courier" : "monospace",
   },
   loadingContainer: {
     flex: 1,
@@ -733,6 +673,19 @@ const styles = StyleSheet.create({
   notificationContent: {
     flex: 1,
     gap: 6,
+  },
+  typeBadge: {
+    alignSelf: "flex-start",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    marginTop: 2,
+  },
+  typeBadgeText: {
+    fontSize: 10,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
   notificationHeader: {
     flexDirection: "row",

@@ -42,7 +42,6 @@ export default function HomeScreen() {
       const { items, total, page: currentPage } = response.data;
 
       setAllGyms(items);
-      console.log("Fetched gyms:", items);
     } catch (error) {
       console.error("Error fetching hot research gym:", error);
     }
@@ -51,7 +50,7 @@ export default function HomeScreen() {
     if (!coordinates || !allGyms.length) return;
 
     const filteredGyms = filterGymsByDistance(allGyms, coordinates, 5);
-    console.log("Nearby gyms:", filteredGyms);
+    // console.log("Nearby gyms:", filteredGyms);
     setNearbyGyms(filteredGyms);
   };
 

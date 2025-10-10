@@ -5,6 +5,8 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { CartProvider } from "./context/CartContext";
 import { LocationProvider } from "./context/LocationContext";
 import { FitnessProvider } from "./context/FitnessContext";
+import { SignalRProvider } from "./context/SignalRContext";
+import { NotificationProvider } from "./context/NotificationContext";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 import authService from "./services/authService";
@@ -66,7 +68,6 @@ export default function App() {
   useEffect(() => {
     const hideSplashScreen = async () => {
       if (appIsReady) {
-        // Hide the splash screen once the app is ready
         await SplashScreen.hideAsync();
       }
     };
@@ -82,15 +83,19 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <LocationProvider>
-          <FitnessProvider>
-            <CartProvider>
-              <View style={{ flex: 1 }}>
-                <Navigator isAuthenticated={isAuthenticated} user={user} />
-              </View>
-            </CartProvider>
-          </FitnessProvider>
-        </LocationProvider>
+        <SignalRProvider>
+          <NotificationProvider>
+            <LocationProvider>
+              <FitnessProvider>
+                <CartProvider>
+                  <View style={{ flex: 1 }}>
+                    <Navigator isAuthenticated={isAuthenticated} user={user} />
+                  </View>
+                </CartProvider>
+              </FitnessProvider>
+            </LocationProvider>
+          </NotificationProvider>
+        </SignalRProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

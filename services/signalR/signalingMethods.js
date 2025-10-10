@@ -4,6 +4,9 @@ export const HUB_METHODS = {
   SEND_MESSAGE: "SendMessage",
   SEND_ICE_CANDIDATE: "SendIceCandidate",
   PING: "Ping",
+  CONFIRM_HANDSHAKE: "ConfirmHandshake",
+  ADD_TO_GROUP: "AddToGroup",
+  REMOVE_FROM_GROUP: "RemoveFromGroup",
 };
 
 export const CLIENT_METHODS = {
@@ -15,4 +18,5 @@ export const CLIENT_METHODS = {
   USER_LEFT: "UserLeft",
   RECEIVE_MESSAGE: "ReceiveMessage",
   RECEIVE_ICE_CANDIDATE: "ReceiveICECandidate",
+  NOTIFICATION_RECEIVED: "NotificationReceived",
 };

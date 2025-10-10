@@ -2,6 +2,7 @@ import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
 import { Platform } from "react-native";
 import Constants from "expo-constants";
+import { request } from "./request";
 
 // Configure notification handler
 Notifications.setNotificationHandler({
@@ -9,249 +10,204 @@ Notifications.setNotificationHandler({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: true,
+    shouldShowBanner: true,
   }),
 });
 
-class NotificationService {
-  /**
-   * Request notification permissions
-   * @returns {Promise<boolean>} Whether permission was granted
-   */
-  async registerForPushNotifications() {
-    let token;
+/**
+ * Request notification permissions
+ * @returns {Promise<boolean>} Whether permission was granted
+ */
+export const registerForPushNotifications = async () => {
+  if (Platform.OS === "android") {
+    await Notifications.setNotificationChannelAsync("default", {
+      name: "default",
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: "#ED2A46",
+    });
+  }
 
-    if (Platform.OS === "android") {
-      await Notifications.setNotificationChannelAsync("default", {
-        name: "default",
-        importance: Notifications.AndroidImportance.MAX,
-        vibrationPattern: [0, 250, 250, 250],
-        lightColor: "#ED2A46",
-      });
+  if (Device.isDevice) {
+    const { status: existingStatus } =
+      await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+
+    if (existingStatus !== "granted") {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
     }
 
-    if (Device.isDevice) {
-      const { status: existingStatus } =
-        await Notifications.getPermissionsAsync();
-      let finalStatus = existingStatus;
-
-      if (existingStatus !== "granted") {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
-      }
-
-      if (finalStatus !== "granted") {
-        console.log("Failed to get push token for push notification!");
-        return false;
-      }
-
-      try {
-        token = await Notifications.getExpoPushTokenAsync({
-          projectId:
-            Constants.expoConfig?.extra?.eas?.projectId || "your-project-id",
-        });
-        console.log("Expo Push Token:", token.data);
-
-        // TODO: Send this token to your backend
-        // await this.sendTokenToBackend(token.data);
-
-        return token.data;
-      } catch (error) {
-        console.error("Error getting push token:", error);
-        return false;
-      }
-    } else {
-      console.log("Must use physical device for Push Notifications");
+    if (finalStatus !== "granted") {
+      console.log("Failed to get push token for push notification!");
       return false;
     }
-  }
 
-  /**
-   * Send push token to backend
-   * @param {string} token - The Expo push token
-   */
-  async sendTokenToBackend(token) {
     try {
-      // TODO: Replace with your actual API endpoint
-      // await request.post('/api/notifications/register', { token });
-      console.log("Token sent to backend:", token);
-    } catch (error) {
-      console.error("Error sending token to backend:", error);
-      throw error;
-    }
-  }
-
-  /**
-   * Schedule a local notification
-   * @param {Object} notification - Notification content
-   * @param {Object} trigger - Trigger configuration
-   */
-  async scheduleNotification(notification, trigger = null) {
-    try {
-      const id = await Notifications.scheduleNotificationAsync({
-        content: {
-          title: notification.title,
-          body: notification.body,
-          data: notification.data || {},
-          sound: notification.sound || "default",
-          badge: notification.badge,
-        },
-        trigger: trigger || null, // null means immediate
+      let pushSubscription = await Notifications.getDevicePushTokenAsync();
+      const token = pushSubscription.data;
+      console.log("Push notification token:", token);
+      const platform = Platform.OS;
+      // TODO: Send this token to your backend
+      const response = await request("POST", "v1/notifications/device-token", {
+        deviceToken: token,
+        platform,
       });
-      return id;
+      console.log("Backend response:", response);
+      return token;
     } catch (error) {
-      console.error("Error scheduling notification:", error);
-      throw error;
+      console.error("Error getting push token:", error);
+      return false;
     }
+  } else {
+    console.log("Must use physical device for Push Notifications");
+    return false;
   }
+};
 
-  /**
-   * Cancel a scheduled notification
-   * @param {string} notificationId - The notification ID
-   */
-  async cancelNotification(notificationId) {
-    try {
-      await Notifications.cancelScheduledNotificationAsync(notificationId);
-    } catch (error) {
-      console.error("Error canceling notification:", error);
-      throw error;
-    }
-  }
-
-  /**
-   * Cancel all scheduled notifications
-   */
-  async cancelAllNotifications() {
-    try {
-      await Notifications.cancelAllScheduledNotificationsAsync();
-    } catch (error) {
-      console.error("Error canceling all notifications:", error);
-      throw error;
-    }
-  }
-
-  /**
-   * Get all scheduled notifications
-   * @returns {Promise<Array>} List of scheduled notifications
-   */
-  async getAllScheduledNotifications() {
-    try {
-      return await Notifications.getAllScheduledNotificationsAsync();
-    } catch (error) {
-      console.error("Error getting scheduled notifications:", error);
-      throw error;
-    }
-  }
-
-  /**
-   * Set notification badge count
-   * @param {number} count - Badge count
-   */
-  async setBadgeCount(count) {
-    try {
-      await Notifications.setBadgeCountAsync(count);
-    } catch (error) {
-      console.error("Error setting badge count:", error);
-      throw error;
-    }
-  }
-
-  /**
-   * Get current badge count
-   * @returns {Promise<number>} Current badge count
-   */
-  async getBadgeCount() {
-    try {
-      return await Notifications.getBadgeCountAsync();
-    } catch (error) {
-      console.error("Error getting badge count:", error);
-      return 0;
-    }
-  }
-
-  /**
-   * Add notification received listener
-   * @param {Function} listener - Callback function
-   * @returns {Subscription} Subscription object
-   */
-  addNotificationReceivedListener(listener) {
-    return Notifications.addNotificationReceivedListener(listener);
-  }
-
-  /**
-   * Add notification response listener (when user taps notification)
-   * @param {Function} listener - Callback function
-   * @returns {Subscription} Subscription object
-   */
-  addNotificationResponseReceivedListener(listener) {
-    return Notifications.addNotificationResponseReceivedListener(listener);
-  }
-
-  /**
-   * Present a local notification immediately
-   * @param {Object} notification - Notification content
-   */
-  async presentNotification(notification) {
-    return await this.scheduleNotification(notification, null);
-  }
-
-  /**
-   * Schedule notification for specific date/time
-   * @param {Object} notification - Notification content
-   * @param {Date} date - When to trigger the notification
-   */
-  async scheduleNotificationForDate(notification, date) {
-    return await this.scheduleNotification(notification, {
-      date: date,
+/**
+ * Present an immediate notification (for real-time notifications from SignalR)
+ * @param {Object} notification - Notification content
+ */
+export const presentNotification = async (notification) => {
+  try {
+    const id = await Notifications.scheduleNotificationAsync({
+      content: {
+        title: notification.title,
+        body: notification.body,
+        data: notification.data || {},
+        sound: notification.sound || "default",
+        badge: notification.badge,
+      },
+      trigger: null, // null means immediate
     });
+    console.log("Notification presented:", id);
+    return id;
+  } catch (error) {
+    console.error("Error presenting notification:", error);
+    throw error;
   }
+};
 
-  /**
-   * Schedule daily notification
-   * @param {Object} notification - Notification content
-   * @param {number} hour - Hour (0-23)
-   * @param {number} minute - Minute (0-59)
-   */
-  async scheduleDailyNotification(notification, hour, minute) {
-    return await this.scheduleNotification(notification, {
-      hour: hour,
-      minute: minute,
-      repeats: true,
+/**
+ * Schedule a local notification
+ * @param {Object} notification - Notification content
+ * @param {Object} trigger - Trigger configuration
+ */
+export const scheduleNotification = async (notification, trigger = null) => {
+  try {
+    const id = await Notifications.scheduleNotificationAsync({
+      content: {
+        title: notification.title,
+        body: notification.body,
+        data: notification.data || {},
+        sound: notification.sound || "default",
+        badge: notification.badge,
+      },
+      trigger: trigger || null, // null means immediate
     });
+    return id;
+  } catch (error) {
+    console.error("Error scheduling notification:", error);
+    throw error;
   }
+};
 
-  /**
-   * Check notification permissions
-   * @returns {Promise<Object>} Permission status
-   */
-  async checkPermissions() {
-    try {
-      const { status } = await Notifications.getPermissionsAsync();
-      return {
-        granted: status === "granted",
-        status: status,
-      };
-    } catch (error) {
-      console.error("Error checking permissions:", error);
-      return { granted: false, status: "undetermined" };
+/**
+ * Cancel a scheduled notification
+ * @param {string} notificationId - The notification ID
+ */
+export const cancelNotification = async (notificationId) => {
+  try {
+    await Notifications.cancelScheduledNotificationAsync(notificationId);
+  } catch (error) {
+    console.error("Error canceling notification:", error);
+    throw error;
+  }
+};
+
+/**
+ * Cancel all scheduled notifications
+ */
+export const cancelAllNotifications = async () => {
+  try {
+    await Notifications.cancelAllScheduledNotificationsAsync();
+  } catch (error) {
+    console.error("Error canceling all notifications:", error);
+    throw error;
+  }
+};
+
+export const setBadgeCount = async (count) => {
+  try {
+    await Notifications.setBadgeCountAsync(count);
+  } catch (error) {
+    console.error("Error setting badge count:", error);
+    throw error;
+  }
+};
+
+export const getBadgeCount = async () => {
+  try {
+    return await Notifications.getBadgeCountAsync();
+  } catch (error) {
+    console.error("Error getting badge count:", error);
+    return 0;
+  }
+};
+
+export const addNotificationReceivedListener = (listener) => {
+  return Notifications.addNotificationReceivedListener(listener);
+};
+
+/**
+ * Add notification response listener (when user taps notification)
+ * @param {Function} listener - Callback function
+ * @returns {Subscription} Subscription object
+ */
+export const addNotificationResponseReceivedListener = (listener) => {
+  return Notifications.addNotificationResponseReceivedListener(listener);
+};
+
+export const checkPermissions = async () => {
+  try {
+    const { status } = await Notifications.getPermissionsAsync();
+    return {
+      granted: status === "granted",
+      status: status,
+    };
+  } catch (error) {
+    console.error("Error checking permissions:", error);
+    return { granted: false, status: "undetermined" };
+  }
+};
+
+export const getNotificationSettings = async () => {
+  try {
+    if (Platform.OS === "ios") {
+      const settings = await Notifications.getPermissionsAsync();
+      return settings;
     }
+    return null;
+  } catch (error) {
+    console.error("Error getting notification settings:", error);
+    return null;
   }
+};
 
-  /**
-   * Get notification settings (iOS)
-   * @returns {Promise<Object>} Notification settings
-   */
-  async getNotificationSettings() {
-    try {
-      if (Platform.OS === "ios") {
-        const settings = await Notifications.getPermissionsAsync();
-        return settings;
-      }
-      return null;
-    } catch (error) {
-      console.error("Error getting notification settings:", error);
-      return null;
-    }
-  }
-}
+// Default export object for backward compatibility
+const notificationService = {
+  registerForPushNotifications,
+  presentNotification,
+  scheduleNotification,
+  cancelNotification,
+  cancelAllNotifications,
+  setBadgeCount,
+  getBadgeCount,
+  addNotificationReceivedListener,
+  addNotificationResponseReceivedListener,
+  checkPermissions,
+  getNotificationSettings,
+};
 
-export default new NotificationService();
+export default notificationService;
