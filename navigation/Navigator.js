@@ -56,6 +56,7 @@ import ForgotPasswordScreen2 from "../screens/AuthenticationScreen/ForgotPasswor
 import ForgotPasswordScreen3 from "../screens/AuthenticationScreen/ForgotPasswordScreen/ForgotPasswordScreen3";
 import RegisterScreen from "../screens/AuthenticationScreen/RegisterScreen/RegisterScreen";
 import VoucherDetailScreen from "../screens/FreelancePTScreen/VoucherDetailScreen/VoucherDetailScreen";
+import VideoCallScreen from "../screens/CommonScreen/VideoCallScreen/VideoCallScreen";
 
 export default function Navigator({
   isAuthenticated: propIsAuthenticated,
@@ -265,6 +266,14 @@ export default function Navigator({
             headerTitleAlign: "center",
             headerShown: true,
             title: t("screenTitles.fitnessDetail"),
+          }}
+        />
+        <Stack.Screen
+          name="JoinCallVideoScreen"
+          component={VideoCallScreen}
+          options={{
+            headerShown: false,
+            orientation: 'portrait',
           }}
         />
       </Stack.Navigator>
@@ -524,6 +533,14 @@ export default function Navigator({
               fontSize: 20,
               color: "#ED2A46",
             },
+          }}
+        />
+        <Stack.Screen
+          name="JoinCallVideoScreen"
+          component={VideoCallScreen}
+          options={{
+            headerShown: false,
+            orientation: 'portrait',
           }}
         />
       </Stack.Navigator>
@@ -823,6 +840,15 @@ export default function Navigator({
               fontSize: 20,
               color: "#ED2A46",
             },
+          }}
+        />
+
+        <Stack.Screen
+          name="JoinCallVideoScreen"
+          component={VideoCallScreen}
+          options={{
+            headerShown: false,
+            orientation: 'portrait',
           }}
         />
       
