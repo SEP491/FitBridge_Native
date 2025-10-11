@@ -32,7 +32,8 @@ export default function NotificationScreen() {
     fetchNotifications,
     markAsRead,
     markAllAsRead,
-    deleteNotification: deleteNotif,
+    deleteNotification,
+    deleteAllNotifications,
   } = useNotification();
 
   const { service: signalrService } = useSignalR();
@@ -45,7 +46,6 @@ export default function NotificationScreen() {
 
   useEffect(() => {
     // Check permissions
-    checkNotificationPermissions();
 
     // Load initial data
     setLoading(false);
@@ -67,15 +67,6 @@ export default function NotificationScreen() {
       }
     };
   }, []);
-
-  const checkNotificationPermissions = async () => {
-    try {
-      const permissions = await notificationService.checkPermissions();
-      setPermissionStatus(permissions.status);
-    } catch (error) {
-      console.error("Error checking notification permissions:", error);
-    }
-  };
 
   const handleNotificationTap = (data) => {
     // Parse additional payload if needed
@@ -125,7 +116,7 @@ export default function NotificationScreen() {
           text: t("common.delete") || "Delete",
           style: "destructive",
           onPress: async () => {
-            await deleteNotif(id);
+            await deleteNotification(id);
           },
         },
       ]
@@ -146,8 +137,7 @@ export default function NotificationScreen() {
           text: t("common.clear") || "Clear",
           style: "destructive",
           onPress: async () => {
-            // Clear all notifications via context
-            // TODO: Implement clearAll in NotificationContext
+            await deleteAllNotifications();
           },
         },
       ]
@@ -155,19 +145,6 @@ export default function NotificationScreen() {
   };
 
   // Request permissions if not granted
-  const requestPermissions = async () => {
-    const token = await notificationService.registerForPushNotifications();
-    if (token) {
-      const permissions = await notificationService.checkPermissions();
-      setPermissionStatus(permissions.status);
-      Alert.alert("Success", "Notifications enabled successfully!");
-    } else {
-      Alert.alert(
-        "Error",
-        "Failed to enable notifications. Please check your device settings."
-      );
-    }
-  };
 
   const getTimeAgo = (timestamp) => {
     const now = new Date();
@@ -240,24 +217,6 @@ export default function NotificationScreen() {
               Token: {expoPushToken.substring(0, 20)}...
             </Text>
           )}
-        </View>
-      )}
-
-      {/* Permission Banner */}
-      {permissionStatus !== "granted" && (
-        <View style={styles.permissionBanner}>
-          <View style={styles.permissionBannerContent}>
-            <Ionicons name="notifications-off" size={20} color="#856404" />
-            <Text style={styles.permissionBannerText}>
-              Enable notifications to stay updated
-            </Text>
-          </View>
-          <TouchableOpacity
-            style={styles.permissionButton}
-            onPress={requestPermissions}
-          >
-            <Text style={styles.permissionButtonText}>Enable</Text>
-          </TouchableOpacity>
         </View>
       )}
 

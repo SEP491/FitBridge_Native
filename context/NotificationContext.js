@@ -36,25 +36,22 @@ export const NotificationProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const { service: signalrService } = useSignalR();
-  const [expoPushToken, setExpoPushToken] = useState("");
   const [isSignalRConnected, setIsSignalRConnected] = useState(false);
 
   // Fetch notifications from API
   const fetchNotifications = useCallback(async () => {
     try {
       setRefreshing(true);
-
-      const response = await request("GET", "/v1/notifications");
+      const response = await notificationService.getNotifications();
       console.log("Fetch notifications response:", response);
 
       const { items, total, page: currentPage } = response.data;
 
       // Sort notifications by timestamp (latest first)
       const sortedItems = items.sort((a, b) => {
-        return b.timestamp - a.timestamp; // Descending order (latest first)
+        return b.timestamp - a.timestamp;
       });
 
-      // Set notifications directly from API
       setNotifications(sortedItems);
 
       // Calculate unread count
@@ -65,7 +62,7 @@ export const NotificationProvider = ({ children }) => {
         `Notifications fetched successfully: ${total} total, ${unread} unread`
       );
     } catch (error) {
-      console.error("Failed to fetch notifications:", error.response);
+      console.error("Failed to fetch notifications:", error);
     } finally {
       setRefreshing(false);
     }
@@ -74,8 +71,7 @@ export const NotificationProvider = ({ children }) => {
   // Mark notification as read
   const markAsRead = useCallback(async (notificationId) => {
     try {
-      // TODO: Replace with your actual API endpoint
-      await request("PUT", `/v1/notifications/${notificationId}/read`);
+      await notificationService.markAsRead(notificationId);
 
       setNotifications((prev) =>
         prev.map((n) => (n.id === notificationId ? { ...n, isRead: true } : n))
@@ -91,8 +87,7 @@ export const NotificationProvider = ({ children }) => {
   // Mark all notifications as read
   const markAllAsRead = useCallback(async () => {
     try {
-      // TODO: Replace with your actual API endpoint
-      await request("PUT", "v1/notifications/read-all");
+      await notificationService.markAllAsRead();
 
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
       setUnreadCount(0);
@@ -106,8 +101,7 @@ export const NotificationProvider = ({ children }) => {
   // Delete notification
   const deleteNotification = useCallback(async (notificationId) => {
     try {
-      // TODO: Replace with your actual API endpoint
-      await request("DELETE", `v1/notifications/${notificationId}`);
+      await notificationService.deleteNotification(notificationId);
 
       setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
 
@@ -117,9 +111,86 @@ export const NotificationProvider = ({ children }) => {
     }
   }, []);
 
+  // Delete all notifications
+  const deleteAllNotifications = useCallback(async () => {
+    try {
+      await notificationService.deleteAllNotifications();
+
+      setNotifications([]);
+      setUnreadCount(0);
+
+      console.log("All notifications deleted");
+    } catch (error) {
+      console.error("Failed to delete all notifications:", error);
+    }
+  }, []);
+
   useEffect(() => {
+    let isSubscribed = true;
+
+    // Handler for receiving notifications
+    const handleNotificationReceived = (notification) => {
+      if (!isSubscribed) return;
+
+      console.log("🔔 SignalR: Real-time notification received!", notification);
+
+      fetchNotifications();
+      console.log("🔄 Refreshing notifications from server...");
+
+      // Confirm receipt to server
+      signalrService
+        .invokeHubMethod(HUB_METHODS.CONFIRM_HANDSHAKE)
+        .then(() => {
+          console.log("✅ Confirmed notification receipt to server");
+        })
+        .catch((error) => {
+          console.error("❌ Failed to confirm notification receipt:", error);
+        });
+    };
+
+    // Handler for disconnection
+    const handleDisconnected = () => {
+      if (!isSubscribed) return;
+      console.log("SignalR: Disconnected");
+      setIsSignalRConnected(false);
+    };
+
+    // Handler for reconnection
+    const handleReconnected = () => {
+      if (!isSubscribed) return;
+      console.log("SignalR: Reconnected");
+      setIsSignalRConnected(true);
+      fetchNotifications();
+    };
+
+    // Handler for initial connection
+    const handleConnected = () => {
+      if (!isSubscribed) return;
+      console.log("SignalR: Connection established, registering handlers");
+      registerNotificationHandlers(
+        signalrService.connection,
+        signalrService.boundTriggerCallback
+      );
+      setIsSignalRConnected(true);
+      fetchNotifications();
+    };
+
     const setupSignalRHandlers = () => {
-      // Wait for connection to be established
+      // Register event listeners
+      signalrService.onEvent(
+        CLIENT_METHODS.NOTIFICATION_RECEIVED,
+        handleNotificationReceived
+      );
+      signalrService.onEvent(
+        LIFECYCLE_METHODS.ON_DISCONNECTED,
+        handleDisconnected
+      );
+      signalrService.onEvent(
+        LIFECYCLE_METHODS.ON_RECONNECTED,
+        handleReconnected
+      );
+
+      // Check connection state and setup accordingly
       if (
         signalrService.connectionStatus.state === ConnectionStates.CONNECTED
       ) {
@@ -132,56 +203,35 @@ export const NotificationProvider = ({ children }) => {
         );
         setIsSignalRConnected(true);
         fetchNotifications();
-        console.log(" fetched 1");
       } else {
         console.log("SignalR: Waiting for connection...");
-        signalrService.once(LIFECYCLE_METHODS.ON_CONNECTED, () => {
-          console.log("SignalR: Connection connected, registering handlers");
-          registerNotificationHandlers(
-            signalrService.connection,
-            signalrService.boundTriggerCallback
-          );
-          setIsSignalRConnected(true);
-          fetchNotifications();
-          console.log(" fetched 2");
-        });
+        signalrService.once(LIFECYCLE_METHODS.ON_CONNECTED, handleConnected);
       }
-
-      signalrService.onEvent(
-        CLIENT_METHODS.NOTIFICATION_RECEIVED,
-        (notification) => {
-          console.log(
-            "🔔 SignalR: Real-time notification received!",
-            notification
-          );
-
-          fetchNotifications();
-          console.log(" fetched 3");
-
-          signalrService.invokeHubMethod(HUB_METHODS.CONFIRM_HANDSHAKE);
-          console.log("✅ Confirmed notification receipt to server");
-          console.log("🔄 Refreshing notifications from server...");
-        }
-      );
-
-      // Listen for disconnection events
-      signalrService.onEvent(LIFECYCLE_METHODS.ON_DISCONNECTED, () => {
-        console.log("SignalR: Disconnected");
-        setIsSignalRConnected(false);
-      });
-
-      signalrService.onEvent(LIFECYCLE_METHODS.ON_RECONNECTED, () => {
-        console.log("SignalR: Reconnected");
-        setIsSignalRConnected(true);
-        fetchNotifications();
-        console.log(" fetched 4");
-      });
     };
 
     setupSignalRHandlers();
 
     return () => {
-      // Cleanup
+      // Cleanup: unsubscribe from all events
+      isSubscribed = false;
+
+      console.log("SignalR: Cleaning up notification handlers");
+
+      signalrService.offEvent(
+        CLIENT_METHODS.NOTIFICATION_RECEIVED,
+        handleNotificationReceived
+      );
+      signalrService.offEvent(
+        LIFECYCLE_METHODS.ON_DISCONNECTED,
+        handleDisconnected
+      );
+      signalrService.offEvent(
+        LIFECYCLE_METHODS.ON_RECONNECTED,
+        handleReconnected
+      );
+      signalrService.offEvent(LIFECYCLE_METHODS.ON_CONNECTED, handleConnected);
+
+      // Unregister SignalR connection handlers
       if (signalrService.connection) {
         unregisterNotificationHandlers(signalrService.connection);
       }
@@ -223,12 +273,12 @@ export const NotificationProvider = ({ children }) => {
       unreadCount,
       loading,
       refreshing,
-      expoPushToken,
       isSignalRConnected,
       fetchNotifications,
       markAsRead,
       markAllAsRead,
       deleteNotification,
+      deleteAllNotifications,
       setNotifications,
     }),
     [
@@ -236,8 +286,12 @@ export const NotificationProvider = ({ children }) => {
       unreadCount,
       loading,
       refreshing,
-      expoPushToken,
       isSignalRConnected,
+      fetchNotifications,
+      markAsRead,
+      markAllAsRead,
+      deleteNotification,
+      deleteAllNotifications,
     ]
   );
 

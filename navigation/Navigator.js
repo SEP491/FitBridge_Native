@@ -1,4 +1,10 @@
-import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ActivityIndicator,
+  Platform,
+} from "react-native";
 import React, { useEffect, useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -60,7 +66,8 @@ import VoucherDetailScreen from "../screens/FreelancePTScreen/VoucherDetailScree
 import NotificationScreen from "../screens/CommonScreen/NotificationScreen/NotificationScreen";
 import VideoCallScreen from "../screens/CommonScreen/VideoCallScreen/VideoCallScreen";
 import { useSignalR } from "../context/SignalRContext";
-
+import * as Notifications from "expo-notifications";
+import notificationService from "../services/notificationService";
 export default function Navigator({
   isAuthenticated: propIsAuthenticated,
   user: propUser,
@@ -84,8 +91,6 @@ export default function Navigator({
     prefixes: [
       Linking.createURL("/"),
       "fitbridge://", // Thêm scheme custom của bạn
-      "https://fitbridge.shop",
-      "http://fitbridge.shop",
     ],
     config: {
       screens: {
@@ -910,9 +915,46 @@ export default function Navigator({
   const MainTab = () => {
     // Debug log to check user role
     const { service: signalrService } = useSignalR();
+    const registerPushToken = async () => {
+      try {
+        // Check current permission status
+        const { status: existingStatus } =
+          await Notifications.getPermissionsAsync();
+        let finalStatus = existingStatus;
+
+        // If not granted, request permissions
+        if (existingStatus !== "granted") {
+          const { status } = await Notifications.requestPermissionsAsync();
+          finalStatus = status;
+        }
+
+        if (finalStatus === "granted") {
+          console.log("✅ Notification permissions granted");
+
+          // Get device push token
+          const pushSubscription =
+            await Notifications.getDevicePushTokenAsync();
+          console.log("pushSubscription", pushSubscription);
+          const token = pushSubscription.data;
+          const platform = Platform.OS;
+
+          await notificationService.registerDeviceToken({
+            deviceToken: token,
+            platform,
+          });
+          console.log("✅ Device token registered successfully");
+        } else {
+          console.warn("⚠️ Notification permissions denied");
+        }
+      } catch (error) {
+        console.error("❌ Error registering push token:", error);
+      }
+    };
     useEffect(() => {
+      registerPushToken();
       signalrService.startConnection();
     }, []);
+
     return (
       <Tab.Navigator
         key={user?.role || "guest"}
