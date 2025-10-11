@@ -59,6 +59,7 @@ import RegisterScreen from "../screens/AuthenticationScreen/RegisterScreen/Regis
 import VoucherDetailScreen from "../screens/FreelancePTScreen/VoucherDetailScreen/VoucherDetailScreen";
 import NotificationScreen from "../screens/CommonScreen/NotificationScreen/NotificationScreen";
 import VideoCallScreen from "../screens/CommonScreen/VideoCallScreen/VideoCallScreen";
+import { useSignalR } from "../context/SignalRContext";
 
 export default function Navigator({
   isAuthenticated: propIsAuthenticated,
@@ -908,7 +909,10 @@ export default function Navigator({
 
   const MainTab = () => {
     // Debug log to check user role
-
+    const { service: signalrService } = useSignalR();
+    useEffect(() => {
+      signalrService.startConnection();
+    }, []);
     return (
       <Tab.Navigator
         key={user?.role || "guest"}

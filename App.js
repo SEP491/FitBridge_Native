@@ -46,9 +46,6 @@ export default function App() {
 
         setAuthCheckComplete(true);
 
-        // Add any other initialization logic here
-        // For example: loading fonts, checking app updates, etc.
-
         console.log("App initialization complete");
       } catch (e) {
         console.error("App initialization error:", e.message);
@@ -76,7 +73,6 @@ export default function App() {
   }, [appIsReady]);
 
   if (!appIsReady || !authCheckComplete) {
-    // Return null while splash screen is still showing and auth is being checked
     return null;
   }
 

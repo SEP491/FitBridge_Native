@@ -15,11 +15,8 @@ import registerNotificationHandlers from "../services/signalR/registerNotificati
 import unregisterNotificationHandlers from "../services/signalR/unregisterNotificationHandlers";
 import { LIFECYCLE_METHODS } from "../services/signalR/lifecycleMethods";
 import { ConnectionStates } from "../services/signalR/ConnectionStates";
-import authService from "../services/authService";
 import { request } from "../services/request";
-import * as Notifications from "expo-notifications";
 import notificationService from "../services/notificationService";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const NotificationContext = createContext();
 
@@ -120,72 +117,6 @@ export const NotificationProvider = ({ children }) => {
     }
   }, []);
 
-  // Register for push notifications and start SignalR connection
-  useEffect(() => {
-    const initialize = async () => {
-      try {
-        // Check if user is authenticated
-        const authResult = await authService.validateToken();
-
-        if (!authResult.isValid) {
-          console.log("User not authenticated, skipping notification setup");
-          return;
-        }
-
-        // Check if we already have a stored token
-        const storedToken = await AsyncStorage.getItem("fcmPushToken");
-        if (storedToken) {
-          setExpoPushToken(storedToken);
-          console.log("Using stored FCM token:", storedToken);
-        }
-
-        // Check notification permissions
-        const permissions = await notificationService.checkPermissions();
-        console.log("Notification permissions status:", permissions.status);
-
-        if (permissions.granted) {
-          // Permission already granted
-          console.log("Notification permission already granted");
-
-          // Only register if we don't have a stored token
-          if (!storedToken) {
-            console.log(
-              "No stored token, registering for push notifications..."
-            );
-            const token =
-              await notificationService.registerForPushNotifications();
-            if (token) {
-              // Store token in AsyncStorage
-              await AsyncStorage.setItem("fcmPushToken", token);
-              setExpoPushToken(token);
-              console.log("FCM token registered and stored:", token);
-            }
-          }
-        } else {
-          // Permission not granted yet - user can enable it manually from NotificationScreen
-          console.log(
-            "Notification permission not granted - user can enable from settings"
-          );
-        }
-
-        // Start SignalR connection
-        if (
-          signalrService.connectionStatus.state !== ConnectionStates.CONNECTED
-        ) {
-          await signalrService.startConnection();
-        }
-
-        // Fetch notifications immediately (don't wait for SignalR)
-        fetchNotifications();
-      } catch (error) {
-        console.error("Failed to initialize notifications:", error);
-      }
-    };
-
-    initialize();
-  }, [signalrService, fetchNotifications]);
-
-  // Setup SignalR event handlers
   useEffect(() => {
     const setupSignalRHandlers = () => {
       // Wait for connection to be established
@@ -200,7 +131,8 @@ export const NotificationProvider = ({ children }) => {
           signalrService.boundTriggerCallback
         );
         setIsSignalRConnected(true);
-        // Don't fetch here anymore, already fetched in initialization
+        fetchNotifications();
+        console.log(" fetched 1");
       } else {
         console.log("SignalR: Waiting for connection...");
         signalrService.once(LIFECYCLE_METHODS.ON_CONNECTED, () => {
@@ -210,36 +142,24 @@ export const NotificationProvider = ({ children }) => {
             signalrService.boundTriggerCallback
           );
           setIsSignalRConnected(true);
-          // Refresh notifications when SignalR connects
           fetchNotifications();
+          console.log(" fetched 2");
         });
       }
 
-      // Listen for notification received events
       signalrService.onEvent(
         CLIENT_METHODS.NOTIFICATION_RECEIVED,
-        async (notification) => {
+        (notification) => {
           console.log(
             "🔔 SignalR: Real-time notification received!",
             notification
           );
 
-          // Add notification to local state
-          // setNotifications((prev) => {
-          //   console.log("📝 Adding notification to state");
-          //   return [notification, ...prev];
-          // });
           fetchNotifications();
+          console.log(" fetched 3");
 
-          // Confirm receipt to server
-          try {
-            await signalrService.invokeHubMethod(HUB_METHODS.CONFIRM_HANDSHAKE);
-            console.log("✅ Confirmed notification receipt to server");
-          } catch (error) {
-            console.error("❌ Failed to confirm notification receipt:", error);
-          }
-
-          // Refresh notifications from server to ensure sync
+          signalrService.invokeHubMethod(HUB_METHODS.CONFIRM_HANDSHAKE);
+          console.log("✅ Confirmed notification receipt to server");
           console.log("🔄 Refreshing notifications from server...");
         }
       );
@@ -254,6 +174,7 @@ export const NotificationProvider = ({ children }) => {
         console.log("SignalR: Reconnected");
         setIsSignalRConnected(true);
         fetchNotifications();
+        console.log(" fetched 4");
       });
     };
 
@@ -265,11 +186,9 @@ export const NotificationProvider = ({ children }) => {
         unregisterNotificationHandlers(signalrService.connection);
       }
     };
-  }, [signalrService, fetchNotifications]);
+  }, []);
 
-  // Listen for local notification taps
   useEffect(() => {
-    // Listen for notification responses (when user taps notification)
     const responseSubscription =
       notificationService.addNotificationResponseReceivedListener(
         (response) => {
@@ -290,8 +209,6 @@ export const NotificationProvider = ({ children }) => {
     const receivedSubscription =
       notificationService.addNotificationReceivedListener((notification) => {
         console.log("📱 Foreground notification received:", notification);
-        // This will be triggered when a notification arrives while app is open
-        // The notification will still be shown due to the handler configuration
       });
 
     return () => {
@@ -321,10 +238,6 @@ export const NotificationProvider = ({ children }) => {
       refreshing,
       expoPushToken,
       isSignalRConnected,
-      fetchNotifications,
-      markAsRead,
-      markAllAsRead,
-      deleteNotification,
     ]
   );
 

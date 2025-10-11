@@ -21,7 +21,7 @@ export const SignalRProvider = ({ children }) => {
     return () => {
       service.stopConnection();
     };
-  }, [service]);
+  }, []);
 
   return (
     <SignalRContext.Provider value={useMemo(() => ({ service }), [service])}>
