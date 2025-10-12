@@ -11,6 +11,7 @@ import { VideoCallProvider } from "./context/VideoCallContext";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 import authService from "./services/authService";
+import { registerGlobals } from "react-native-webrtc";
 // Import i18n configuration
 import "./i18n";
 
@@ -18,6 +19,7 @@ import "./i18n";
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
+  registerGlobals();
   const [appIsReady, setAppIsReady] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
@@ -91,9 +93,7 @@ export default function App() {
               <LocationProvider>
                 <FitnessProvider>
                   <CartProvider>
-                    <View style={{ flex: 1 }}>
-                      <Navigator isAuthenticated={isAuthenticated} user={user} />
-                    </View>
+                    <Navigator isAuthenticated={isAuthenticated} user={user} />
                   </CartProvider>
                 </FitnessProvider>
               </LocationProvider>

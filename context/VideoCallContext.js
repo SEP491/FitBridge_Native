@@ -25,6 +25,7 @@ export const VideoCallProvider = ({ children }) => {
   const [callInfo, setCallInfo] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isInCall, setIsInCall] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
   const [error, setError] = useState(null);
 
   const [localMediaStream, setLocalMediaStream] = useState(null);
@@ -48,6 +49,10 @@ export const VideoCallProvider = ({ children }) => {
     webrtcService.toggleVideo();
     setIsVideoMuted(!isVideoMuted);
   }, [webrtcService, isVideoMuted]);
+
+  const onToggleMinimize = useCallback(() => {
+    setIsMinimized(!isMinimized);
+  }, [isMinimized]);
 
   const startCall = useCallback(
     async (
@@ -148,6 +153,7 @@ export const VideoCallProvider = ({ children }) => {
         isLoading,
         error,
         callInfo,
+        isMinimized,
 
         // Methods
         startCall,
@@ -155,6 +161,7 @@ export const VideoCallProvider = ({ children }) => {
         onToggleAudio,
         onToggleVideo,
         onToggleFlipCamera,
+        onToggleMinimize,
         setCallInfo,
       }}
     >

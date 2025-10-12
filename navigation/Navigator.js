@@ -10,6 +10,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
 import * as Linking from "expo-linking";
 import authService from "../services/authService";
+import FloatingVideoCall from "../components/FloatingVideoCall/FloatingVideoCall";
 import HomeScreen from "../screens/CommonScreen/HomeScreen/HomeScreen";
 import GymDetailScreen from "../screens/CommonScreen/GymDetailScreen/GymDetailScreen";
 import PTInGymScreen from "../screens/CommonScreen/PTInGymScreen/PTInGymScreen";
@@ -58,6 +59,7 @@ import RegisterScreen from "../screens/AuthenticationScreen/RegisterScreen/Regis
 import VoucherDetailScreen from "../screens/FreelancePTScreen/VoucherDetailScreen/VoucherDetailScreen";
 import VideoCallScreen from "../screens/CommonScreen/VideoCallScreen/VideoCallScreenNew";
 import VideoCallPrepScreen from "../screens/CommonScreen/VideoCallPrepScreen/VideoCallPrepScreen";
+import { useVideoCall } from "../context/VideoCallContext";
 
 export default function Navigator({
   isAuthenticated: propIsAuthenticated,
@@ -71,6 +73,20 @@ export default function Navigator({
   const [user, setUser] = useState(propUser);
   const [isAuthenticated, setIsAuthenticated] = useState(propIsAuthenticated);
   const [isLoading, setIsLoading] = useState(false);
+
+    const {
+      isInCall,
+      localMediaStream,
+      remoteMediaStream,
+      isAudioMuted,
+      isVideoMuted,
+      isMinimized,
+      onToggleAudio,
+      onToggleVideo,
+      onToggleFlipCamera,
+      onToggleMinimize,
+      endCall,
+    } = useVideoCall();
 
   // Update local state when props change
   useEffect(() => {
@@ -165,6 +181,14 @@ export default function Navigator({
             ) : null,
         })}
       >
+      <Stack.Screen
+          name="VideoCallScreen"
+          component={VideoCallScreen}
+          options={{
+            headerShown: false,
+            orientation: 'portrait',
+          }}
+        />
         <Stack.Screen
           name="HomeMain"
           component={HomeScreen}
@@ -278,7 +302,7 @@ export default function Navigator({
           }}
         />
         <Stack.Screen
-          name="JoinCallVideoScreen"
+          name="VideoCallScreen"
           component={VideoCallScreen}
           options={{
             headerShown: false,
@@ -332,6 +356,14 @@ export default function Navigator({
             ) : null,
         })}
       >
+      <Stack.Screen
+          name="VideoCallScreen"
+          component={VideoCallScreen}
+          options={{
+            headerShown: false,
+            orientation: 'portrait',
+          }}
+        />
         <Stack.Screen
           name="CalendarScheduleScreen"
           component={CalendarScheduleScreen}
@@ -409,6 +441,14 @@ export default function Navigator({
             ) : null,
         })}
       >
+      <Stack.Screen
+          name="VideoCallScreen"
+          component={VideoCallScreen}
+          options={{
+            headerShown: false,
+            orientation: 'portrait',
+          }}
+        />
         <Stack.Screen
           name="SchedulePTScreen"
           component={SchedulePTScreen}
@@ -478,6 +518,14 @@ export default function Navigator({
             },
           }}
         />
+        <Stack.Screen
+          name="VideoCallScreen"
+          component={VideoCallScreen}
+          options={{
+            headerShown: false,
+            orientation: 'portrait',
+          }}
+        />
       </Stack.Navigator>
     );
   };
@@ -509,6 +557,14 @@ export default function Navigator({
               fontSize: 20,
               color: "#ED2A46",
             },
+          }}
+        />
+        <Stack.Screen
+          name="VideoCallScreen"
+          component={VideoCallScreen}
+          options={{
+            headerShown: false,
+            orientation: 'portrait',
           }}
         />
       </Stack.Navigator>
@@ -553,7 +609,7 @@ export default function Navigator({
           }}
         />
         <Stack.Screen
-          name="JoinCallVideoScreen"
+          name="VideoCallScreen"
           component={VideoCallScreen}
           options={{
             headerShown: false,
@@ -593,6 +649,14 @@ export default function Navigator({
             },
           }}
         />
+        <Stack.Screen
+          name="VideoCallScreen"
+          component={VideoCallScreen}
+          options={{
+            headerShown: false,
+            orientation: 'portrait',
+          }}
+        />
          
       </Stack.Navigator>
     );
@@ -600,6 +664,7 @@ export default function Navigator({
 
   const FreelancePTChatStack = () => {
     return (
+      
       <Stack.Navigator
         screenOptions={({ navigation, route }) => ({
           headerTitleAlign: "center",
@@ -607,6 +672,7 @@ export default function Navigator({
           headerTintColor: "#ED2A46",
         })}
       >
+      
         <Stack.Screen
           name="FreelancePTChatScreen"
           component={FreelancePTChatScreen}
@@ -619,6 +685,14 @@ export default function Navigator({
               fontSize: 20,
               color: "#ED2A46",
             },
+          }}
+        />
+        <Stack.Screen
+          name="VideoCallScreen"
+          component={VideoCallScreen}
+          options={{
+            headerShown: false,
+            orientation: 'portrait',
           }}
         />
       </Stack.Navigator>
@@ -868,7 +942,7 @@ export default function Navigator({
           }}
         />
         <Stack.Screen
-          name="JoinCallVideoScreen"
+          name="VideoCallScreen"
           component={VideoCallScreen}
           options={{
             headerShown: false,
@@ -1153,6 +1227,7 @@ export default function Navigator({
           </>
         )}
       </Stack.Navigator>
+      <FloatingVideoCall />
     </NavigationContainer>
   );
 }

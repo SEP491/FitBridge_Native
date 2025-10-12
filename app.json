@@ -81,6 +81,13 @@
           "cameraPermission": "FitBridge needs access to your camera to allow you to take photos for your profile and gym photos."
         }
       ],
+      [
+        "@config-plugins/react-native-webrtc",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone"
+        }
+      ],
       "expo-localization",
       "expo-background-fetch",
       "expo-task-manager",

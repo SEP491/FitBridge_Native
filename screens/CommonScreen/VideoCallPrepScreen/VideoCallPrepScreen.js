@@ -17,7 +17,9 @@ import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 import { useVideoCall } from '../../../context/VideoCallContext';
+import signalRService from '../../../services/signalR/signalRService';
 
 // Check if running in Expo Go
 const isExpoGo = Constants.appOwnership === 'expo';
@@ -39,12 +41,50 @@ const { width, height } = Dimensions.get('window');
 export default function VideoCallPrepScreen({ navigation }) {
   const [roomId, setRoomId] = useState('');
   const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [previewStream, setPreviewStream] = useState(null);
   const [isAudioMuted, setIsAudioMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingPreview, setLoadingPreview] = useState(true);
+  const [error, setError] = useState('');
 
+  async function handleSubmit() {
+    if (!isFormValid || loading) return;
+    setError("");
+    setLoading(true);
+    try {
+      const url = process.env.EXPO_PUBLIC_API_WEBRTC_URL + "/meetingroom/login";
+      console.log('Logging in to:', url);
+      const response = await axios.post(url, {
+        username,
+        password,
+        roomId,
+      });
+
+      if (response.status === 200) {
+        const token = response.data.accessToken;
+        console.log('Login successful, token received');
+        await AsyncStorage.setItem("accessSignalRToken", token);
+        await AsyncStorage.setItem("username", username);
+        await AsyncStorage.setItem("roomId", roomId);
+        await signalRService.startConnection();
+        
+        // Navigate to video call after successful login
+        handleJoinCall();
+      } else {
+        Alert.alert("Error", "Login failed. Please try again.");
+      }
+    } catch (e) {
+      console.error("Login error:", e);
+      const errorMsg = e.response?.data?.message || "Login failed. Please try again.";
+      Alert.alert("Error", errorMsg);
+      setError(errorMsg);
+    } finally {
+      setLoading(false);
+    }
+  }
+  
   // Load username from storage
   useEffect(() => {
     const loadUsername = async () => {
@@ -167,7 +207,7 @@ export default function VideoCallPrepScreen({ navigation }) {
     }
 
     // Navigate to video call screen
-    navigation.navigate('JoinCallVideoScreen', {
+    navigation.navigate('VideoCallScreen', {
       roomId: roomId.trim(),
       username: username.trim(),
       recipientName: 'Room ' + roomId.trim(),
@@ -181,7 +221,7 @@ export default function VideoCallPrepScreen({ navigation }) {
     setRoomId(randomId);
   };
 
-  const isFormValid = roomId.trim().length > 0 && username.trim().length > 0;
+  const isFormValid = roomId.trim().length > 0 && username.trim().length > 0 && password.trim().length > 0;
 
   if (isExpoGo) {
     return (
@@ -309,6 +349,19 @@ export default function VideoCallPrepScreen({ navigation }) {
               />
             </View>
 
+            {/* Password Input */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Password</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter password"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                returnKeyType="next"
+              />
+            </View>
+
             {/* Room ID Input */}
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Room ID</Text>
@@ -332,6 +385,13 @@ export default function VideoCallPrepScreen({ navigation }) {
                 Share this room ID with others to join the same call
               </Text>
             </View>
+            
+            {/* Error Message */}
+            {error ? (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            ) : null}
           </View>
         </ScrollView>
 
@@ -342,7 +402,7 @@ export default function VideoCallPrepScreen({ navigation }) {
               styles.joinButton,
               !isFormValid && styles.joinButtonDisabled,
             ]}
-            onPress={handleJoinCall}
+            onPress={handleSubmit}
             disabled={!isFormValid || loading}
           >
             {loading ? (
@@ -350,7 +410,7 @@ export default function VideoCallPrepScreen({ navigation }) {
             ) : (
               <>
                 <MaterialIcons name="video-call" size={24} color="#FFF" />
-                <Text style={styles.joinButtonText}>Join Call</Text>
+                <Text style={styles.joinButtonText}>Login & Join Call</Text>
               </>
             )}
           </TouchableOpacity>
@@ -564,5 +624,16 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: '#FFF',
+  },
+  errorContainer: {
+    backgroundColor: '#ffebee',
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 8,
+  },
+  errorText: {
+    color: '#c62828',
+    fontSize: 14,
+    textAlign: 'center',
   },
 });

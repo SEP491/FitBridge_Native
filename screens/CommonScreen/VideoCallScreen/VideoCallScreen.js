@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,16 +6,12 @@ import {
   TouchableOpacity,
   Dimensions,
   StatusBar,
-  Animated,
   Alert,
-  Platform,
-  PermissionsAndroid,
 } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Constants from 'expo-constants';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import videoCallService from '../../../services/videoCallService';
+import { useVideoCall } from '../../../context/VideoCallContext';
 
 // Check if running in Expo Go
 const isExpoGo = Constants.appOwnership === 'expo';
@@ -34,74 +30,40 @@ if (!isExpoGo) {
 const { width, height } = Dimensions.get('window');
 
 export default function VideoCallScreen({ route, navigation }) {
-  // Get params from navigation (roomId, recipientName, etc.)
-  const { roomId, recipientId, recipientName, recipientAvatar, isOutgoing = true } = route.params || {};
+  // Get params from navigation
+  const { roomId, username, recipientName, recipientAvatar } = route.params || {};
   
-  const [isMuted, setIsMuted] = useState(false);
-  const [isVideoOff, setIsVideoOff] = useState(false);
-  const [isSpeakerOn, setIsSpeakerOn] = useState(true);
-  const [isFlipped, setIsFlipped] = useState(false);
   const [callDuration, setCallDuration] = useState(0);
-  const [connectionStatus, setConnectionStatus] = useState('connecting'); // connecting, connected, reconnecting, expo-go
-  const [localStream, setLocalStream] = useState(null);
-  const [remoteStream, setRemoteStream] = useState(null);
   const [showExpoGoWarning, setShowExpoGoWarning] = useState(false);
-  const [username, setUsername] = useState('You');
-  
-  const localStreamRef = useRef(null);
-  const remoteStreamRef = useRef(null);
-  
+
+  // Get video call state and methods from context
+  const {
+    isInCall,
+    localMediaStream,
+    remoteMediaStream,
+    isAudioMuted,
+    isVideoMuted,
+    isLoading,
+    error,
+    startCall,
+    endCall,
+    onToggleAudio,
+    onToggleVideo,
+    onToggleFlipCamera,
+    onToggleMinimize,
+  } = useVideoCall();
+
   const callerInfo = {
-    name: recipientName || 'Sarah Williams',
-    role: 'Personal Trainer',
-    avatar: recipientAvatar || 'SW',
+    name: recipientName || 'Personal Trainer',
+    avatar: recipientAvatar || 'PT',
   };
 
-  const scaleAnim = new Animated.Value(1);
-
-  // Request permissions
-  const requestPermissions = async () => {
-    if (Platform.OS === 'android') {
-      try {
-        const grants = await PermissionsAndroid.requestMultiple([
-          PermissionsAndroid.PERMISSIONS.CAMERA,
-          PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
-        ]);
-
-        if (
-          grants['android.permission.CAMERA'] === PermissionsAndroid.RESULTS.GRANTED &&
-          grants['android.permission.RECORD_AUDIO'] === PermissionsAndroid.RESULTS.GRANTED
-        ) {
-          setHasCameraPermission(true);
-          setHasAudioPermission(true);
-          return true;
-        } else {
-          Alert.alert(
-            'Permissions Required',
-            'Camera and microphone permissions are required for video calls.',
-            [{ text: 'OK', onPress: () => navigation.goBack() }]
-          );
-          return false;
-        }
-      } catch (err) {
-        console.warn(err);
-        return false;
-      }
-    } else {
-      // iOS permissions are handled automatically by WebRTC
-      setHasCameraPermission(true);
-      setHasAudioPermission(true);
-      return true;
-    }
-  };
-
-  // Request permissions and initialize media
+  // Initialize call on mount
   useEffect(() => {
     const initializeCall = async () => {
       // Check if running in Expo Go
       if (isExpoGo) {
         setShowExpoGoWarning(true);
-        setConnectionStatus('expo-go');
         return;
       }
 
@@ -109,147 +71,80 @@ export default function VideoCallScreen({ route, navigation }) {
       if (!RTCView) {
         Alert.alert(
           'Development Build Required',
-          'Video calling with real camera requires a development build. WebRTC is not available in Expo Go.\n\nTo test this feature:\n1. Run: npx expo run:android (or run:ios)\n2. Or build a development build',
+          'Video calling requires a development build. WebRTC is not available in Expo Go.',
           [{ text: 'OK', onPress: () => navigation.goBack() }]
         );
         return;
       }
 
       try {
-        // Get user info
-        const userData = await AsyncStorage.getItem('user');
-        const user = userData ? JSON.parse(userData) : null;
-        const currentUsername = user?.fullName || 'User';
-        setUsername(currentUsername);
-
-        // Determine room ID (use provided roomId or generate one)
-        const callRoomId = roomId || `room_${Date.now()}`;
-        
-        console.log('Initializing video call:', {
-          roomId: callRoomId,
-          username: currentUsername,
-          recipientName,
-        });
-
-        // Initialize video call service
-        await videoCallService.initialize(callRoomId, currentUsername);
-
-        // Set up stream callbacks
-        videoCallService.setLocalStreamCallback((stream) => {
-          console.log('Local stream received:', stream?.id);
-          setLocalStream(stream);
-          localStreamRef.current = stream;
-        });
-
-        videoCallService.setOnTrackCallback((stream) => {
-          console.log('Remote stream received:', stream?.id);
-          setRemoteStream(stream);
-          remoteStreamRef.current = stream;
-          if (stream) {
-            setConnectionStatus('connected');
-          }
-        });
-
-        setConnectionStatus('waiting'); // Waiting for other person
-
+        // Start the call with provided params
+        if (roomId && username) {
+          await startCall(roomId, username, recipientName);
+        }
       } catch (error) {
-        console.error('Error initializing call:', error);
-        Alert.alert(
-          'Connection Error',
-          'Failed to initialize video call. Please check your internet connection and try again.',
-          [{ text: 'OK', onPress: () => navigation.goBack() }]
-        );
+        console.error('Error starting call:', error);
       }
     };
 
     initializeCall();
 
-    // Call duration timer
-    const interval = setInterval(() => {
-      setCallDuration(prev => prev + 1);
-    }, 1000);
+    // Call duration timer (only when in call)
+    let interval;
+    if (isInCall) {
+      interval = setInterval(() => {
+        setCallDuration((prev) => prev + 1);
+      }, 1000);
+    }
 
     return () => {
-      clearInterval(interval);
-      // Cleanup video call service
-      videoCallService.cleanup();
+      if (interval) {
+        clearInterval(interval);
+      }
     };
-  }, [roomId, recipientName]);
+  }, [roomId, username, recipientName]);
 
 
 
-  // Pulse animation for connecting
-  useEffect(() => {
-    if (connectionStatus === 'connecting') {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(scaleAnim, {
-            toValue: 1.1,
-            duration: 1000,
-            useNativeDriver: true,
-          }),
-          Animated.timing(scaleAnim, {
-            toValue: 1,
-            duration: 1000,
-            useNativeDriver: true,
-          }),
-        ])
-      ).start();
-    }
-  }, [connectionStatus]);
-
+  // Format call duration
   const formatDuration = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Toggle microphone
-  const toggleMicrophone = async () => {
-    try {
-      await videoCallService.toggleAudio();
-      setIsMuted(!isMuted);
-    } catch (error) {
-      console.error('Error toggling microphone:', error);
-    }
-  };
-
-  // Toggle camera
-  const toggleCamera = async () => {
-    try {
-      await videoCallService.toggleVideo();
-      setIsVideoOff(!isVideoOff);
-    } catch (error) {
-      console.error('Error toggling camera:', error);
-    }
-  };
-
-  // Flip camera (switch between front and back)
-  const flipCamera = async () => {
-    try {
-      await videoCallService.toggleFlipCamera();
-      setIsFlipped(!isFlipped);
-    } catch (error) {
-      console.error('Error flipping camera:', error);
-      Alert.alert('Error', 'Failed to flip camera.');
-    }
-  };
-
-  const handleEndCall = async () => {
-    try {
-      await videoCallService.cleanup();
-    } catch (error) {
-      console.error('Error cleaning up video call:', error);
-    }
+  // Handle end call
+  const handleEndCall = () => {
+    endCall();
     navigation.goBack();
   };
 
-  return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#000" />
-      
-      {/* Expo Go Warning */}
-      {showExpoGoWarning && (
+  // Handle minimize
+  const handleMinimize = () => {
+    onToggleMinimize();
+    navigation.goBack();
+  };
+
+  // Toggle microphone
+  const toggleMicrophone = () => {
+    onToggleAudio();
+  };
+
+  // Toggle camera
+  const toggleCamera = () => {
+    onToggleVideo();
+  };
+
+  // Flip camera
+  const flipCamera = () => {
+    onToggleFlipCamera();
+  };
+
+  // Show Expo Go warning
+  if (showExpoGoWarning) {
+    return (
+      <View style={styles.container}>
+        <StatusBar barStyle="light-content" backgroundColor="#000" />
         <View style={styles.expoGoWarningContainer}>
           <LinearGradient
             colors={['#667eea', '#764ba2']}
@@ -261,213 +156,157 @@ export default function VideoCallScreen({ route, navigation }) {
               Video calling with real camera/microphone requires a development build.
             </Text>
             <Text style={styles.expoGoWarningText}>
-              WebRTC is not available in Expo Go.
+              Run: <Text style={styles.expoGoWarningCode}>eas build --profile development</Text>
             </Text>
-            
-            <View style={styles.expoGoInstructionsContainer}>
-              <Text style={styles.expoGoInstructionsTitle}>To use this feature:</Text>
-              <Text style={styles.expoGoInstructionsText}>
-                1. Run: npx expo run:android
-              </Text>
-              <Text style={styles.expoGoInstructionsText}>
-                2. Or run: npx expo run:ios
-              </Text>
-              <Text style={styles.expoGoInstructionsText}>
-                3. Or create a development build
-              </Text>
-            </View>
-
             <TouchableOpacity
-              style={styles.expoGoCloseButton}
+              style={styles.expoGoWarningButton}
               onPress={() => navigation.goBack()}
             >
-              <Text style={styles.expoGoCloseButtonText}>Go Back</Text>
+              <Text style={styles.expoGoWarningButtonText}>Go Back</Text>
             </TouchableOpacity>
           </LinearGradient>
         </View>
+      </View>
+    );
+  }
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <StatusBar barStyle="light-content" backgroundColor="#000" />
+        <LinearGradient colors={['#667eea', '#764ba2']} style={styles.loadingContainer}>
+          <Ionicons name="call" size={60} color="#FFF" />
+          <Text style={styles.loadingText}>Connecting...</Text>
+        </LinearGradient>
+      </View>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <StatusBar barStyle="light-content" backgroundColor="#000" />
+        <View style={styles.errorContainer}>
+          <LinearGradient colors={['#f093fb', '#f5576c']} style={styles.errorGradient}>
+            <Ionicons name="alert-circle" size={60} color="#FFF" />
+            <Text style={styles.errorText}>Connection Error</Text>
+            <Text style={styles.errorSubtext}>{error}</Text>
+            <TouchableOpacity style={styles.errorButton} onPress={() => navigation.goBack()}>
+              <Text style={styles.errorButtonText}>Go Back</Text>
+            </TouchableOpacity>
+          </LinearGradient>
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#000" />
+
+      {/* Background (Remote video or placeholder) */}
+      {remoteMediaStream && RTCView ? (
+        <RTCView
+          streamURL={remoteMediaStream.toURL()}
+          style={styles.remoteVideo}
+          objectFit="cover"
+          mirror={false}
+        />
+      ) : (
+        <LinearGradient
+          colors={['#667eea', '#764ba2']}
+          style={styles.remoteVideoPlaceholder}
+        >
+          <View style={styles.avatarLarge}>
+            <Text style={styles.avatarLargeText}>{callerInfo.avatar}</Text>
+          </View>
+          <Text style={styles.callerName}>{callerInfo.name}</Text>
+          <Text style={styles.waitingText}>Waiting for connection...</Text>
+        </LinearGradient>
       )}
-      
-      {/* Remote Video (Full Screen) */}
-      <View style={styles.remoteVideoContainer}>
-        {remoteStream && RTCView ? (
+
+      {/* Top bar with call info and minimize button */}
+      <View style={styles.topBar}>
+        <View style={styles.callInfo}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{callerInfo.avatar}</Text>
+          </View>
+          <View style={styles.callerDetails}>
+            <Text style={styles.callerNameText}>{callerInfo.name}</Text>
+            <Text style={styles.callDurationText}>{formatDuration(callDuration)}</Text>
+          </View>
+        </View>
+        
+        {/* Minimize Button */}
+        <TouchableOpacity style={styles.minimizeButton} onPress={handleMinimize}>
+          <Ionicons name="remove-outline" size={24} color="#FFF" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Local video (Picture-in-Picture) */}
+      <View style={styles.localVideoContainer}>
+        {localMediaStream && !isVideoMuted && RTCView ? (
           <RTCView
-            streamURL={remoteStream.toURL()}
-            style={styles.remoteVideo}
+            streamURL={localMediaStream.toURL()}
+            style={styles.localVideo}
             objectFit="cover"
-            mirror={false}
+            mirror={true}
           />
         ) : (
-          <LinearGradient
-            colors={['#667eea', '#764ba2']}
-            style={styles.remoteVideo}
-          >
-            <Animated.View style={[styles.avatarLarge, { transform: [{ scale: scaleAnim }] }]}>
-              <Text style={styles.avatarTextLarge}>{callerInfo.avatar}</Text>
-            </Animated.View>
-            {connectionStatus === 'connecting' && (
-              <Text style={styles.connectingText}>Waiting for other person...</Text>
-            )}
-          </LinearGradient>
+          <View style={styles.localVideoOff}>
+            <Ionicons name="videocam-off" size={32} color="#FFF" />
+          </View>
         )}
       </View>
 
-      {/* Top Bar - Caller Info & Status */}
-      <LinearGradient
-        colors={['rgba(0,0,0,0.7)', 'transparent']}
-        style={styles.topGradient}
-      >
-        <View style={styles.topBar}>
-          <View style={styles.callerInfo}>
-            <Text style={styles.callerName}>{callerInfo.name}</Text>
-            <View style={styles.statusContainer}>
-              {connectionStatus === 'connecting' && (
-                <>
-                  <View style={styles.connectingDot} />
-                  <Text style={styles.statusText}>Connecting...</Text>
-                </>
-              )}
-              {connectionStatus === 'connected' && (
-                <Text style={styles.statusText}>{formatDuration(callDuration)}</Text>
-              )}
-              {connectionStatus === 'reconnecting' && (
-                <>
-                  <View style={[styles.connectingDot, { backgroundColor: '#FFA500' }]} />
-                  <Text style={styles.statusText}>Reconnecting...</Text>
-                </>
-              )}
-            </View>
-          </View>
-          
-          {/* Add Participant Button */}
-          <TouchableOpacity style={styles.topButton}>
-            <Ionicons name="person-add-outline" size={24} color="#fff" />
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
-
-      {/* Local Video (Picture in Picture) */}
-      <View style={styles.localVideoContainer}>
-        <View style={styles.localVideo}>
-          {localStream && !isVideoOff && RTCView ? (
-            <RTCView
-              streamURL={localStream.toURL()}
-              style={styles.localVideoActive}
-              objectFit="cover"
-              mirror={!isFlipped}
-            />
-          ) : (
-            <View style={styles.videoOffLocal}>
-              <View style={styles.avatarSmall}>
-                <Text style={styles.avatarTextSmall}>You</Text>
-              </View>
-            </View>
-          )}
-          
-          {/* Camera Off Indicator */}
-          {isVideoOff && (
-            <View style={styles.cameraOffBadge}>
-              <Ionicons name="videocam-off" size={12} color="#fff" />
-            </View>
-          )}
-
-          {/* Flip Camera Button */}
-          {!isVideoOff && (
-            <TouchableOpacity 
-              style={styles.flipButton}
-              onPress={flipCamera}
-            >
-              <Ionicons 
-                name="camera-reverse-outline" 
-                size={18} 
-                color="#fff" 
-              />
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
-
-      {/* Bottom Controls */}
-      <LinearGradient
-        colors={['transparent', 'rgba(0,0,0,0.8)']}
-        style={styles.bottomGradient}
-      >
-        <View style={styles.controlsContainer}>
+      {/* Bottom controls */}
+      <View style={styles.controlsContainer}>
+        <View style={styles.controls}>
           {/* Microphone */}
           <TouchableOpacity
-            style={[styles.controlButton, isMuted && styles.controlButtonActive]}
+            style={[styles.controlButton, isAudioMuted && styles.controlButtonMuted]}
             onPress={toggleMicrophone}
           >
-            <Ionicons 
-              name={isMuted ? 'mic-off' : 'mic'} 
-              size={28} 
-              color="#fff" 
+            <Ionicons
+              name={isAudioMuted ? 'mic-off' : 'mic'}
+              size={28}
+              color="#FFF"
             />
           </TouchableOpacity>
 
           {/* Camera */}
           <TouchableOpacity
-            style={[styles.controlButton, isVideoOff && styles.controlButtonActive]}
+            style={[styles.controlButton, isVideoMuted && styles.controlButtonMuted]}
             onPress={toggleCamera}
           >
-            <Ionicons 
-              name={isVideoOff ? 'videocam-off' : 'videocam'} 
-              size={28} 
-              color="#fff" 
+            <Ionicons
+              name={isVideoMuted ? 'videocam-off' : 'videocam'}
+              size={28}
+              color="#FFF"
             />
           </TouchableOpacity>
 
-          {/* End Call */}
+          {/* End call */}
+          <TouchableOpacity style={styles.endCallButton} onPress={handleEndCall}>
+            <MaterialIcons name="call-end" size={32} color="#FFF" />
+          </TouchableOpacity>
+
+          {/* Flip camera */}
+          <TouchableOpacity style={styles.controlButton} onPress={flipCamera}>
+            <Ionicons name="camera-reverse" size={28} color="#FFF" />
+          </TouchableOpacity>
+
+          {/* Speaker (placeholder for now) */}
           <TouchableOpacity
-            style={styles.endCallButton}
-            onPress={handleEndCall}
+            style={styles.controlButton}
+            onPress={() => Alert.alert('Speaker', 'Speaker toggle coming soon')}
           >
-            <Ionicons name="call" size={32} color="#fff" />
-          </TouchableOpacity>
-
-          {/* Speaker */}
-          <TouchableOpacity
-            style={[styles.controlButton, !isSpeakerOn && styles.controlButtonActive]}
-            onPress={() => setIsSpeakerOn(!isSpeakerOn)}
-          >
-            <Ionicons 
-              name={isSpeakerOn ? 'volume-high' : 'volume-mute'} 
-              size={28} 
-              color="#fff" 
-            />
-          </TouchableOpacity>
-
-          {/* More Options */}
-          <TouchableOpacity style={styles.controlButton}>
-            <Ionicons name="ellipsis-horizontal" size={28} color="#fff" />
+            <Ionicons name="volume-high" size={28} color="#FFF" />
           </TouchableOpacity>
         </View>
-
-        {/* Quick Actions */}
-        <View style={styles.quickActions}>
-          <TouchableOpacity style={styles.quickButton}>
-            <Ionicons name="chatbubble-outline" size={20} color="#fff" />
-            <Text style={styles.quickButtonText}>Chat</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.quickButton}>
-            <MaterialIcons name="present-to-all" size={20} color="#fff" />
-            <Text style={styles.quickButtonText}>Share Screen</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.quickButton}>
-            <Ionicons name="recording-outline" size={20} color="#fff" />
-            <Text style={styles.quickButtonText}>Record</Text>
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
-
-      {/* Connection Quality Indicator */}
-      {connectionStatus === 'connected' && (
-        <View style={styles.qualityIndicator}>
-          <Ionicons name="wifi" size={16} color="#4CAF50" />
-          <Text style={styles.qualityText}>HD</Text>
-        </View>
-      )}
+      </View>
     </View>
   );
 }
@@ -477,228 +316,195 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000',
   },
-  remoteVideoContainer: {
-    flex: 1,
-    backgroundColor: '#1a1a1a',
-  },
   remoteVideo: {
-    width: '100%',
-    height: '100%',
+    width: width,
+    height: height,
+  },
+  remoteVideoPlaceholder: {
+    width: width,
+    height: height,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  connectingContainer: {
-    flex: 1,
   },
   avatarLarge: {
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: 20,
   },
-  avatarTextLarge: {
-    color: '#fff',
+  avatarLargeText: {
     fontSize: 48,
-    fontWeight: '700',
+    fontWeight: 'bold',
+    color: '#FFF',
   },
-  connectingText: {
-    color: '#fff',
+  callerName: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#FFF',
+    marginBottom: 8,
+  },
+  waitingText: {
     fontSize: 16,
-    marginTop: 20,
-    opacity: 0.9,
+    color: 'rgba(255, 255, 255, 0.8)',
   },
-  topGradient: {
+  topBar: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    paddingTop: 50,
-    paddingBottom: 40,
-  },
-  topBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    paddingTop: StatusBar.currentHeight || 40,
+    paddingBottom: 20,
     paddingHorizontal: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  callerInfo: {
+  callInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
     flex: 1,
   },
-  callerName: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  statusContainer: {
-    flexDirection: 'row',
+  avatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#667eea',
+    justifyContent: 'center',
     alignItems: 'center',
+    marginRight: 12,
   },
-  connectingDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#4CAF50',
-    marginRight: 8,
+  avatarText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFF',
   },
-  statusText: {
-    color: 'rgba(255,255,255,0.9)',
+  callerDetails: {
+    flex: 1,
+  },
+  callerNameText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#FFF',
+    marginBottom: 2,
+  },
+  callDurationText: {
     fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.8)',
   },
-  topButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+  minimizeButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   localVideoContainer: {
     position: 'absolute',
-    top: 120,
+    top: (StatusBar.currentHeight || 40) + 80,
     right: 20,
-    width: 100,
-    height: 150,
-    borderRadius: 16,
+    width: 120,
+    height: 160,
+    borderRadius: 12,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    backgroundColor: '#1a1a1a',
+    borderWidth: 2,
+    borderColor: '#FFF',
   },
   localVideo: {
     width: '100%',
     height: '100%',
-    position: 'relative',
   },
-  videoOffLocal: {
+  localVideoOff: {
     width: '100%',
     height: '100%',
     backgroundColor: '#2a2a2a',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  localVideoActive: {
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarSmall: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarTextSmall: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  cameraOffBadge: {
-    position: 'absolute',
-    bottom: 8,
-    left: 8,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    paddingHorizontal: 6,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  flipButton: {
-    position: 'absolute',
-    bottom: 8,
-    right: 8,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  bottomGradient: {
+  controlsContainer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    paddingBottom: 40,
-    paddingTop: 80,
+    paddingTop: 20,
   },
-  controlsContainer: {
+  controls: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
     paddingHorizontal: 20,
-    marginBottom: 20,
   },
   controlButton: {
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  controlButtonActive: {
-    backgroundColor: 'rgba(237, 42, 70, 0.8)',
+  controlButtonMuted: {
+    backgroundColor: '#f5576c',
   },
   endCallButton: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#ED2A46',
+    backgroundColor: '#f5576c',
     justifyContent: 'center',
     alignItems: 'center',
-    transform: [{ rotate: '135deg' }],
-    shadowColor: '#ED2A46',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 8,
   },
-  quickActions: {
-    flexDirection: 'row',
+  loadingContainer: {
+    flex: 1,
     justifyContent: 'center',
-    gap: 24,
-    paddingHorizontal: 20,
-  },
-  quickButton: {
     alignItems: 'center',
-    opacity: 0.8,
   },
-  quickButtonText: {
-    color: '#fff',
-    fontSize: 12,
-    marginTop: 4,
+  loadingText: {
+    fontSize: 18,
+    color: '#FFF',
+    marginTop: 20,
   },
-  qualityIndicator: {
-    position: 'absolute',
-    top: 100,
-    left: 20,
-    flexDirection: 'row',
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    gap: 4,
   },
-  qualityText: {
-    color: '#4CAF50',
-    fontSize: 12,
-    fontWeight: '600',
+  errorGradient: {
+    width: '90%',
+    padding: 30,
+    borderRadius: 20,
+    alignItems: 'center',
+  },
+  errorText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#FFF',
+    marginTop: 20,
+  },
+  errorSubtext: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.9)',
+    marginTop: 10,
+    textAlign: 'center',
+  },
+  errorButton: {
+    backgroundColor: '#FFF',
+    paddingHorizontal: 40,
+    paddingVertical: 15,
+    borderRadius: 25,
+    marginTop: 20,
+  },
+  errorButtonText: {
+    color: '#f5576c',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   expoGoWarningContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 1000,
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -710,50 +516,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   expoGoWarningTitle: {
-    color: '#fff',
+    color: '#FFF',
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: 'bold',
     marginTop: 20,
     marginBottom: 15,
     textAlign: 'center',
   },
   expoGoWarningText: {
-    color: 'rgba(255,255,255,0.9)',
+    color: 'rgba(255, 255, 255, 0.9)',
     fontSize: 16,
     textAlign: 'center',
     marginBottom: 10,
     lineHeight: 24,
   },
-  expoGoInstructionsContainer: {
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    padding: 20,
-    borderRadius: 12,
-    marginTop: 20,
-    marginBottom: 20,
-    width: '100%',
+  expoGoWarningCode: {
+    fontFamily: 'monospace',
+    fontWeight: 'bold',
   },
-  expoGoInstructionsTitle: {
-    color: '#FFA500',
-    fontSize: 16,
-    fontWeight: '700',
-    marginBottom: 12,
-  },
-  expoGoInstructionsText: {
-    color: 'rgba(255,255,255,0.9)',
-    fontSize: 14,
-    marginBottom: 8,
-    lineHeight: 20,
-  },
-  expoGoCloseButton: {
-    backgroundColor: '#ED2A46',
+  expoGoWarningButton: {
+    backgroundColor: '#FFF',
     paddingHorizontal: 40,
     paddingVertical: 15,
     borderRadius: 25,
-    marginTop: 10,
+    marginTop: 20,
   },
-  expoGoCloseButtonText: {
-    color: '#fff',
+  expoGoWarningButtonText: {
+    color: '#667eea',
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: 'bold',
   },
 });
