@@ -23,16 +23,16 @@ export default function NotificationScreen() {
     notifications,
     unreadCount,
     refreshing,
-    expoPushToken,
     isSignalRConnected,
     fetchNotifications,
     markAsRead,
     markAllAsRead,
     deleteNotification,
     deleteAllNotifications,
+    pingCount,
+    setPingCount,
   } = useNotification();
 
-  const [filteredNotifications, setFilteredNotifications] = useState([]);
   const [filter, setFilter] = useState("all"); // all, unread, read
 
   // Helper function to clean HTML from notification body
@@ -70,6 +70,7 @@ export default function NotificationScreen() {
           style: "destructive",
           onPress: async () => {
             await deleteNotification(id);
+            setPingCount((prev) => Math.max(0, prev - 1));
           },
         },
       ]
@@ -92,6 +93,7 @@ export default function NotificationScreen() {
           style: "destructive",
           onPress: async () => {
             await deleteAllNotifications();
+            setPingCount(0);
           },
         },
       ]
@@ -125,14 +127,11 @@ export default function NotificationScreen() {
     return formatDate(timestamp);
   };
 
-  useEffect(() => {
-    const filteredNotifications = notifications.filter((notif) => {
-      if (filter === "unread") return !notif.isRead;
-      if (filter === "read") return notif.isRead;
-      return true;
-    });
-    setFilteredNotifications(filteredNotifications);
-  }, [notifications]);
+  const filteredNotifications = notifications.filter((notif) => {
+    if (filter === "unread") return !notif.isRead;
+    if (filter === "read") return notif.isRead;
+    return true;
+  });
 
   const renderNotificationItem = ({ item, index }) => {
     return (
@@ -176,11 +175,6 @@ export default function NotificationScreen() {
           <Text style={styles.debugText}>
             SignalR: {isSignalRConnected ? "Connected ✓" : "Disconnected ✗"}
           </Text>
-          {expoPushToken && (
-            <Text style={styles.debugText} numberOfLines={1}>
-              Token: {expoPushToken.substring(0, 20)}...
-            </Text>
-          )}
         </View>
       )}
 
@@ -224,6 +218,7 @@ export default function NotificationScreen() {
             ]}
           >
             {t("notifications.filters.all") || "All"}
+            {pingCount > 0 && ` (${pingCount})`}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity

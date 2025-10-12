@@ -32,6 +32,7 @@ export const useNotification = () => {
 export const NotificationProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [pingCount, setPingCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const { service: signalrService } = useSignalR();
@@ -125,17 +126,11 @@ export const NotificationProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    let isSubscribed = true;
-
     // Handler for receiving notifications
     const handleNotificationReceived = (notification) => {
-      if (!isSubscribed) return;
-
       console.log("🔔 SignalR: Real-time notification received!", notification);
-
+      setPingCount((prev) => prev + 1);
       fetchNotifications();
-      console.log("🔄 Refreshing notifications from server...");
-
       // Confirm receipt to server
       signalrService
         .invokeHubMethod(HUB_METHODS.CONFIRM_HANDSHAKE)
@@ -149,7 +144,6 @@ export const NotificationProvider = ({ children }) => {
 
     // Handler for disconnection
     const handleDisconnected = () => {
-      if (!isSubscribed) return;
       console.log("SignalR: Disconnected");
       setIsSignalRConnected(false);
       console.log("SignalR: Unregister handlers");
@@ -158,7 +152,6 @@ export const NotificationProvider = ({ children }) => {
 
     // Handler for reconnection
     const handleReconnected = () => {
-      if (!isSubscribed) return;
       console.log("SignalR: Reconnected");
       setIsSignalRConnected(true);
       fetchNotifications();
@@ -166,7 +159,6 @@ export const NotificationProvider = ({ children }) => {
 
     // Handler for initial connection
     const handleConnected = () => {
-      if (!isSubscribed) return;
       console.log("SignalR: Connection established, registering handlers");
       registerNotificationHandlers(
         signalrService.connection,
@@ -220,13 +212,22 @@ export const NotificationProvider = ({ children }) => {
       loading,
       refreshing,
       isSignalRConnected,
+      pingCount,
       fetchNotifications,
       markAsRead,
       markAllAsRead,
       deleteNotification,
       deleteAllNotifications,
+      setPingCount,
     }),
-    [notifications, unreadCount, loading, refreshing, isSignalRConnected]
+    [
+      notifications,
+      unreadCount,
+      loading,
+      refreshing,
+      isSignalRConnected,
+      pingCount,
+    ]
   );
 
   return (
