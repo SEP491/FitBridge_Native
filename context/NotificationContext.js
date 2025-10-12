@@ -15,7 +15,6 @@ import registerNotificationHandlers from "../services/signalR/registerNotificati
 import unregisterNotificationHandlers from "../services/signalR/unregisterNotificationHandlers";
 import { LIFECYCLE_METHODS } from "../services/signalR/lifecycleMethods";
 import { ConnectionStates } from "../services/signalR/ConnectionStates";
-import { request } from "../services/request";
 import notificationService from "../services/notificationService";
 
 const NotificationContext = createContext();
@@ -153,6 +152,8 @@ export const NotificationProvider = ({ children }) => {
       if (!isSubscribed) return;
       console.log("SignalR: Disconnected");
       setIsSignalRConnected(false);
+      console.log("SignalR: Unregister handlers");
+      unregisterNotificationHandlers(signalrService.connection);
     };
 
     // Handler for reconnection
@@ -211,61 +212,32 @@ export const NotificationProvider = ({ children }) => {
 
     setupSignalRHandlers();
 
-    return () => {
-      // Cleanup: unsubscribe from all events
-      isSubscribed = false;
+    // return () => {
+    //   // Cleanup: unsubscribe from all events
+    //   isSubscribed = false;
 
-      console.log("SignalR: Cleaning up notification handlers");
+    //   console.log("SignalR: Cleaning up notification handlers");
 
-      signalrService.offEvent(
-        CLIENT_METHODS.NOTIFICATION_RECEIVED,
-        handleNotificationReceived
-      );
-      signalrService.offEvent(
-        LIFECYCLE_METHODS.ON_DISCONNECTED,
-        handleDisconnected
-      );
-      signalrService.offEvent(
-        LIFECYCLE_METHODS.ON_RECONNECTED,
-        handleReconnected
-      );
-      signalrService.offEvent(LIFECYCLE_METHODS.ON_CONNECTED, handleConnected);
+    //   signalrService.offEvent(
+    //     CLIENT_METHODS.NOTIFICATION_RECEIVED,
+    //     handleNotificationReceived
+    //   );
+    //   signalrService.offEvent(
+    //     LIFECYCLE_METHODS.ON_DISCONNECTED,
+    //     handleDisconnected
+    //   );
+    //   signalrService.offEvent(
+    //     LIFECYCLE_METHODS.ON_RECONNECTED,
+    //     handleReconnected
+    //   );
+    //   signalrService.offEvent(LIFECYCLE_METHODS.ON_CONNECTED, handleConnected);
 
-      // Unregister SignalR connection handlers
-      if (signalrService.connection) {
-        unregisterNotificationHandlers(signalrService.connection);
-      }
-    };
+    //   // Unregister SignalR connection handlers
+    //   if (signalrService.connection) {
+    //     unregisterNotificationHandlers(signalrService.connection);
+    //   }
+    // };
   }, []);
-
-  useEffect(() => {
-    const responseSubscription =
-      notificationService.addNotificationResponseReceivedListener(
-        (response) => {
-          console.log("👆 Notification tapped:", response);
-          const notificationData = response.notification.request.content.data;
-
-          // Mark as read when tapped
-          if (notificationData?.id) {
-            markAsRead(notificationData.id);
-          }
-
-          // TODO: Handle navigation based on notification type
-          // Example: navigation.navigate(notificationData.screen, notificationData.params);
-        }
-      );
-
-    // Listen for notifications received while app is in foreground
-    const receivedSubscription =
-      notificationService.addNotificationReceivedListener((notification) => {
-        console.log("📱 Foreground notification received:", notification);
-      });
-
-    return () => {
-      responseSubscription.remove();
-      receivedSubscription.remove();
-    };
-  }, [markAsRead]);
 
   const value = useMemo(
     () => ({
@@ -281,18 +253,7 @@ export const NotificationProvider = ({ children }) => {
       deleteAllNotifications,
       setNotifications,
     }),
-    [
-      notifications,
-      unreadCount,
-      loading,
-      refreshing,
-      isSignalRConnected,
-      fetchNotifications,
-      markAsRead,
-      markAllAsRead,
-      deleteNotification,
-      deleteAllNotifications,
-    ]
+    [notifications, unreadCount, loading, refreshing, isSignalRConnected]
   );
 
   return (

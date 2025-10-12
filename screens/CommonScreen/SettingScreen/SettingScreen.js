@@ -1,4 +1,3 @@
-import React from "react";
 import {
   View,
   Text,
@@ -75,7 +74,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff", // Header màu trắng
-  },content: {
+  },
+  content: {
     flex: 1,
     backgroundColor: "#F5F5F5", // phần sau header là xám
   },
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     margin: 16,
     borderRadius: 25,
     paddingHorizontal: 8,
-    height: 36
+    height: 36,
   },
   searchInput: {
     flex: 1,

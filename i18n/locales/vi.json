@@ -325,7 +325,8 @@
     "warning": "Cảnh báo",
     "info": "Thông tin",
     "optional": "Tùy chọn",
-    "personalTrainer": "Huấn Luyện Viên"
+    "personalTrainer": "Huấn Luyện Viên",
+    "clear": "Xóa tất cả"
   },
 
   "account": {
@@ -1137,5 +1138,37 @@
     "longestStreak": "Chuỗi dài nhất",
     "bestPerformance": "Thành tích tốt nhất",
     "forceRefresh": "Làm mới"
+  },
+
+  "notifications": {
+    "title": "Thông Báo",
+    "loading": "Đang tải thông báo...",
+    "markAllAsRead": "Đánh dấu tất cả đã đọc",
+    "clearAll": "Xóa tất cả",
+    "deleteConfirmMessage": "Bạn có chắc chắn muốn xóa thông báo này?",
+    "clearAllConfirmMessage": "Bạn có chắc chắn muốn xóa tất cả thông báo?",
+    "filters": {
+      "all": "Tất cả",
+      "unread": "Chưa đọc",
+      "read": "Đã đọc"
+    },
+    "empty": {
+      "title": "Không có thông báo",
+      "allSubtitle": "Bạn sẽ thấy thông báo ở đây khi nhận được chúng.",
+      "unreadSubtitle": "Bạn đã cập nhật tất cả! Không có thông báo chưa đọc.",
+      "readSubtitle": "Chưa có thông báo đã đọc."
+    },
+    "timeAgo": {
+      "justNow": "Vừa xong",
+      "minutesAgo": "{{count}} phút trước",
+      "hoursAgo": "{{count}} giờ trước",
+      "yesterday": "Hôm qua",
+      "daysAgo": "{{count}} ngày trước"
+    },
+    "types": {
+      "info": "Thông tin",
+      "warning": "Cảnh báo",
+      "error": "Lỗi"
+    }
   }
 }

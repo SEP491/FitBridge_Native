@@ -10,7 +10,6 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useTranslation } from "../hooks/useTranslation";
-import Icon from "react-native-vector-icons/FontAwesome";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import TabBarIcon from "../components/TabBarIcon/TabBarIcon";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -926,25 +925,21 @@ export default function Navigator({
         if (existingStatus !== "granted") {
           const { status } = await Notifications.requestPermissionsAsync();
           finalStatus = status;
-        }
-
-        if (finalStatus === "granted") {
-          console.log("✅ Notification permissions granted");
-
           // Get device push token
           const pushSubscription =
             await Notifications.getDevicePushTokenAsync();
           console.log("pushSubscription", pushSubscription);
           const token = pushSubscription.data;
           const platform = Platform.OS;
-
           await notificationService.registerDeviceToken({
             deviceToken: token,
             platform,
           });
           console.log("✅ Device token registered successfully");
-        } else {
-          console.warn("⚠️ Notification permissions denied");
+        }
+
+        if (finalStatus === "granted") {
+          console.log("✅ Notification permissions granted");
         }
       } catch (error) {
         console.error("❌ Error registering push token:", error);

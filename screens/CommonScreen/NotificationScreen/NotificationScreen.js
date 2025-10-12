@@ -12,14 +12,10 @@ import {
 } from "react-native";
 import React, { useState, useEffect, useRef } from "react";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import * as Notifications from "expo-notifications";
 import { useTranslation } from "../../../hooks/useTranslation";
 import colors from "../../../constants/color";
 import { formatDate, formatTime } from "../../../lib";
-import notificationService from "../../../services/notificationService";
 import { useNotification } from "../../../context/NotificationContext";
-import { useSignalR } from "../../../context/SignalRContext";
-import { ConnectionStates } from "../../../services/signalR/ConnectionStates";
 
 export default function NotificationScreen() {
   const { t } = useTranslation();
@@ -36,52 +32,8 @@ export default function NotificationScreen() {
     deleteAllNotifications,
   } = useNotification();
 
-  const { service: signalrService } = useSignalR();
-  const [loading, setLoading] = useState(true);
+  const [filteredNotifications, setFilteredNotifications] = useState([]);
   const [filter, setFilter] = useState("all"); // all, unread, read
-  const [permissionStatus, setPermissionStatus] = useState("undetermined");
-
-  const notificationListener = useRef();
-  const responseListener = useRef();
-
-  useEffect(() => {
-    // Check permissions
-
-    // Load initial data
-    setLoading(false);
-
-    // Listen for notification taps (the actual notification receiving is handled in NotificationContext)
-    responseListener.current =
-      notificationService.addNotificationResponseReceivedListener(
-        (response) => {
-          console.log("Notification tapped:", response);
-          const notificationData = response.notification.request.content.data;
-          // Handle navigation based on notification type
-          handleNotificationTap(notificationData);
-        }
-      );
-
-    return () => {
-      if (responseListener.current) {
-        responseListener.current.remove();
-      }
-    };
-  }, []);
-
-  const handleNotificationTap = (data) => {
-    // Parse additional payload if needed
-    if (data.additionalPayload) {
-      try {
-        const payload = JSON.parse(data.additionalPayload);
-        console.log("Notification payload:", payload);
-        // TODO: Navigate based on notification type and payload
-        // Example: navigation.navigate('UserProfile', { userId: payload.userId });
-      } catch (error) {
-        console.error("Failed to parse additionalPayload:", error);
-      }
-    }
-    console.log("Handle notification tap:", data);
-  };
 
   // Helper function to clean HTML from notification body
   const cleanNotificationBody = (body) => {
@@ -109,7 +61,8 @@ export default function NotificationScreen() {
   const handleDeleteNotification = (id) => {
     Alert.alert(
       t("common.confirm") || "Confirm",
-      "Are you sure you want to delete this notification?",
+      t("notifications.deleteConfirmMessage") ||
+        "Are you sure you want to delete this notification?",
       [
         { text: t("common.cancel") || "Cancel", style: "cancel" },
         {
@@ -130,7 +83,8 @@ export default function NotificationScreen() {
   const clearAll = () => {
     Alert.alert(
       t("common.confirm") || "Confirm",
-      "Are you sure you want to clear all notifications?",
+      t("notifications.clearAllConfirmMessage") ||
+        "Are you sure you want to clear all notifications?",
       [
         { text: t("common.cancel") || "Cancel", style: "cancel" },
         {
@@ -153,19 +107,32 @@ export default function NotificationScreen() {
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
 
-    if (minutes < 1) return "Just now";
-    if (minutes < 60) return `${minutes}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    if (days === 1) return "Yesterday";
-    if (days < 7) return `${days}d ago`;
+    if (minutes < 1) return t("notifications.timeAgo.justNow") || "Just now";
+    if (minutes < 60)
+      return (
+        t("notifications.timeAgo.minutesAgo", { count: minutes }) ||
+        `${minutes}m ago`
+      );
+    if (hours < 24)
+      return (
+        t("notifications.timeAgo.hoursAgo", { count: hours }) || `${hours}h ago`
+      );
+    if (days === 1) return t("notifications.timeAgo.yesterday") || "Yesterday";
+    if (days < 7)
+      return (
+        t("notifications.timeAgo.daysAgo", { count: days }) || `${days}d ago`
+      );
     return formatDate(timestamp);
   };
 
-  const filteredNotifications = notifications.filter((notif) => {
-    if (filter === "unread") return !notif.isRead;
-    if (filter === "read") return notif.isRead;
-    return true;
-  });
+  useEffect(() => {
+    const filteredNotifications = notifications.filter((notif) => {
+      if (filter === "unread") return !notif.isRead;
+      if (filter === "read") return notif.isRead;
+      return true;
+    });
+    setFilteredNotifications(filteredNotifications);
+  }, [notifications]);
 
   const renderNotificationItem = ({ item, index }) => {
     return (
@@ -175,6 +142,7 @@ export default function NotificationScreen() {
         onDelete={handleDeleteNotification}
         getTimeAgo={getTimeAgo}
         cleanBody={cleanNotificationBody}
+        t={t}
       />
     );
   };
@@ -184,25 +152,21 @@ export default function NotificationScreen() {
       <View style={styles.emptyIconContainer}>
         <Ionicons name="notifications-off-outline" size={80} color="#d1d5db" />
       </View>
-      <Text style={styles.emptyTitle}>No Notifications</Text>
+      <Text style={styles.emptyTitle}>
+        {t("notifications.empty.title") || "No Notifications"}
+      </Text>
       <Text style={styles.emptySubtitle}>
         {filter === "unread"
-          ? "You're all caught up! No unread notifications."
+          ? t("notifications.empty.unreadSubtitle") ||
+            "You're all caught up! No unread notifications."
           : filter === "read"
-          ? "No read notifications yet."
-          : "You'll see notifications here when you receive them."}
+          ? t("notifications.empty.readSubtitle") ||
+            "No read notifications yet."
+          : t("notifications.empty.allSubtitle") ||
+            "You'll see notifications here when you receive them."}
       </Text>
     </View>
   );
-
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.red} />
-        <Text style={styles.loadingText}>Loading notifications...</Text>
-      </View>
-    );
-  }
 
   return (
     <View style={styles.container}>
@@ -221,7 +185,7 @@ export default function NotificationScreen() {
       )}
 
       {/* Header Stats */}
-      <View style={styles.headerStats}>
+      {/* <View style={styles.headerStats}>
         <View style={styles.statsCard}>
           <View style={styles.statsIconContainer}>
             <Ionicons name="notifications" size={24} color={colors.red} />
@@ -242,7 +206,7 @@ export default function NotificationScreen() {
             <Text style={styles.statsLabel}>Unread</Text>
           </View>
         </View>
-      </View>
+      </View> */}
 
       {/* Filter Tabs */}
       <View style={styles.filterContainer}>
@@ -259,7 +223,7 @@ export default function NotificationScreen() {
               filter === "all" && styles.filterTextActive,
             ]}
           >
-            All
+            {t("notifications.filters.all") || "All"}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -275,7 +239,8 @@ export default function NotificationScreen() {
               filter === "unread" && styles.filterTextActive,
             ]}
           >
-            Unread {unreadCount > 0 && `(${unreadCount})`}
+            {t("notifications.filters.unread") || "Unread"}{" "}
+            {unreadCount > 0 && `(${unreadCount})`}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -291,7 +256,7 @@ export default function NotificationScreen() {
               filter === "read" && styles.filterTextActive,
             ]}
           >
-            Read
+            {t("notifications.filters.read") || "Read"}
           </Text>
         </TouchableOpacity>
       </View>
@@ -305,13 +270,15 @@ export default function NotificationScreen() {
               onPress={handleMarkAllAsRead}
             >
               <Ionicons name="checkmark-done" size={16} color={colors.red} />
-              <Text style={styles.actionButtonText}>Mark all as read</Text>
+              <Text style={styles.actionButtonText}>
+                {t("notifications.markAllAsRead") || "Mark all as read"}
+              </Text>
             </TouchableOpacity>
           )}
           <TouchableOpacity style={styles.actionButton} onPress={clearAll}>
             <Ionicons name="trash-outline" size={16} color="#dc3545" />
             <Text style={[styles.actionButtonText, { color: "#dc3545" }]}>
-              Clear all
+              {t("notifications.clearAll") || "Clear all"}
             </Text>
           </TouchableOpacity>
         </View>
@@ -344,6 +311,7 @@ const NotificationCard = ({
   onDelete,
   getTimeAgo,
   cleanBody,
+  t,
 }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
@@ -368,17 +336,17 @@ const NotificationCard = ({
       Info: {
         icon: "information-circle",
         color: "#17a2b8",
-        label: "Info",
+        label: t("notifications.types.info") || "Info",
       },
       Warning: {
         icon: "warning",
         color: "#ffc107",
-        label: "Warning",
+        label: t("notifications.types.warning") || "Warning",
       },
       Error: {
         icon: "alert-circle",
         color: "#dc3545",
-        label: "Error",
+        label: t("notifications.types.error") || "Error",
       },
     };
     return mappings[notificationType] || mappings.Info;

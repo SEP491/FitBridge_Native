@@ -327,7 +327,8 @@
     "warning": "Warning",
     "info": "Information",
     "optional": "Optional",
-    "personalTrainer": "Personal Trainer"
+    "personalTrainer": "Personal Trainer",
+    "clear": "Clear"
   },
 
   "account": {
@@ -1156,5 +1157,37 @@
     "longestStreak": "Longest Streak",
     "bestPerformance": "Best Performance",
     "forceRefresh": "Refresh"
+  },
+
+  "notifications": {
+    "title": "Notifications",
+    "loading": "Loading notifications...",
+    "markAllAsRead": "Mark all as read",
+    "clearAll": "Clear all",
+    "deleteConfirmMessage": "Are you sure you want to delete this notification?",
+    "clearAllConfirmMessage": "Are you sure you want to clear all notifications?",
+    "filters": {
+      "all": "All",
+      "unread": "Unread",
+      "read": "Read"
+    },
+    "empty": {
+      "title": "No Notifications",
+      "allSubtitle": "You'll see notifications here when you receive them.",
+      "unreadSubtitle": "You're all caught up! No unread notifications.",
+      "readSubtitle": "No read notifications yet."
+    },
+    "timeAgo": {
+      "justNow": "Just now",
+      "minutesAgo": "{{count}}m ago",
+      "hoursAgo": "{{count}}h ago",
+      "yesterday": "Yesterday",
+      "daysAgo": "{{count}}d ago"
+    },
+    "types": {
+      "info": "Info",
+      "warning": "Warning",
+      "error": "Error"
+    }
   }
 }
