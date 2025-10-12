@@ -211,32 +211,6 @@ export const NotificationProvider = ({ children }) => {
     };
 
     setupSignalRHandlers();
-
-    // return () => {
-    //   // Cleanup: unsubscribe from all events
-    //   isSubscribed = false;
-
-    //   console.log("SignalR: Cleaning up notification handlers");
-
-    //   signalrService.offEvent(
-    //     CLIENT_METHODS.NOTIFICATION_RECEIVED,
-    //     handleNotificationReceived
-    //   );
-    //   signalrService.offEvent(
-    //     LIFECYCLE_METHODS.ON_DISCONNECTED,
-    //     handleDisconnected
-    //   );
-    //   signalrService.offEvent(
-    //     LIFECYCLE_METHODS.ON_RECONNECTED,
-    //     handleReconnected
-    //   );
-    //   signalrService.offEvent(LIFECYCLE_METHODS.ON_CONNECTED, handleConnected);
-
-    //   // Unregister SignalR connection handlers
-    //   if (signalrService.connection) {
-    //     unregisterNotificationHandlers(signalrService.connection);
-    //   }
-    // };
   }, []);
 
   const value = useMemo(
@@ -251,7 +225,6 @@ export const NotificationProvider = ({ children }) => {
       markAllAsRead,
       deleteNotification,
       deleteAllNotifications,
-      setNotifications,
     }),
     [notifications, unreadCount, loading, refreshing, isSignalRConnected]
   );
