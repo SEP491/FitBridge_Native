@@ -25,6 +25,7 @@ import BlogDetailScreen from "../screens/CommonScreen/BlogDetailScreen/BlogDetai
 import SearchGymScreen from "../screens/CommonScreen/SearchGymScreen/SearchGymScreen";
 import PTProfileScreen from "../screens/CommonScreen/PTProfileScreen/PTProfileScreen";
 import CartScreen from "../screens/CommonScreen/CartScreen/CartScreen";
+import FreelancePTPackageDetailScreen from "../screens/CommonScreen/FreelancePTPackageDetailScreen/FreelancePTPackageDetailScreen";
 import PTinCourseScreen from "../screens/CustomerScreen/PTinCourseScreen/PTinCourseScreen";
 import PaymentScreen from "../screens/CommonScreen/PaymentScreen/PaymentScreen";
 import OrderSuccessScreen from "../screens/CommonScreen/OrderSuccessScreen/OrderSuccessScreen";
@@ -259,6 +260,15 @@ export default function Navigator({
           }}
         />
         <Stack.Screen
+          name="FreelancePTPackageDetailScreen"
+          component={FreelancePTPackageDetailScreen}
+          options={{
+            headerTitleAlign: "center",
+            headerShown: false,
+            title: t("screenTitles.packageDetail"),
+          }}
+        />
+        <Stack.Screen
           name="PTinCourseScreen"
           component={PTinCourseScreen}
           options={{
@@ -385,14 +395,7 @@ export default function Navigator({
             ) : null,
         })}
       >
-      <Stack.Screen
-          name="VideoCallScreen"
-          component={VideoCallScreen}
-          options={{
-            headerShown: false,
-            orientation: 'portrait',
-          }}
-        />
+      
         <Stack.Screen
           name="CalendarScheduleScreen"
           component={CalendarScheduleScreen}
@@ -422,6 +425,14 @@ export default function Navigator({
             },
           }}
         /> */}
+        <Stack.Screen
+          name="VideoCallScreen"
+          component={VideoCallScreen}
+          options={{
+            headerShown: false,
+            orientation: 'portrait',
+          }}
+        />
       </Stack.Navigator>
     );
   };

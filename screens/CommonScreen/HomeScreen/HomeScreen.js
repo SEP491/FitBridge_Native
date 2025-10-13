@@ -11,6 +11,7 @@ import {
 import React, { useEffect, useState } from "react";
 import CarouselNative from "../../../components/Carousel/Carousel";
 import GymCard from "../../../components/GymCard/GymCard";
+import FreelancePTCard from "../../../components/FreelancePTCard/FreelancePTCard";
 import BlogCard from "../../../components/BlogCard/BlogCard";
 import PairedSwiper from "../../../components/PairSwiper/PairSwiper";
 import FitnessSummary from "../../../components/FitnessSummary/FitnessSummary";
@@ -21,10 +22,12 @@ import { useTranslation } from "../../../hooks/useTranslation";
 import { useLocationContext } from "../../../context/LocationContext";
 import { fetchUserFromStorage } from "../../../lib/async/asyncUtils";
 import HeaderHome from "../../../components/HeaderHome/HeaderHome";
+import packageService from "../../../services/packageService";
 
 export default function HomeScreen() {
   const [user, setUser] = useState(null);
   const [allGyms, setAllGyms] = useState([]);
+  const [allFreelancePTPackages, setAllFreelancePTPackages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [nearbyGyms, setNearbyGyms] = useState([]);
@@ -46,6 +49,22 @@ export default function HomeScreen() {
       console.error("Error fetching hot research gym:", error);
     }
   };
+
+  const fetchAllFreelancePTPackages = async (page = 1, pageSize = 200) => {
+    try {
+      const response = await packageService.getPackagesFreelance({
+        page,
+        size: pageSize,
+      });
+      const { items, total, page: currentPage } = response.data;
+      console.log("Fetched freelance PT packages:", items);
+      setAllFreelancePTPackages(items);
+    } catch (error) {
+      console.error("Error fetching freelance PT packages:", error);
+    }
+  };
+
+
   const handleFilterGymsByDistance = () => {
     if (!coordinates || !allGyms.length) return;
 
@@ -64,6 +83,7 @@ export default function HomeScreen() {
 
       // Fetch gyms data
       await fetchAllGyms();
+      await fetchAllFreelancePTPackages();
 
       // Request location if not already available
       if (!hasLocation) {
@@ -174,6 +194,48 @@ export default function HomeScreen() {
 
         {/* Fitness Summary Section */}
         <FitnessSummary />
+        {/* Freelance PT Packages Section */}
+        <View style={styles.gymSection}>
+          <View style={styles.titleContainer}>
+            <View style={styles.titleWithIcon}>
+              <Text style={styles.sectionTitle}>{t("home.freelancePT")}</Text>
+              <View style={styles.titleUnderline} />
+            </View> 
+            <TouchableOpacity
+              style={styles.viewMoreButton}
+              onPress={() => navigation.navigate("FreelancePTScreen", { packages: allFreelancePTPackages })}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.viewMoreText}>{t("home.viewMore")}</Text>
+            </TouchableOpacity>
+          </View>
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#ED2A46" />
+            </View>
+          ) : allFreelancePTPackages && allFreelancePTPackages.length > 0 ? (
+            <PairedSwiper
+              data={allFreelancePTPackages}
+              renderItem={(item) => <FreelancePTCard package={item} />}
+              showsPagination={true}
+              itemsPerSlide={2}
+              height={260}
+              loop={allFreelancePTPackages.length > 2}
+              dotStyle={styles.paginationDot}
+              activeDotStyle={styles.activePaginationDot}
+              containerStyle={styles.swiperContainer}
+            />
+          ) : (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>
+                {t("home.noFreelancePTPackages") || "No freelance PT packages available"}
+              </Text>
+            </View>
+          )}
+        </View>
+
+
+        {/*Gym Sections */}
         <View style={styles.gymSection}>
           <View style={styles.titleContainer}>
             <View style={styles.titleWithIcon}>
