@@ -11,7 +11,8 @@ import {
 import React, { useEffect, useState } from "react";
 import CarouselNative from "../../../components/Carousel/Carousel";
 import GymCard from "../../../components/GymCard/GymCard";
-import FreelancePTCard from "../../../components/FreelancePTCard/FreelancePTCard";
+import FreelancePTCard from "../../../components/FreelancePTPackageCard/FreelancePTPackageCard";
+import FreelancePTProfileCard from "../../../components/FreelancePTProfileCard/FreelancePTProfileCard";
 import BlogCard from "../../../components/BlogCard/BlogCard";
 import PairedSwiper from "../../../components/PairSwiper/PairSwiper";
 import FitnessSummary from "../../../components/FitnessSummary/FitnessSummary";
@@ -23,6 +24,7 @@ import { useLocationContext } from "../../../context/LocationContext";
 import { fetchUserFromStorage } from "../../../lib/async/asyncUtils";
 import HeaderHome from "../../../components/HeaderHome/HeaderHome";
 import packageService from "../../../services/packageService";
+import FreelancePTPackagesCard from "../../../components/FreelancePTPackageCard/FreelancePTPackageCard";
 
 export default function HomeScreen() {
   const [user, setUser] = useState(null);
@@ -35,6 +37,22 @@ export default function HomeScreen() {
   const { t } = useTranslation();
   const { location, refreshLocation, coordinates, hasLocation } =
     useLocationContext();
+
+  const mockFreelancePT=[
+    {
+      id: 1,
+      fullName: "Eva Elfie",
+      avatarUrl:
+        "https://i.pinimg.com/736x/0f/f6/69/0ff6690ae16b9358fb62ed4934d8e598.jpg",
+      description: "Certified Personal Trainer with 5 years of experience",
+      rating: 4.8,
+      goalTrainingList: ["Weight Loss", "Muscle Gain", "Flexibility"],
+      certifications: ["ACE", "NASM", "ISSA"],
+      priceFrom: 500000,
+      experienceYears: 5,
+      totalPurchased: 120,
+    }
+  ]
 
   const fetchAllGyms = async (page = 1, pageSize = 200) => {
     try {
@@ -165,6 +183,15 @@ export default function HomeScreen() {
   const renderBlogCard = (item) => {
     return <BlogCard blog={item} />;
   };
+
+  const renderFreelancePTCard = (item) => {
+    return <FreelancePTCard package={item} />;
+  };
+
+  const renderFreelancePTProfileCard = (item) => {
+    return <FreelancePTProfileCard pt={item} />;
+  };
+
   const hotResearchGym = allGyms.filter((gym) => gym.hotResearch === true);
   return (
     <View style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
@@ -194,6 +221,48 @@ export default function HomeScreen() {
 
         {/* Fitness Summary Section */}
         <FitnessSummary />
+
+        {/* Freelance PT Trainers Section */}
+        <View style={styles.gymSection}>
+          <View style={styles.titleContainer}>
+            <View style={styles.titleWithIcon}>
+              <Text style={styles.sectionTitle}>{t("home.freelancePTTrainers") || "Freelance Personal Trainers"}</Text>
+              <View style={styles.titleUnderline} />
+            </View>
+            <TouchableOpacity
+              style={styles.viewMoreButton}
+              onPress={() => navigation.navigate("FreelancePTScreen", { freelancPT: mockFreelancePT })}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.viewMoreText}>{t("home.viewMore")}</Text>
+            </TouchableOpacity>
+          </View>
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#ED2A46" />
+            </View>
+          ) : mockFreelancePT && mockFreelancePT.length > 0 ? (
+            <PairedSwiper
+              data={mockFreelancePT}
+              renderItem={renderFreelancePTProfileCard}
+              showsPagination={true}
+              itemsPerSlide={2}
+              height={280}
+              loop={mockFreelancePT.length > 2}
+              dotStyle={styles.paginationDot}
+              activeDotStyle={styles.activePaginationDot}
+              containerStyle={styles.swiperContainer}
+            />
+          ) : (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>
+                {t("home.noFreelancePT") || "No freelance trainers available"}
+              </Text>
+            </View>
+          )}
+        </View>
+
+
         {/* Freelance PT Packages Section */}
         <View style={styles.gymSection}>
           <View style={styles.titleContainer}>
@@ -203,7 +272,7 @@ export default function HomeScreen() {
             </View> 
             <TouchableOpacity
               style={styles.viewMoreButton}
-              onPress={() => navigation.navigate("FreelancePTScreen", { packages: allFreelancePTPackages })}
+              onPress={() => navigation.navigate("FreelancePTPackagesScreen", { packages: allFreelancePTPackages })}
               activeOpacity={0.7}
             >
               <Text style={styles.viewMoreText}>{t("home.viewMore")}</Text>
@@ -216,7 +285,7 @@ export default function HomeScreen() {
           ) : allFreelancePTPackages && allFreelancePTPackages.length > 0 ? (
             <PairedSwiper
               data={allFreelancePTPackages}
-              renderItem={(item) => <FreelancePTCard package={item} />}
+              renderItem={(item) => <FreelancePTPackagesCard package={item} />}
               showsPagination={true}
               itemsPerSlide={2}
               height={260}

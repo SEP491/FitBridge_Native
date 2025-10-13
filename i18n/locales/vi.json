@@ -119,7 +119,8 @@
     "blog": "Blog",
     "viewMore": "Xem thêm",
     "freelancePT": "Gói Tập Freelance PT",
-    "noFreelancePTPackages": "Hiện chưa có gói tập Freelance PT"
+    "noFreelancePTPackages": "Hiện chưa có gói tập Freelance PT",
+    "freelancePTTrainers": "Huấn luyện viên tự do"
   },
 
   "gym": {
@@ -1204,6 +1205,19 @@
     "personalTrainingSessions": "buổi huấn luyện cá nhân",
     "validFor": "Có Hiệu Lực Trong",
     "flexibleScheduling": "Lịch Trình Linh Hoạt",
-    "personalizedTraining": "Kế Hoạch Tập Luyện Cá Nhân Hóa"
+    "personalizedTraining": "Kế Hoạch Tập Luyện Cá Nhân Hóa",
+    "priceFrom": "Từ",
+    "experienceYears": "năm kinh nghiệm",
+    "totalPurchased": "khách hàng",
+    "specializations": "Chuyên Môn",
+    "certifications": "Chứng Chỉ",
+    "about": "Giới Thiệu",
+    "bookSession": "Đặt Lịch Tập",
+    "contactTrainer": "Liên hệ với huấn luyện viên này?",
+    "years": "năm",
+    "rating": "đánh giá",
+    "clients": "khách hàng",
+    "pricing": "Thông Tin Giá",
+    "trainerInfo": "Thông Tin Huấn Luyện Viên"
   }
 }

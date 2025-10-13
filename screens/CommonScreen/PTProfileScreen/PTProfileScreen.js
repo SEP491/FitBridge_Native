@@ -1,302 +1,333 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   Image,
-  ScrollView,
-  StyleSheet,
   TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  Alert,
+  ActivityIndicator,
+  Linking,
 } from "react-native";
-import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { LinearGradient } from "expo-linear-gradient";
+import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import { Ionicons } from "@expo/vector-icons";
 import ptService from "../../../services/ptService";
 import { useTranslation } from "../../../hooks/useTranslation";
-import { formatNumber } from "../../../lib";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-const PTProfileScreen = ({ route }) => {
+const PTProfileScreen = ({ route, navigation }) => {
   const { t } = useTranslation();
-  const [pt, setPT] = useState({});
-  const { ptId } = route.params;
-  const [loading, setLoading] = useState(true);
+  const { ptId, pt: initialPt } = route.params;
 
-  const fetchPTProfile = async () => {
-    setLoading(true);
+  const [pt, setPt] = useState(initialPt);
+  const [loading, setLoading] = useState(!initialPt);
+
+  console.log("PT Data:", pt);
+
+  useEffect(() => {
+    if (!initialPt && ptId) {
+      fetchPTDetail();
+    }
+  }, [ptId]);
+
+  const fetchPTDetail = async () => {
     try {
+      setLoading(true);
       const response = await ptService.getPTDetail(ptId);
-      setPT(response.data);
+      if (response.status === "200" && response.data) {
+        setPt(response.data);
+      }
     } catch (error) {
-      console.error("Error fetching PT profile:", error);
+      console.error("Error fetching PT detail:", error);
+      Alert.alert(
+        t("errors.error"),
+        t("errors.failedToLoadPackage")
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchPTProfile();
-  }, [ptId]);
-
-  const calculateAge = (dob) => {
-    if (!dob) return null;
-    const today = new Date();
-    const birthDate = new Date(dob);
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    if (
-      monthDiff < 0 ||
-      (monthDiff === 0 && today.getDate() < birthDate.getDate())
-    ) {
-      age--;
-    }
-    return age;
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(price);
   };
 
-  const calculateBMI = (weight, height) => {
-    if (!weight || !height) return null;
-    const heightInMeters = height / 100;
-    return formatNumber(
-      (weight / (heightInMeters * heightInMeters)).toFixed(1)
+  const handleContactPress = () => {
+    // Handle contact action (e.g., open chat or phone)
+    Alert.alert(
+      t("common.contact"),
+      t("freelancePT.contactTrainer"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        { text: t("common.ok") },
+      ]
     );
   };
 
-  const getBMICategory = (bmi) => {
-    if (!bmi) return "";
-    if (bmi < 18.5) return t("profile.bmiCategories.underweight");
-    if (bmi < 25) return t("profile.bmiCategories.normal");
-    if (bmi < 30) return t("profile.bmiCategories.overweight");
-    return t("profile.bmiCategories.obese");
-  };
-
-  const getExperienceLevel = (years) => {
-    if (!years) return t("ptProfile.experienceLevels.beginner");
-    if (years < 2) return t("ptProfile.experienceLevels.trainee");
-    if (years < 5) return t("ptProfile.experienceLevels.experienced");
-    if (years < 10) return t("ptProfile.experienceLevels.professional");
-    return t("ptProfile.experienceLevels.expert");
+  const handleBookSession = () => {
+    // Navigate to booking screen or show available packages
+    navigation.navigate("FreelancePTPackageDetailScreen", {
+      freelancePTPackageId: pt?.packageId,
+    });
   };
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <MaterialCommunityIcons name="loading" size={40} color="#FF914D" />
-        <Text style={styles.loadingText}>{t("ptProfile.loadingInfo")}</Text>
-      </View>
+      <SafeAreaView style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#FF914D" />
+        <Text style={styles.loadingText}>{t("common.loading")}</Text>
+      </SafeAreaView>
     );
   }
 
-  const age = calculateAge(pt.dob);
-  const bmi = calculateBMI(pt.weight, pt.height);
-  const bmiCategory = getBMICategory(bmi);
+  if (!pt) {
+    return (
+      <SafeAreaView style={styles.errorContainer}>
+        <Ionicons name="alert-circle-outline" size={64} color="#999" />
+        <Text style={styles.errorText}>{t("errors.packageNotFound")}</Text>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.backButtonText}>{t("common.goBack")}</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <ScrollView
-      contentContainerStyle={styles.container}
+      style={styles.scrollContainer}
+      contentContainerStyle={{ paddingBottom: 20 }}
       showsVerticalScrollIndicator={false}
     >
-      {/* Header Section with Gradient */}
-      <LinearGradient
-        colors={["#FF914D", "#ED2A46"]}
-        style={styles.gradientContainer}
-      >
-        <View style={styles.avatarContainer}>
-          <Image
-            source={{
-              uri:
-                pt.avatar && pt.avatar.trim() !== ""
-                  ? pt.avatar
-                  : "https://randomuser.me/api/portraits/men/41.jpg",
-            }}
-            style={styles.avatar}
-          />
-          <View style={styles.statusBadge}>
-            <MaterialCommunityIcons
-              name="check-circle"
-              size={16}
-              color="#4CAF50"
-            />
-            <Text style={styles.statusText}>{t("ptProfile.verified")}</Text>
+        {/* Header Section with Gradient */}
+        <LinearGradient
+          colors={["#FF914D", "#ED2A46"]}
+          style={styles.gradientContainer}
+        >
+          <View style={styles.profileHeader}>
+            <View style={styles.avatarContainer}>
+              <Image
+                source={{
+                  uri: pt.avatarUrl || "https://via.placeholder.com/120",
+                }}
+                style={styles.avatar}
+              />
+              {pt.rating && (
+                <View style={styles.ratingBadge}>
+                  <Ionicons name="star" size={14} color="#FFD700" />
+                  <Text style={styles.ratingText}>{pt.rating}</Text>
+                </View>
+              )}
+            </View>
+
+            <Text style={styles.name}>{pt.fullName}</Text>
+            {pt.description && (
+              <Text style={styles.description}>{pt.description}</Text>
+            )}
+
+            <View style={styles.basicInfoContainer}>
+              {pt.experienceYears && (
+                <View style={styles.basicInfoItem}>
+                  <MaterialCommunityIcons
+                    name="medal-outline"
+                    size={18}
+                    color="#FFD700"
+                  />
+                  <Text style={styles.basicInfoText}>
+                    {pt.experienceYears} {t("freelancePT.experienceYears")}
+                  </Text>
+                </View>
+              )}
+              {pt.totalPurchased !== undefined && (
+                <View style={styles.basicInfoItem}>
+                  <Ionicons name="people-outline" size={18} color="#FFD700" />
+                  <Text style={styles.basicInfoText}>
+                    {pt.totalPurchased} {t("freelancePT.totalPurchased")}
+                  </Text>
+                </View>
+              )}
+            </View>
           </View>
-        </View>
+        </LinearGradient>
 
-        <Text style={styles.name}>{pt.fullName || t("ptProfile.noName")}</Text>
-
-        <View style={styles.quickInfoContainer}>
-          <View style={styles.quickInfoItem}>
-            <MaterialCommunityIcons name="trophy" size={20} color="#FFD700" />
-            <Text style={styles.quickInfoText}>
-              {getExperienceLevel(pt.experience)}
-            </Text>
-          </View>
-          <View style={styles.quickInfoItem}>
-            <MaterialCommunityIcons name="target" size={20} color="#FFD700" />
-            <Text style={styles.quickInfoText}>
-              {pt.goalTraining || t("ptProfile.general")}
-            </Text>
-          </View>
-        </View>
-      </LinearGradient>
-
-      {/* Personal Information Section */}
-      <View style={styles.sectionContainer}>
-        <Text style={styles.sectionTitle}>{t("ptProfile.personalInfo")}</Text>
-
-        <View style={styles.infoGrid}>
-          <View style={styles.infoCard}>
-            <MaterialCommunityIcons
-              name={pt.gender === "Male" ? "gender-male" : "gender-female"}
-              size={24}
-              color="#FF914D"
-            />
-            <Text style={styles.infoLabel}>{t("ptProfile.gender")}</Text>
-            <Text style={styles.infoValue}>
-              {pt.gender === "Male"
-                ? t("ptProfile.genderOptions.male")
-                : pt.gender === "Female"
-                ? t("ptProfile.genderOptions.female")
-                : t("ptProfile.genderOptions.undefined")}
-            </Text>
-          </View>
-
-          <View style={styles.infoCard}>
-            <MaterialCommunityIcons name="calendar" size={24} color="#FF914D" />
-            <Text style={styles.infoLabel}>{t("ptProfile.age")}</Text>
-            <Text style={styles.infoValue}>
-              {age
-                ? `${age} ${t("ptProfile.units.yearsOld")}`
-                : t("ptProfile.notAvailable")}
-            </Text>
-          </View>
-
-          <View style={styles.infoCard}>
-            <MaterialCommunityIcons
-              name="human-male-height"
-              size={24}
-              color="#FF914D"
-            />
-            <Text style={styles.infoLabel}>{t("ptProfile.height")}</Text>
-            <Text style={styles.infoValue}>
-              {pt.height
-                ? `${pt.height} ${t("ptProfile.units.cm")}`
-                : t("ptProfile.notAvailable")}
-            </Text>
-          </View>
-
-          <View style={styles.infoCard}>
-            <MaterialCommunityIcons
-              name="weight-kilogram"
-              size={24}
-              color="#FF914D"
-            />
-            <Text style={styles.infoLabel}>{t("ptProfile.weight")}</Text>
-            <Text style={styles.infoValue}>
-              {pt.weight
-                ? `${pt.weight} ${t("ptProfile.units.kg")}`
-                : t("ptProfile.notAvailable")}
-            </Text>
-          </View>
-        </View>
-      </View>
-
-      {/* Health Metrics Section */}
-      {bmi && (
-        <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>
-            {t("ptProfile.healthMetrics")}
-          </Text>
-
-          <View style={styles.bmiContainer}>
-            <View style={styles.bmiHeader}>
+        {/* Quick Stats Cards */}
+        <View style={styles.statsContainer}>
+          {pt.experienceYears && (
+            <View style={styles.statCard}>
               <MaterialCommunityIcons
-                name="heart-pulse"
+                name="medal-outline"
                 size={24}
-                color="#E91E63"
+                color="#FF914D"
               />
-              <Text style={styles.bmiTitle}>{t("ptProfile.bmiIndex")}</Text>
+              <Text style={styles.statValue}>{pt.experienceYears}</Text>
+              <Text style={styles.statLabel}>{t("freelancePT.years")}</Text>
             </View>
+          )}
 
-            <View style={styles.bmiContent}>
-              <Text style={styles.bmiValue}>{bmi}</Text>
-              <Text style={styles.bmiCategory}>{bmiCategory}</Text>
+          {pt.rating && (
+            <View style={styles.statCard}>
+              <Ionicons name="star" size={24} color="#FFD700" />
+              <Text style={[styles.statValue, { color: "#FFD700" }]}>
+                {pt.rating}
+              </Text>
+              <Text style={styles.statLabel}>{t("freelancePT.rating")}</Text>
             </View>
+          )}
 
-            <View style={styles.bmiBar}>
-              <View
-                style={[
-                  styles.bmiIndicator,
-                  {
-                    left: `${Math.min(
-                      Math.max(((bmi - 15) / 25) * 100, 0),
-                      100
-                    )}%`,
-                    backgroundColor:
-                      bmi < 18.5
-                        ? "#2196F3"
-                        : bmi < 25
-                        ? "#4CAF50"
-                        : bmi < 30
-                        ? "#FF9800"
-                        : "#F44336",
-                  },
-                ]}
-              />
+          {pt.totalPurchased !== undefined && (
+            <View style={styles.statCard}>
+              <Ionicons name="people-outline" size={24} color="#FF914D" />
+              <Text style={styles.statValue}>{pt.totalPurchased}</Text>
+              <Text style={styles.statLabel}>{t("freelancePT.clients")}</Text>
+            </View>
+          )}
+        </View>
+
+        {/* Price Information Section */}
+        {pt.priceFrom && (
+          <View style={styles.sectionContainer}>
+            <Text style={styles.sectionTitle}>
+              {t("freelancePT.pricing")}
+            </Text>
+
+            <View style={styles.healthCard}>
+              <View style={styles.healthHeader}>
+                <MaterialCommunityIcons
+                  name="cash"
+                  size={24}
+                  color="#FF914D"
+                />
+                <View style={styles.healthInfo}>
+                  <Text style={styles.healthTitle}>
+                    {t("freelancePT.priceFrom")}
+                  </Text>
+                  <Text style={styles.healthSubtitle}>
+                    {t("freelancePT.perSession")}
+                  </Text>
+                </View>
+                <Text style={[styles.healthValue, { color: "#FF914D" }]}>
+                  {formatPrice(pt.priceFrom)}
+                </Text>
+              </View>
             </View>
           </View>
-        </View>
-      )}
+        )}
 
-      {/* Professional Information Section */}
-      <View style={styles.sectionContainer}>
-        <Text style={styles.sectionTitle}>
-          {t("ptProfile.professionalInfo")}
-        </Text>
-
-        <View style={styles.professionalCard}>
-          <View style={styles.professionalHeader}>
-            <MaterialCommunityIcons name="dumbbell" size={24} color="#FF914D" />
-            <Text style={styles.professionalTitle}>
-              {t("ptProfile.specialty")}
+        {/* Trainer Information Section */}
+        <View style={styles.sectionContainer}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>
+              {t("freelancePT.trainerInfo")}
             </Text>
           </View>
 
-          <View style={styles.professionalContent}>
-            <View style={styles.professionalItem}>
-              <Text style={styles.professionalLabel}>
-                {t("ptProfile.trainingGoal")}
-              </Text>
-              <Text style={styles.professionalValue}>
-                {pt.goalTraining || t("ptProfile.general")}
-              </Text>
-            </View>
+          <View style={styles.formContainer}>
+            {/* Specializations */}
+            {pt.goalTrainingList && pt.goalTrainingList.length > 0 && (
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>
+                  <Ionicons name="fitness-outline" size={16} color="#FF914D" />{" "}
+                  {t("freelancePT.specializations")}
+                </Text>
+                <View style={styles.tagsContainer}>
+                  {pt.goalTrainingList.map((goal, index) => (
+                    <View key={index} style={styles.tag}>
+                      <Text style={styles.tagText}>{goal}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
 
-            <View style={styles.professionalItem}>
-              <Text style={styles.professionalLabel}>
-                {t("ptProfile.experience")}
-              </Text>
-              <Text style={styles.professionalValue}>
-                {pt.experience
-                  ? `${pt.experience} ${t("ptProfile.units.years")}`
-                  : t("ptProfile.experienceLevels.beginner")}
-              </Text>
-            </View>
+            {/* Certifications */}
+            {pt.certifications && pt.certifications.length > 0 && (
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>
+                  <Ionicons name="ribbon-outline" size={16} color="#FF914D" />{" "}
+                  {t("freelancePT.certifications")}
+                </Text>
+                <View style={styles.certificationsContainer}>
+                  {pt.certifications.map((cert, index) => (
+                    <View key={index} style={styles.certificationItem}>
+                      <Text style={styles.certificationText}>{cert}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
 
-            <View style={styles.professionalItem}>
-              <Text style={styles.professionalLabel}>
-                {t("ptProfile.level")}
-              </Text>
-              <Text style={styles.professionalValue}>
-                {getExperienceLevel(pt.experience)}
-              </Text>
-            </View>
+            {/* About/Bio */}
+            {pt.bio && (
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>
+                  <MaterialCommunityIcons
+                    name="information-outline"
+                    size={16}
+                    color="#FF914D"
+                  />{" "}
+                  {t("freelancePT.about")}
+                </Text>
+                <View style={[styles.textInput, styles.disabledInput]}>
+                  <Text style={styles.bioText}>{pt.bio}</Text>
+                </View>
+              </View>
+            )}
+
+            {pt.description && !pt.bio && (
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>
+                  <MaterialCommunityIcons
+                    name="information-outline"
+                    size={16}
+                    color="#FF914D"
+                  />{" "}
+                  {t("freelancePT.about")}
+                </Text>
+                <View style={[styles.textInput, styles.disabledInput]}>
+                  <Text style={styles.bioText}>{pt.description}</Text>
+                </View>
+              </View>
+            )}
           </View>
         </View>
-      </View>
-    </ScrollView>
+
+        {/* Action Buttons */}
+        <View style={styles.actionContainer}>
+          <TouchableOpacity
+            style={styles.primaryButton}
+            onPress={handleBookSession}
+          >
+            <Ionicons name="calendar-outline" size={20} color="#fff" />
+            <Text style={styles.primaryButtonText}>
+              {t("freelancePT.bookSession")}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.secondaryButton}
+            onPress={handleContactPress}
+          >
+            <Ionicons name="chatbubble-outline" size={20} color="#FF914D" />
+            <Text style={styles.secondaryButtonText}>
+              {t("common.contact")}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     backgroundColor: "#f8f9fa",
-    paddingBottom: 20
   },
   loadingContainer: {
     flex: 1,
@@ -305,9 +336,58 @@ const styles = StyleSheet.create({
     backgroundColor: "#f8f9fa",
   },
   loadingText: {
-    marginTop: 10,
+    marginTop: 16,
     fontSize: 16,
     color: "#666",
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f8f9fa",
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    color: "#666",
+    marginTop: 16,
+    textAlign: "center",
+  },
+  backButton: {
+    marginTop: 20,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    backgroundColor: "#FF914D",
+    borderRadius: 8,
+  },
+  backButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  headerButton: {
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#333",
+  },
+  scrollContainer: {
+    flex: 1,
   },
   gradientContainer: {
     paddingVertical: 40,
@@ -315,9 +395,13 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
   },
+  profileHeader: {
+    alignItems: "center",
+  },
   avatarContainer: {
     alignItems: "center",
     marginBottom: 16,
+    position: "relative",
   },
   avatar: {
     width: 120,
@@ -325,38 +409,52 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     borderWidth: 4,
     borderColor: "#fff",
-    shadowColor: "#000",shadowOpacity: 0.3,
+    shadowColor: "#000",
+    shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
   },
-  statusBadge: {
+  ratingBadge: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    backgroundColor: "#fff",
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
-    paddingHorizontal: 12,
+    paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 20,
-    marginTop: 8,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
-  statusText: {
+  ratingText: {
     marginLeft: 4,
-    fontSize: 12,
-    color: "#4CAF50",
-    fontWeight: "600",
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#333",
   },
   name: {
     color: "#fff",
     fontSize: 24,
     fontWeight: "700",
-    textAlign: "center",
+    marginBottom: 8,
+  },
+  description: {
+    color: "rgba(255, 255, 255, 0.9)",
+    fontSize: 14,
     marginBottom: 16,
+    textAlign: "center",
+    paddingHorizontal: 20,
   },
-  quickInfoContainer: {
+  basicInfoContainer: {
     flexDirection: "row",
+    flexWrap: "wrap",
     justifyContent: "center",
-    gap: 20,
+    gap: 8,
   },
-  quickInfoItem: {
+  basicInfoItem: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "rgba(255, 255, 255, 0.2)",
@@ -364,128 +462,197 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 20,
   },
-  quickInfoText: {
+  basicInfoText: {
     color: "#fff",
     fontSize: 14,
     fontWeight: "600",
     marginLeft: 6,
+  },
+  statsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginHorizontal: 20,
+    marginTop: -30,
+    marginBottom: 20,
+    zIndex: 10,
+  },
+  statCard: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 20,
+    alignItems: "center",
+    flex: 1,
+    marginHorizontal: 4,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  statValue: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#333",
+    marginTop: 8,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: "#666",
+    marginTop: 4,
   },
   sectionContainer: {
     margin: 16,
     backgroundColor: "#fff",
     borderRadius: 16,
     padding: 20,
-    shadowColor: "#000",shadowOpacity: 0.1,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: "700",
     color: "#333",
-    marginBottom: 16,
   },
-  infoGrid: {
+  healthCard: {
+    backgroundColor: "#f8f9fa",
+    borderRadius: 12,
+    padding: 16,
+  },
+  healthHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  healthInfo: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  healthTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
+  },
+  healthSubtitle: {
+    fontSize: 14,
+    color: "#666",
+    marginTop: 2,
+  },
+  healthValue: {
+    fontSize: 20,
+    fontWeight: "700",
+  },
+  formContainer: {
+    gap: 16,
+  },
+  inputGroup: {
+    marginBottom: 8,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 8,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  textInput: {
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: "#333",
+    backgroundColor: "#fff",
+  },
+  disabledInput: {
+    backgroundColor: "#f8f9fa",
+    color: "#666",
+  },
+  tagsContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 12,
-  },
-  infoCard: {
-    flex: 1,
-    minWidth: "45%",
-    backgroundColor: "#f8f9fa",
-    padding: 16,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  infoLabel: {
-    fontSize: 12,
-    color: "#666",
-    marginTop: 8,
-    marginBottom: 4,
-  },
-  infoValue: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333",
-    textAlign: "center",
-  },
-  bmiContainer: {
-    backgroundColor: "#f8f9fa",
-    borderRadius: 12,
-    padding: 16,
-  },
-  bmiHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  bmiTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333",
-    marginLeft: 8,
-  },
-  bmiContent: {
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  bmiValue: {
-    fontSize: 32,
-    fontWeight: "700",
-    color: "#FF914D",
-  },
-  bmiCategory: {
-    fontSize: 14,
-    color: "#666",
+    gap: 8,
     marginTop: 4,
   },
-  bmiBar: {
-    height: 8,
-    backgroundColor: "#e0e0e0",
-    borderRadius: 4,
-    position: "relative",
+  tag: {
+    backgroundColor: "#FFF5F6",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#FFE0E3",
   },
-  bmiIndicator: {
-    position: "absolute",
-    top: -2,
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    transform: [{ translateX: -6 }],
+  tagText: {
+    fontSize: 14,
+    color: "#FF914D",
+    fontWeight: "600",
   },
-  professionalCard: {
+  certificationsContainer: {
+    gap: 8,
+    marginTop: 4,
+  },
+  certificationItem: {
     backgroundColor: "#f8f9fa",
+    padding: 12,
     borderRadius: 12,
-    padding: 16,
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
   },
-  professionalHeader: {
+  certificationText: {
+    fontSize: 15,
+    color: "#333",
+    fontWeight: "500",
+  },
+  bioText: {
+    fontSize: 15,
+    color: "#666",
+    lineHeight: 24,
+  },
+  actionContainer: {
     flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 16,
+    gap: 12,
+    paddingHorizontal: 16,
+    marginBottom: 20,
   },
-  professionalTitle: {
+  primaryButton: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#FF914D",
+    paddingVertical: 16,
+    borderRadius: 12,
+    gap: 8,
+  },
+  primaryButtonText: {
+    color: "#fff",
     fontSize: 16,
     fontWeight: "600",
-    color: "#333",
-    marginLeft: 8,
   },
-  professionalContent: {
-    gap: 12,
-  },
-  professionalItem: {
+  secondaryButton: {
+    flex: 1,
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#fff",
+    paddingVertical: 16,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: "#FF914D",
+    gap: 8,
   },
-  professionalLabel: {
-    fontSize: 14,
-    color: "#666",
-  },
-  professionalValue: {
-    fontSize: 14,
+  secondaryButtonText: {
+    color: "#FF914D",
+    fontSize: 16,
     fontWeight: "600",
-    color: "#333",
-  },});
+  },
+});
 
 export default PTProfileScreen;

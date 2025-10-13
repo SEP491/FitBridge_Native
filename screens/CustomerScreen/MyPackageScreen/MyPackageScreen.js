@@ -172,7 +172,7 @@ export default function MyPackageScreen() {
           </View>
 
           <View style={styles.actionButtons}>
-            {!expired && (
+            {expired && (
               <TouchableOpacity
                 style={styles.renewButton}
                 onPress={handleRenew(item.id)}

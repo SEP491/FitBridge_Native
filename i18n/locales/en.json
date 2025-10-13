@@ -360,7 +360,20 @@
     "personalTrainingSessions": "personal training sessions",
     "validFor": "Valid for",
     "flexibleScheduling": "Flexible scheduling",
-    "personalizedTraining": "Personalized training plan"
+    "personalizedTraining": "Personalized training plan",
+    "priceFrom": "From",
+    "experienceYears": "yrs experience",
+    "totalPurchased": "clients",
+    "specializations": "Specializations",
+    "certifications": "Certifications",
+    "about": "About",
+    "bookSession": "Book Session",
+    "contactTrainer": "Contact this trainer?",
+    "years": "years",
+    "rating": "rating",
+    "clients": "clients",
+    "pricing": "Pricing Information",
+    "trainerInfo": "Trainer Information"
   },
 
   "account": {

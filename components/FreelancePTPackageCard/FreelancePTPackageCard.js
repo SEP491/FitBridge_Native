@@ -14,7 +14,7 @@ import { useTranslation } from "../../hooks/useTranslation";
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = width / 2 - 25;
 
-export default function FreelancePTCard({ package: pkg, fullWidth = false, height = 140, isPurchasedPackage = false }) {
+export default function FreelancePTPackagesCard({ package: pkg, fullWidth = false, height = 140, isPurchasedPackage = false }) {
   const navigation = useNavigation();
   const { t } = useTranslation();
 
@@ -151,6 +151,7 @@ export default function FreelancePTCard({ package: pkg, fullWidth = false, heigh
     </TouchableOpacity>
   );
 }
+
 
 const styles = StyleSheet.create({
   card: {
