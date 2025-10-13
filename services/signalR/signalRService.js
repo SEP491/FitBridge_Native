@@ -21,64 +21,6 @@ export const getConnectionStatus = () => {
   };
 };
 
-      const accessToken = await AsyncStorage.getItem("accessSignalRToken");
-      console.log("accessTokenSignalR", accessToken);
-
-      // Build connection with authentication
-      this.#connection = new HubConnectionBuilder()
-        .withUrl(hubUrl, {
-          accessTokenFactory: () => accessToken,
-          skipNegotiation: true,
-          transport: signalR.HttpTransportType.WebSockets,
-        })
-        .withAutomaticReconnect({
-          nextRetryDelayInMilliseconds: (retryContext) => {
-            if (retryContext.previousRetryCount === 0) {
-              return 0;
-            }
-            return Math.min(
-              1000 * Math.pow(2, retryContext.previousRetryCount),
-              30000
-            );
-          },
-        })
-        .build();
-
-      const serverTimeoutMs = parseInt(
-        process.env.EXPO_PUBLIC_SIGNALR_SERVER_TIMEOUT_MS ?? "90000",
-        10
-      );
-      const keepAliveMs = parseInt(
-        process.env.EXPO_PUBLIC_SIGNALR_KEEPALIVE_MS ?? "10000",
-        10
-      );
-
-      this.#connection.serverTimeoutInMilliseconds = serverTimeoutMs;
-      this.#connection.keepAliveIntervalInMilliseconds = keepAliveMs;
-      // Start connection with 15 second timeout
-      await Promise.race([
-        this.#connection.start(),
-        new Promise((_, reject) =>
-          setTimeout(
-            () => reject(new Error("Connection timeout after 15 seconds")),
-            15000
-          )
-        ),
-      ]);
-      this.triggerCallback("onConnected");
-      this.#setupLifeCycleHandlers();
-    } catch (error) {
-      console.error("SignalR: Initial connection failed", error);
-      this.triggerCallback("onInitialConnectionFailed", error);
-
-      await this.handleReconnection();
-    }
-  }
-
-  async addToGroup(groupName) {
-    if (this.#connection.state !== signalR.HubConnectionState.Connected) {
-      console.warn("SignalR: Cannot join group - not connected");
-      return false;
 export const startConnection = async () => {
   try {
     const hubUrl = process.env.EXPO_PUBLIC_HUB_URL_NOTI;
