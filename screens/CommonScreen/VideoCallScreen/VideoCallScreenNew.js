@@ -12,7 +12,7 @@ import {
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import Constants from "expo-constants";
-import { useVideoCall } from "../../../context/VideoCallContext";
+import { useMeetingState } from "../../../context/meetingStateContext";
 
 // Check if running in Expo Go
 const isExpoGo = Constants.appOwnership === "expo";
@@ -55,7 +55,7 @@ export default function VideoCallScreen({ route, navigation }) {
     onToggleVideo,
     onToggleFlipCamera,
     onToggleMinimize,
-  } = useVideoCall();
+  } = useMeetingState();
 
   const callerInfo = {
     name: recipientName || "Personal Trainer",

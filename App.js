@@ -6,8 +6,7 @@ import { CartProvider } from "./context/CartContext";
 import { LocationProvider } from "./context/LocationContext";
 import { FitnessProvider } from "./context/FitnessContext";
 import { SignalRProvider } from "./context/SignalRContext";
-import { WebRTCProvider } from "./context/WebRTCContext";
-import { VideoCallProvider } from "./context/VideoCallContext";
+import { WebRTCProvider } from "./context/webrtcContext";
 import { NotificationProvider } from "./context/NotificationContext";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
@@ -15,6 +14,7 @@ import authService from "./services/authService";
 import { registerGlobals } from "react-native-webrtc";
 // Import i18n configuration
 import "./i18n";
+import { MeetingStateProvider } from "./context/meetingStateContext";
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -85,7 +85,7 @@ export default function App() {
       <SafeAreaProvider>
         <SignalRProvider>
           <WebRTCProvider>
-            <VideoCallProvider>
+            <MeetingStateProvider>
               <NotificationProvider>
               <LocationProvider>
                 <FitnessProvider>
@@ -95,7 +95,7 @@ export default function App() {
                 </FitnessProvider>
               </LocationProvider>
               </NotificationProvider>
-            </VideoCallProvider>
+            </MeetingStateProvider>
           </WebRTCProvider>
         </SignalRProvider>
       </SafeAreaProvider>

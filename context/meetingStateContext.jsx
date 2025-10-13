@@ -5,21 +5,19 @@ import {
   useCallback,
   useEffect,
 } from "react";
-import { useSignalR } from "./signalrContext";
+import { useSignalR } from "./SignalRContext";
 import { useWebRTC } from "./webrtcContext";
-import { useLocalSearchParams, useRouter } from "expo-router";
 import { ConnectionStates } from "../services/signalR/ConnectionStates";
 import * as Notifications from "expo-notifications";
 import { AppState } from "react-native";
 import AppStates from "../constants/AppStates";
-import { hide } from "expo-router/build/utils/splash";
 import * as TaskManager from "expo-task-manager";
 import * as BackgroundTask from "expo-background-task";
 import { CALL_MAINTENANCE_TASK } from "../services/backgroundTasks/callMaintenance";
 import { CLIENT_METHODS } from "../services/signalR/signalingMethods";
-import registerMeetingManagementHandlers from "../services/signalr/registerMeetingManagementHandlers";
-import unregisterMeetingManagementHandlers from "../services/signalr/unregisterMeetingManagementHandlers";
-// import signalrService from "../services/signalr/service";
+import registerMeetingManagementHandlers from "../services/signalR/registerMeetingManagementHandlers";
+import unregisterMeetingManagementHandlers from "../services/signalR/unregisterMeetingManagementHandlers";
+// import signalrService from "../services/signalR/service";
 
 const MeetingStateContext = createContext();
 
@@ -33,7 +31,6 @@ export const useMeetingState = () => {
   return context;
 };
 export const MeetingStateProvider = ({ children }) => {
-  const router = useRouter();
   const DEFAULT_LOG_INTERVAL = 5000;
 
   const [callInfo, setCallInfo] = useState(null);
@@ -87,14 +84,12 @@ export const MeetingStateProvider = ({ children }) => {
         if (
           response.notification.request.content.data.action === "return_to_call"
         ) {
+          // If call is minimized, maximize it (show full screen)
           if (isMinimized) {
             onToggleMinimize();
-          } else {
-            console.log("username", callInfo.username);
-            router.navigate("/meeting", {
-              username: callInfo.username,
-            });
           }
+          // Note: Navigation to call screen should be handled by the FloatingVideoCall component
+          // when user taps the maximize button
         }
       }
     );
@@ -102,7 +97,7 @@ export const MeetingStateProvider = ({ children }) => {
     return () => {
       subscription?.remove();
     };
-  }, [isMinimized, onToggleMinimize, callInfo]);
+  }, [isMinimized, onToggleMinimize]);
 
   useEffect(() => {
     Notifications.setNotificationHandler({

@@ -1,8 +1,8 @@
 import { mediaDevices, RTCPeerConnection } from "react-native-webrtc";
-import signalrService from "../signalR/signalRService";
 import registerHandlers from "../signalR/registerHandlers";
 import unregisterHandlers from "../signalR/unregisterHandlers";
 import { HUB_METHODS, CLIENT_METHODS } from "../signalR/signalingMethods";
+import signalR_webrtcService from "../signalR/signalR-webrtcService";
 
 const iceServers = [
   {
@@ -126,7 +126,7 @@ class WebRTCService {
       );
 
       if (roomId && !skipRoomJoin) {
-        this.#isPolite = await signalrService.invokeHubMethod(
+        this.#isPolite = await signalR_webrtcService.invokeHubMethod(
           HUB_METHODS.JOIN_ROOM,
           roomId
         );
@@ -168,7 +168,7 @@ class WebRTCService {
         this.#peerConnection.signalingState
       );
 
-      await signalrService.invokeHubMethod(
+      await signalR_webrtcService.invokeHubMethod(
         HUB_METHODS.SEND_MESSAGE,
         this.#roomId,
         offer
@@ -210,7 +210,7 @@ class WebRTCService {
       this.#onTrackCallback(null);
     }
 
-    await signalrService.invokeHubMethod(HUB_METHODS.LEAVE_ROOM, this.#roomId);
+    await signalR_webrtcService.invokeHubMethod(HUB_METHODS.LEAVE_ROOM, this.#roomId);
 
     if (this.#peerConnection) {
       this.#peerConnection.onnegotiationneeded = null;
@@ -323,7 +323,7 @@ class WebRTCService {
       if (message.type === "offer") {
         console.log(`WebRTC [${this.#username}]: Setting local description`);
         await this.#peerConnection.setLocalDescription();
-        await signalrService.invokeHubMethod(
+        await signalR_webrtcService.invokeHubMethod(
           HUB_METHODS.SEND_MESSAGE,
           this.#roomId,
           this.#peerConnection.localDescription
@@ -385,7 +385,7 @@ class WebRTCService {
   async handleOnIceCandidate(event) {
     console.log(`WebRTC [${this.#username}]: candidate:`, event.candidate);
 
-    await signalrService.invokeHubMethod(
+    await signalR_webrtcService.invokeHubMethod(
       HUB_METHODS.SEND_ICE_CANDIDATE,
       this.#roomId,
       event.candidate
@@ -430,36 +430,36 @@ class WebRTCService {
   }
   registerSignalrHandlers() {
     registerHandlers(
-      signalrService.connection,
-      signalrService.boundTriggerCallback
+      signalR_webrtcService.connection,
+      signalR_webrtcService.boundTriggerCallback
     );
 
-    signalrService.onEvent(
+    signalR_webrtcService.onEvent(
       CLIENT_METHODS.RECEIVE_MESSAGE,
       this.#handleMessageReceived
     );
-    signalrService.onEvent(
+    signalR_webrtcService.onEvent(
       CLIENT_METHODS.RECEIVE_ICE_CANDIDATE,
       this.#handleCandidateReceived
     );
-    signalrService.onEvent(CLIENT_METHODS.USER_LEFT, this.#handleUserLeft);
+    signalR_webrtcService.onEvent(CLIENT_METHODS.USER_LEFT, this.#handleUserLeft);
   }
 
   unregisterSignalrHandlers() {
     unregisterHandlers(
-      signalrService.connection,
-      signalrService.boundTriggerCallback
+      signalR_webrtcService.connection,
+      signalR_webrtcService.boundTriggerCallback
     );
 
-    signalrService.offEvent(
+    signalR_webrtcService.offEvent(
       CLIENT_METHODS.RECEIVE_MESSAGE,
       this.#handleMessageReceived
     );
-    signalrService.offEvent(
+    signalR_webrtcService.offEvent(
       CLIENT_METHODS.RECEIVE_ICE_CANDIDATE,
       this.#handleCandidateReceived
     );
-    signalrService.offEvent(CLIENT_METHODS.USER_LEFT, this.#handleUserLeft);
+    signalR_webrtcService.offEvent(CLIENT_METHODS.USER_LEFT, this.#handleUserLeft);
   }
 
   setOnTrackCallback(callback) {
