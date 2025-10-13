@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo } from "react";
 import signalrService from "../services/signalR/signalRService";
+import { AppState } from "react-native";
 
 // Create the context
 const SignalRContext = createContext();
@@ -19,8 +20,28 @@ export const SignalRProvider = ({ children }) => {
 
   useEffect(() => {
     return () => {
-      console.log("SignalR: Stopping connection");
       service.stopConnection();
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState) => {
+      if (nextAppState === "background") {
+        console.log("App went to background - stopping SignalR connection");
+        service.stopConnection();
+      } else if (nextAppState === "active") {
+        console.log("App became active - starting SignalR connection");
+        service.startConnection();
+      }
+    };
+
+    const subscription = AppState.addEventListener(
+      "change",
+      handleAppStateChange
+    );
+
+    return () => {
+      subscription?.remove();
     };
   }, [service]);
 

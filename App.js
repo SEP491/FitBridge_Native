@@ -8,6 +8,7 @@ import { FitnessProvider } from "./context/FitnessContext";
 import { SignalRProvider } from "./context/SignalRContext";
 import { WebRTCProvider } from "./context/WebRTCContext";
 import { VideoCallProvider } from "./context/VideoCallContext";
+import { NotificationProvider } from "./context/NotificationContext";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 import authService from "./services/authService";
@@ -49,9 +50,6 @@ export default function App() {
 
         setAuthCheckComplete(true);
 
-        // Add any other initialization logic here
-        // For example: loading fonts, checking app updates, etc.
-
         console.log("App initialization complete");
       } catch (e) {
         console.error("App initialization error:", e.message);
@@ -71,7 +69,6 @@ export default function App() {
   useEffect(() => {
     const hideSplashScreen = async () => {
       if (appIsReady) {
-        // Hide the splash screen once the app is ready
         await SplashScreen.hideAsync();
       }
     };
@@ -80,7 +77,6 @@ export default function App() {
   }, [appIsReady]);
 
   if (!appIsReady || !authCheckComplete) {
-    // Return null while splash screen is still showing and auth is being checked
     return null;
   }
 
@@ -90,6 +86,7 @@ export default function App() {
         <SignalRProvider>
           <WebRTCProvider>
             <VideoCallProvider>
+              <NotificationProvider>
               <LocationProvider>
                 <FitnessProvider>
                   <CartProvider>
@@ -97,6 +94,7 @@ export default function App() {
                   </CartProvider>
                 </FitnessProvider>
               </LocationProvider>
+              </NotificationProvider>
             </VideoCallProvider>
           </WebRTCProvider>
         </SignalRProvider>

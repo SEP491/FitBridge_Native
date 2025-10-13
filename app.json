@@ -88,10 +88,24 @@
           "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone"
         }
       ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#ED2A46",
+          "mode": "production"
+        }
+      ],
       "expo-localization",
       "expo-background-fetch",
       "expo-task-manager",
       "expo-splash-screen"
-    ]
+    ],
+    "notification": {
+      "icon": "./assets/icon.png",
+      "color": "#ED2A46",
+      "androidMode": "default",
+      "androidCollapsedTitle": "#{unread_notifications} new notifications"
+    }
   }
 }

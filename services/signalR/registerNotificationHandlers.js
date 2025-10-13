@@ -1,0 +1,14 @@
+import { CLIENT_METHODS } from "./signalingMethods";
+
+export function registerNotificationHandlers(connection, triggerCallback) {
+  console.log("SignalR: Registering notification handlers");
+
+  connection.on(CLIENT_METHODS.NOTIFICATION_RECEIVED, (notification) => {
+    console.log("Notification received:", notification);
+    triggerCallback(CLIENT_METHODS.NOTIFICATION_RECEIVED, notification);
+  });
+
+  console.log("SignalR: Notification handlers registered successfully");
+}
+
+export default registerNotificationHandlers;

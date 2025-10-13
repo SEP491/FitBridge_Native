@@ -37,7 +37,8 @@
     "withdrawal": "Rút Tiền",
     "freelancePTSchedule": "Lịch Tập",
     "freelancePTHome": "Trang chủ",
-    "freelancePTChat": "Nhắn tin"
+    "freelancePTChat": "Nhắn tin",
+    "Booking": "Đặt lịch"
   },
 
   "screenTitles": {
@@ -76,7 +77,8 @@
     "myPackage": "Gói Tập Của Tôi",
     "ptInCourseExtend": "Mua Thêm PT Cho Gói Tập",
     "freelancePTSchedule": "Lịch Tập Freelance PT",
-    "voucherDetails": "Chi Tiết Voucher"
+    "voucherDetails": "Chi Tiết Voucher",
+    "notification": "Thông Báo"
   },
 
   "myPackage": {
@@ -111,9 +113,10 @@
     "refreshing": "Đang làm mới...",
     "featuredGyms": "Phòng Gym Nổi Bật",
     "nearbyGymsTitle": "Phòng Gym Gần Tôi",
-    "viewMore": "Xem thêm",
+    "viewMap": "Xem Bản Đồ",
     "noNearbyGyms": "Hiện không có phòng gym nào gần bạn",
-    "blog": "Blog"
+    "blog": "Blog",
+    "viewMore": "Xem thêm"
   },
 
   "gym": {
@@ -322,7 +325,9 @@
     "warning": "Cảnh báo",
     "info": "Thông tin",
     "optional": "Tùy chọn",
-    "personalTrainer": "Huấn Luyện Viên"
+    "personalTrainer": "Huấn Luyện Viên",
+    "clear": "Xóa tất cả",
+    "delete": "Xóa"
   },
 
   "account": {
@@ -607,9 +612,9 @@
     "failedToCreate": "Không thể tạo gói tập",
     "failedToUpdate": "Không thể cập nhật gói tập",
     "failedToDelete": "Không thể xóa gói tập",
-    "averageDays":"Ngày Trung Bình",
-    "averageSessions":"Buổi Trung Bình",
-    "averageMinutes":"Phút Trung Bình"
+    "averageDays": "Ngày Trung Bình",
+    "averageSessions": "Buổi Trung Bình",
+    "averageMinutes": "Phút Trung Bình"
   },
 
   "languageSelect": {
@@ -730,6 +735,8 @@
     "title": "Lịch PT",
     "week": "Tuần",
     "month": "Tháng",
+    "weekView": "Xem theo tuần",
+    "monthView": "Xem theo tháng",
     "noPTSessions": "Chưa có buổi tập PT nào được lên lịch",
     "bookPTSession": "Đặt lịch tập với huấn luyện viên cá nhân của bạn",
     "strengthTraining": "Tập sức mạnh với",
@@ -833,7 +840,8 @@
     "typing": "Đang nhập...",
     "aiGreeting": "Tôi là PT AI của FitBridge, tôi có thể giúp gì cho bạn ?",
     "operatingSince": "Hoạt động từ:",
-    "showMoreGyms": "Hiển thị thêm 5 gym",
+    "showMoreGyms": "Xem thêm 5 gym",
+    "showMoreTrainers": "Xem thêm 5 huấn luyện viên",
     "remaining": "còn lại",
     "collapse": "Thu gọn",
     "clearChat": "Xóa cuộc trò chuyện",
@@ -841,10 +849,14 @@
     "cancel": "Hủy",
     "delete": "Xóa",
     "gymsForYou": "Đây là những phòng gym phù hợp với bạn:",
+    "trainersForYou": "Đây là những huấn luyện viên phù hợp với bạn:",
     "cannotProcess": "Xin lỗi, tôi không thể xử lý yêu cầu của bạn lúc này.",
     "connectionError": "Xin lỗi, đã có lỗi xảy ra khi kết nối với server. Vui lòng thử lại sau.",
     "connectionErrorTitle": "Lỗi kết nối",
-    "serverConnectionFailed": "Không thể kết nối với server. Vui lòng kiểm tra kết nối internet và thử lại."
+    "serverConnectionFailed": "Không thể kết nối với server. Vui lòng kiểm tra kết nối internet và thử lại.",
+    "yearsOld": "tuổi",
+    "yearsExp": "năm KN",
+    "specializations": "Chuyên môn"
   },
 
   "ptScreen": {
@@ -1127,5 +1139,37 @@
     "longestStreak": "Chuỗi dài nhất",
     "bestPerformance": "Thành tích tốt nhất",
     "forceRefresh": "Làm mới"
+  },
+
+  "notifications": {
+    "title": "Thông Báo",
+    "loading": "Đang tải thông báo...",
+    "markAllAsRead": "Đánh dấu tất cả đã đọc",
+    "clearAll": "Xóa tất cả",
+    "deleteConfirmMessage": "Bạn có chắc chắn muốn xóa thông báo này?",
+    "clearAllConfirmMessage": "Bạn có chắc chắn muốn xóa tất cả thông báo?",
+    "filters": {
+      "all": "Tất cả",
+      "unread": "Chưa đọc",
+      "read": "Đã đọc"
+    },
+    "empty": {
+      "title": "Không có thông báo",
+      "allSubtitle": "Bạn sẽ thấy thông báo ở đây khi nhận được chúng.",
+      "unreadSubtitle": "Bạn đã cập nhật tất cả! Không có thông báo chưa đọc.",
+      "readSubtitle": "Chưa có thông báo đã đọc."
+    },
+    "timeAgo": {
+      "justNow": "Vừa xong",
+      "minutesAgo": "{{count}} phút trước",
+      "hoursAgo": "{{count}} giờ trước",
+      "yesterday": "Hôm qua",
+      "daysAgo": "{{count}} ngày trước"
+    },
+    "types": {
+      "info": "Thông tin",
+      "warning": "Cảnh báo",
+      "error": "Lỗi"
+    }
   }
 }

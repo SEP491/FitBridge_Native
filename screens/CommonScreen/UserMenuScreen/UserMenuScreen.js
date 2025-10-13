@@ -18,6 +18,8 @@ import { getAvatarUrl, clearAvatar } from "../../../lib";
 import authService from "../../../services/authService";
 import DeleteAccountBottomSheet from "../../../components/DeleteAccountBottomSheet/DeleteAccountBottomSheet";
 import { useTranslation } from "../../../hooks/useTranslation";
+import signalrService from "../../../services/signalR/signalRService";
+import { ConnectionStates } from "../../../services/signalR/ConnectionStates";
 
 export default function UserMenuScreen() {
   const [user, setUser] = useState(null);
@@ -52,7 +54,7 @@ export default function UserMenuScreen() {
       navigation: "AccountScreen",
       category: "account",
     },
-    
+
     {
       icon: <Ionicons name="document-text-outline" size={28} color="#ED2A46" />,
       label: t("userMenu.profile"),
@@ -154,6 +156,13 @@ export default function UserMenuScreen() {
                     setAvatarUrl(""); // Clear local avatar state
                     if (global.updateNavigationUser) {
                       global.updateNavigationUser();
+                    }
+                    if (
+                      signalrService.connectionStatus.state ===
+                      ConnectionStates.CONNECTED
+                    ) {
+                      signalrService.stopConnection();
+                      console.log("SignalR: Connection stopped on logout");
                     }
                     // Navigation will be handled automatically by the Navigator
                   } else {
@@ -260,9 +269,11 @@ export default function UserMenuScreen() {
           {/* Management Section (only for FreelancePT) */}
           {user && user.role === "FreelancePT" && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>{t("userMenu.management")}</Text>
+              <Text style={styles.sectionTitle}>
+                {t("userMenu.management")}
+              </Text>
               <View style={styles.managementGrid}>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.managementButton}
                   onPress={() => navigation.navigate("ManageVoucherScreen")}
                   activeOpacity={0.7}
@@ -270,10 +281,12 @@ export default function UserMenuScreen() {
                   <View style={styles.managementIconContainer}>
                     <Ionicons name="ticket-outline" size={32} color="#ED2A46" />
                   </View>
-                  <Text style={styles.managementButtonText}>{t("userMenu.manageVoucher")}</Text>
+                  <Text style={styles.managementButtonText}>
+                    {t("userMenu.manageVoucher")}
+                  </Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.managementButton}
                   onPress={() => navigation.navigate("ManagePackageScreen")}
                   activeOpacity={0.7}
@@ -281,10 +294,12 @@ export default function UserMenuScreen() {
                   <View style={styles.managementIconContainer}>
                     <Ionicons name="cube-outline" size={32} color="#ED2A46" />
                   </View>
-                  <Text style={styles.managementButtonText}>{t("userMenu.managePackage")}</Text>
+                  <Text style={styles.managementButtonText}>
+                    {t("userMenu.managePackage")}
+                  </Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.managementButton}
                   onPress={() => navigation.navigate("ManageTransactionScreen")}
                   activeOpacity={0.7}
@@ -292,10 +307,12 @@ export default function UserMenuScreen() {
                   <View style={styles.managementIconContainer}>
                     <Ionicons name="card-outline" size={32} color="#ED2A46" />
                   </View>
-                  <Text style={styles.managementButtonText}>{t("userMenu.manageTransaction")}</Text>
+                  <Text style={styles.managementButtonText}>
+                    {t("userMenu.manageTransaction")}
+                  </Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.managementButton}
                   onPress={() => navigation.navigate("MyCustomerScreen")}
                   activeOpacity={0.7}
@@ -303,7 +320,9 @@ export default function UserMenuScreen() {
                   <View style={styles.managementIconContainer}>
                     <Ionicons name="people-outline" size={32} color="#ED2A46" />
                   </View>
-                  <Text style={styles.managementButtonText}>{t("userMenu.myCustomer")}</Text>
+                  <Text style={styles.managementButtonText}>
+                    {t("userMenu.myCustomer")}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
