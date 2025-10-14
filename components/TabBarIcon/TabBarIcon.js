@@ -39,6 +39,9 @@ const TabBarIcon = ({ routeName, focused, color, size = 24 }) => {
       // Withdrawal/Money icons
       "Rút Tiền": focused ? "wallet" : "wallet-outline",
       Withdrawal: focused ? "wallet" : "wallet-outline",
+
+      "Yêu cầu": focused ? "clipboard" : "clipboard-outline",
+      Requests: focused ? "clipboard" : "clipboard-outline",
     };
 
     return iconMap[routeName] || (focused ? "ellipse" : "ellipse-outline");

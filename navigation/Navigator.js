@@ -1212,7 +1212,7 @@ export default function Navigator({
         )}
         {user?.role === "FreelancePT" && (
           <Tab.Screen
-            name={t("navigation.freelancePTSchedule123")}
+            name={t("navigation.freelancePTBookingRequest")}
             component={FreelancePTRequestStack}
             options={{
               headerShown: false,
