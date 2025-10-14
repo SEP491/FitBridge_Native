@@ -5,7 +5,7 @@ import React, {
   useEffect,
   useMemo,
 } from "react";
-import { useSignalR } from "./signalrContext";
+import { useSignalR } from "./SignalRContext";
 import WebRTCService from "../services/webrtc/service";
 import { ConnectionStates } from "../services/signalR/ConnectionStates";
 

@@ -22,6 +22,8 @@ export default function PaymentScreen({ navigation }) {
   const totalPrice = getTotalPrice();
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("bank");
   const handleCheckout = async () => {
+
+    console.log(cart)
     let requestData = {};
 
     requestData = {
@@ -33,14 +35,25 @@ export default function PaymentScreen({ navigation }) {
           selectedPaymentMethod === "bank"
             ? "01997597-d188-7f12-95f4-43ef8d442612"
             : "01997597-d188-7f12-95f4-43ef8d412633",
-        orderItems: cart.map((item) => ({
-          quantity: item.quantity || 0,
+        orderItems: cart.map((item) => (
+          item.type === "FreelancePT" ? {
+          quantity: 0,
+          productDetailId: null,
+          gymCourseId: null,
+          gymPtId: null,
+          serviceInformationId: null,
+          freelancePTPackageId: "4c94aa91-a424-4888-bd43-de45a6c23aae"
+        } 
+          : 
+          item.type === "GymCourse" ? {
+          quantity: 0,
           productDetailId: null,
           gymCourseId: item.id,
-          gymPtId: item.pt?.id || null,
+          gymPtId: item.pt ? item.pt.id : null,
           serviceInformationId: null,
           freelancePTPackageId: null,
-        })),
+          } : {}
+        )),
       },
     };
     console.log("Checkout request:", requestData);

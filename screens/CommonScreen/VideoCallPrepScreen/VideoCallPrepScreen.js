@@ -18,8 +18,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { useVideoCall } from '../../../context/VideoCallContext';
-import signalRService from '../../../services/signalR/signalRService';
+import { useMeetingState } from '../../../context/meetingStateContext';
+import signalR_webrtcService from '../../../services/signalR/signalR-webrtcService';
 
 // Check if running in Expo Go
 const isExpoGo = Constants.appOwnership === 'expo';
@@ -68,7 +68,7 @@ export default function VideoCallPrepScreen({ navigation }) {
         await AsyncStorage.setItem("accessSignalRToken", token);
         await AsyncStorage.setItem("username", username);
         await AsyncStorage.setItem("roomId", roomId);
-        await signalRService.startConnection();
+        await signalR_webrtcService.startConnection();
         
         // Navigate to video call after successful login
         handleJoinCall();

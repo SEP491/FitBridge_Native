@@ -78,7 +78,8 @@
     "ptInCourseExtend": "Mua Thêm PT Cho Gói Tập",
     "freelancePTSchedule": "Lịch Tập Freelance PT",
     "voucherDetails": "Chi Tiết Voucher",
-    "notification": "Thông Báo"
+    "notification": "Thông Báo",
+    "packageDetail": "Chi Tiết Gói Tập"
   },
 
   "myPackage": {
@@ -116,7 +117,10 @@
     "viewMap": "Xem Bản Đồ",
     "noNearbyGyms": "Hiện không có phòng gym nào gần bạn",
     "blog": "Blog",
-    "viewMore": "Xem thêm"
+    "viewMore": "Xem thêm",
+    "freelancePT": "Gói Tập Freelance PT",
+    "noFreelancePTPackages": "Hiện chưa có gói tập Freelance PT",
+    "freelancePTTrainers": "Huấn luyện viên tự do"
   },
 
   "gym": {
@@ -199,7 +203,16 @@
     "totalPayment": "Tổng thanh toán:",
     "payment": "Thanh Toán",
     "cartEmpty": "Giỏ hàng của bạn đang trống",
-    "backToHome": "Về Trang Chủ"
+    "backToHome": "Về Trang Chủ",
+    "gymCourses": "Gói Tập Gym",
+    "freelancePTCourses": "Gói Tập Freelance PT",
+    "products": "Sản Phẩm",
+    "alreadyInCart": "Đã có trong giỏ hàng",
+    "packageAlreadyAdded": "Gói tập này đã có trong giỏ hàng của bạn",
+    "success": "Thành công",
+    "packageAddedToCart": "Đã thêm gói tập vào giỏ hàng thành công",
+    "continueShopping": "Tiếp tục mua sắm",
+    "viewCart": "Xem giỏ hàng"
   },
 
   "profile": {
@@ -407,7 +420,11 @@
     "cannotGetProfile": "Không thể lấy thông tin hồ sơ. Vui lòng thử lại sau.",
     "cannotUpdateProfile": "Không thể cập nhật hồ sơ. Vui lòng thử lại sau.",
     "pleaseSelectValidBirthdate": "Vui lòng chọn ngày sinh hợp lệ (tuổi từ 13-100)",
-    "cannotToggleTimeSlot": "Không thể {{action}} khung giờ. Vui lòng thử lại."
+    "cannotToggleTimeSlot": "Không thể {{action}} khung giờ. Vui lòng thử lại.",
+    "noPackageId": "Không có mã gói tập",
+    "failedToLoadPackage": "Không thể tải thông tin gói tập",
+    "packageNotFound": "Không tìm thấy gói tập",
+    "failedToAddToCart": "Không thể thêm gói tập vào giỏ hàng"
   },
 
   "success": {
@@ -1171,5 +1188,36 @@
       "warning": "Cảnh báo",
       "error": "Lỗi"
     }
+  },
+
+  "freelancePT": {
+    "packageDetail": "Chi Tiết Gói Tập",
+    "trainer": "Huấn Luyện Viên Cá Nhân",
+    "duration": "Thời Gian",
+    "days": "ngày",
+    "sessions": "Buổi Tập",
+    "perSession": "Mỗi Buổi",
+    "minutes": "phút",
+    "price": "Giá",
+    "totalPrice": "Tổng Giá",
+    "addToCart": "Thêm Vào Giỏ Hàng",
+    "whatYouGet": "Những Gì Bạn Nhận Được",
+    "personalTrainingSessions": "buổi huấn luyện cá nhân",
+    "validFor": "Có Hiệu Lực Trong",
+    "flexibleScheduling": "Lịch Trình Linh Hoạt",
+    "personalizedTraining": "Kế Hoạch Tập Luyện Cá Nhân Hóa",
+    "priceFrom": "Từ",
+    "experienceYears": "năm kinh nghiệm",
+    "totalPurchased": "khách hàng",
+    "specializations": "Chuyên Môn",
+    "certifications": "Chứng Chỉ",
+    "about": "Giới Thiệu",
+    "bookSession": "Đặt Lịch Tập",
+    "contactTrainer": "Liên hệ với huấn luyện viên này?",
+    "years": "năm",
+    "rating": "đánh giá",
+    "clients": "khách hàng",
+    "pricing": "Thông Tin Giá",
+    "trainerInfo": "Thông Tin Huấn Luyện Viên"
   }
 }

@@ -6,7 +6,7 @@ import React, {
   useEffect,
 } from "react";
 import { useSignalR } from "./SignalRContext";
-import { useWebRTC } from "./WebRTCContext";
+import { useWebRTC } from "./webrtcContext";
 import { ConnectionStates } from "../services/signalR/ConnectionStates";
 
 const VideoCallContext = createContext();

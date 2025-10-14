@@ -25,6 +25,7 @@ import BlogDetailScreen from "../screens/CommonScreen/BlogDetailScreen/BlogDetai
 import SearchGymScreen from "../screens/CommonScreen/SearchGymScreen/SearchGymScreen";
 import PTProfileScreen from "../screens/CommonScreen/PTProfileScreen/PTProfileScreen";
 import CartScreen from "../screens/CommonScreen/CartScreen/CartScreen";
+import FreelancePTPackageDetailScreen from "../screens/CommonScreen/FreelancePTPackageDetailScreen/FreelancePTPackageDetailScreen";
 import PTinCourseScreen from "../screens/CustomerScreen/PTinCourseScreen/PTinCourseScreen";
 import PaymentScreen from "../screens/CommonScreen/PaymentScreen/PaymentScreen";
 import OrderSuccessScreen from "../screens/CommonScreen/OrderSuccessScreen/OrderSuccessScreen";
@@ -65,7 +66,6 @@ import RegisterScreen from "../screens/AuthenticationScreen/RegisterScreen/Regis
 import VoucherDetailScreen from "../screens/FreelancePTScreen/VoucherDetailScreen/VoucherDetailScreen";
 import VideoCallScreen from "../screens/CommonScreen/VideoCallScreen/VideoCallScreenNew";
 import VideoCallPrepScreen from "../screens/CommonScreen/VideoCallPrepScreen/VideoCallPrepScreen";
-import { useVideoCall } from "../context/VideoCallContext";
 
 import NotificationScreen from "../screens/CommonScreen/NotificationScreen/NotificationScreen";
 import { useSignalR } from "../context/SignalRContext";
@@ -84,19 +84,6 @@ export default function Navigator({
   const [isAuthenticated, setIsAuthenticated] = useState(propIsAuthenticated);
   const [isLoading, setIsLoading] = useState(false);
 
-    const {
-      isInCall,
-      localMediaStream,
-      remoteMediaStream,
-      isAudioMuted,
-      isVideoMuted,
-      isMinimized,
-      onToggleAudio,
-      onToggleVideo,
-      onToggleFlipCamera,
-      onToggleMinimize,
-      endCall,
-    } = useVideoCall();
 
   // Update local state when props change
   useEffect(() => {
@@ -266,6 +253,15 @@ export default function Navigator({
           }}
         />
         <Stack.Screen
+          name="FreelancePTPackageDetailScreen"
+          component={FreelancePTPackageDetailScreen}
+          options={{
+            headerTitleAlign: "center",
+            headerShown: false,
+            title: t("screenTitles.packageDetail"),
+          }}
+        />
+        <Stack.Screen
           name="PTinCourseScreen"
           component={PTinCourseScreen}
           options={{
@@ -383,14 +379,7 @@ export default function Navigator({
             ) : null,
         })}
       >
-      <Stack.Screen
-          name="VideoCallScreen"
-          component={VideoCallScreen}
-          options={{
-            headerShown: false,
-            orientation: 'portrait',
-          }}
-        />
+      
         <Stack.Screen
           name="CalendarScheduleScreen"
           component={CalendarScheduleScreen}
@@ -420,6 +409,14 @@ export default function Navigator({
             },
           }}
         /> */}
+        <Stack.Screen
+          name="VideoCallScreen"
+          component={VideoCallScreen}
+          options={{
+            headerShown: false,
+            orientation: 'portrait',
+          }}
+        />
       </Stack.Navigator>
     );
   };
@@ -1215,100 +1212,102 @@ export default function Navigator({
 
   return (
     <NavigationContainer linking={linking}>
-      <Stack.Navigator
-        screenOptions={({ navigation, route }) => ({
-          headerTitleAlign: "center",
-          headerShown: false,
-          headerTintColor: "#ED2A46",
-          headerLeft: (props) =>
-            navigation.canGoBack() ? (
-              <TouchableOpacity onPress={() => navigation.goBack()}>
-                <Ionicons name="caret-back" size={30} color="#ED2A46" />
-              </TouchableOpacity>
-            ) : null,
-        })}
-        initialRouteName={isAuthenticated ? "MainApp" : "Login"}
-      >
-        {isAuthenticated ? (
-          // User is authenticated - show main app
-          <Stack.Screen name="MainApp" component={MainTab} />
-        ) : (
-          // User is not authenticated - show auth screens
-          <>
-            <Stack.Screen
-              name="Login"
-              component={LoginScreen}
-              options={{
-                headerShown: true,
-                title: t("screenTitles.login"),
-                headerTitleAlign: "center",
-                headerTitleStyle: {
-                  fontWeight: "bold",
-                  fontSize: 20,
-                  color: "#ED2A46",
-                },
-              }}
-            />
-            <Stack.Screen
-              name="ForgotPasswordScreen1"
-              component={ForgotPasswordScreen1}
-              options={{
-                headerShown: true,
-                title: t("screenTitles.forgotPassword"),
-                headerTitleAlign: "center",
-                headerTitleStyle: {
-                  fontWeight: "bold",
-                  fontSize: 20,
-                  color: "#ED2A46",
-                },
-              }}
-            />
-            <Stack.Screen
-              name="ForgotPasswordScreen2"
-              component={ForgotPasswordScreen2}
-              options={{
-                headerShown: true,
-                title: t("screenTitles.forgotPassword"),
-                headerTitleAlign: "center",
-                headerTitleStyle: {
-                  fontWeight: "bold",
-                  fontSize: 20,
-                  color: "#ED2A46",
-                },
-              }}
-            />
-            <Stack.Screen
-              name="ForgotPasswordScreen3"
-              component={ForgotPasswordScreen3}
-              options={{
-                headerShown: true,
-                title: t("screenTitles.forgotPassword"),
-                headerTitleAlign: "center",
-                headerTitleStyle: {
-                  fontWeight: "bold",
-                  fontSize: 20,
-                  color: "#ED2A46",
-                },
-              }}
-            />
-            <Stack.Screen
-              name="Register"
-              component={RegisterScreen}
-              options={{
-                headerShown: true,
-                title: t("screenTitles.register"),
-                headerTitleAlign: "center",
-                headerTitleStyle: {
-                  fontWeight: "bold",
-                  fontSize: 20,
-                  color: "#ED2A46",
-                },
-              }}
-            />
-          </>
-        )}
-      </Stack.Navigator>
-      <FloatingVideoCall />
+      <>
+        <Stack.Navigator
+          screenOptions={({ navigation, route }) => ({
+            headerTitleAlign: "center",
+            headerShown: false,
+            headerTintColor: "#ED2A46",
+            headerLeft: (props) =>
+              navigation.canGoBack() ? (
+                <TouchableOpacity onPress={() => navigation.goBack()}>
+                  <Ionicons name="caret-back" size={30} color="#ED2A46" />
+                </TouchableOpacity>
+              ) : null,
+          })}
+          initialRouteName={isAuthenticated ? "MainApp" : "Login"}
+        >
+          {isAuthenticated ? (
+            // User is authenticated - show main app
+            <Stack.Screen name="MainApp" component={MainTab} />
+          ) : (
+            // User is not authenticated - show auth screens
+            <>
+              <Stack.Screen
+                name="Login"
+                component={LoginScreen}
+                options={{
+                  headerShown: true,
+                  title: t("screenTitles.login"),
+                  headerTitleAlign: "center",
+                  headerTitleStyle: {
+                    fontWeight: "bold",
+                    fontSize: 20,
+                    color: "#ED2A46",
+                  },
+                }}
+              />
+              <Stack.Screen
+                name="ForgotPasswordScreen1"
+                component={ForgotPasswordScreen1}
+                options={{
+                  headerShown: true,
+                  title: t("screenTitles.forgotPassword"),
+                  headerTitleAlign: "center",
+                  headerTitleStyle: {
+                    fontWeight: "bold",
+                    fontSize: 20,
+                    color: "#ED2A46",
+                  },
+                }}
+              />
+              <Stack.Screen
+                name="ForgotPasswordScreen2"
+                component={ForgotPasswordScreen2}
+                options={{
+                  headerShown: true,
+                  title: t("screenTitles.forgotPassword"),
+                  headerTitleAlign: "center",
+                  headerTitleStyle: {
+                    fontWeight: "bold",
+                    fontSize: 20,
+                    color: "#ED2A46",
+                  },
+                }}
+              />
+              <Stack.Screen
+                name="ForgotPasswordScreen3"
+                component={ForgotPasswordScreen3}
+                options={{
+                  headerShown: true,
+                  title: t("screenTitles.forgotPassword"),
+                  headerTitleAlign: "center",
+                  headerTitleStyle: {
+                    fontWeight: "bold",
+                    fontSize: 20,
+                    color: "#ED2A46",
+                  },
+                }}
+              />
+              <Stack.Screen
+                name="Register"
+                component={RegisterScreen}
+                options={{
+                  headerShown: true,
+                  title: t("screenTitles.register"),
+                  headerTitleAlign: "center",
+                  headerTitleStyle: {
+                    fontWeight: "bold",
+                    fontSize: 20,
+                    color: "#ED2A46",
+                  },
+                }}
+              />
+            </>
+          )}
+        </Stack.Navigator>
+        <FloatingVideoCall />
+      </>
     </NavigationContainer>
   );
 }

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import Constants from 'expo-constants';
-import { useVideoCall } from '../../context/VideoCallContext';
+import { useMeetingState } from '../../context/meetingStateContext';
 import DraggableContainer from '../DraggableContainer/DraggableContainer';
 import { t } from '../../i18n';
 
@@ -36,7 +36,7 @@ export default function FloatingVideoCall() {
     onToggleFlipCamera,
     onToggleMinimize,
     endCall,
-  } = useVideoCall();
+  } = useMeetingState();
 
   const [draggableContainerPosition, setDraggableContainerPosition] = useState({
     x: 10,

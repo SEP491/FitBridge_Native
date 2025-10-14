@@ -79,7 +79,8 @@
     "ptInCourseExtend": "Buy PT for Course",
     "freelancePTSchedule": "Freelance PT Schedule",
     "voucherDetails": "Voucher Detail",
-    "notification": "Notifications"
+    "notification": "Notifications",
+    "packageDetail": "Package Details"
   },
 
   "myPackage": {
@@ -117,7 +118,9 @@
     "viewMap": "View Map",
     "noNearbyGyms": "No gyms found nearby",
     "blog": "Blog",
-    "viewMore": "View More"
+    "viewMore": "View More",
+    "freelancePT": "Freelance PT Packages",
+    "noFreelancePTPackages": "No freelance PT packages available"
   },
 
   "gym": {
@@ -200,7 +203,16 @@
     "totalPayment": "Total Payment:",
     "payment": "Payment",
     "cartEmpty": "Your cart is empty",
-    "backToHome": "Back to Home"
+    "backToHome": "Back to Home",
+    "gymCourses": "Gym Courses",
+    "freelancePTCourses": "Freelance PT Courses",
+    "products": "Products",
+    "alreadyInCart": "Already in Cart",
+    "packageAlreadyAdded": "This package is already in your cart",
+    "success": "Success",
+    "packageAddedToCart": "Package added to cart successfully",
+    "continueShopping": "Continue Shopping",
+    "viewCart": "View Cart"
   },
 
   "profile": {
@@ -328,7 +340,40 @@
     "info": "Information",
     "optional": "Optional",
     "personalTrainer": "Personal Trainer",
-    "clear": "Clear"
+    "clear": "Clear",
+    "loading": "Loading...",
+    "goBack": "Go Back"
+  },
+
+  "freelancePT": {
+    "packageDetail": "Package Details",
+    "trainer": "Personal Trainer",
+    "duration": "Duration",
+    "days": "days",
+    "sessions": "Sessions",
+    "perSession": "Per Session",
+    "minutes": "min",
+    "price": "Price",
+    "totalPrice": "Total Price",
+    "addToCart": "Add to Cart",
+    "whatYouGet": "What You Get",
+    "personalTrainingSessions": "personal training sessions",
+    "validFor": "Valid for",
+    "flexibleScheduling": "Flexible scheduling",
+    "personalizedTraining": "Personalized training plan",
+    "priceFrom": "From",
+    "experienceYears": "yrs experience",
+    "totalPurchased": "clients",
+    "specializations": "Specializations",
+    "certifications": "Certifications",
+    "about": "About",
+    "bookSession": "Book Session",
+    "contactTrainer": "Contact this trainer?",
+    "years": "years",
+    "rating": "rating",
+    "clients": "clients",
+    "pricing": "Pricing Information",
+    "trainerInfo": "Trainer Information"
   },
 
   "account": {
@@ -408,7 +453,11 @@
     "cannotGetProfile": "Cannot get profile information. Please try again later.",
     "cannotUpdateProfile": "Cannot update profile. Please try again later.",
     "pleaseSelectValidBirthdate": "Please select a valid birthdate (age 13-100)",
-    "cannotToggleTimeSlot": "Cannot {{action}} time slot. Please try again."
+    "cannotToggleTimeSlot": "Cannot {{action}} time slot. Please try again.",
+    "noPackageId": "No package ID provided",
+    "failedToLoadPackage": "Failed to load package details",
+    "packageNotFound": "Package not found",
+    "failedToAddToCart": "Failed to add package to cart"
   },
 
   "success": {

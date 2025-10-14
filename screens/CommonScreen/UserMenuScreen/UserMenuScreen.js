@@ -18,8 +18,8 @@ import { getAvatarUrl, clearAvatar } from "../../../lib";
 import authService from "../../../services/authService";
 import DeleteAccountBottomSheet from "../../../components/DeleteAccountBottomSheet/DeleteAccountBottomSheet";
 import { useTranslation } from "../../../hooks/useTranslation";
-import signalrService from "../../../services/signalR/signalRService";
 import { ConnectionStates } from "../../../services/signalR/ConnectionStates";
+import signalR_webrtcService from "../../../services/signalR/signalR-webrtcService";
 
 export default function UserMenuScreen() {
   const [user, setUser] = useState(null);
@@ -158,10 +158,10 @@ export default function UserMenuScreen() {
                       global.updateNavigationUser();
                     }
                     if (
-                      signalrService.connectionStatus.state ===
+                      signalR_webrtcService.connectionStatus.state ===
                       ConnectionStates.CONNECTED
                     ) {
-                      signalrService.stopConnection();
+                      signalR_webrtcService.stopConnection();
                       console.log("SignalR: Connection stopped on logout");
                     }
                     // Navigation will be handled automatically by the Navigator

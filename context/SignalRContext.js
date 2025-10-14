@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo } from "react";
-import signalrService from "../services/signalR/signalRService";
 import { AppState } from "react-native";
+import signalR_webrtcService from "../services/signalR/signalR-webrtcService";
 
 // Create the context
 const SignalRContext = createContext();
@@ -16,7 +16,7 @@ export const useSignalR = () => {
 
 // Provider component
 export const SignalRProvider = ({ children }) => {
-  const service = useMemo(() => signalrService, []);
+  const service = useMemo(() => signalR_webrtcService, []);
 
   useEffect(() => {
     return () => {
