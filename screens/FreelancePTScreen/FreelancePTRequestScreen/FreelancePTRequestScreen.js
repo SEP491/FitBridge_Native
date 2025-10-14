@@ -21,6 +21,7 @@ import accountService from "../../../services/accountService";
 import colors from "../../../constants/color";
 import { useTranslation } from "../../../hooks/useTranslation";
 import { fetchUserFromStorage, formatDateForAPI } from "../../../lib";
+import BookingRequestCard from "../../../components/BookingRequestCard";
 
 export default function FreelancePTRequestScreen() {
   const { t } = useTranslation();
@@ -65,10 +66,7 @@ export default function FreelancePTRequestScreen() {
       console.log("PT request data:", response.data?.items || []);
     } catch (error) {
       console.error("Error loading request slots:", error);
-      Alert.alert(
-        t("common.error") || "Error",
-        t("schedule.loadSlotsError") || "Failed to load requests"
-      );
+      Alert.alert(t("common.error"), t("bookingRequest.loadSlotsError"));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -110,10 +108,7 @@ export default function FreelancePTRequestScreen() {
     if (isToday) {
       const now = new Date();
       if (time < now) {
-        Alert.alert(
-          t("common.error") || "Error",
-          "Cannot select a time in the past"
-        );
+        Alert.alert(t("common.error"), t("bookingRequest.pastTimeError"));
         return;
       }
     }
@@ -126,10 +121,7 @@ export default function FreelancePTRequestScreen() {
 
   const handleEndTimeConfirm = (time) => {
     if (!startTime) {
-      Alert.alert(
-        t("common.error") || "Error",
-        "Please select start time first"
-      );
+      Alert.alert(t("common.error"), t("bookingRequest.selectStartTimeFirst"));
       return;
     }
 
@@ -145,10 +137,7 @@ export default function FreelancePTRequestScreen() {
     // Check if end time is at least 1 hour after start time
     const diffMinutes = endMinutes - startMinutes;
     if (diffMinutes < 60) {
-      Alert.alert(
-        t("common.error") || "Error",
-        "End time must be at least 1 hour after start time"
-      );
+      Alert.alert(t("common.error"), t("bookingRequest.endTimeMinimum"));
       return;
     }
 
@@ -167,15 +156,15 @@ export default function FreelancePTRequestScreen() {
 
   const validateForm = () => {
     if (!bookingName.trim()) {
-      Alert.alert(t("common.error") || "Error", "Please enter a booking name");
+      Alert.alert(t("common.error"), t("bookingRequest.bookingNameRequired"));
       return false;
     }
     if (!startTime) {
-      Alert.alert(t("common.error") || "Error", "Please select start time");
+      Alert.alert(t("common.error"), t("bookingRequest.startTimeRequired"));
       return false;
     }
     if (!endTime) {
-      Alert.alert(t("common.error") || "Error", "Please select end time");
+      Alert.alert(t("common.error"), t("bookingRequest.endTimeRequired"));
       return false;
     }
 
@@ -187,10 +176,7 @@ export default function FreelancePTRequestScreen() {
     const diffMinutes = endMinutes - startMinutes;
 
     if (diffMinutes < 60) {
-      Alert.alert(
-        t("common.error") || "Error",
-        "End time must be at least 1 hour after start time"
-      );
+      Alert.alert(t("common.error"), t("bookingRequest.endTimeMinimum"));
       return false;
     }
 
@@ -217,25 +203,21 @@ export default function FreelancePTRequestScreen() {
       console.log("Creating PT request with payload:", payload);
       const response = await accountService.createBookingRequest(payload);
 
-      Alert.alert(
-        t("common.success") || "Success",
-        "Booking request created successfully",
-        [
-          {
-            text: "OK",
-            onPress: () => {
-              setShowCreateModal(false);
-              resetForm();
-              loadAllRequestsForPT();
-            },
+      Alert.alert(t("common.success"), t("bookingRequest.createSuccess"), [
+        {
+          text: t("common.ok"),
+          onPress: () => {
+            setShowCreateModal(false);
+            resetForm();
+            loadAllRequestsForPT();
           },
-        ]
-      );
+        },
+      ]);
     } catch (error) {
       console.error("Error creating booking request:", error);
       Alert.alert(
-        t("common.error") || "Error",
-        error.response?.data?.message || "Failed to create booking request"
+        t("common.error"),
+        error.response?.data?.message || t("bookingRequest.createError")
       );
     } finally {
       setIsSubmitting(false);
@@ -244,12 +226,12 @@ export default function FreelancePTRequestScreen() {
 
   const handleApproveRequest = async (request) => {
     Alert.alert(
-      "Approve Request",
-      `Are you sure you want to approve this booking request for "${request.bookingName}"?`,
+      t("bookingRequest.approveConfirmTitle"),
+      `${t("bookingRequest.approveConfirmMessage")} "${request.bookingName}"?`,
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t("common.cancel"), style: "cancel" },
         {
-          text: "Approve",
+          text: t("bookingRequest.approve"),
           style: "default",
           onPress: async () => {
             try {
@@ -261,7 +243,10 @@ export default function FreelancePTRequestScreen() {
                   bookingRequestId: request.id,
                 });
                 console.log("Approving request:", request);
-                Alert.alert("Success", "Request approved successfully");
+                Alert.alert(
+                  t("common.success"),
+                  t("bookingRequest.approveSuccess")
+                );
               } else if (
                 request.requestType === "CustomerUpdate" ||
                 request.requestType === "PtUpdate"
@@ -270,12 +255,15 @@ export default function FreelancePTRequestScreen() {
                   bookingRequestId: request.id,
                 });
                 console.log("Approving request Edit:", request);
-                Alert.alert("Success", "Request Edit approved successfully");
+                Alert.alert(
+                  t("common.success"),
+                  t("bookingRequest.approveSuccess")
+                );
               }
 
               loadAllRequestsForPT();
             } catch (error) {
-              Alert.alert("Error", "Failed to approve request");
+              Alert.alert(t("common.error"), t("bookingRequest.approveError"));
             }
           },
         },
@@ -285,12 +273,12 @@ export default function FreelancePTRequestScreen() {
 
   const handleRejectRequest = async (request) => {
     Alert.alert(
-      "Reject Request",
-      `Are you sure you want to reject this booking request for "${request.bookingName}"?`,
+      t("bookingRequest.rejectConfirmTitle"),
+      `${t("bookingRequest.rejectConfirmMessage")} "${request.bookingName}"?`,
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t("common.cancel"), style: "cancel" },
         {
-          text: "Reject",
+          text: t("bookingRequest.reject"),
           style: "destructive",
           onPress: async () => {
             try {
@@ -299,10 +287,13 @@ export default function FreelancePTRequestScreen() {
                 bookingRequestId: request.id,
               });
               console.log("Rejecting request:", request);
-              Alert.alert("Success", "Request rejected successfully");
+              Alert.alert(
+                t("common.success"),
+                t("bookingRequest.rejectSuccess")
+              );
               loadAllRequestsForPT();
             } catch (error) {
-              Alert.alert("Error", "Failed to reject request");
+              Alert.alert(t("common.error"), t("bookingRequest.rejectError"));
             }
           },
         },
@@ -310,38 +301,24 @@ export default function FreelancePTRequestScreen() {
     );
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "Pending":
-        return "#FFA500";
-      case "Approved":
-        return "#4CAF50";
-      case "Rejected":
-        return "#F44336";
-      default:
-        return "#999";
-    }
-  };
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case "Pending":
-        return "time-outline";
-      case "Approved":
-        return "checkmark-circle-outline";
-      case "Rejected":
-        return "close-circle-outline";
-      default:
-        return "help-circle-outline";
-    }
-  };
-
   const getFilteredRequests = () => {
-    // Display all requests
+    let filteredList = [];
+
+    // Display all requests or filter by status
     if (filterStatus === "all") {
-      return requests;
+      filteredList = requests;
+    } else {
+      filteredList = requests.filter(
+        (req) => req.requestStatus === filterStatus
+      );
     }
-    return requests.filter((req) => req.requestStatus === filterStatus);
+
+    // Sort by date and time (latest first)
+    return filteredList.sort((a, b) => {
+      const dateTimeA = new Date(`${a.bookingDate}T${a.startTime}`);
+      const dateTimeB = new Date(`${b.bookingDate}T${b.startTime}`);
+      return dateTimeB - dateTimeA; // Descending order (latest first)
+    });
   };
 
   const getStatusCount = (status) => {
@@ -351,153 +328,15 @@ export default function FreelancePTRequestScreen() {
   };
 
   const renderRequestCard = (request, index) => (
-    <View key={index} style={styles.requestCard}>
-      <View style={styles.cardHeader}>
-        <View style={styles.cardTitleContainer}>
-          <Ionicons name="person-outline" size={20} color={colors.red} />
-          <Text style={styles.cardTitle}>
-            {request.bookingName || "Booking Request"}
-          </Text>
-        </View>
-        <View
-          style={[
-            styles.statusBadge,
-            { backgroundColor: getStatusColor(request.requestStatus) + "20" },
-          ]}
-        >
-          <Ionicons
-            name={getStatusIcon(request.requestStatus)}
-            size={14}
-            color={getStatusColor(request.requestStatus)}
-          />
-          <Text
-            style={[
-              styles.statusText,
-              { color: getStatusColor(request.requestStatus) },
-            ]}
-          >
-            {request.requestStatus}
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.cardContent}>
-        <View style={styles.infoRow}>
-          <Ionicons name="calendar-outline" size={18} color="#666" />
-          <Text style={styles.infoLabel}>Date:</Text>
-          <Text style={styles.infoValue}>
-            {formatDate(request.bookingDate)}
-          </Text>
-        </View>
-
-        <View style={styles.infoRow}>
-          <Ionicons name="time-outline" size={18} color="#666" />
-          <Text style={styles.infoLabel}>Time:</Text>
-          <Text style={styles.infoValue}>
-            {formatTime(request.startTime)} - {formatTime(request.endTime)}
-          </Text>
-        </View>
-
-        <View style={styles.infoRow}>
-          <Ionicons name="bookmark-outline" size={18} color="#666" />
-          <Text style={styles.infoLabel}>Type:</Text>
-          <Text style={styles.infoValue}>
-            {request.requestType === "CustomerCreate"
-              ? "Customer Request"
-              : request.requestType === "PtCreate"
-              ? "PT Proposal"
-              : request.requestType === "CustomerUpdate"
-              ? "Customer Edit Request"
-              : "PT Edit Request"}
-          </Text>
-        </View>
-
-        {request.note && (
-          <View style={styles.infoRow}>
-            <Ionicons name="document-text-outline" size={18} color="#666" />
-            <Text style={styles.infoLabel}>Note:</Text>
-            <Text style={styles.infoValue} numberOfLines={2}>
-              {request.note}
-            </Text>
-          </View>
-        )}
-
-        {request.targetBookingId &&
-          request.originalBooking &&
-          (request.requestType === "CustomerUpdate" ||
-            request.requestType === "PtUpdate") && (
-            <View style={styles.originalBookingSection}>
-              <Text style={styles.originalBookingTitle}>Original Booking:</Text>
-              <View style={styles.infoRow}>
-                <Ionicons name="calendar-outline" size={16} color="#999" />
-                <Text style={styles.infoLabelSmall}>Date:</Text>
-                <Text style={styles.infoValueSmall}>
-                  {formatDate(request.originalBooking.bookingDate)}
-                </Text>
-              </View>
-              <View style={styles.infoRow}>
-                <Ionicons name="time-outline" size={16} color="#999" />
-                <Text style={styles.infoLabelSmall}>Time:</Text>
-                <Text style={styles.infoValueSmall}>
-                  {formatTime(request.originalBooking.ptFreelanceStartTime)} -{" "}
-                  {formatTime(request.originalBooking.ptFreelanceEndTime)}
-                </Text>
-              </View>
-            </View>
-          )}
-      </View>
-
-      {/* Show approve/reject buttons based on user role and request type */}
-      {request.requestStatus === "Pending" && userRole && (
-        <>
-          {/* FreelancePT approves CustomerCreate and CustomerUpdate */}
-          {userRole === "FreelancePT" &&
-            (request.requestType === "CustomerCreate" ||
-              request.requestType === "CustomerUpdate") && (
-              <View style={styles.actionButtons}>
-                <TouchableOpacity
-                  style={styles.approveButton}
-                  onPress={() => handleApproveRequest(request)}
-                >
-                  <Ionicons name="checkmark-circle" size={18} color="#fff" />
-                  <Text style={styles.approveButtonText}>Approve</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.rejectButton}
-                  onPress={() => handleRejectRequest(request)}
-                >
-                  <Ionicons name="close-circle" size={18} color="#fff" />
-                  <Text style={styles.rejectButtonText}>Reject</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-
-          {/* Customer approves PtCreate and PtUpdate */}
-          {userRole === "Customer" &&
-            (request.requestType === "PtCreate" ||
-              request.requestType === "PtUpdate") && (
-              <View style={styles.actionButtons}>
-                <TouchableOpacity
-                  style={styles.approveButton}
-                  onPress={() => handleApproveRequest(request)}
-                >
-                  <Ionicons name="checkmark-circle" size={18} color="#fff" />
-                  <Text style={styles.approveButtonText}>Approve</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.rejectButton}
-                  onPress={() => handleRejectRequest(request)}
-                >
-                  <Ionicons name="close-circle" size={18} color="#fff" />
-                  <Text style={styles.rejectButtonText}>Reject</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-        </>
-      )}
-    </View>
+    <BookingRequestCard
+      key={index}
+      request={request}
+      userRole={userRole}
+      onApprove={handleApproveRequest}
+      onReject={handleRejectRequest}
+      formatDate={formatDate}
+      formatTime={formatTime}
+    />
   );
 
   const renderCreateModal = () => (
@@ -534,11 +373,11 @@ export default function FreelancePTRequestScreen() {
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>
                 <Ionicons name="create-outline" size={16} color={colors.red} />{" "}
-                Booking Name *
+                {t("bookingRequest.bookingName")} *
               </Text>
               <TextInput
                 style={styles.textInput}
-                placeholder="Enter booking name"
+                placeholder={t("bookingRequest.bookingNamePlaceholder")}
                 value={bookingName}
                 onChangeText={setBookingName}
                 placeholderTextColor="#999"
@@ -553,7 +392,7 @@ export default function FreelancePTRequestScreen() {
                   size={16}
                   color={colors.red}
                 />{" "}
-                Date *
+                {t("bookingRequest.date")} *
               </Text>
               <TouchableOpacity
                 style={styles.datePickerButton}
@@ -570,7 +409,7 @@ export default function FreelancePTRequestScreen() {
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>
                 <Ionicons name="time-outline" size={16} color={colors.red} />{" "}
-                Start Time *
+                {t("bookingRequest.startTime")} *
               </Text>
               <TouchableOpacity
                 style={styles.datePickerButton}
@@ -582,7 +421,7 @@ export default function FreelancePTRequestScreen() {
                     !startTime && styles.placeholderText,
                   ]}
                 >
-                  {startTime || "Select start time"}
+                  {startTime || t("bookingRequest.selectStartTime")}
                 </Text>
                 <Ionicons name="chevron-down" size={20} color="#666" />
               </TouchableOpacity>
@@ -592,7 +431,7 @@ export default function FreelancePTRequestScreen() {
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>
                 <Ionicons name="time-outline" size={16} color={colors.red} />{" "}
-                End Time *
+                {t("bookingRequest.endTime")} *
               </Text>
               <TouchableOpacity
                 style={styles.datePickerButton}
@@ -604,7 +443,7 @@ export default function FreelancePTRequestScreen() {
                     !endTime && styles.placeholderText,
                   ]}
                 >
-                  {endTime || "Select end time"}
+                  {endTime || t("bookingRequest.selectEndTime")}
                 </Text>
                 <Ionicons name="chevron-down" size={20} color="#666" />
               </TouchableOpacity>
@@ -631,7 +470,9 @@ export default function FreelancePTRequestScreen() {
                       size={20}
                       color="#fff"
                     />
-                    <Text style={styles.submitButtonText}>Create Request</Text>
+                    <Text style={styles.submitButtonText}>
+                      {t("bookingRequest.createRequest")}
+                    </Text>
                   </>
                 )}
               </LinearGradient>
@@ -676,7 +517,9 @@ export default function FreelancePTRequestScreen() {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={colors.red} />
-        <Text style={styles.loadingText}>Loading requests...</Text>
+        <Text style={styles.loadingText}>
+          {t("bookingRequest.loadingRequests")}
+        </Text>
       </View>
     );
   }
@@ -703,7 +546,7 @@ export default function FreelancePTRequestScreen() {
                   filterStatus === "all" && styles.filterTabTextActive,
                 ]}
               >
-                All ({getStatusCount("all")})
+                {t("bookingRequest.filters.all")} ({getStatusCount("all")})
               </Text>
             </TouchableOpacity>
 
@@ -720,7 +563,8 @@ export default function FreelancePTRequestScreen() {
                   filterStatus === "Pending" && styles.filterTabTextActive,
                 ]}
               >
-                Pending ({getStatusCount("Pending")})
+                {t("bookingRequest.filters.pending")} (
+                {getStatusCount("Pending")})
               </Text>
             </TouchableOpacity>
 
@@ -737,7 +581,8 @@ export default function FreelancePTRequestScreen() {
                   filterStatus === "Approved" && styles.filterTabTextActive,
                 ]}
               >
-                Approved ({getStatusCount("Approved")})
+                {t("bookingRequest.filters.approved")} (
+                {getStatusCount("Approved")})
               </Text>
             </TouchableOpacity>
 
@@ -754,7 +599,8 @@ export default function FreelancePTRequestScreen() {
                   filterStatus === "Rejected" && styles.filterTabTextActive,
                 ]}
               >
-                Rejected ({getStatusCount("Rejected")})
+                {t("bookingRequest.filters.rejected")} (
+                {getStatusCount("Rejected")})
               </Text>
             </TouchableOpacity>
           </ScrollView>
@@ -776,15 +622,16 @@ export default function FreelancePTRequestScreen() {
             <View style={styles.emptyContainer}>
               <Ionicons name="calendar-outline" size={64} color="#ccc" />
               <Text style={styles.emptyText}>
-                No {filterStatus !== "all" ? filterStatus.toLowerCase() : ""}{" "}
-                requests
+                {t("bookingRequest.noRequests")}
               </Text>
               <Text style={styles.emptySubtext}>
                 {filterStatus === "Pending"
-                  ? "No pending requests to review"
-                  : filterStatus === "all"
-                  ? "You don't have any booking requests yet"
-                  : `No ${filterStatus.toLowerCase()} requests found`}
+                  ? t("bookingRequest.noPendingRequests")
+                  : filterStatus === "Approved"
+                  ? t("bookingRequest.noApprovedRequests")
+                  : filterStatus === "Rejected"
+                  ? t("bookingRequest.noRejectedRequests")
+                  : t("bookingRequest.noRequestsYet")}
               </Text>
             </View>
           ) : (
