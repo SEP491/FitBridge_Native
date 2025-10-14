@@ -269,7 +269,7 @@ export default function VideoCallScreen({ route, navigation }) {
         <View style={styles.middleSection}>
           {/* Local video (Picture-in-Picture) */}
           <View style={styles.localVideoContainer}>
-            {localMediaStream && !isVideoMuted && RTCView ? (
+            {localMediaStream && !isVideoMuted ? (
               <RTCView
                 streamURL={localMediaStream.toURL()}
                 style={styles.localVideo}
@@ -288,7 +288,7 @@ export default function VideoCallScreen({ route, navigation }) {
       {/* Video container - fills entire screen */}
       <View style={styles.videoContainer}>
         {/* Background (Remote video or placeholder) */}
-        {!remoteMediaStream && !RTCView ? (
+        {remoteMediaStream ? (
           <RTCView
             streamURL={remoteMediaStream.toURL()}
             style={styles.remoteVideo}

@@ -5,7 +5,7 @@ import {
   useCallback,
   useEffect,
 } from "react";
-import { useSignalR } from "./SignalRContext";
+import { useSignalR } from "./signalrContext";
 import { useWebRTC } from "./webrtcContext";
 import { ConnectionStates } from "../services/signalR/ConnectionStates";
 import * as Notifications from "expo-notifications";
