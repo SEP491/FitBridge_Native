@@ -189,7 +189,14 @@ export default function Navigator({
             ) : null,
         })}
       >
-      
+      <Stack.Screen
+          name="VideoCallScreen"
+          component={VideoCallScreen}
+          options={{
+            headerShown: false,
+            orientation: 'portrait',
+          }}
+        />
         <Stack.Screen
           name="HomeMain"
           component={HomeScreen}
@@ -329,16 +336,7 @@ export default function Navigator({
             orientation: "portrait",
           }}
         />
-        <Stack.Screen
-          name="VideoCallScreen"
-          component={VideoCallScreen}
-          options={{
-            headerShown: false,
-            orientation: 'portrait',
-          }}
-        />
       </Stack.Navigator>
-      
     );
   };
 
