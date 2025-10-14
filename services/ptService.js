@@ -16,6 +16,7 @@ const ptService = {
 
   checkMinimumSlot: (data) =>
     request("POST", "v1/gym-slots/check-minimum-slot", data),
+
 };
 
 export default ptService;

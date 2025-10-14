@@ -17,6 +17,11 @@ const accountService = {
   cancelBooking: (data) => request("POST", "v1/bookings/cancel-booking", data),
   getBookingForUser: (params) =>
     request("GET", "v1/bookings/get-customer-bookings", null, {}, params),
+
+  getAllFreelancePT: (params) =>
+    request("GET", "v1/accounts/freelance-pts", null, {}, params),
+
+  getFreelancePTDetail: (ptId) => request("GET", `v1/accounts/freelance-pt/${ptId}`),
 };
 
 export default accountService;

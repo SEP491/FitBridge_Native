@@ -11,19 +11,33 @@ import {
 import React, { useState } from "react";
 import { useCart } from "../../../context/CartContext";
 import CartCard from "../../../components/CartCard/CartCard";
+import Cart_FreelancePTCard from "../../../components/CartCard/Cart_FreelancePTCard";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import cartService from "../../../services/cartService";
 import { formatPrice, showErrorAlert, showSuccessAlert } from "../../../lib";
 import { useTranslation } from "../../../hooks/useTranslation";
 
-export default function PaymentScreen({ navigation }) {
+export default function PaymentScreen({ navigation, route }) {
   const { cart, getTotalPrice, removeFromCart, clearCart } = useCart();
   const { t } = useTranslation();
-  const totalPrice = getTotalPrice();
+  
+  // Check if this is a direct purchase
+  const directPurchaseItems = route?.params?.items || null;
+  const directPurchaseAmount = route?.params?.totalAmount || 0;
+  const isDirectPurchase = route?.params?.fromDirectPurchase || false;
+
+  
+  // Use direct purchase items if available, otherwise use cart
+  const displayItems = isDirectPurchase ? directPurchaseItems : cart;
+  console.log("displayItems:", displayItems);
+  const totalPrice = isDirectPurchase ? directPurchaseAmount : getTotalPrice();
+  
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("bank");
   const handleCheckout = async () => {
-
-    console.log(cart)
+    // Use displayItems (either direct purchase or cart items)
+    console.log("Processing payment for:", displayItems);
+    console.log("Is direct purchase:", isDirectPurchase);
+    
     let requestData = {};
 
     requestData = {
@@ -35,14 +49,14 @@ export default function PaymentScreen({ navigation }) {
           selectedPaymentMethod === "bank"
             ? "01997597-d188-7f12-95f4-43ef8d442612"
             : "01997597-d188-7f12-95f4-43ef8d412633",
-        orderItems: cart.map((item) => (
+        orderItems: displayItems.map((item) => (
           item.type === "FreelancePT" ? {
-          quantity: 0,
+          quantity: 1,
           productDetailId: null,
           gymCourseId: null,
           gymPtId: null,
           serviceInformationId: null,
-          freelancePTPackageId: "4c94aa91-a424-4888-bd43-de45a6c23aae"
+          freelancePTPackageId: item.id // Use actual item ID
         } 
           : 
           item.type === "GymCourse" ? {
@@ -71,6 +85,13 @@ export default function PaymentScreen({ navigation }) {
         response.data.data.checkoutUrl
       ) {
         Linking.openURL(response.data.data.checkoutUrl);
+        
+        // If direct purchase, navigate back after successful payment initiation
+        if (isDirectPurchase) {
+          setTimeout(() => {
+            navigation.goBack();
+          }, 500);
+        }
       } else {
         console.error(
           "Invalid or missing checkoutUrl:",
@@ -81,21 +102,10 @@ export default function PaymentScreen({ navigation }) {
         );
         showErrorAlert(t("errors.cannotLoadPaymentLink"));
       }
-
-      // if (
-      //   response &&
-      //   response.checkoutUrl &&
-      //   typeof response.checkoutUrl === "string"
-      // ) {
-      //   Linking.openURL(response.checkoutUrl);
-      // } else {
-      //   console.error("Invalid or missing checkoutUrl:", response.checkoutUrl);
-      //   showErrorAlert(t("errors.cannotLoadPaymentLink"));
-      // }
     } catch (error) {
-      console.error("Error processing cart:", error.response.data);
+      console.error("Error processing payment:", error.response?.data || error);
       showErrorAlert(
-        error.response.data.message || t("errors.cartProcessError")
+        error.response?.data?.message || t("errors.cartProcessError")
       );
       return;
     }
@@ -116,46 +126,65 @@ export default function PaymentScreen({ navigation }) {
   };
   return (
     <View style={styles.container}>
+      
       <View style={styles.innerContainer}>
-        {cart.length > 0 ? (
+        {displayItems.length > 0 ? (
           <ScrollView
             style={styles.scrollView}
             contentContainerStyle={{ paddingVertical: 20 }}
           >
-            {cart.map((item, index) => (
-              <CartCard
-                showRemove={false}
-                showQuantityControls={false}
-                key={item.cartItemId || index}
-                product={{
-                  gymId: item.gymId,
-                  gymName: item.gymName,
-                  rating: 5,
-                  address: item.gymAddress,
-                  image: item.gymImage,
-                  quantity: item.quantity || 1,
-                  selectedPackage: {
-                    packageId: item.id,
-                    packageName: item.name,
-                    packagePrice: item.price,
-                    type: item.type,
-                  },
-                  pt: item.pt
-                    ? {
-                        id: item.pt.id,
-                        fullName: item.pt.fullName,
-                        avatar: item.pt.avatar,
-                        gender: item.pt.gender,
-                        goalTraining: item.pt.goalTraining,
-                      }
-                    : null,
-                }}
-                onRemove={() => handleRemoveItem(item.cartItemId)}
-              />
-            ))}
+            {displayItems.map((item, index) => {
+              // Check if item type is FreelancePT
+              if (item.type === "FreelancePT") {
+                return (
+                  <Cart_FreelancePTCard
+                    key={item.cartItemId || item.id || index}
+                    item={item}
+                    showRemove={!isDirectPurchase}
+                    onRemove={() => handleRemoveItem(item.cartItemId)}
+                  />
+                );
+              }
+              
+              // Use regular CartCard for other types (GymCourse, etc.)
+              return (
+                <CartCard
+                  showRemove={!isDirectPurchase}
+                  showQuantityControls={false}
+                  key={item.cartItemId || item.id || index}
+                  product={{
+                    gymId: item.gymId,
+                    gymName: item.gymName,
+                    rating: 5,
+                    address: item.gymAddress,
+                    image: item.gymImage || item.imageUrl,
+                    quantity: item.quantity || 1,
+                    selectedPackage: {
+                      packageId: item.id,
+                      packageName: item.name,
+                      packagePrice: item.price,
+                      type: item.type,
+                    },
+                    pt: item.pt
+                      ? {
+                          id: item.pt.id,
+                          fullName: item.pt.fullName,
+                          avatar: item.pt.avatar,
+                          gender: item.pt.gender,
+                          goalTraining: item.pt.goalTraining,
+                        }
+                      : null,
+                  }}
+                  onRemove={() => handleRemoveItem(item.cartItemId)}
+                />
+              );
+            })}
           </ScrollView>
         ) : (
-          <Text style={{ fontSize: 20 }}>{t("payment.emptyCart")}</Text>
+          <View style={styles.emptyContainer}>
+            <MaterialIcons name="shopping-cart" size={64} color="#CCCCCC" />
+            <Text style={styles.emptyText}>{t("payment.emptyCart")}</Text>
+          </View>
         )}
 
         <View style={styles.paymentMethod}>
@@ -246,9 +275,41 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff"
   },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F0F0F0",
+    backgroundColor: "#fff",
+  },
+  headerButton: {
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#1A1A1A",
+  },
   innerContainer: {
     flex: 1,
     paddingHorizontal: 16,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 60,
+  },
+  emptyText: {
+    fontSize: 18,
+    color: "#999",
+    marginTop: 16,
   },
   scrollView: {
     maxHeight: 250, // or use flexGrow/shrink with minHeight logic

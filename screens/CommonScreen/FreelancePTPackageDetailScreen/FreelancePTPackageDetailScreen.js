@@ -33,7 +33,7 @@ export default function FreelancePTPackageDetailScreen() {
   const [addingToCart, setAddingToCart] = useState(false);
 
   // Get packageId from route params
-  const packageId = route.params?.packageId || route.params?.package?.id;
+  const packageId = route.params?.packageId || route.params?.freelancePTPackageId;
 
   useEffect(() => {
     if (packageId) {
@@ -52,11 +52,6 @@ export default function FreelancePTPackageDetailScreen() {
       if (response.status === "200" && response.data) {
         setPackageData(response.data);
         console.log("Fetched package data:", response.data);
-        
-        // Fetch PT details if ptId exists
-        if (response.data.ptId) {
-          fetchPTDetail(response.data.ptId);
-        }
       } else {
         showAlert(t("error.title") || "Error", t("error.failedToLoadPackage") || "Failed to load package details");
       }
@@ -68,36 +63,15 @@ export default function FreelancePTPackageDetailScreen() {
     }
   };
 
-  const fetchPTDetail = async (ptId) => {
-    try {
-      const response = await ptService.getPTDetail(ptId);
-      if (response.status === "200" && response.data) {
-        setPtData(response.data);
-      }
-    } catch (error) {
-      console.error("Error fetching PT detail:", error);
-      // Don't show error for PT fetch, it's optional
-    }
-  };
 
-  const handleAddToCart = async () => {
+  const handleBuyNow = async () => {
     if (!packageData) return;
-
-    // Check if already in cart
-    const inCart = isPackageInCart(null, packageData.id);
-    if (inCart) {
-      showAlert(
-        t("cart.alreadyInCart") || "Already in Cart",
-        t("cart.packageAlreadyAdded") || "This package is already in your cart"
-      );
-      return;
-    }
 
     try {
       setAddingToCart(true);
       
-      // Prepare cart item data
-      const cartItem = {
+      // Prepare order item data for direct purchase
+      const orderItem = {
         id: packageData.id,
         name: packageData.name,
         price: packageData.price,
@@ -122,25 +96,15 @@ export default function FreelancePTPackageDetailScreen() {
         } : null,
       };
 
-      addToCart(cartItem);
-      
-      showAlert(
-        t("cart.success") || "Success",
-        t("cart.packageAddedToCart") || "Package added to cart successfully",
-        [
-          {
-            text: t("cart.continueShopping") || "Continue",
-            style: "cancel",
-          },
-          {
-            text: t("cart.viewCart") || "View Cart",
-            onPress: () => navigation.navigate("CartScreen"),
-          },
-        ]
-      );
+      // Navigate directly to payment screen with the package data
+      navigation.navigate("PaymentScreen", {
+        items: [orderItem],
+        totalAmount: packageData.price,
+        fromDirectPurchase: true,
+      });
     } catch (error) {
-      console.error("Error adding to cart:", error);
-      showAlert(t("error.title") || "Error", t("error.failedToAddToCart") || "Failed to add package to cart");
+      console.error("Error proceeding to payment:", error);
+      showAlert(t("error.title") || "Error", t("error.failedToProceed") || "Failed to proceed to payment");
     } finally {
       setAddingToCart(false);
     }
@@ -185,7 +149,7 @@ export default function FreelancePTPackageDetailScreen() {
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Package Image */}
+        {/* Hero Image with Overlay */}
         <View style={styles.imageContainer}>
           <Image
             source={{
@@ -198,142 +162,252 @@ export default function FreelancePTPackageDetailScreen() {
             resizeMode="cover"
           />
           <LinearGradient
-            colors={["transparent", "rgba(0,0,0,0.7)"]}
+            colors={["transparent", "rgba(0,0,0,0.8)"]}
             style={styles.imageGradient}
-          />
+          >
+            {/* Price Badge on Image */}
+            <View style={styles.priceOnImageBadge}>
+              <LinearGradient
+                colors={["#ED2A46", "#FF6B6B"]}
+                style={styles.priceBadgeGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <Text style={styles.priceBadgeLabel}>{t("freelancePT.totalPrice").toUpperCase() || "TOTAL PRICE"}</Text>
+                <Text style={styles.priceBadgeValue}>{formatPrice(packageData.price)}</Text>
+                <Text style={styles.priceBadgeSubtext}>
+                  {formatPrice(Math.round(packageData.price / packageData.numOfSessions))} {t("freelancePT.perSession") || "per session"}
+                </Text>
+              </LinearGradient>
+            </View>
+          </LinearGradient>
         </View>
 
         {/* Package Content */}
         <View style={styles.contentContainer}>
-          {/* Package Name */}
-          <Text style={styles.packageName}>{packageData.name}</Text>
+          {/* Package Name with Icon */}
+          <View style={styles.packageHeader}>
+            <View style={styles.packageIconBadge}>
+              <Ionicons name="trophy" size={24} color="#FFD700" />
+            </View>
+            <View style={styles.packageTitleContainer}>
+              <Text style={styles.packageName}>{packageData.name || t("freelancePT.premiumPackage")}</Text>
+              <View style={styles.popularBadge}>
+                <Ionicons name="flame" size={14} color="#FF6B6B" />
+                <Text style={styles.popularText}>{t("freelancePT.popularChoice") || "POPULAR CHOICE"}</Text>
+              </View>
+            </View>
+          </View>
 
-          {/* PT Information Card */}
+          {/* Quick Stats Bar */}
+          <View style={styles.quickStatsBar}>
+            <View style={styles.quickStat}>
+              <Ionicons name="calendar" size={18} color="#ED2A46" />
+              <Text style={styles.quickStatText}>{packageData.durationInDays} {t("freelancePT.days") || "Days"}</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.quickStat}>
+              <Ionicons name="barbell" size={18} color="#ED2A46" />
+              <Text style={styles.quickStatText}>{packageData.numOfSessions} {t("freelancePT.sessions") || "Sessions"}</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.quickStat}>
+              <Ionicons name="time" size={18} color="#ED2A46" />
+              <Text style={styles.quickStatText}>{packageData.sessionDurationInMinutes} {t("freelancePT.minutes") || "Min"}</Text>
+            </View>
+          </View>
+
+          {/* PT Information Card - Enhanced */}
           {ptData && (
             <TouchableOpacity 
               style={styles.ptCard}
               onPress={() => navigation.navigate("PTProfileScreen", { ptId: ptData.id })}
               activeOpacity={0.7}
             >
-              <Image
-                source={{
-                  uri: ptData.avatar || "https://via.placeholder.com/60",
-                }}
-                style={styles.ptAvatar}
-              />
-              <View style={styles.ptInfo}>
-                <Text style={styles.ptLabel}>{t("freelancePT.trainer") || "Personal Trainer"}</Text>
-                <Text style={styles.ptName}>{ptData.fullName}</Text>
-                {ptData.goalTraining && (
-                  <Text style={styles.ptGoal} numberOfLines={1}>
-                    {ptData.goalTraining}
-                  </Text>
-                )}
-              </View>
-              <Ionicons name="chevron-forward" size={24} color="#6B6B6B" />
+              <LinearGradient
+                colors={["#FFF5F6", "#FFFFFF"]}
+                style={styles.ptCardGradient}
+              >
+                <View style={styles.ptAvatarContainer}>
+                  <Image
+                    source={{
+                      uri: ptData.avatar || "https://via.placeholder.com/60",
+                    }}
+                    style={styles.ptAvatar}
+                  />
+                  <View style={styles.verifiedBadge}>
+                    <Ionicons name="checkmark-circle" size={18} color="#4CAF50" />
+                  </View>
+                </View>
+                <View style={styles.ptInfo}>
+                  <Text style={styles.ptLabel}>👨‍🏫 {t("freelancePT.yourTrainer") || "YOUR TRAINER"}</Text>
+                  <Text style={styles.ptName}>{ptData.fullName}</Text>
+                  {ptData.goalTraining && (
+                    <View style={styles.ptGoalBadge}>
+                      <Ionicons name="fitness" size={12} color="#ED2A46" />
+                      <Text style={styles.ptGoal} numberOfLines={1}>
+                        {ptData.goalTraining}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+                <View style={styles.ptArrow}>
+                  <Ionicons name="chevron-forward" size={24} color="#ED2A46" />
+                </View>
+              </LinearGradient>
             </TouchableOpacity>
           )}
 
-          {/* Package Description */}
+          {/* Package Description with styling */}
           {packageData.description && (
-            <Text style={styles.packageDescription}>{packageData.description}</Text>
+            <View style={styles.descriptionContainer}>
+              <View style={styles.sectionHeaderRow}>
+                <Ionicons name="document-text" size={20} color="#ED2A46" />
+                <Text style={styles.sectionTitle}>{t("freelancePT.aboutThisPackage") || "About This Package"}</Text>
+              </View>
+              <Text style={styles.packageDescription}>{packageData.description}</Text>
+            </View>
           )}
 
-          {/* Package Details Grid */}
-          <View style={styles.detailsGrid}>
-            <View style={styles.detailCard}>
-              <View style={styles.detailIconContainer}>
-                <Ionicons name="calendar-outline" size={24} color="#ED2A46" />
-              </View>
-              <Text style={styles.detailLabel}>{t("freelancePT.duration") || "Duration"}</Text>
-              <Text style={styles.detailValue}>
-                {packageData.durationInDays} {t("freelancePT.days") || "days"}
-              </Text>
+          {/* Value Proposition - What You Get */}
+          <View style={styles.valueSection}>
+            <View style={styles.sectionHeaderRow}>
+              <Ionicons name="gift" size={20} color="#ED2A46" />
+              <Text style={styles.sectionTitle}>{t("freelancePT.whatYouGet") || "What You Get"}</Text>
             </View>
-
-            <View style={styles.detailCard}>
-              <View style={styles.detailIconContainer}>
-                <Ionicons name="barbell-outline" size={24} color="#ED2A46" />
+            
+            <View style={styles.benefitsList}>
+              <View style={styles.benefitItem}>
+                <View style={styles.benefitIconContainer}>
+                  <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
+                </View>
+                <View style={styles.benefitContent}>
+                  <Text style={styles.benefitTitle}>
+                    {packageData.numOfSessions} {t("freelancePT.trainingSessionsCount") || "Personal Training Sessions"}
+                  </Text>
+                  <Text style={styles.benefitSubtitle}>
+                    {t("freelancePT.oneOnOneCoaching") || "One-on-one coaching with expert trainer"}
+                  </Text>
+                </View>
               </View>
-              <Text style={styles.detailLabel}>{t("freelancePT.sessions") || "Sessions"}</Text>
-              <Text style={styles.detailValue}>
-                {packageData.numOfSessions} {t("freelancePT.sessions") || "sessions"}
-              </Text>
-            </View>
 
-            <View style={styles.detailCard}>
-              <View style={styles.detailIconContainer}>
-                <Ionicons name="time-outline" size={24} color="#ED2A46" />
+              <View style={styles.benefitItem}>
+                <View style={styles.benefitIconContainer}>
+                  <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
+                </View>
+                <View style={styles.benefitContent}>
+                  <Text style={styles.benefitTitle}>
+                    {packageData.durationInDays} {t("freelancePT.daysAccess") || "Days Access"}
+                  </Text>
+                  <Text style={styles.benefitSubtitle}>
+                    {t("freelancePT.flexibleSchedulingWithin") || "Flexible scheduling within validity period"}
+                  </Text>
+                </View>
               </View>
-              <Text style={styles.detailLabel}>{t("freelancePT.perSession") || "Per Session"}</Text>
-              <Text style={styles.detailValue}>
-                {packageData.sessionDurationInMinutes} {t("freelancePT.minutes") || "min"}
-              </Text>
-            </View>
 
-            <View style={styles.detailCard}>
-              <View style={styles.detailIconContainer}>
-                <Ionicons name="cash-outline" size={24} color="#ED2A46" />
+              <View style={styles.benefitItem}>
+                <View style={styles.benefitIconContainer}>
+                  <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
+                </View>
+                <View style={styles.benefitContent}>
+                  <Text style={styles.benefitTitle}>{t("freelancePT.customizedTrainingPlan") || "Customized Training Plan"}</Text>
+                  <Text style={styles.benefitSubtitle}>
+                    {t("freelancePT.tailoredToGoals") || "Tailored to your fitness goals and level"}
+                  </Text>
+                </View>
               </View>
-              <Text style={styles.detailLabel}>{t("freelancePT.price") || "Price"}</Text>
-              <Text style={styles.detailValuePrice}>
-                {formatPrice(packageData.price)}
-              </Text>
+
+              <View style={styles.benefitItem}>
+                <View style={styles.benefitIconContainer}>
+                  <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
+                </View>
+                <View style={styles.benefitContent}>
+                  <Text style={styles.benefitTitle}>{t("freelancePT.progressTracking") || "Progress Tracking"}</Text>
+                  <Text style={styles.benefitSubtitle}>
+                    {t("freelancePT.monitorImprovements") || "Monitor your improvements throughout"}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.benefitItem}>
+                <View style={styles.benefitIconContainer}>
+                  <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
+                </View>
+                <View style={styles.benefitContent}>
+                  <Text style={styles.benefitTitle}>{t("freelancePT.nutritionGuidance") || "Nutrition Guidance"}</Text>
+                  <Text style={styles.benefitSubtitle}>
+                    {t("freelancePT.basicDietaryTips") || "Basic dietary tips and recommendations"}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.benefitItem}>
+                <View style={styles.benefitIconContainer}>
+                  <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
+                </View>
+                <View style={styles.benefitContent}>
+                  <Text style={styles.benefitTitle}>{t("freelancePT.chatSupport") || "24/7 Chat Support"}</Text>
+                  <Text style={styles.benefitSubtitle}>
+                    {t("freelancePT.askQuestionsAnytime") || "Ask questions anytime via in-app messaging"}
+                  </Text>
+                </View>
+              </View>
             </View>
           </View>
 
-          {/* Additional Information */}
-          <View style={styles.infoSection}>
-            <Text style={styles.infoTitle}>{t("freelancePT.whatYouGet") || "What You Get"}</Text>
-            <View style={styles.infoItem}>
-              <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
-              <Text style={styles.infoText}>
-                {packageData.numOfSessions} {t("freelancePT.personalTrainingSessions") || "personal training sessions"}
-              </Text>
+          {/* Trust Signals */}
+          <View style={styles.trustSection}>
+            <View style={styles.trustItem}>
+              <Ionicons name="shield-checkmark" size={28} color="#4CAF50" />
+              <Text style={styles.trustText}>{t("freelancePT.moneyBackGuarantee") || "Money-Back Guarantee"}</Text>
             </View>
-            <View style={styles.infoItem}>
-              <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
-              <Text style={styles.infoText}>
-                {t("freelancePT.validFor") || "Valid for"} {packageData.durationInDays} {t("freelancePT.days") || "days"}
-              </Text>
+            <View style={styles.trustItem}>
+              <Ionicons name="calendar-outline" size={28} color="#4CAF50" />
+              <Text style={styles.trustText}>{t("freelancePT.flexibleRescheduling") || "Flexible Rescheduling"}</Text>
             </View>
-            <View style={styles.infoItem}>
-              <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
-              <Text style={styles.infoText}>
-                {t("freelancePT.flexibleScheduling") || "Flexible scheduling"}
-              </Text>
-            </View>
-            <View style={styles.infoItem}>
-              <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
-              <Text style={styles.infoText}>
-                {t("freelancePT.personalizedTraining") || "Personalized training plan"}
-              </Text>
+            <View style={styles.trustItem}>
+              <Ionicons name="star" size={28} color="#FFD700" />
+              <Text style={styles.trustText}>{t("freelancePT.topRatedTrainer") || "Top-Rated Trainer"}</Text>
             </View>
           </View>
+
+          {/* Spacer for bottom bar */}
+          <View style={{ height: 120 }} />
         </View>
       </ScrollView>
 
-      {/* Bottom Action Bar */}
+      {/* Bottom Action Bar - Enhanced */}
       <View style={styles.bottomBar}>
         <View style={styles.priceSection}>
-          <Text style={styles.priceLabel}>{t("freelancePT.totalPrice") || "Total Price"}</Text>
-          <Text style={styles.priceValue}>{formatPrice(packageData.price)}</Text>
+          <Text style={styles.priceLabel}>💎 {t("freelancePT.totalInvestment") || "TOTAL INVESTMENT"}</Text>
+          <View style={styles.priceRow}>
+            <Text style={styles.priceValue}>{formatPrice(packageData.price)}</Text>
+          </View>
         </View>
         <TouchableOpacity
-          style={[styles.addToCartButton, addingToCart && styles.addToCartButtonDisabled]}
-          onPress={handleAddToCart}
+          style={[styles.buyNowButton, addingToCart && styles.buyNowButtonDisabled]}
+          onPress={handleBuyNow}
           disabled={addingToCart}
+          activeOpacity={0.85}
         >
-          {addingToCart ? (
-            <ActivityIndicator color="#FFF" />
-          ) : (
-            <>
-              <Ionicons name="cart-outline" size={20} color="#FFF" />
-              <Text style={styles.addToCartText}>
-                {t("freelancePT.addToCart") || "Add to Cart"}
-              </Text>
-            </>
-          )}
+          <LinearGradient
+            colors={addingToCart ? ["#CCCCCC", "#CCCCCC"] : ["#ED2A46", "#FF6B6B"]}
+            style={styles.buyNowGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+          >
+            {addingToCart ? (
+              <ActivityIndicator color="#FFF" size="small" />
+            ) : (
+              <>
+                <Ionicons name="flash" size={24} color="#FFF" />
+                <Text style={styles.buyNowText}>
+                  {t("freelancePT.buyNow") || "BUY NOW"}
+                </Text>
+                <Ionicons name="arrow-forward-circle" size={24} color="#FFF" />
+              </>
+            )}
+          </LinearGradient>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -404,7 +478,7 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     width: width,
-    height: 300,
+    height: 340,
     position: "relative",
   },
   image: {
@@ -416,119 +490,269 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    height: 100,
+    height: 180,
+    justifyContent: "flex-end",
+    alignItems: "center",
+    paddingBottom: 20,
+  },
+  priceOnImageBadge: {
+    width: "85%",
+    maxWidth: 320,
+  },
+  priceBadgeGradient: {
+    borderRadius: 20,
+    padding: 20,
+    alignItems: "center",
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  priceBadgeLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "rgba(255, 255, 255, 0.9)",
+    letterSpacing: 1.5,
+    marginBottom: 4,
+  },
+  priceBadgeValue: {
+    fontSize: 36,
+    fontWeight: "900",
+    color: "#FFFFFF",
+    marginBottom: 2,
+  },
+  priceBadgeSubtext: {
+    fontSize: 13,
+    color: "rgba(255, 255, 255, 0.85)",
+    fontWeight: "500",
   },
   contentContainer: {
     padding: 20,
   },
-  packageName: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#1A1A1A",
-    marginBottom: 12,
-  },
-  packageDescription: {
-    fontSize: 16,
-    color: "#6B6B6B",
-    lineHeight: 24,
-    marginBottom: 24,
-  },
-  ptCard: {
+  packageHeader: {
     flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#F8F9FA",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: "#E5E5E5",
-  },
-  ptAvatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "#E5E5E5",
-  },
-  ptInfo: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  ptLabel: {
-    fontSize: 12,
-    color: "#6B6B6B",
-    marginBottom: 4,
-  },
-  ptName: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#1A1A1A",
-    marginBottom: 2,
-  },
-  ptGoal: {
-    fontSize: 13,
-    color: "#ED2A46",
-    fontWeight: "500",
-  },
-  detailsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    marginBottom: 24,
-  },
-  detailCard: {
-    width: "48%",
-    backgroundColor: "#F8F9FA",
-    borderRadius: 12,
-    padding: 16,
+    alignItems: "flex-start",
     marginBottom: 16,
-    alignItems: "center",
   },
-  detailIconContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+  packageIconBadge: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: "#FFF5F6",
     justifyContent: "center",
     alignItems: "center",
+    marginRight: 12,
+    elevation: 2,
+    shadowColor: "#ED2A46",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  packageTitleContainer: {
+    flex: 1,
+  },
+  packageName: {
+    fontSize: 26,
+    fontWeight: "900",
+    color: "#1A1A1A",
     marginBottom: 8,
+    lineHeight: 32,
   },
-  detailLabel: {
-    fontSize: 12,
-    color: "#6B6B6B",
-    marginBottom: 4,
-  },
-  detailValue: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#1A1A1A",
-  },
-  detailValuePrice: {
-    fontSize: 14,
-    fontWeight: "bold",
-    color: "#ED2A46",
-  },
-  infoSection: {
-    backgroundColor: "#F8F9FA",
+  popularBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFF5F6",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: 12,
+    alignSelf: "flex-start",
+    gap: 4,
+  },
+  popularText: {
+    fontSize: 10,
+    fontWeight: "800",
+    color: "#FF6B6B",
+    letterSpacing: 0.5,
+  },
+  quickStatsBar: {
+    flexDirection: "row",
+    backgroundColor: "#F8F9FA",
+    borderRadius: 16,
     padding: 16,
-    marginBottom: 100,
+    marginBottom: 20,
+    alignItems: "center",
+    justifyContent: "space-around",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
   },
-  infoTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
+  quickStat: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+  },
+  quickStatText: {
+    fontSize: 13,
+    fontWeight: "700",
     color: "#1A1A1A",
-    marginBottom: 16,
   },
-  infoItem: {
+  statDivider: {
+    width: 1,
+    height: 24,
+    backgroundColor: "#E5E5E5",
+  },
+  descriptionContainer: {
+    backgroundColor: "#F8F9FA",
+    borderRadius: 16,
+    padding: 18,
+    marginBottom: 20,
+  },
+  sectionHeaderRow: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 12,
+    gap: 8,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#1A1A1A",
+  },
+  packageDescription: {
+    fontSize: 15,
+    color: "#4A4A4A",
+    lineHeight: 24,
+  },
+  ptCard: {
+    borderRadius: 20,
+    marginBottom: 20,
+    overflow: "hidden",
+    elevation: 4,
+    shadowColor: "#ED2A46",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+  },
+  ptCardGradient: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 18,
+    borderWidth: 2,
+    borderColor: "#FFE0E3",
+    borderRadius: 20,
+  },
+  ptAvatarContainer: {
+    position: "relative",
+  },
+  ptAvatar: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: "#E5E5E5",
+    borderWidth: 3,
+    borderColor: "#FFFFFF",
+  },
+  verifiedBadge: {
+    position: "absolute",
+    bottom: -2,
+    right: -2,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 10,
+    elevation: 2,
+  },
+  ptInfo: {
+    flex: 1,
+    marginLeft: 14,
+  },
+  ptLabel: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: "#ED2A46",
+    marginBottom: 6,
+    letterSpacing: 0.5,
+  },
+  ptName: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#1A1A1A",
+    marginBottom: 6,
+  },
+  ptGoalBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: "#FFF5F6",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    alignSelf: "flex-start",
+  },
+  ptGoal: {
+    fontSize: 12,
+    color: "#ED2A46",
+    fontWeight: "600",
+  },
+  ptArrow: {
+    marginLeft: 8,
+  },
+  valueSection: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: "#F0F0F0",
+  },
+  benefitsList: {
+    gap: 16,
+  },
+  benefitItem: {
+    flexDirection: "row",
+    alignItems: "flex-start",
     gap: 12,
   },
-  infoText: {
-    fontSize: 14,
-    color: "#6B6B6B",
+  benefitIconContainer: {
+    marginTop: 2,
+  },
+  benefitContent: {
     flex: 1,
+  },
+  benefitTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#1A1A1A",
+    marginBottom: 4,
+  },
+  benefitSubtitle: {
+    fontSize: 13,
+    color: "#6B6B6B",
+    lineHeight: 18,
+  },
+  trustSection: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    backgroundColor: "#F8FFF9",
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "#E8F5E9",
+  },
+  trustItem: {
+    alignItems: "center",
+    flex: 1,
+    gap: 8,
+  },
+  trustText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#4CAF50",
+    textAlign: "center",
   },
   bottomBar: {
     position: "absolute",
@@ -537,52 +761,75 @@ const styles = StyleSheet.create({
     right: 0,
     backgroundColor: "#FFF",
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingTop: 16,
+    paddingBottom: 20,
     borderTopWidth: 1,
     borderTopColor: "#E5E5E5",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    elevation: 10,
+    elevation: 12,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
   },
   priceSection: {
-    flex: 1,
+    marginBottom: 14,
   },
   priceLabel: {
-    fontSize: 12,
+    fontSize: 11,
+    fontWeight: "700",
     color: "#6B6B6B",
-    marginBottom: 4,
+    marginBottom: 6,
+    letterSpacing: 1,
+  },
+  priceRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
   },
   priceValue: {
-    fontSize: 20,
-    fontWeight: "bold",
+    fontSize: 32,
+    fontWeight: "900",
     color: "#ED2A46",
   },
-  addToCartButton: {
-    backgroundColor: "#ED2A46",
+  savingsBadge: {
+    backgroundColor: "#4CAF50",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  savingsText: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: "#FFFFFF",
+    letterSpacing: 0.5,
+  },
+  buyNowButton: {
+    borderRadius: 30,
+    overflow: "hidden",
+    elevation: 8,
+    shadowColor: "#ED2A46",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+  },
+  buyNowGradient: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 25,
-    gap: 8,
-    elevation: 3,
-    shadowColor: "#ED2A46",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    paddingVertical: 20,
+    paddingHorizontal: 28,
+    gap: 12,
   },
-  addToCartButtonDisabled: {
-    backgroundColor: "#CCCCCC",
+  buyNowButtonDisabled: {
+    elevation: 2,
+    shadowOpacity: 0.1,
   },
-  addToCartText: {
+  buyNowText: {
     color: "#FFF",
-    fontSize: 16,
-    fontWeight: "bold",
+    fontSize: 19,
+    fontWeight: "900",
+    letterSpacing: 1.5,
+    flex: 1,
+    textAlign: "center",
   },
 });

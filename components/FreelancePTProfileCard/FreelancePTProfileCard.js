@@ -29,7 +29,6 @@ export default function FreelancePTProfileCard({ pt, fullWidth = false, height =
     // Navigate to PT profile or detail screen
     navigation.navigate("PTProfileScreen", { 
       ptId: pt.id,
-      pt: pt 
     });
   };
 
@@ -53,21 +52,35 @@ export default function FreelancePTProfileCard({ pt, fullWidth = false, height =
         />
 
         {/* Rating Badge */}
-        {pt?.rating && (
+        {pt?.rating ? (
           <View style={styles.ratingBadge}>
             <Ionicons name="star" size={12} color="#FFD700" />
             <Text style={styles.ratingText}>
               {pt.rating.toFixed(1)}
             </Text>
           </View>
+        ) : (
+          <View style={styles.ratingBadge}>
+            <Ionicons name="star" size={12} color="#FFD700" />
+            <Text style={styles.ratingText}>
+              {pt.rating ? pt.rating.toFixed(1) : 'N/A'}
+            </Text>
+          </View>
         )}
 
         {/* Experience Badge */}
-        {pt?.experienceYears && (
+        {pt?.experienceYears ? (
           <View style={styles.experienceBadge}>
             <Ionicons name="medal-outline" size={12} color="#FFF" />
             <Text style={styles.experienceText}>
               {pt.experienceYears} {t("freelancePT.years") || "years"}
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.experienceBadge}>
+            <Ionicons name="medal-outline" size={12} color="#FFF" />
+            <Text style={styles.experienceText}>
+              {pt.experienceYears ? pt.experienceYears : 'N/A'} {t("freelancePT.years") || "years"}
             </Text>
           </View>
         )}
@@ -80,29 +93,41 @@ export default function FreelancePTProfileCard({ pt, fullWidth = false, height =
         </Text>
 
         {/* Description */}
-        {pt?.description && (
-          <Text style={styles.description} numberOfLines={2}>
+        {pt?.description ? (
+          <Text style={styles.description} numberOfLines={1} ellipsizeMode="tail"  >
             {pt.description}
+          </Text>
+        ) : (
+          <Text style={styles.description} numberOfLines={1} ellipsizeMode="tail"  >
+            Description not available
           </Text>
         )}
 
         {/* Goal Training Tags */}
-        {pt?.goalTrainingList && pt.goalTrainingList.length > 0 && (
-          <View style={styles.tagsContainer}>
-            {pt.goalTrainingList.slice(0, 2).map((goal, index) => (
+        {pt?.goalTrainings && pt.goalTrainings.length > 0 ? (
+          <View style={styles.tagsContainer} numberOfLines={1} >
+            {pt.goalTrainings.slice(0, 2).map((goal, index) => (
               <View key={index} style={styles.tag}>
                 <Text style={styles.tagText} numberOfLines={1}>
                   {goal}
                 </Text>
               </View>
             ))}
-            {pt.goalTrainingList.length > 2 && (
+            {pt.goalTrainings.length > 2 && (
               <View style={styles.tag}>
                 <Text style={styles.tagText}>
-                  +{pt.goalTrainingList.length - 2}
+                  +{pt.goalTrainings.length - 2}
                 </Text>
               </View>
             )}
+          </View>
+        ) : (
+          <View style={styles.tagsContainer} numberOfLines={1} >
+            <View style={styles.tag}>
+              <Text style={styles.tagText}>
+                Goal Training Tags
+              </Text>
+            </View>
           </View>
         )}
 
@@ -205,11 +230,10 @@ const styles = StyleSheet.create({
     color: "#6B6B6B",
     lineHeight: 16,
     marginBottom: 8,
-    minHeight: 32,
   },
   tagsContainer: {
     flexDirection: "row",
-    flexWrap: "wrap",
+    overflow: "scroll",
     gap: 4,
     marginBottom: 8,
   },
@@ -222,7 +246,7 @@ const styles = StyleSheet.create({
     borderColor: "#ED2A46",
   },
   tagText: {
-    fontSize: 10,
+    fontSize: 7,
     color: "#ED2A46",
     fontWeight: "600",
   },
@@ -236,12 +260,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   priceLabel: {
-    fontSize: 10,
+    fontSize: 12,
     color: "#6B6B6B",
     marginBottom: 2,
   },
   price: {
-    fontSize: 13,
+    fontSize: 17,
     fontWeight: "bold",
     color: "#ED2A46",
   },
