@@ -20,7 +20,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import accountService from "../../../services/accountService";
 import colors from "../../../constants/color";
 import { useTranslation } from "../../../hooks/useTranslation";
-import { formatDateForAPI } from "../../../lib";
+import { fetchUserFromStorage, formatDateForAPI } from "../../../lib";
 
 export default function ScheduleFreelanceScreen() {
   const { t } = useTranslation();
@@ -28,6 +28,7 @@ export default function ScheduleFreelanceScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [filterStatus, setFilterStatus] = useState("all"); // all, Pending, Approved, Rejected
 
   // Form states
   const [bookingName, setBookingName] = useState("");
@@ -40,6 +41,19 @@ export default function ScheduleFreelanceScreen() {
   const [showStartTimePicker, setShowStartTimePicker] = useState(false);
   const [showEndTimePicker, setShowEndTimePicker] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [userRole, setUserRole] = useState(null);
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const user = await fetchUserFromStorage();
+        console.log("Current user:", user.role);
+        setUserRole(user.role);
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      }
+    };
+    fetchUser();
+  }, []);
 
   const loadAllRequestForUser = async () => {
     try {
@@ -307,6 +321,20 @@ export default function ScheduleFreelanceScreen() {
     }
   };
 
+  const getFilteredRequests = () => {
+    // Display all requests
+    if (filterStatus === "all") {
+      return requests;
+    }
+    return requests.filter((req) => req.requestStatus === filterStatus);
+  };
+
+  const getStatusCount = (status) => {
+    // Count all requests
+    if (status === "all") return requests.length;
+    return requests.filter((req) => req.requestStatus === status).length;
+  };
+
   const renderRequestCard = (request, index) => (
     <View key={index} style={styles.requestCard}>
       <View style={styles.cardHeader}>
@@ -340,6 +368,14 @@ export default function ScheduleFreelanceScreen() {
 
       <View style={styles.cardContent}>
         <View style={styles.infoRow}>
+          <Ionicons name="calendar-outline" size={18} color="#666" />
+          <Text style={styles.infoLabel}>Date:</Text>
+          <Text style={styles.infoValue}>
+            {formatDate(request.bookingDate)}
+          </Text>
+        </View>
+
+        <View style={styles.infoRow}>
           <Ionicons name="time-outline" size={18} color="#666" />
           <Text style={styles.infoLabel}>Time:</Text>
           <Text style={styles.infoValue}>
@@ -349,9 +385,15 @@ export default function ScheduleFreelanceScreen() {
 
         <View style={styles.infoRow}>
           <Ionicons name="bookmark-outline" size={18} color="#666" />
-          <Text style={styles.infoLabel}>From:</Text>
+          <Text style={styles.infoLabel}>Type:</Text>
           <Text style={styles.infoValue}>
-            {request.requestType === "CustomerCreate" ? "Customer" : "PT"}
+            {request.requestType === "CustomerCreate"
+              ? "Customer Request"
+              : request.requestType === "PtCreate"
+              ? "PT Proposal"
+              : request.requestType === "CustomerUpdate"
+              ? "Customer Edit Request"
+              : "PT Edit Request"}
           </Text>
         </View>
 
@@ -362,29 +404,82 @@ export default function ScheduleFreelanceScreen() {
             <Text style={styles.infoValue}>{request.note}</Text>
           </View>
         )}
+
+        {request.targetBookingId &&
+          request.originalBooking &&
+          (request.requestType === "CustomerUpdate" ||
+            request.requestType === "PtUpdate") && (
+            <View style={styles.originalBookingSection}>
+              <Text style={styles.originalBookingTitle}>Original Booking:</Text>
+              <View style={styles.infoRow}>
+                <Ionicons name="calendar-outline" size={16} color="#999" />
+                <Text style={styles.infoLabelSmall}>Date:</Text>
+                <Text style={styles.infoValueSmall}>
+                  {formatDate(request.originalBooking.bookingDate)}
+                </Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Ionicons name="time-outline" size={16} color="#999" />
+                <Text style={styles.infoLabelSmall}>Time:</Text>
+                <Text style={styles.infoValueSmall}>
+                  {formatTime(request.originalBooking.ptFreelanceStartTime)} -{" "}
+                  {formatTime(request.originalBooking.ptFreelanceEndTime)}
+                </Text>
+              </View>
+            </View>
+          )}
       </View>
 
-      {/* Show approve/reject only for PtCreate requests (pending) */}
-      {request.requestStatus === "Pending" &&
-        request.requestType === "PtCreate" && (
-          <View style={styles.actionButtons}>
-            <TouchableOpacity
-              style={styles.approveButton}
-              onPress={() => handleApproveRequest(request)}
-            >
-              <Ionicons name="checkmark-circle" size={18} color="#fff" />
-              <Text style={styles.approveButtonText}>Approve</Text>
-            </TouchableOpacity>
+      {/* Show approve/reject buttons based on user role and request type */}
+      {request.requestStatus === "Pending" && userRole && (
+        <>
+          {/* FreelancePT approves CustomerCreate and CustomerUpdate */}
+          {userRole === "FreelancePT" &&
+            (request.requestType === "CustomerCreate" ||
+              request.requestType === "CustomerUpdate") && (
+              <View style={styles.actionButtons}>
+                <TouchableOpacity
+                  style={styles.approveButton}
+                  onPress={() => handleApproveRequest(request)}
+                >
+                  <Ionicons name="checkmark-circle" size={18} color="#fff" />
+                  <Text style={styles.approveButtonText}>Approve</Text>
+                </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.rejectButton}
-              onPress={() => handleRejectRequest(request)}
-            >
-              <Ionicons name="close-circle" size={18} color="#fff" />
-              <Text style={styles.rejectButtonText}>Reject</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+                <TouchableOpacity
+                  style={styles.rejectButton}
+                  onPress={() => handleRejectRequest(request)}
+                >
+                  <Ionicons name="close-circle" size={18} color="#fff" />
+                  <Text style={styles.rejectButtonText}>Reject</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+          {/* Customer approves PtCreate and PtUpdate */}
+          {userRole === "Customer" &&
+            (request.requestType === "PtCreate" ||
+              request.requestType === "PtUpdate") && (
+              <View style={styles.actionButtons}>
+                <TouchableOpacity
+                  style={styles.approveButton}
+                  onPress={() => handleApproveRequest(request)}
+                >
+                  <Ionicons name="checkmark-circle" size={18} color="#fff" />
+                  <Text style={styles.approveButtonText}>Approve</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.rejectButton}
+                  onPress={() => handleRejectRequest(request)}
+                >
+                  <Ionicons name="close-circle" size={18} color="#fff" />
+                  <Text style={styles.rejectButtonText}>Reject</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+        </>
+      )}
     </View>
   );
 
@@ -569,10 +664,85 @@ export default function ScheduleFreelanceScreen() {
     );
   }
 
+  const filteredRequests = getFilteredRequests();
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor={colors.red} />
       <View style={styles.container}>
+        {/* Filter Tabs */}
+        <View style={styles.filterContainer}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <TouchableOpacity
+              style={[
+                styles.filterTab,
+                filterStatus === "all" && styles.filterTabActive,
+              ]}
+              onPress={() => setFilterStatus("all")}
+            >
+              <Text
+                style={[
+                  styles.filterTabText,
+                  filterStatus === "all" && styles.filterTabTextActive,
+                ]}
+              >
+                All ({getStatusCount("all")})
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.filterTab,
+                filterStatus === "Pending" && styles.filterTabActive,
+              ]}
+              onPress={() => setFilterStatus("Pending")}
+            >
+              <Text
+                style={[
+                  styles.filterTabText,
+                  filterStatus === "Pending" && styles.filterTabTextActive,
+                ]}
+              >
+                Pending ({getStatusCount("Pending")})
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.filterTab,
+                filterStatus === "Approved" && styles.filterTabActive,
+              ]}
+              onPress={() => setFilterStatus("Approved")}
+            >
+              <Text
+                style={[
+                  styles.filterTabText,
+                  filterStatus === "Approved" && styles.filterTabTextActive,
+                ]}
+              >
+                Approved ({getStatusCount("Approved")})
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.filterTab,
+                filterStatus === "Rejected" && styles.filterTabActive,
+              ]}
+              onPress={() => setFilterStatus("Rejected")}
+            >
+              <Text
+                style={[
+                  styles.filterTabText,
+                  filterStatus === "Rejected" && styles.filterTabTextActive,
+                ]}
+              >
+                Rejected ({getStatusCount("Rejected")})
+              </Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
+
         {/* Requests List */}
         <ScrollView
           style={styles.scrollView}
@@ -585,20 +755,26 @@ export default function ScheduleFreelanceScreen() {
             />
           }
         >
-          {/* Filter to show only PtCreate requests for Customer */}
-          {requests.filter((req) => req.requestType === "PtCreate").length ===
-          0 ? (
+          {/* Display all requests */}
+          {filteredRequests.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Ionicons name="calendar-outline" size={64} color="#ccc" />
-              <Text style={styles.emptyText}>No booking requests yet</Text>
+              <Text style={styles.emptyText}>
+                No {filterStatus !== "all" ? filterStatus.toLowerCase() : ""}{" "}
+                requests
+              </Text>
               <Text style={styles.emptySubtext}>
-                No requests from your PT yet
+                {filterStatus === "Pending"
+                  ? "No pending requests to review"
+                  : filterStatus === "all"
+                  ? "You don't have any booking requests yet"
+                  : `No ${filterStatus.toLowerCase()} requests found`}
               </Text>
             </View>
           ) : (
-            requests
-              .filter((req) => req.requestType === "PtCreate")
-              .map((request, index) => renderRequestCard(request, index))
+            filteredRequests.map((request, index) =>
+              renderRequestCard(request, index)
+            )
           )}
         </ScrollView>
 
@@ -646,6 +822,31 @@ const styles = StyleSheet.create({
     color: "#666",
   },
 
+  filterContainer: {
+    backgroundColor: "#fff",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  filterTab: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginRight: 8,
+    borderRadius: 20,
+    backgroundColor: "#f0f0f0",
+  },
+  filterTabActive: {
+    backgroundColor: colors.red,
+  },
+  filterTabText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#666",
+  },
+  filterTabTextActive: {
+    color: "#fff",
+  },
   scrollView: {
     flex: 1,
   },
@@ -732,6 +933,31 @@ const styles = StyleSheet.create({
   infoValue: {
     fontSize: 14,
     color: "#333",
+    flex: 1,
+  },
+  originalBookingSection: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: "#f0f0f0",
+    backgroundColor: "#f9f9f9",
+    padding: 12,
+    borderRadius: 8,
+  },
+  originalBookingTitle: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#666",
+    marginBottom: 8,
+  },
+  infoLabelSmall: {
+    fontSize: 13,
+    color: "#999",
+    fontWeight: "500",
+  },
+  infoValueSmall: {
+    fontSize: 13,
+    color: "#666",
     flex: 1,
   },
   actionButtons: {

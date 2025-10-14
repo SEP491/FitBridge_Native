@@ -45,7 +45,19 @@ export default function CalendarScheduleScreen() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showStartTimePicker, setShowStartTimePicker] = useState(false);
   const [showEndTimePicker, setShowEndTimePicker] = useState(false);
-
+  const [userRole, setUserRole] = useState(null);
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const user = await fetchUserFromStorage();
+        console.log("Current user:", user.role);
+        setUserRole(user.role);
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      }
+    };
+    fetchUser();
+  }, []);
   const loadBookingOfUser = async (date = selectedDate) => {
     try {
       setLoading(true);

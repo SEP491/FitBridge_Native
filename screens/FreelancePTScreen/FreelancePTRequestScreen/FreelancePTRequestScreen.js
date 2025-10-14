@@ -20,7 +20,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import accountService from "../../../services/accountService";
 import colors from "../../../constants/color";
 import { useTranslation } from "../../../hooks/useTranslation";
-import { formatDateForAPI } from "../../../lib";
+import { fetchUserFromStorage, formatDateForAPI } from "../../../lib";
 
 export default function FreelancePTRequestScreen() {
   const { t } = useTranslation();
@@ -41,6 +41,19 @@ export default function FreelancePTRequestScreen() {
   const [showStartTimePicker, setShowStartTimePicker] = useState(false);
   const [showEndTimePicker, setShowEndTimePicker] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [userRole, setUserRole] = useState(null);
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const user = await fetchUserFromStorage();
+        console.log("Current user:", user.role);
+        setUserRole(user.role);
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      }
+    };
+    fetchUser();
+  }, []);
 
   const loadAllRequestsForPT = async () => {
     try {
@@ -240,12 +253,26 @@ export default function FreelancePTRequestScreen() {
           style: "default",
           onPress: async () => {
             try {
-              // TODO: Implement approve API call
-              await accountService.acceptBookingRequest({
-                bookingRequestId: request.id,
-              });
-              console.log("Approving request:", request);
-              Alert.alert("Success", "Request approved successfully");
+              if (
+                request.requestType === "CustomerCreate" ||
+                request.requestType === "PTCreate"
+              ) {
+                await accountService.acceptBookingRequest({
+                  bookingRequestId: request.id,
+                });
+                console.log("Approving request:", request);
+                Alert.alert("Success", "Request approved successfully");
+              } else if (
+                request.requestType === "CustomerUpdate" ||
+                request.requestType === "PtUpdate"
+              ) {
+                await accountService.acceptEditBooking({
+                  bookingRequestId: request.id,
+                });
+                console.log("Approving request Edit:", request);
+                Alert.alert("Success", "Request Edit approved successfully");
+              }
+
               loadAllRequestsForPT();
             } catch (error) {
               Alert.alert("Error", "Failed to approve request");
@@ -310,26 +337,17 @@ export default function FreelancePTRequestScreen() {
   };
 
   const getFilteredRequests = () => {
-    // PT only sees CustomerCreate requests
-    const customerRequests = requests.filter(
-      (req) => req.requestType === "CustomerCreate"
-    );
-
+    // Display all requests
     if (filterStatus === "all") {
-      return customerRequests;
+      return requests;
     }
-    return customerRequests.filter((req) => req.requestStatus === filterStatus);
+    return requests.filter((req) => req.requestStatus === filterStatus);
   };
 
   const getStatusCount = (status) => {
-    // PT only sees CustomerCreate requests
-    const customerRequests = requests.filter(
-      (req) => req.requestType === "CustomerCreate"
-    );
-
-    if (status === "all") return customerRequests.length;
-    return customerRequests.filter((req) => req.requestStatus === status)
-      .length;
+    // Count all requests
+    if (status === "all") return requests.length;
+    return requests.filter((req) => req.requestStatus === status).length;
   };
 
   const renderRequestCard = (request, index) => (
@@ -365,6 +383,14 @@ export default function FreelancePTRequestScreen() {
 
       <View style={styles.cardContent}>
         <View style={styles.infoRow}>
+          <Ionicons name="calendar-outline" size={18} color="#666" />
+          <Text style={styles.infoLabel}>Date:</Text>
+          <Text style={styles.infoValue}>
+            {formatDate(request.bookingDate)}
+          </Text>
+        </View>
+
+        <View style={styles.infoRow}>
           <Ionicons name="time-outline" size={18} color="#666" />
           <Text style={styles.infoLabel}>Time:</Text>
           <Text style={styles.infoValue}>
@@ -374,9 +400,15 @@ export default function FreelancePTRequestScreen() {
 
         <View style={styles.infoRow}>
           <Ionicons name="bookmark-outline" size={18} color="#666" />
-          <Text style={styles.infoLabel}>From:</Text>
+          <Text style={styles.infoLabel}>Type:</Text>
           <Text style={styles.infoValue}>
-            {request.requestType === "CustomerCreate" ? "Customer" : "PT"}
+            {request.requestType === "CustomerCreate"
+              ? "Customer Request"
+              : request.requestType === "PtCreate"
+              ? "PT Proposal"
+              : request.requestType === "CustomerUpdate"
+              ? "Customer Edit Request"
+              : "PT Edit Request"}
           </Text>
         </View>
 
@@ -389,29 +421,82 @@ export default function FreelancePTRequestScreen() {
             </Text>
           </View>
         )}
+
+        {request.targetBookingId &&
+          request.originalBooking &&
+          (request.requestType === "CustomerUpdate" ||
+            request.requestType === "PtUpdate") && (
+            <View style={styles.originalBookingSection}>
+              <Text style={styles.originalBookingTitle}>Original Booking:</Text>
+              <View style={styles.infoRow}>
+                <Ionicons name="calendar-outline" size={16} color="#999" />
+                <Text style={styles.infoLabelSmall}>Date:</Text>
+                <Text style={styles.infoValueSmall}>
+                  {formatDate(request.originalBooking.bookingDate)}
+                </Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Ionicons name="time-outline" size={16} color="#999" />
+                <Text style={styles.infoLabelSmall}>Time:</Text>
+                <Text style={styles.infoValueSmall}>
+                  {formatTime(request.originalBooking.ptFreelanceStartTime)} -{" "}
+                  {formatTime(request.originalBooking.ptFreelanceEndTime)}
+                </Text>
+              </View>
+            </View>
+          )}
       </View>
 
-      {/* Show approve/reject only for CustomerCreate requests (pending) */}
-      {request.requestStatus === "Pending" &&
-        request.requestType === "CustomerCreate" && (
-          <View style={styles.actionButtons}>
-            <TouchableOpacity
-              style={styles.approveButton}
-              onPress={() => handleApproveRequest(request)}
-            >
-              <Ionicons name="checkmark-circle" size={18} color="#fff" />
-              <Text style={styles.approveButtonText}>Approve</Text>
-            </TouchableOpacity>
+      {/* Show approve/reject buttons based on user role and request type */}
+      {request.requestStatus === "Pending" && userRole && (
+        <>
+          {/* FreelancePT approves CustomerCreate and CustomerUpdate */}
+          {userRole === "FreelancePT" &&
+            (request.requestType === "CustomerCreate" ||
+              request.requestType === "CustomerUpdate") && (
+              <View style={styles.actionButtons}>
+                <TouchableOpacity
+                  style={styles.approveButton}
+                  onPress={() => handleApproveRequest(request)}
+                >
+                  <Ionicons name="checkmark-circle" size={18} color="#fff" />
+                  <Text style={styles.approveButtonText}>Approve</Text>
+                </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.rejectButton}
-              onPress={() => handleRejectRequest(request)}
-            >
-              <Ionicons name="close-circle" size={18} color="#fff" />
-              <Text style={styles.rejectButtonText}>Reject</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+                <TouchableOpacity
+                  style={styles.rejectButton}
+                  onPress={() => handleRejectRequest(request)}
+                >
+                  <Ionicons name="close-circle" size={18} color="#fff" />
+                  <Text style={styles.rejectButtonText}>Reject</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+          {/* Customer approves PtCreate and PtUpdate */}
+          {userRole === "Customer" &&
+            (request.requestType === "PtCreate" ||
+              request.requestType === "PtUpdate") && (
+              <View style={styles.actionButtons}>
+                <TouchableOpacity
+                  style={styles.approveButton}
+                  onPress={() => handleApproveRequest(request)}
+                >
+                  <Ionicons name="checkmark-circle" size={18} color="#fff" />
+                  <Text style={styles.approveButtonText}>Approve</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.rejectButton}
+                  onPress={() => handleRejectRequest(request)}
+                >
+                  <Ionicons name="close-circle" size={18} color="#fff" />
+                  <Text style={styles.rejectButtonText}>Reject</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+        </>
+      )}
     </View>
   );
 
@@ -873,6 +958,31 @@ const styles = StyleSheet.create({
   infoValue: {
     fontSize: 14,
     color: "#333",
+    flex: 1,
+  },
+  originalBookingSection: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: "#f0f0f0",
+    backgroundColor: "#f9f9f9",
+    padding: 12,
+    borderRadius: 8,
+  },
+  originalBookingTitle: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#666",
+    marginBottom: 8,
+  },
+  infoLabelSmall: {
+    fontSize: 13,
+    color: "#999",
+    fontWeight: "500",
+  },
+  infoValueSmall: {
+    fontSize: 13,
+    color: "#666",
     flex: 1,
   },
   actionButtons: {
