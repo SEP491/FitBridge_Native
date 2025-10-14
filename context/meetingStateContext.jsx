@@ -16,7 +16,7 @@ import { CALL_MAINTENANCE_TASK } from "../services/backgroundTasks/callMaintenan
 import { CLIENT_METHODS } from "../services/signalR/signalingMethods";
 import registerMeetingManagementHandlers from "../services/signalR/registerMeetingManagementHandlers";
 import unregisterMeetingManagementHandlers from "../services/signalR/unregisterMeetingManagementHandlers";
-import { useSignalR } from "./SignalRContext";
+import { useSignalR } from "./signalrContext_webrtc";
 // import signalrService from "../services/signalR/service";
 
 const MeetingStateContext = createContext();

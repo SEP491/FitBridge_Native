@@ -57,6 +57,7 @@ export default function VideoCallScreen({ route, navigation }) {
     onToggleMinimize,
   } = useMeetingState();
 
+
   const callerInfo = {
     name: recipientName || "Personal Trainer",
     avatar: recipientAvatar || "PT",
