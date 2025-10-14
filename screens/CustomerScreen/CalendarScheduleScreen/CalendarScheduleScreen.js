@@ -8,6 +8,9 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  Modal,
+  TextInput,
+  Platform,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "../../../hooks/useTranslation";
@@ -18,6 +21,7 @@ import SessionBookingCard from "../../../components/SessionBookingCard/SessionBo
 import WeekCalendar from "../../../components/WeekCalendar/WeekCalendar";
 import accountService from "../../../services/accountService";
 import { fetchUserFromStorage, formatDateForAPI } from "../../../lib";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 const { width, height } = Dimensions.get("window");
 
@@ -27,6 +31,20 @@ export default function CalendarScheduleScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  // Edit modal states
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingBooking, setEditingBooking] = useState(null);
+  const [editFormData, setEditFormData] = useState({
+    bookingName: "",
+    bookingDate: new Date(),
+    startTime: "",
+    endTime: "",
+    note: "",
+  });
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showStartTimePicker, setShowStartTimePicker] = useState(false);
+  const [showEndTimePicker, setShowEndTimePicker] = useState(false);
 
   const loadBookingOfUser = async (date = selectedDate) => {
     try {
@@ -66,6 +84,13 @@ export default function CalendarScheduleScreen() {
     setLoading(true);
     loadBookingOfUser();
   }, []);
+
+  // Debug: Log picker state changes
+  useEffect(() => {
+    console.log("showDatePicker:", showDatePicker);
+    console.log("showStartTimePicker:", showStartTimePicker);
+    console.log("showEndTimePicker:", showEndTimePicker);
+  }, [showDatePicker, showStartTimePicker, showEndTimePicker]);
 
   // Helper function to check if session is on selected date
   const isSessionOnDate = (session, targetDate) => {
@@ -188,80 +213,436 @@ export default function CalendarScheduleScreen() {
     );
   };
 
-  return (
-    <View style={styles.container}>
-      <StatusBar backgroundColor={colors.red} barStyle="light-content" />
+  const handleEditBooking = (bookingId) => {
+    // Find the booking to edit
+    const booking = bookings.find((b) => b.bookingId === bookingId);
+    if (!booking) {
+      Alert.alert("Error", "Booking not found");
+      return;
+    }
 
-      {/* Calendar */}
-      <View style={styles.calendarContainer}>
-        {/* Week View Container */}
-        <View style={styles.weekViewContainer}>
-          {/* Week Calendar Component */}
-          <WeekCalendar
-            selectedDate={selectedDate}
-            onDateSelect={handleDateSelect}
-            initialDate={selectedDate}
+    // Parse the booking date and times
+    const bookingDate = new Date(booking.bookingDate);
+
+    setEditingBooking(booking);
+    setEditFormData({
+      bookingName: booking.bookingName || "",
+      bookingDate: bookingDate,
+      startTime: booking.startTime || "",
+      endTime: booking.endTime || "",
+      note: booking.note || "",
+    });
+    setShowEditModal(true);
+  };
+
+  const formatTimeForAPI = (timeString) => {
+    // If already in HH:MM:SS format, return as is
+    if (timeString && timeString.match(/^\d{2}:\d{2}:\d{2}$/)) {
+      return timeString;
+    }
+    // If in HH:MM format, add seconds
+    if (timeString && timeString.match(/^\d{2}:\d{2}$/)) {
+      return `${timeString}:00`;
+    }
+    // Otherwise format from Date object
+    const date = new Date(timeString);
+    const hours = date.getHours().toString().padStart(2, "0");
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+    const seconds = "00";
+    return `${hours}:${minutes}:${seconds}`;
+  };
+
+  const handleSubmitEditRequest = async () => {
+    if (!editFormData.bookingName.trim()) {
+      Alert.alert("Error", "Please enter a booking name");
+      return;
+    }
+
+    if (!editFormData.startTime || !editFormData.endTime) {
+      Alert.alert("Error", "Please select start and end time");
+      return;
+    }
+
+    try {
+      const payload = {
+        targetBookingId: editingBooking.bookingId,
+        bookingDate: formatDateForAPI(editFormData.bookingDate),
+        startTime: formatTimeForAPI(editFormData.startTime),
+        endTime: formatTimeForAPI(editFormData.endTime),
+        bookingName: editFormData.bookingName,
+        note: editFormData.note || "",
+      };
+
+      console.log("Edit request payload:", payload);
+
+      const response = await accountService.requestEditBooking(payload);
+      console.log("Edit request response:", response.data);
+
+      Alert.alert("Success", "Edit request has been sent successfully!");
+      setShowEditModal(false);
+      setEditingBooking(null);
+      loadBookingOfUser(selectedDate);
+    } catch (error) {
+      console.error("Error requesting edit:", error);
+      Alert.alert("Error", "Failed to send edit request");
+    }
+  };
+
+  const handleDateConfirm = (date) => {
+    console.log("Date confirmed:", date);
+    setEditFormData({ ...editFormData, bookingDate: date });
+    setShowDatePicker(false);
+  };
+
+  const handleStartTimeConfirm = (time) => {
+    console.log("Start time confirmed:", time);
+
+    // Check if the selected date is today
+    const selectedDate = new Date(editFormData.bookingDate);
+    const today = new Date();
+    const isToday = selectedDate.toDateString() === today.toDateString();
+
+    // If today, check if selected time is in the past
+    if (isToday) {
+      const now = new Date();
+      if (time < now) {
+        Alert.alert("Error", "Cannot select a time in the past");
+        return;
+      }
+    }
+
+    const hours = time.getHours().toString().padStart(2, "0");
+    const minutes = time.getMinutes().toString().padStart(2, "0");
+    const timeString = `${hours}:${minutes}`;
+    setEditFormData({ ...editFormData, startTime: timeString });
+    setShowStartTimePicker(false);
+  };
+
+  const handleEndTimeConfirm = (time) => {
+    console.log("End time confirmed:", time);
+
+    if (!editFormData.startTime) {
+      Alert.alert("Error", "Please select start time first");
+      return;
+    }
+
+    // Parse start time
+    const [startHour, startMin] = editFormData.startTime.split(":").map(Number);
+    const startMinutes = startHour * 60 + startMin;
+
+    // Parse end time
+    const endHour = time.getHours();
+    const endMin = time.getMinutes();
+    const endMinutes = endHour * 60 + endMin;
+
+    // Check if end time is at least 1 hour after start time
+    const diffMinutes = endMinutes - startMinutes;
+    if (diffMinutes < 60) {
+      Alert.alert("Error", "End time must be at least 1 hour after start time");
+      return;
+    }
+
+    const hours = endHour.toString().padStart(2, "0");
+    const minutes = endMin.toString().padStart(2, "0");
+    const timeString = `${hours}:${minutes}`;
+    setEditFormData({ ...editFormData, endTime: timeString });
+    setShowEndTimePicker(false);
+  };
+
+  const resetEditForm = () => {
+    setEditFormData({
+      bookingName: "",
+      bookingDate: new Date(),
+      startTime: "",
+      endTime: "",
+      note: "",
+    });
+    setEditingBooking(null);
+  };
+
+  return (
+    <>
+      <View style={styles.container}>
+        <StatusBar backgroundColor={colors.red} barStyle="light-content" />
+
+        {/* Calendar */}
+        <View style={styles.calendarContainer}>
+          {/* Week View Container */}
+          <View style={styles.weekViewContainer}>
+            {/* Week Calendar Component */}
+            <WeekCalendar
+              selectedDate={selectedDate}
+              onDateSelect={handleDateSelect}
+              initialDate={selectedDate}
+            />
+
+            {/* Sessions List */}
+            <ScrollView
+              style={styles.scrollView}
+              showsVerticalScrollIndicator={false}
+            >
+              {loading ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="large" color={colors.red} />
+                  <Text style={styles.loadingText}>
+                    {t("calendar.loadingSessions")}
+                  </Text>
+                </View>
+              ) : (
+                <>
+                  {bookings
+                    .filter((session) => isSessionOnDate(session, selectedDate))
+                    .map((session, index) => (
+                      <SessionBookingCard
+                        key={session.bookingId}
+                        booking={session}
+                        formatTime={formatTime}
+                        calculateDuration={calculateDuration}
+                        buttonText={t("calendar.cancelSession")}
+                        editButtonText="Request Edit"
+                        showEditButton={session.ptGymSlotId ? false : true}
+                        editButtonAction={() => {
+                          handleEditBooking(session.bookingId);
+                        }}
+                        ptName={session.ptName}
+                        ptAvatar={session.ptAvatarUrl}
+                        currentLanguage={currentLanguage}
+                        t={t}
+                        buttonAction={() => {
+                          handleCancelBooking(session.bookingId);
+                        }}
+                      />
+                    ))}
+
+                  {bookings.filter((session) =>
+                    isSessionOnDate(session, selectedDate)
+                  ).length === 0 && (
+                    <View style={styles.emptyContainer}>
+                      <Ionicons
+                        name="calendar-outline"
+                        size={64}
+                        color="#ccc"
+                      />
+                      <Text style={styles.emptyText}>
+                        {t("calendar.noSessionsScheduled")}
+                      </Text>
+                      <Text style={styles.emptySubText}>
+                        {t("calendar.noSessionsFor")}{" "}
+                        {selectedDate.toLocaleDateString(
+                          currentLanguage === "vi" ? "vi-VN" : "en-US",
+                          {
+                            day: "2-digit",
+                            month: "2-digit",
+                          }
+                        )}
+                      </Text>
+                    </View>
+                  )}
+                </>
+              )}
+            </ScrollView>
+          </View>
+        </View>
+
+        {/* Edit Booking Modal */}
+        <Modal
+          visible={showEditModal}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => {
+            setShowEditModal(false);
+            resetEditForm();
+          }}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              {/* Header */}
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Request Edit Booking</Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowEditModal(false);
+                    resetEditForm();
+                  }}
+                  style={styles.closeButton}
+                >
+                  <Ionicons name="close" size={24} color="#666" />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView
+                style={styles.modalBody}
+                showsVerticalScrollIndicator={false}
+              >
+                {/* Booking Name */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>
+                    <Ionicons
+                      name="create-outline"
+                      size={16}
+                      color={colors.red}
+                    />{" "}
+                    Booking Name *
+                  </Text>
+                  <TextInput
+                    style={styles.textInput}
+                    value={editFormData.bookingName}
+                    onChangeText={(text) =>
+                      setEditFormData({ ...editFormData, bookingName: text })
+                    }
+                    placeholder="Enter booking name"
+                    placeholderTextColor="#999"
+                  />
+                </View>
+
+                {/* Booking Date */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>
+                    <Ionicons
+                      name="calendar-outline"
+                      size={16}
+                      color={colors.red}
+                    />{" "}
+                    Booking Date *
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.datePickerButton}
+                    onPress={() => {
+                      console.log("Date picker button pressed");
+                      setShowDatePicker(true);
+                    }}
+                  >
+                    <Text style={styles.datePickerText}>
+                      {editFormData.bookingDate.toLocaleDateString("en-GB")}
+                    </Text>
+                    <Ionicons name="chevron-down" size={20} color="#666" />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Start Time */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>
+                    <Ionicons
+                      name="time-outline"
+                      size={16}
+                      color={colors.red}
+                    />{" "}
+                    Start Time *
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.datePickerButton}
+                    onPress={() => {
+                      console.log("Start time picker button pressed");
+                      setShowStartTimePicker(true);
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.datePickerText,
+                        !editFormData.startTime && styles.placeholderText,
+                      ]}
+                    >
+                      {editFormData.startTime || "Select start time"}
+                    </Text>
+                    <Ionicons name="chevron-down" size={20} color="#666" />
+                  </TouchableOpacity>
+                </View>
+
+                {/* End Time */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>
+                    <Ionicons
+                      name="time-outline"
+                      size={16}
+                      color={colors.red}
+                    />{" "}
+                    End Time *
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.datePickerButton}
+                    onPress={() => {
+                      console.log("End time picker button pressed");
+                      setShowEndTimePicker(true);
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.datePickerText,
+                        !editFormData.endTime && styles.placeholderText,
+                      ]}
+                    >
+                      {editFormData.endTime || "Select end time"}
+                    </Text>
+                    <Ionicons name="chevron-down" size={20} color="#666" />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Note */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>
+                    <Ionicons
+                      name="document-text-outline"
+                      size={16}
+                      color={colors.red}
+                    />{" "}
+                    Note
+                  </Text>
+                  <TextInput
+                    style={[styles.textInput, styles.textArea]}
+                    value={editFormData.note}
+                    onChangeText={(text) =>
+                      setEditFormData({ ...editFormData, note: text })
+                    }
+                    placeholder="Add any additional notes (optional)"
+                    placeholderTextColor="#999"
+                    multiline
+                    numberOfLines={4}
+                    textAlignVertical="top"
+                  />
+                </View>
+
+                {/* Submit Button */}
+                <TouchableOpacity
+                  style={styles.submitButton}
+                  onPress={handleSubmitEditRequest}
+                >
+                  <Ionicons name="checkmark-circle" size={20} color="#fff" />
+                  <Text style={styles.submitButtonText}>Send Edit Request</Text>
+                </TouchableOpacity>
+              </ScrollView>
+            </View>
+          </View>
+
+          {/* Date Picker Modal */}
+          <DateTimePickerModal
+            isVisible={showDatePicker}
+            mode="date"
+            onConfirm={handleDateConfirm}
+            onCancel={() => setShowDatePicker(false)}
+            date={editFormData.bookingDate}
+            minimumDate={new Date()}
           />
 
-          {/* Sessions List */}
-          <ScrollView
-            style={styles.scrollView}
-            showsVerticalScrollIndicator={false}
-          >
-            {loading ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={colors.red} />
-                <Text style={styles.loadingText}>
-                  {t("calendar.loadingSessions")}
-                </Text>
-              </View>
-            ) : (
-              <>
-                {bookings
-                  .filter((session) => isSessionOnDate(session, selectedDate))
-                  .map((session, index) => (
-                    <SessionBookingCard
-                      key={session.bookingId}
-                      booking={session}
-                      formatTime={formatTime}
-                      calculateDuration={calculateDuration}
-                      buttonText={t("calendar.cancelSession")}
-                      ptName={session.ptName}
-                      ptAvatar={session.ptAvatarUrl}
-                      currentLanguage={currentLanguage}
-                      t={t}
-                      buttonAction={() => {
-                        handleCancelBooking(session.bookingId);
-                      }}
-                    />
-                  ))}
+          {/* Start Time Picker Modal */}
+          <DateTimePickerModal
+            isVisible={showStartTimePicker}
+            mode="time"
+            onConfirm={handleStartTimeConfirm}
+            onCancel={() => setShowStartTimePicker(false)}
+            is24Hour={true}
+          />
 
-                {bookings.filter((session) =>
-                  isSessionOnDate(session, selectedDate)
-                ).length === 0 && (
-                  <View style={styles.emptyContainer}>
-                    <Ionicons name="calendar-outline" size={64} color="#ccc" />
-                    <Text style={styles.emptyText}>
-                      {t("calendar.noSessionsScheduled")}
-                    </Text>
-                    <Text style={styles.emptySubText}>
-                      {t("calendar.noSessionsFor")}{" "}
-                      {selectedDate.toLocaleDateString(
-                        currentLanguage === "vi" ? "vi-VN" : "en-US",
-                        {
-                          day: "2-digit",
-                          month: "2-digit",
-                        }
-                      )}
-                    </Text>
-                  </View>
-                )}
-              </>
-            )}
-          </ScrollView>
-        </View>
+          {/* End Time Picker Modal */}
+          <DateTimePickerModal
+            isVisible={showEndTimePicker}
+            mode="time"
+            onConfirm={handleEndTimeConfirm}
+            onCancel={() => setShowEndTimePicker(false)}
+            is24Hour={true}
+          />
+        </Modal>
       </View>
-    </View>
+    </>
   );
 }
 
@@ -316,5 +697,96 @@ const styles = StyleSheet.create({
     color: "#6c757d",
     marginTop: 16,
     textAlign: "center",
+  },
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: "90%",
+    paddingBottom: Platform.OS === "ios" ? 34 : 20,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  closeButton: {
+    padding: 4,
+  },
+  modalBody: {
+    padding: 20,
+  },
+  inputGroup: {
+    marginBottom: 20,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 8,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  textInput: {
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: "#333",
+    backgroundColor: "#fff",
+  },
+  textArea: {
+    height: 100,
+    paddingTop: 12,
+  },
+  datePickerButton: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "#fff",
+  },
+  datePickerText: {
+    fontSize: 16,
+    color: "#333",
+  },
+  placeholderText: {
+    color: "#999",
+  },
+  submitButton: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: colors.red,
+    paddingVertical: 16,
+    borderRadius: 12,
+    marginTop: 12,
+    marginBottom: 8,
+    gap: 8,
+  },
+  submitButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });

@@ -89,6 +89,22 @@ export default function ScheduleFreelanceScreen() {
   };
 
   const handleStartTimeConfirm = (time) => {
+    // Check if the selected date is today
+    const today = new Date();
+    const isToday = selectedDate.toDateString() === today.toDateString();
+
+    // If today, check if selected time is in the past
+    if (isToday) {
+      const now = new Date();
+      if (time < now) {
+        Alert.alert(
+          t("common.error") || "Error",
+          "Cannot select a time in the past"
+        );
+        return;
+      }
+    }
+
     const hours = time.getHours().toString().padStart(2, "0");
     const minutes = time.getMinutes().toString().padStart(2, "0");
     setStartTime(`${hours}:${minutes}`);
@@ -96,8 +112,35 @@ export default function ScheduleFreelanceScreen() {
   };
 
   const handleEndTimeConfirm = (time) => {
-    const hours = time.getHours().toString().padStart(2, "0");
-    const minutes = time.getMinutes().toString().padStart(2, "0");
+    if (!startTime) {
+      Alert.alert(
+        t("common.error") || "Error",
+        "Please select start time first"
+      );
+      return;
+    }
+
+    // Parse start time
+    const [startHour, startMin] = startTime.split(":").map(Number);
+    const startMinutes = startHour * 60 + startMin;
+
+    // Parse end time
+    const endHour = time.getHours();
+    const endMin = time.getMinutes();
+    const endMinutes = endHour * 60 + endMin;
+
+    // Check if end time is at least 1 hour after start time
+    const diffMinutes = endMinutes - startMinutes;
+    if (diffMinutes < 60) {
+      Alert.alert(
+        t("common.error") || "Error",
+        "End time must be at least 1 hour after start time"
+      );
+      return;
+    }
+
+    const hours = endHour.toString().padStart(2, "0");
+    const minutes = endMin.toString().padStart(2, "0");
     setEndTime(`${hours}:${minutes}`);
     setShowEndTimePicker(false);
   };
@@ -128,11 +171,12 @@ export default function ScheduleFreelanceScreen() {
     const [endHour, endMin] = endTime.split(":").map(Number);
     const startMinutes = startHour * 60 + startMin;
     const endMinutes = endHour * 60 + endMin;
+    const diffMinutes = endMinutes - startMinutes;
 
-    if (endMinutes <= startMinutes) {
+    if (diffMinutes < 60) {
       Alert.alert(
         t("common.error") || "Error",
-        "End time must be after start time"
+        "End time must be at least 1 hour after start time"
       );
       return false;
     }

@@ -28,6 +28,10 @@ const accountService = {
     request("POST", "v1/bookings/accept-booking-request", data),
   rejectBookingRequest: (data) =>
     request("POST", "v1/bookings/reject-booking-request", data),
+  requestEditBooking: (data) =>
+    request("POST", "v1/bookings/request-edit-booking", data),
+  acceptEditBooking: (data) =>
+    request("POST", "v1/bookings/accept-edit-booking", data),
 };
 
 export default accountService;
