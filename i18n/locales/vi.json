@@ -35,7 +35,7 @@
     "me": "Tôi",
     "ptSchedule": "Đăng Ký Lịch PT",
     "withdrawal": "Rút Tiền",
-    "freelancePTSchedule": "Lịch Tập",
+    "freelancePTSchedule": "Lịch Dạy",
     "freelancePTHome": "Trang chủ",
     "freelancePTChat": "Nhắn tin",
     "Booking": "Đặt lịch",
@@ -121,7 +121,7 @@
     "viewMore": "Xem thêm",
     "freelancePT": "Gói Tập Freelance PT",
     "noFreelancePTPackages": "Hiện chưa có gói tập Freelance PT",
-    "freelancePTTrainers": "Huấn luyện viên tự do"
+    "freelancePTTrainers": "PT Freelance"
   },
 
   "gym": {
@@ -1115,7 +1115,7 @@
   },
 
   "fitness": {
-    "todaysActivity": "Hoạt động hôm nay",
+    "todaysActivity": "Hôm nay",
     "viewDetails": "Xem chi tiết",
     "steps": "Bước chân",
     "distance": "Khoảng cách",
