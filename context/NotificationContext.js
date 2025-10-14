@@ -6,7 +6,6 @@ import {
   useEffect,
   useCallback,
 } from "react";
-import { useSignalR } from "./SignalRContext";
 import {
   CLIENT_METHODS,
   HUB_METHODS,
@@ -16,6 +15,7 @@ import unregisterNotificationHandlers from "../services/signalR/unregisterNotifi
 import { LIFECYCLE_METHODS } from "../services/signalR/lifecycleMethods";
 import { ConnectionStates } from "../services/signalR/ConnectionStates";
 import notificationService from "../services/notificationService";
+import { useSignalR } from "./signalrContext";
 
 const NotificationContext = createContext();
 
