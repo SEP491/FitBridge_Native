@@ -13,7 +13,7 @@ export const useSignalR = () => {
 };
 
 // Provider component
-export const SignalRProvider = ({ children }) => {
+export const SignalR_WebRTCProvider = ({ children }) => {
   const service = useMemo(() => signalR_webrtcService, []);
 
   useEffect(() => {

@@ -15,7 +15,7 @@ import unregisterNotificationHandlers from "../services/signalR/unregisterNotifi
 import { LIFECYCLE_METHODS } from "../services/signalR/lifecycleMethods";
 import { ConnectionStates } from "../services/signalR/ConnectionStates";
 import notificationService from "../services/notificationService";
-import { useSignalR } from "./signalrContext";
+import { useSignalR } from "./SignalRContext";
 
 const NotificationContext = createContext();
 

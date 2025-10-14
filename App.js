@@ -15,6 +15,7 @@ import { registerGlobals } from "react-native-webrtc";
 // Import i18n configuration
 import "./i18n";
 import { MeetingStateProvider } from "./context/meetingStateContext";
+import { SignalR_WebRTCProvider } from "./context/signalrContext_webrtc";
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -84,6 +85,7 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <SignalRProvider>
+        <SignalR_WebRTCProvider>
           <WebRTCProvider>
             <MeetingStateProvider>
               <NotificationProvider>
@@ -97,6 +99,7 @@ export default function App() {
               </NotificationProvider>
             </MeetingStateProvider>
           </WebRTCProvider>
+          </SignalR_WebRTCProvider>
         </SignalRProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
