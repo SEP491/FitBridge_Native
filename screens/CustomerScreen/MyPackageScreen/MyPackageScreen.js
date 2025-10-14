@@ -85,7 +85,7 @@ export default function MyPackageScreen() {
             try {
               const response = await packageService.extendPackage({
                 customerPurchasedIdToExtend: customerPurchaseId,
-                paymentMethodId: "01997597-d188-7f12-95f4-43ef8d442612",
+                paymentMethodId: "ea6876d3-7a25-4b5a-b08e-8bb797cd1a2a",
                 quantity: 1,
               });
               console.log("Extend Package Response:", response.data);

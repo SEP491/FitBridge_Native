@@ -59,7 +59,7 @@ export default function ScheduleFreelanceScreen() {
   const loadAllRequestForUser = async () => {
     try {
       const response = await accountService.getAllRequestForUser({
-        customerPurchasedId: "0199be61-cd7c-7ab0-a6d3-e84d463dd696",
+        customerPurchasedId: "0199e436-fae3-7ab9-bd79-1dd53ba004ed",
         doApplyPaging: false,
       });
       setRequests(response.data?.items || []);
@@ -103,12 +103,19 @@ export default function ScheduleFreelanceScreen() {
   const handleStartTimeConfirm = (time) => {
     // Check if the selected date is today
     const today = new Date();
-    const isToday = selectedDate.toDateString() === today.toDateString();
+    today.setHours(0, 0, 0, 0);
+    const selectedDateOnly = new Date(selectedDate);
+    selectedDateOnly.setHours(0, 0, 0, 0);
+
+    const isToday = selectedDateOnly.getTime() === today.getTime();
 
     // If today, check if selected time is in the past
     if (isToday) {
       const now = new Date();
-      if (time < now) {
+      const selectedDateTime = new Date();
+      selectedDateTime.setHours(time.getHours(), time.getMinutes(), 0, 0);
+
+      if (selectedDateTime < now) {
         Alert.alert(t("common.error"), t("bookingRequest.pastTimeError"));
         return;
       }
@@ -190,7 +197,7 @@ export default function ScheduleFreelanceScreen() {
     setIsSubmitting(true);
     try {
       const payload = {
-        customerPurchasedId: "0199be61-cd7c-7ab0-a6d3-e84d463dd696",
+        customerPurchasedId: "0199e436-fae3-7ab9-bd79-1dd53ba004ed",
         requestBookings: [
           {
             bookingName: bookingName.trim(),
@@ -479,7 +486,6 @@ export default function ScheduleFreelanceScreen() {
       <DateTimePickerModal
         isVisible={showStartTimePicker}
         mode="time"
-        minimumDate={new Date()}
         onConfirm={handleStartTimeConfirm}
         onCancel={() => setShowStartTimePicker(false)}
         is24Hour={true}
@@ -489,7 +495,6 @@ export default function ScheduleFreelanceScreen() {
       <DateTimePickerModal
         isVisible={showEndTimePicker}
         mode="time"
-        minimumDate={new Date()}
         onConfirm={handleEndTimeConfirm}
         onCancel={() => setShowEndTimePicker(false)}
         is24Hour={true}

@@ -229,19 +229,26 @@ export default function CalendarScheduleScreen() {
     // Find the booking to edit
     const booking = bookings.find((b) => b.bookingId === bookingId);
     if (!booking) {
-      Alert.alert("Error", "Booking not found");
+      Alert.alert(t("common.error"), t("bookingRequest.bookingNotFound"));
       return;
     }
 
     // Parse the booking date and times
     const bookingDate = new Date(booking.bookingDate);
 
+    // Format times to HH:MM (remove seconds if present)
+    const formatTimeDisplay = (timeString) => {
+      if (!timeString) return "";
+      const parts = timeString.split(":");
+      return `${parts[0]}:${parts[1]}`;
+    };
+
     setEditingBooking(booking);
     setEditFormData({
       bookingName: booking.bookingName || "",
       bookingDate: bookingDate,
-      startTime: booking.startTime || "",
-      endTime: booking.endTime || "",
+      startTime: formatTimeDisplay(booking.startTime),
+      endTime: formatTimeDisplay(booking.endTime),
       note: booking.note || "",
     });
     setShowEditModal(true);
@@ -266,12 +273,12 @@ export default function CalendarScheduleScreen() {
 
   const handleSubmitEditRequest = async () => {
     if (!editFormData.bookingName.trim()) {
-      Alert.alert("Error", "Please enter a booking name");
+      Alert.alert(t("common.error"), t("bookingRequest.bookingNameRequired"));
       return;
     }
 
     if (!editFormData.startTime || !editFormData.endTime) {
-      Alert.alert("Error", "Please select start and end time");
+      Alert.alert(t("common.error"), t("bookingRequest.selectStartEndTime"));
       return;
     }
 
@@ -290,13 +297,13 @@ export default function CalendarScheduleScreen() {
       const response = await accountService.requestEditBooking(payload);
       console.log("Edit request response:", response.data);
 
-      Alert.alert("Success", "Edit request has been sent successfully!");
+      Alert.alert(t("common.success"), t("bookingRequest.editRequestSuccess"));
       setShowEditModal(false);
       setEditingBooking(null);
       loadBookingOfUser(selectedDate);
     } catch (error) {
       console.error("Error requesting edit:", error);
-      Alert.alert("Error", "Failed to send edit request");
+      Alert.alert(t("common.error"), t("bookingRequest.editRequestError"));
     }
   };
 
@@ -310,19 +317,24 @@ export default function CalendarScheduleScreen() {
     console.log("Start time confirmed:", time);
 
     // Check if the selected date is today
-    const selectedDate = new Date(editFormData.bookingDate);
+    const selectedDateOnly = new Date(editFormData.bookingDate);
+    selectedDateOnly.setHours(0, 0, 0, 0);
     const today = new Date();
-    const isToday = selectedDate.toDateString() === today.toDateString();
+    today.setHours(0, 0, 0, 0);
+
+    const isToday = selectedDateOnly.getTime() === today.getTime();
 
     // If today, check if selected time is in the past
     if (isToday) {
       const now = new Date();
-      if (time < now) {
-        Alert.alert("Error", "Cannot select a time in the past");
+      const selectedDateTime = new Date();
+      selectedDateTime.setHours(time.getHours(), time.getMinutes(), 0, 0);
+
+      if (selectedDateTime < now) {
+        Alert.alert(t("common.error"), t("bookingRequest.pastTimeError"));
         return;
       }
     }
-
     const hours = time.getHours().toString().padStart(2, "0");
     const minutes = time.getMinutes().toString().padStart(2, "0");
     const timeString = `${hours}:${minutes}`;
@@ -334,7 +346,7 @@ export default function CalendarScheduleScreen() {
     console.log("End time confirmed:", time);
 
     if (!editFormData.startTime) {
-      Alert.alert("Error", "Please select start time first");
+      Alert.alert(t("common.error"), t("bookingRequest.selectStartTimeFirst"));
       return;
     }
 
@@ -350,7 +362,7 @@ export default function CalendarScheduleScreen() {
     // Check if end time is at least 1 hour after start time
     const diffMinutes = endMinutes - startMinutes;
     if (diffMinutes < 60) {
-      Alert.alert("Error", "End time must be at least 1 hour after start time");
+      Alert.alert(t("common.error"), t("bookingRequest.endTimeMinimum"));
       return;
     }
 
@@ -411,8 +423,11 @@ export default function CalendarScheduleScreen() {
                         formatTime={formatTime}
                         calculateDuration={calculateDuration}
                         buttonText={t("calendar.cancelSession")}
-                        editButtonText="Request Edit"
-                        showEditButton={session.ptGymSlotId ? false : true}
+                        editButtonText={t("calendar.requestEdit")}
+                        showEditButton={
+                          !session.ptGymSlotId &&
+                          session.sessionStatus !== "WaitingForEdit"
+                        }
                         editButtonAction={() => {
                           handleEditBooking(session.bookingId);
                         }}
@@ -470,7 +485,9 @@ export default function CalendarScheduleScreen() {
             <View style={styles.modalContent}>
               {/* Header */}
               <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Request Edit Booking</Text>
+                <Text style={styles.modalTitle}>
+                  {t("calendar.requestEditBooking")}
+                </Text>
                 <TouchableOpacity
                   onPress={() => {
                     setShowEditModal(false);
@@ -494,7 +511,7 @@ export default function CalendarScheduleScreen() {
                       size={16}
                       color={colors.red}
                     />{" "}
-                    Booking Name *
+                    {t("bookingRequest.bookingName")} *
                   </Text>
                   <TextInput
                     style={styles.textInput}
@@ -502,7 +519,7 @@ export default function CalendarScheduleScreen() {
                     onChangeText={(text) =>
                       setEditFormData({ ...editFormData, bookingName: text })
                     }
-                    placeholder="Enter booking name"
+                    placeholder={t("bookingRequest.bookingNamePlaceholder")}
                     placeholderTextColor="#999"
                   />
                 </View>
@@ -515,7 +532,7 @@ export default function CalendarScheduleScreen() {
                       size={16}
                       color={colors.red}
                     />{" "}
-                    Booking Date *
+                    {t("bookingRequest.date")} *
                   </Text>
                   <TouchableOpacity
                     style={styles.datePickerButton}
@@ -539,7 +556,7 @@ export default function CalendarScheduleScreen() {
                       size={16}
                       color={colors.red}
                     />{" "}
-                    Start Time *
+                    {t("bookingRequest.startTime")} *
                   </Text>
                   <TouchableOpacity
                     style={styles.datePickerButton}
@@ -554,7 +571,8 @@ export default function CalendarScheduleScreen() {
                         !editFormData.startTime && styles.placeholderText,
                       ]}
                     >
-                      {editFormData.startTime || "Select start time"}
+                      {editFormData.startTime ||
+                        t("bookingRequest.selectStartTime")}
                     </Text>
                     <Ionicons name="chevron-down" size={20} color="#666" />
                   </TouchableOpacity>
@@ -568,7 +586,7 @@ export default function CalendarScheduleScreen() {
                       size={16}
                       color={colors.red}
                     />{" "}
-                    End Time *
+                    {t("bookingRequest.endTime")} *
                   </Text>
                   <TouchableOpacity
                     style={styles.datePickerButton}
@@ -583,7 +601,8 @@ export default function CalendarScheduleScreen() {
                         !editFormData.endTime && styles.placeholderText,
                       ]}
                     >
-                      {editFormData.endTime || "Select end time"}
+                      {editFormData.endTime ||
+                        t("bookingRequest.selectEndTime")}
                     </Text>
                     <Ionicons name="chevron-down" size={20} color="#666" />
                   </TouchableOpacity>
@@ -597,7 +616,7 @@ export default function CalendarScheduleScreen() {
                       size={16}
                       color={colors.red}
                     />{" "}
-                    Note
+                    {t("bookingRequest.note")}
                   </Text>
                   <TextInput
                     style={[styles.textInput, styles.textArea]}
@@ -605,7 +624,7 @@ export default function CalendarScheduleScreen() {
                     onChangeText={(text) =>
                       setEditFormData({ ...editFormData, note: text })
                     }
-                    placeholder="Add any additional notes (optional)"
+                    placeholder={t("bookingRequest.notePlaceholder")}
                     placeholderTextColor="#999"
                     multiline
                     numberOfLines={4}
@@ -619,7 +638,9 @@ export default function CalendarScheduleScreen() {
                   onPress={handleSubmitEditRequest}
                 >
                   <Ionicons name="checkmark-circle" size={20} color="#fff" />
-                  <Text style={styles.submitButtonText}>Send Edit Request</Text>
+                  <Text style={styles.submitButtonText}>
+                    {t("calendar.sendEditRequest")}
+                  </Text>
                 </TouchableOpacity>
               </ScrollView>
             </View>

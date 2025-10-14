@@ -808,7 +808,8 @@
     "statusPending": "Chờ Xử Lý",
     "confirmCancelSession": "Bạn có chắc chắn muốn hủy buổi tập này?",
     "yes": "Có",
-    "no": "Không"
+    "no": "Không",
+    "requestEdit": "Thay Đổi"
   },
 
   "pt": {
@@ -1242,8 +1243,8 @@
     "startTimeRequired": "Vui lòng chọn giờ bắt đầu",
     "endTimeRequired": "Vui lòng chọn giờ kết thúc",
     "note": "Ghi Chú",
-    "type": "Loại",
-    "time": "Thời Gian",
+    "type": "Từ",
+    "time": "Giờ",
     "status": "Trạng Thái",
     "from": "Từ",
     "customer": "Khách Hàng",
@@ -1253,12 +1254,12 @@
     "approved": "Đã Chấp Nhận",
     "rejected": "Đã Từ Chối",
     "pending": "Đang Chờ",
-    "originalBooking": "Lịch Gốc:",
+    "originalBooking": "Lịch Cũ:",
     "requestTypes": {
-      "customerRequest": "Yêu Cầu Từ Khách Hàng",
-      "ptProposal": "Đề Xuất Từ PT",
-      "customerEditRequest": "Yêu Cầu Chỉnh Sửa Từ Khách Hàng",
-      "ptEditRequest": "Yêu Cầu Chỉnh Sửa Từ PT"
+      "customerRequest": "Từ Khách Hàng",
+      "ptProposal": "Từ PT",
+      "customerEditRequest": "Thay Đổi Từ Khách Hàng",
+      "ptEditRequest": "Thay Đổi Từ PT"
     },
     "filters": {
       "all": "Tất Cả",

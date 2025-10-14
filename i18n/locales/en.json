@@ -837,7 +837,8 @@
     "statusPending": "Pending",
     "confirmCancelSession": "Are you sure you want to cancel this session?",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "requestEdit": "Edit"
   },
 
   "pt": {
