@@ -348,7 +348,7 @@ export default function BookingDetailScreen({ route, navigation }) {
               key={actIndex}
               style={styles.setCard}
               onPress={() =>
-                navigation.navigate("SessionActivityDetailScreen", {
+                navigation.navigate("TrainingActivityScreen", {
                   activityId: activity.id,
                 })
               }

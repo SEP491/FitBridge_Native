@@ -9,6 +9,13 @@ const bookingService = {
 
   getSessionActivityDetail: (activityId) =>
     request("GET", `v1/session-activities/${activityId}`),
+
+  addActivitySet: (data) => request("POST", `v1/activity-sets`, data),
+  getSetsOfActivity: (activityId) =>
+    request("GET", `v1/activity-sets/session-activity/${activityId}`),
+
+  updateActivitySet: (data) =>
+    request("PUT", `v1/activity-sets/activity-progress`, data),
 };
 
 export default bookingService;

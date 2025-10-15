@@ -76,6 +76,7 @@ import FreelanceChoosingCourseScreen from "../screens/FreelancePTScreen/Freelanc
 import FreelancePTRequestScreen from "../screens/FreelancePTScreen/FreelancePTRequestScreen/FreelancePTRequestScreen";
 import BookingDetailScreen from "../screens/CustomerScreen/BookingDetailScreen/BookingDetailScreen";
 import SessionActivityDetailScreen from "../screens/CustomerScreen/SessionActivityDetailScreen/SessionActivityDetailScreen";
+import TrainingActivityScreen from "../screens/CustomerScreen/TrainingActivityScreen/TrainingActivityScreen";
 
 export default function Navigator({
   isAuthenticated: propIsAuthenticated,
@@ -744,6 +745,20 @@ export default function Navigator({
           options={{
             headerShown: true,
             title: t("screenTitles.activityDetail") || "Chi tiết bài tập",
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="TrainingActivityScreen"
+          component={TrainingActivityScreen}
+          options={{
+            headerShown: true,
+            title: "Tập luyện",
             headerTitleAlign: "center",
             headerTitleStyle: {
               fontWeight: "bold",

@@ -7,9 +7,14 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Alert,
+  Modal,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import bookingService from "../../../services/bookingService";
+import { fetchUserFromStorage } from "../../../lib";
 
 const ACTIVITY_TYPES = {
   WarmUp: { name: "Aerobic / Cardio", color: "#FFB6C1", icon: "bicycle" },
@@ -29,16 +34,34 @@ export default function SessionActivityDetailScreen({ route, navigation }) {
   const { activityId } = route.params;
   const [loading, setLoading] = useState(true);
   const [activityData, setActivityData] = useState(null);
+  const [userRole, setUserRole] = useState(null);
+  const [showAddSetModal, setShowAddSetModal] = useState(false);
+  const [newSet, setNewSet] = useState({
+    weightLifted: "",
+    numOfReps: "",
+  });
 
   useEffect(() => {
+    loadUserRole();
     fetchActivityDetail();
   }, [activityId]);
+
+  const loadUserRole = async () => {
+    try {
+      const user = await fetchUserFromStorage();
+      setUserRole(user?.role);
+    } catch (error) {
+      console.error("Error loading user:", error);
+    }
+  };
 
   const fetchActivityDetail = async () => {
     try {
       setLoading(true);
-      const response = await bookingService.getSessionActivityDetail(activityId);
-      
+      const response = await bookingService.getSessionActivityDetail(
+        activityId
+      );
+      console.log("Activity Detail Response:", response.data);
       if (response?.data) {
         setActivityData(response.data);
       }
@@ -48,6 +71,39 @@ export default function SessionActivityDetailScreen({ route, navigation }) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleAddSet = async () => {
+    // Validate inputs
+    if (!newSet.weightLifted || !newSet.numOfReps) {
+      Alert.alert("Validation Error", "Please fill in all fields");
+      return;
+    }
+
+    try {
+      const payload = {
+        sessionActivityId: activityId,
+        weightLifted: parseFloat(newSet.weightLifted),
+        numOfReps: parseInt(newSet.numOfReps),
+      };
+
+      await bookingService.addActivitySet(payload);
+
+      Alert.alert("Success", "Set added successfully");
+      setShowAddSetModal(false);
+      setNewSet({ weightLifted: "", numOfReps: "" });
+
+      // Refresh activity data
+      fetchActivityDetail();
+    } catch (error) {
+      console.error("Error adding set:", error);
+      Alert.alert("Error", "Failed to add set");
+    }
+  };
+
+  const resetModal = () => {
+    setNewSet({ weightLifted: "", numOfReps: "" });
+    setShowAddSetModal(false);
   };
 
   if (loading) {
@@ -138,7 +194,9 @@ export default function SessionActivityDetailScreen({ route, navigation }) {
               return (
                 <View key={index} style={styles.muscleChip}>
                   <Text style={styles.muscleEmoji}>{muscle?.icon}</Text>
-                  <Text style={styles.muscleName}>{muscle?.name || muscleKey}</Text>
+                  <Text style={styles.muscleName}>
+                    {muscle?.name || muscleKey}
+                  </Text>
                 </View>
               );
             })}
@@ -160,7 +218,11 @@ export default function SessionActivityDetailScreen({ route, navigation }) {
                 <Text style={styles.setNumber}>Set {index + 1}</Text>
                 {set.isCompleted && (
                   <View style={styles.completedBadge}>
-                    <Ionicons name="checkmark-circle" size={18} color="#10B981" />
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={18}
+                      color="#10B981"
+                    />
                     <Text style={styles.completedText}>Completed</Text>
                   </View>
                 )}
@@ -177,7 +239,11 @@ export default function SessionActivityDetailScreen({ route, navigation }) {
                       </Text>
                     </View>
                     <View style={styles.setDetailItem}>
-                      <Ionicons name="checkmark-done" size={20} color="#64748B" />
+                      <Ionicons
+                        name="checkmark-done"
+                        size={20}
+                        color="#64748B"
+                      />
                       <Text style={styles.setDetailLabel}>Actual Reps</Text>
                       <Text style={styles.setDetailValue}>
                         {set.numOfReps || 0}
@@ -201,7 +267,11 @@ export default function SessionActivityDetailScreen({ route, navigation }) {
                       </Text>
                     </View>
                     <View style={styles.setDetailItem}>
-                      <Ionicons name="checkmark-done" size={20} color="#64748B" />
+                      <Ionicons
+                        name="checkmark-done"
+                        size={20}
+                        color="#64748B"
+                      />
                       <Text style={styles.setDetailLabel}>Actual Time</Text>
                       <Text style={styles.setDetailValue}>
                         {set.practiceTime || 0}s
@@ -225,7 +295,96 @@ export default function SessionActivityDetailScreen({ route, navigation }) {
             <Text style={styles.emptySetText}>No sets available</Text>
           </View>
         )}
+
+        {/* Add Set Button - Only for FreelancePT */}
+        {userRole === "FreelancePT" && (
+          <TouchableOpacity
+            style={styles.addSetButton}
+            onPress={() => setShowAddSetModal(true)}
+          >
+            <Ionicons name="add-circle" size={24} color="#F97316" />
+            <Text style={styles.addSetButtonText}>Add New Set</Text>
+          </TouchableOpacity>
+        )}
       </View>
+
+      {/* Add Set Modal */}
+      <Modal
+        visible={showAddSetModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={resetModal}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.modalOverlay}
+        >
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={resetModal}
+          >
+            <TouchableOpacity
+              activeOpacity={1}
+              onPress={(e) => e.stopPropagation()}
+              style={styles.modalContent}
+            >
+              {/* Modal Header */}
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Add New Set</Text>
+                <TouchableOpacity onPress={resetModal}>
+                  <Ionicons name="close-circle" size={28} color="#64748B" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Form */}
+              <ScrollView style={styles.modalForm}>
+                <View style={styles.formSection}>
+                  <Text style={styles.formLabel}>Weight Lifted (kg) *</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter weight in kg"
+                    keyboardType="numeric"
+                    value={newSet.weightLifted}
+                    onChangeText={(text) =>
+                      setNewSet({ ...newSet, weightLifted: text })
+                    }
+                  />
+                </View>
+
+                <View style={styles.formSection}>
+                  <Text style={styles.formLabel}>Number of Reps *</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter number of reps"
+                    keyboardType="numeric"
+                    value={newSet.numOfReps}
+                    onChangeText={(text) =>
+                      setNewSet({ ...newSet, numOfReps: text })
+                    }
+                  />
+                </View>
+              </ScrollView>
+
+              {/* Action Buttons */}
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.cancelButton]}
+                  onPress={resetModal}
+                >
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.saveButton]}
+                  onPress={handleAddSet}
+                >
+                  <Text style={styles.saveButtonText}>Add Set</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </KeyboardAvoidingView>
+      </Modal>
     </ScrollView>
   );
 }
@@ -474,5 +633,125 @@ const styles = StyleSheet.create({
     color: "#64748B",
     marginTop: 12,
     fontWeight: "600",
+  },
+
+  // Add Set Button
+  addSetButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FEF3E2",
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 16,
+    marginTop: 16,
+    gap: 10,
+    borderWidth: 2,
+    borderColor: "#FB923C",
+    shadowColor: "#F97316",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  addSetButtonText: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#F97316",
+  },
+
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(30, 41, 59, 0.5)",
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    maxHeight: "70%",
+    paddingBottom: 20,
+    borderTopWidth: 3,
+    borderTopColor: "#FB923C",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 20,
+    borderBottomWidth: 1.5,
+    borderBottomColor: "#E2E8F0",
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#F97316",
+  },
+  modalForm: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  formSection: {
+    marginBottom: 20,
+  },
+  formLabel: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#334155",
+    marginBottom: 10,
+  },
+  input: {
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1.5,
+    borderColor: "#E2E8F0",
+    borderRadius: 16,
+    padding: 16,
+    fontSize: 15,
+    fontWeight: "500",
+    color: "#334155",
+    shadowColor: "#64748B",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  modalActions: {
+    flexDirection: "row",
+    gap: 12,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 16,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#64748B",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  cancelButton: {
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1.5,
+    borderColor: "#E2E8F0",
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#64748B",
+  },
+  saveButton: {
+    backgroundColor: "#F97316",
+    borderWidth: 1.5,
+    borderColor: "#EA580C",
+  },
+  saveButtonText: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#FFFFFF",
   },
 });
