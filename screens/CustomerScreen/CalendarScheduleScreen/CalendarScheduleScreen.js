@@ -431,6 +431,12 @@ export default function CalendarScheduleScreen() {
                         editButtonAction={() => {
                           handleEditBooking(session.bookingId);
                         }}
+                        viewDetailAction={() => {
+                          // Navigate to detail screen or show modal
+                          navigation.navigate("BookingDetailScreen", {
+                            bookingId: session.bookingId,
+                          });
+                        }}
                         ptName={session.ptName}
                         ptAvatar={session.ptAvatarUrl}
                         currentLanguage={currentLanguage}

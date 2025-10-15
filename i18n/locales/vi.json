@@ -80,7 +80,9 @@
     "freelancePTSchedule": "Lịch Tập Freelance PT",
     "voucherDetails": "Chi Tiết Voucher",
     "notification": "Thông Báo",
-    "packageDetail": "Chi Tiết Gói Tập"
+    "packageDetail": "Chi Tiết Gói Tập",
+    "bookingDetail": "Chi Tiết Đặt Lịch",
+    "activityDetail": "Chi Tiết Bài Tập"
   },
 
   "myPackage": {
@@ -810,7 +812,8 @@
     "confirmCancelSession": "Bạn có chắc chắn muốn hủy buổi tập này?",
     "yes": "Có",
     "no": "Không",
-    "requestEdit": "Thay Đổi"
+    "requestEdit": "Thay Đổi",
+    "viewDetail": "Chi Tiết"
   },
 
   "pt": {

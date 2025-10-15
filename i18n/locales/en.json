@@ -81,7 +81,9 @@
     "freelancePTSchedule": "Freelance PT Schedule",
     "voucherDetails": "Voucher Detail",
     "notification": "Notifications",
-    "packageDetail": "Package Details"
+    "packageDetail": "Package Details",
+    "bookingDetail": "Booking Detail",
+    "activityDetail": "Activity Detail"
   },
 
   "myPackage": {
@@ -839,7 +841,8 @@
     "confirmCancelSession": "Are you sure you want to cancel this session?",
     "yes": "Yes",
     "no": "No",
-    "requestEdit": "Edit"
+    "requestEdit": "Edit",
+    "viewDetail": "View Detail"
   },
 
   "pt": {

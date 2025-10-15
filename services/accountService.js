@@ -18,7 +18,8 @@ const accountService = {
   cancelBooking: (data) => request("POST", "v1/bookings/cancel-booking", data),
   getBookingForUser: (params) =>
     request("GET", "v1/bookings/get-customer-bookings", null, {}, params),
-
+  getBookingForPT: (params) =>
+    request("GET", "v1/bookings/freelance-pt-schedule", null, {}, params),
   getAllRequestForUser: (params) =>
     request("GET", "v1/bookings/booking-request", null, {}, params),
   createBookingRequest: (data) =>

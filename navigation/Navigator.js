@@ -74,6 +74,9 @@ import notificationService from "../services/notificationService";
 import ScheduleFreelanceScreen from "../screens/CustomerScreen/ScheduleFreelanceScreen/ScheduleFreelanceScreen";
 import FreelanceChoosingCourseScreen from "../screens/FreelancePTScreen/FreelanceChoosingCourseScreen/FreelanceChoosingCourseScreen";
 import FreelancePTRequestScreen from "../screens/FreelancePTScreen/FreelancePTRequestScreen/FreelancePTRequestScreen";
+import BookingDetailScreen from "../screens/CustomerScreen/BookingDetailScreen/BookingDetailScreen";
+import SessionActivityDetailScreen from "../screens/CustomerScreen/SessionActivityDetailScreen/SessionActivityDetailScreen";
+
 export default function Navigator({
   isAuthenticated: propIsAuthenticated,
   user: propUser,
@@ -396,12 +399,12 @@ export default function Navigator({
           }}
         />
 
-        {/* <Stack.Screen
-          name="ChoosingCourseScreen"
-          component={ChoosingCourseScreen}
+        <Stack.Screen
+          name="BookingDetailScreen"
+          component={BookingDetailScreen}
           options={{
             headerShown: true,
-            title: t("screenTitles.bookSession"),
+            title: t("screenTitles.bookingDetail"),
             headerTitleAlign: "center",
             headerTitleStyle: {
               fontWeight: "bold",
@@ -409,7 +412,7 @@ export default function Navigator({
               color: "#ED2A46",
             },
           }}
-        /> */}
+        />
         <Stack.Screen
           name="VideoCallScreen"
           component={VideoCallScreen}
@@ -542,11 +545,11 @@ export default function Navigator({
         })}
       >
         <Stack.Screen
-          name="ScheduleFreelanceScreen"
-          component={ScheduleFreelanceScreen}
+          name="ChoosingCourseScreen"
+          component={ChoosingCourseScreen}
           options={{
             headerShown: true,
-            title: t("screenTitles.schedule"),
+            title: t("screenTitles.bookSession"),
             headerTitleAlign: "center",
             headerTitleStyle: {
               fontWeight: "bold",
@@ -556,11 +559,11 @@ export default function Navigator({
           }}
         />
         <Stack.Screen
-          name="ChoosingCourseScreen"
-          component={ChoosingCourseScreen}
+          name="ScheduleFreelanceScreen"
+          component={ScheduleFreelanceScreen}
           options={{
             headerShown: true,
-            title: t("screenTitles.bookSession"),
+            title: t("screenTitles.schedule"),
             headerTitleAlign: "center",
             headerTitleStyle: {
               fontWeight: "bold",
@@ -713,6 +716,34 @@ export default function Navigator({
           options={{
             headerShown: true,
             title: t("screenTitles.freelancePTSchedule"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="BookingDetailScreen"
+          component={BookingDetailScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.bookingDetail") || "Chi tiết buổi tập",
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="SessionActivityDetailScreen"
+          component={SessionActivityDetailScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.activityDetail") || "Chi tiết bài tập",
             headerTitleAlign: "center",
             headerTitleStyle: {
               fontWeight: "bold",

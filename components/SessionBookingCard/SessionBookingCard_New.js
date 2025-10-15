@@ -12,10 +12,10 @@ const SessionBookingCard = ({
   editButtonText, // text for edit button
   editButtonAction, // action for edit button
   showEditButton = true, // whether to show edit button
+  viewDetailAction, // action for view detail button
   t, // translation function
   ptName, // PT name from props
   ptAvatar = null, // optional PT avatar
-  currentLanguage = "en", // language for date formatting
 }) => {
   // Extract data from booking API response
   const sessionStatus = booking.sessionStatus;
@@ -173,6 +173,28 @@ const SessionBookingCard = ({
             </View>
           </View>
         </View>
+
+        {/* View Detail Button - Always visible */}
+        {viewDetailAction && (
+          <TouchableOpacity
+            style={styles.viewDetailButton}
+            onPress={viewDetailAction}
+          >
+            <Ionicons
+              name="information-circle-outline"
+              size={16}
+              color={colors.orange}
+            />
+            <Text style={styles.viewDetailText}>
+              {t ? t("calendar.viewDetail") : "View Detail"}
+            </Text>
+            <Ionicons
+              name="chevron-forward-outline"
+              size={16}
+              color={colors.orange}
+            />
+          </TouchableOpacity>
+        )}
 
         {/* Action buttons - only show if not in past and not disabled */}
         {!shouldHideButton && (
@@ -390,6 +412,24 @@ const styles = StyleSheet.create({
   },
   disabledButtonText: {
     color: "#999",
+  },
+  viewDetailButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    borderWidth: 1,
+    backgroundColor: "#FFF8F0",
+    borderColor: colors.orange,
+    gap: 6,
+    marginTop: 12,
+  },
+  viewDetailText: {
+    fontSize: 15,
+    color: colors.orange,
+    fontWeight: "600",
   },
 });
 

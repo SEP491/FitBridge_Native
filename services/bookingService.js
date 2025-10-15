@@ -1,15 +1,14 @@
 import { request } from "./request";
 
 const bookingService = {
-  getBookingHistoryForUser: (params) =>
-    request("GET", "v1/booking/user", null, {}, params),
+  getBookingDetail: (bookingId) =>
+    request("GET", `v1/session-activities/practice-content/${bookingId}`),
 
-  getBookingHistoryForPT: (params) =>
-    request("GET", "v1/booking/pt", null, {}, params),
+  createSessionActivities: (data) =>
+    request("POST", `v1/session-activities`, data),
 
-  userBookSlotPT: (data) => request("POST", "v1/booking", data),
-  updateBookingStatus: (id, status) =>
-    request("PUT", `v1/booking/${id}`, null, {}, { status }),
+  getSessionActivityDetail: (activityId) =>
+    request("GET", `v1/session-activities/${activityId}`),
 };
 
 export default bookingService;
