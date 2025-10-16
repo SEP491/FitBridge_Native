@@ -197,6 +197,60 @@
     "yearsExperience": "years experience"
   },
 
+  "bookingDetail": {
+    "noContent": "No Content",
+    "ptHasNotCreatedContent": "PT has not created content for this session yet",
+    "sessionDetails": "Session Details",
+    "activityTypes": "Activity Types",
+    "noActivityTypes": "No activity types yet",
+    "mainMuscleGroups": "Main Muscle Groups",
+    "noMuscleGroups": "No muscle groups yet",
+    "exerciseList": "Exercise List",
+    "exerciseName": "Exercise Name",
+    "noExercises": "No exercises yet",
+    "addExerciseHint": "Tap the button below to add exercises",
+    "addExercise": "Add Exercise",
+    "notes": "Notes",
+    "addNotesPlaceholder": "Add notes for this session...",
+    "noNotes": "No notes",
+    "addExerciseModal": "Add Exercise",
+    "activityType": "Activity Type",
+    "exerciseType": "Exercise Type",
+    "reps": "Reps",
+    "time": "Time",
+    "selectMuscleGroups": "Select Muscle Groups",
+    "enterExerciseName": "Enter exercise name...",
+    "exerciseDetails": "Exercise Details",
+    "weight": "Weight (kg)",
+    "duration": "Duration (seconds)",
+    "addSet": "Add Set",
+    "confirm": "Confirm"
+  },
+
+  "trainingActivity": {
+    "loading": "Loading...",
+    "errorLoadingActivity": "Unable to load exercise information",
+    "warning": "Warning",
+    "saveBeforeContinue": "You need to save current exercise result before continuing",
+    "saveBeforeSwitch": "You need to save current exercise result before switching to another exercise",
+    "resultSaved": "Exercise result saved",
+    "errorSavingResult": "Unable to save exercise result",
+    "restTime": "Rest Time",
+    "completed": "completed",
+    "training": "Training",
+    "set": "Set",
+    "kg": "Kg",
+    "reps": "Reps",
+    "seconds": "Sec",
+    "rest": "Rest",
+    "completedStatus": "Completed",
+    "start": "Start",
+    "save": "Save",
+    "pause": "Pause",
+    "resume": "Resume",
+    "finish": "Finish"
+  },
+
   "cart": {
     "removePackage": "Remove Package",
     "removePackageConfirm": "Are you sure you want to remove this package from your cart?",
@@ -842,7 +896,9 @@
     "yes": "Yes",
     "no": "No",
     "requestEdit": "Edit",
-    "viewDetail": "View Detail"
+    "viewDetail": "View Detail",
+    "requestEditBooking": "Request Edit Booking",
+    "sendEditRequest": "Send Edit Request"
   },
 
   "pt": {
@@ -1304,6 +1360,10 @@
     "selectStartTimeFirst": "Please select start time first",
     "endTimeMinimum": "End time must be at least 1 hour after start time",
     "loadSlotsError": "Failed to load requests",
-    "noRequestsYet": "You don't have any booking requests yet"
+    "noRequestsYet": "You don't have any booking requests yet",
+    "selectStartEndTime": "Please select both start time and end time",
+    "editRequestSuccess": "Edit request sent successfully",
+    "editRequestError": "Failed to send edit request",
+    "notePlaceholder": "Enter additional notes (optional)"
   }
 }

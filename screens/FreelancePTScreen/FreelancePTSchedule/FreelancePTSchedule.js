@@ -431,8 +431,8 @@ export default function FreelancePTSchedule() {
                             bookingId: session.bookingId,
                           });
                         }}
-                        ptName={session.ptName}
-                        ptAvatar={session.ptAvatarUrl}
+                        ptName={session.customerName}
+                        ptAvatar={session.customerAvatarUrl}
                         currentLanguage={currentLanguage}
                         t={t}
                         buttonAction={() => {

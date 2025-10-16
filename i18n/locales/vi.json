@@ -197,6 +197,60 @@
     "yearsExperience": "năm kinh nghiệm"
   },
 
+  "bookingDetail": {
+    "noContent": "Chưa Có Nội Dung",
+    "ptHasNotCreatedContent": "PT chưa tạo nội dung cho buổi tập này",
+    "sessionDetails": "Chi Tiết Buổi Tập",
+    "activityTypes": "Loại Hình Hoạt Động",
+    "noActivityTypes": "Chưa có loại hoạt động nào",
+    "mainMuscleGroups": "Các Nhóm Cơ Chính",
+    "noMuscleGroups": "Chưa có nhóm cơ nào",
+    "exerciseList": "Danh Sách Bài Tập",
+    "exerciseName": "Tên Bài Tập",
+    "noExercises": "Chưa có bài tập nào",
+    "addExerciseHint": "Nhấn nút bên dưới để thêm bài tập",
+    "addExercise": "Thêm Bài Tập",
+    "notes": "Ghi Chú",
+    "addNotesPlaceholder": "Thêm ghi chú cho buổi tập...",
+    "noNotes": "Chưa có ghi chú",
+    "addExerciseModal": "Thêm Bài Tập",
+    "activityType": "Loại Hoạt Động",
+    "exerciseType": "Kiểu Bài Tập",
+    "reps": "Số Lần",
+    "time": "Thời Gian",
+    "selectMuscleGroups": "Chọn Nhóm Cơ",
+    "enterExerciseName": "Nhập tên bài tập...",
+    "exerciseDetails": "Chi Tiết Bài Tập",
+    "weight": "Trọng Lượng (kg)",
+    "duration": "Thời Gian (giây)",
+    "addSet": "Thêm Set",
+    "confirm": "Xác Nhận"
+  },
+
+  "trainingActivity": {
+    "loading": "Đang tải...",
+    "errorLoadingActivity": "Không thể tải thông tin bài tập",
+    "warning": "Cảnh Báo",
+    "saveBeforeContinue": "Bạn cần lưu kết quả bài tập hiện tại trước khi tiếp tục",
+    "saveBeforeSwitch": "Bạn cần lưu kết quả bài tập hiện tại trước khi chuyển sang bài tập khác",
+    "resultSaved": "Đã lưu kết quả bài tập",
+    "errorSavingResult": "Không thể lưu kết quả bài tập",
+    "restTime": "Thời Gian Nghỉ",
+    "completed": "hoàn thành",
+    "training": "Đang Tập",
+    "set": "Hiệp",
+    "kg": "Kg",
+    "reps": "Lượt",
+    "seconds": "Giây",
+    "rest": "Nghỉ",
+    "completedStatus": "Đã Hoàn Thành",
+    "start": "Bắt Đầu",
+    "save": "Lưu",
+    "pause": "Tạm Dừng",
+    "resume": "Tiếp Tục",
+    "finish": "Kết Thúc"
+  },
+
   "cart": {
     "removePackage": "Xóa gói tập",
     "removePackageConfirm": "Bạn có chắc chắn muốn xóa gói tập này khỏi giỏ hàng?",
@@ -813,7 +867,9 @@
     "yes": "Có",
     "no": "Không",
     "requestEdit": "Thay Đổi",
-    "viewDetail": "Chi Tiết"
+    "viewDetail": "Chi Tiết",
+    "requestEditBooking": "Yêu Cầu Thay Đổi Lịch",
+    "sendEditRequest": "Gửi Yêu Cầu Thay Đổi"
   },
 
   "pt": {
@@ -1285,6 +1341,10 @@
     "selectStartTimeFirst": "Vui lòng chọn giờ bắt đầu trước",
     "endTimeMinimum": "Giờ kết thúc phải ít nhất 1 giờ sau giờ bắt đầu",
     "loadSlotsError": "Tải yêu cầu thất bại",
-    "noRequestsYet": "Bạn chưa có yêu cầu đặt lịch nào"
+    "noRequestsYet": "Bạn chưa có yêu cầu đặt lịch nào",
+    "selectStartEndTime": "Vui lòng chọn cả giờ bắt đầu và giờ kết thúc",
+    "editRequestSuccess": "Gửi yêu cầu thay đổi thành công",
+    "editRequestError": "Gửi yêu cầu thay đổi thất bại",
+    "notePlaceholder": "Nhập ghi chú thêm (không bắt buộc)"
   }
 }

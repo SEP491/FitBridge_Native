@@ -5,8 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
-  Modal,
-  Pressable,
   Dimensions,
 } from "react-native";
 import React, { useEffect, useState, useRef } from "react";
@@ -14,10 +12,12 @@ import bookingService from "../../../services/bookingService";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import colors from "../../../constants/color";
+import { useTranslation } from "../../../hooks/useTranslation";
 
 const { width } = Dimensions.get("window");
 
 export default function TrainingActivityScreen({ route, navigation }) {
+  const { t } = useTranslation();
   const { activityId } = route.params;
   const [activityDetail, setActivityDetail] = useState(null);
   const [currentSetIndex, setCurrentSetIndex] = useState(0);
@@ -34,7 +34,7 @@ export default function TrainingActivityScreen({ route, navigation }) {
 
   // For Rest time
   const [isResting, setIsResting] = useState(false);
-  const [restTimeRemaining, setRestTimeRemaining] = useState(0);
+  const [actualRestTime, setActualRestTime] = useState(0);
   const restTimerRef = useRef(null);
 
   useEffect(() => {
@@ -47,7 +47,10 @@ export default function TrainingActivityScreen({ route, navigation }) {
         setActivityDetail(response.data);
       } catch (error) {
         console.error("Error fetching activity detail:", error);
-        Alert.alert("Lỗi", "Không thể tải thông tin bài tập");
+        Alert.alert(
+          t("common.error"),
+          t("trainingActivity.errorLoadingActivity")
+        );
       }
     };
     loadingActivityDetail();
@@ -83,17 +86,11 @@ export default function TrainingActivityScreen({ route, navigation }) {
     };
   }, [isTimerRunning, activityDetail?.activitySetType]);
 
-  // Rest timer
+  // Rest timer - counts up to track actual rest time
   useEffect(() => {
-    if (isResting && restTimeRemaining > 0) {
+    if (isResting) {
       restTimerRef.current = setInterval(() => {
-        setRestTimeRemaining((prev) => {
-          if (prev <= 1) {
-            setIsResting(false);
-            return 0;
-          }
-          return prev - 1;
-        });
+        setActualRestTime((prev) => prev + 1);
       }, 1000);
     } else {
       if (restTimerRef.current) {
@@ -105,13 +102,13 @@ export default function TrainingActivityScreen({ route, navigation }) {
     return () => {
       if (restTimerRef.current) clearInterval(restTimerRef.current);
     };
-  }, [isResting, restTimeRemaining]);
+  }, [isResting]);
 
   const startSet = () => {
     if (hasUnsavedChanges) {
       Alert.alert(
-        "Cảnh báo",
-        "Bạn cần lưu kết quả bài tập hiện tại trước khi tiếp tục",
+        t("trainingActivity.warning"),
+        t("trainingActivity.saveBeforeContinue"),
         [{ text: "OK" }]
       );
       return;
@@ -141,6 +138,14 @@ export default function TrainingActivityScreen({ route, navigation }) {
     setIsTimerRunning((prev) => !prev);
   };
 
+  const endSet = () => {
+    // Stop the workout and start rest timer
+    setIsWorkoutActive(false);
+    setIsTimerRunning(false);
+    setIsResting(true);
+    setActualRestTime(0); // Reset rest time counter
+  };
+
   const saveChanges = async () => {
     const currentSet = activityDetail?.activitySets[currentSetIndex];
     if (!currentSet) return;
@@ -151,7 +156,7 @@ export default function TrainingActivityScreen({ route, navigation }) {
           activitySetId: currentSet.id,
           weightLifted: currentSet.weightLifted,
           isCompleted: true,
-          restTime: currentSet.restTime,
+          restTime: actualRestTime, // Use the actual rest time user took
         },
       };
 
@@ -173,6 +178,7 @@ export default function TrainingActivityScreen({ route, navigation }) {
       updatedSets[currentSetIndex] = {
         ...updatedSets[currentSetIndex],
         isCompleted: true,
+        restTime: actualRestTime,
         numOfReps:
           activityDetail.activitySetType === "Reps"
             ? currentReps
@@ -189,32 +195,21 @@ export default function TrainingActivityScreen({ route, navigation }) {
       });
 
       setHasUnsavedChanges(false);
-      setIsWorkoutActive(false);
-      setIsTimerRunning(false);
+      setIsResting(false);
+      setActualRestTime(0);
 
-      Alert.alert("Thành công", "Đã lưu kết quả bài tập", [
-        {
-          text: "OK",
-          onPress: () => {
-            // Start rest timer
-            if (currentSet.restTime > 0) {
-              setRestTimeRemaining(currentSet.restTime);
-              setIsResting(true);
-            }
-          },
-        },
-      ]);
+      Alert.alert(t("common.success"), t("trainingActivity.resultSaved"));
     } catch (error) {
       console.error("Error saving activity set:", error);
-      Alert.alert("Lỗi", "Không thể lưu kết quả bài tập");
+      Alert.alert(t("common.error"), t("trainingActivity.errorSavingResult"));
     }
   };
 
   const goToNextSet = () => {
     if (hasUnsavedChanges) {
       Alert.alert(
-        "Cảnh báo",
-        "Bạn cần lưu kết quả bài tập hiện tại trước khi chuyển sang bài tập khác",
+        t("trainingActivity.warning"),
+        t("trainingActivity.saveBeforeSwitch"),
         [{ text: "OK" }]
       );
       return;
@@ -230,8 +225,8 @@ export default function TrainingActivityScreen({ route, navigation }) {
   const goToPreviousSet = () => {
     if (hasUnsavedChanges) {
       Alert.alert(
-        "Cảnh báo",
-        "Bạn cần lưu kết quả bài tập hiện tại trước khi chuyển sang bài tập khác",
+        t("trainingActivity.warning"),
+        t("trainingActivity.saveBeforeSwitch"),
         [{ text: "OK" }]
       );
       return;
@@ -256,7 +251,7 @@ export default function TrainingActivityScreen({ route, navigation }) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Text>Đang tải...</Text>
+          <Text>{t("trainingActivity.loading")}</Text>
         </View>
       </SafeAreaView>
     );
@@ -275,8 +270,19 @@ export default function TrainingActivityScreen({ route, navigation }) {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Main Timer Display */}
         <View style={styles.timerDisplayContainer}>
-          {!isWorkoutActive ? (
-            <Text style={styles.mainTimerText}>00:00,00</Text>
+          {!isWorkoutActive && !isResting ? (
+            <Text style={styles.mainTimerText}>
+              {isRepsMode ? "0" : "00:00"}
+            </Text>
+          ) : isResting ? (
+            <View style={styles.mainTimerTouchable}>
+              <Text style={styles.restLabel}>
+                {t("trainingActivity.restTime")}
+              </Text>
+              <Text style={styles.mainTimerText}>
+                {formatTime(actualRestTime)}
+              </Text>
+            </View>
           ) : (
             <>
               {isRepsMode && (
@@ -289,14 +295,14 @@ export default function TrainingActivityScreen({ route, navigation }) {
                     {currentReps.toString().padStart(2, "0")}
                   </Text>
                   <Text style={styles.repsSubtext}>
-                    /{currentSet.plannedNumOfReps} reps
+                    / {currentSet.plannedNumOfReps} reps
                   </Text>
                 </TouchableOpacity>
               )}
               {isTimeMode && (
                 <View style={styles.mainTimerTouchable}>
                   <Text style={styles.mainTimerText}>
-                    {formatTime(currentTime).replace(":", ",")}
+                    {formatTime(currentTime).replace(":", ":")}
                   </Text>
                 </View>
               )}
@@ -319,13 +325,14 @@ export default function TrainingActivityScreen({ route, navigation }) {
                 {activityDetail.activityName}
               </Text>
               <Text style={styles.activityProgress}>
-                {completedSets}/{activityDetail.activitySets.length} hoàn thành
+                {completedSets}/{activityDetail.activitySets.length}{" "}
+                {t("trainingActivity.completed")}
               </Text>
             </View>
           </View>
           {/* {!currentSet.isCompleted && (
             <TouchableOpacity style={styles.actionButton}>
-              <Text style={styles.actionButtonText}>Đang tập</Text>
+              <Text style={styles.actionButtonText}>{t("trainingActivity.training")}</Text>
             </TouchableOpacity>
           )} */}
         </View>
@@ -334,31 +341,33 @@ export default function TrainingActivityScreen({ route, navigation }) {
         <View style={styles.statsBar}>
           <View style={styles.statItem}>
             <Ionicons name="layers-outline" size={22} color="#F97316" />
-            <Text style={styles.statLabel}>Hiệp</Text>
+            <Text style={styles.statLabel}>{t("trainingActivity.set")}</Text>
           </View>
 
           <View style={styles.statItem}>
             <Ionicons name="barbell-outline" size={22} color="#F97316" />
-            <Text style={styles.statLabel}>Kg</Text>
+            <Text style={styles.statLabel}>{t("trainingActivity.kg")}</Text>
           </View>
 
           {isRepsMode && (
             <View style={styles.statItem}>
               <Ionicons name="repeat-outline" size={22} color="#F97316" />
-              <Text style={styles.statLabel}>Lượt</Text>
+              <Text style={styles.statLabel}>{t("trainingActivity.reps")}</Text>
             </View>
           )}
 
           {isTimeMode && (
             <View style={styles.statItem}>
               <Ionicons name="time-outline" size={22} color="#F97316" />
-              <Text style={styles.statLabel}>Giây</Text>
+              <Text style={styles.statLabel}>
+                {t("trainingActivity.seconds")}
+              </Text>
             </View>
           )}
 
           <View style={styles.statItem}>
             <Ionicons name="pause-circle-outline" size={22} color="#F97316" />
-            <Text style={styles.statLabel}>Nghỉ</Text>
+            <Text style={styles.statLabel}>{t("trainingActivity.rest")}</Text>
           </View>
         </View>
 
@@ -379,8 +388,8 @@ export default function TrainingActivityScreen({ route, navigation }) {
                 onPress={() => {
                   if (hasUnsavedChanges) {
                     Alert.alert(
-                      "Cảnh báo",
-                      "Bạn cần lưu kết quả bài tập hiện tại trước khi chuyển sang bài tập khác"
+                      t("trainingActivity.warning"),
+                      t("trainingActivity.saveBeforeSwitch")
                     );
                     return;
                   }
@@ -447,7 +456,7 @@ export default function TrainingActivityScreen({ route, navigation }) {
 
         {/* Control Buttons */}
         <View style={styles.controlsContainer}>
-          {!isWorkoutActive ? (
+          {!isWorkoutActive && !isResting ? (
             <TouchableOpacity
               style={[
                 styles.actionButton,
@@ -457,7 +466,15 @@ export default function TrainingActivityScreen({ route, navigation }) {
               disabled={currentSet.isCompleted}
             >
               <Text style={styles.actionButtonText}>
-                {currentSet.isCompleted ? "Đã hoàn thành" : "Bắt đầu"}
+                {currentSet.isCompleted
+                  ? t("trainingActivity.completedStatus")
+                  : t("trainingActivity.start")}
+              </Text>
+            </TouchableOpacity>
+          ) : isResting ? (
+            <TouchableOpacity style={styles.saveButton} onPress={saveChanges}>
+              <Text style={styles.saveButtonText}>
+                {t("trainingActivity.save")}
               </Text>
             </TouchableOpacity>
           ) : (
@@ -468,42 +485,20 @@ export default function TrainingActivityScreen({ route, navigation }) {
                   onPress={toggleTimer}
                 >
                   <Text style={styles.pauseButtonText}>
-                    {isTimerRunning ? "Tạm dừng" : "Tiếp tục"}
+                    {isTimerRunning
+                      ? t("trainingActivity.pause")
+                      : t("trainingActivity.resume")}
                   </Text>
                 </TouchableOpacity>
               )}
-              <TouchableOpacity style={styles.saveButton} onPress={saveChanges}>
-                <Text style={styles.saveButtonText}>Lưu</Text>
+              <TouchableOpacity style={styles.endButton} onPress={endSet}>
+                <Text style={styles.endButtonText}>
+                  {t("trainingActivity.finish")}
+                </Text>
               </TouchableOpacity>
             </>
           )}
         </View>
-
-        {/* Rest Timer Modal */}
-        <Modal visible={isResting} transparent animationType="fade">
-          <View style={styles.modalOverlay}>
-            <View style={styles.restModal}>
-              <MaterialCommunityIcons
-                name="timer-sand"
-                size={48}
-                color={colors.orange}
-              />
-              <Text style={styles.restTitle}>Thời gian nghỉ</Text>
-              <Text style={styles.restTimer}>
-                {formatTime(restTimeRemaining)}
-              </Text>
-              <TouchableOpacity
-                style={styles.skipRestButton}
-                onPress={() => {
-                  setIsResting(false);
-                  setRestTimeRemaining(0);
-                }}
-              >
-                <Text style={styles.skipRestText}>Bỏ qua nghỉ</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
       </ScrollView>
     </View>
   );
@@ -558,6 +553,14 @@ const styles = StyleSheet.create({
     color: "#64748B",
     marginTop: 8,
     fontWeight: "500",
+  },
+  restLabel: {
+    fontSize: 16,
+    color: "#F97316",
+    marginBottom: 12,
+    fontWeight: "700",
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
   },
 
   // Activity Badge
@@ -789,6 +792,28 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     letterSpacing: 0.5,
   },
+  endButton: {
+    flex: 1,
+    backgroundColor: "#F97316",
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#F97316",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+    borderWidth: 2,
+    borderColor: "#EA580C",
+  },
+  endButtonText: {
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#FFFFFF",
+    letterSpacing: 0.5,
+  },
   saveButton: {
     flex: 1,
     backgroundColor: "#10B981",
@@ -810,56 +835,5 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#FFFFFF",
     letterSpacing: 0.5,
-  },
-
-  // Rest Modal
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(30, 41, 59, 0.75)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  restModal: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 28,
-    padding: 40,
-    alignItems: "center",
-    minWidth: 320,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 10,
-    borderWidth: 2,
-    borderColor: "#FB923C",
-  },
-  restTitle: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#334155",
-    marginTop: 16,
-    marginBottom: 24,
-    letterSpacing: -0.5,
-  },
-  restTimer: {
-    fontSize: 68,
-    fontWeight: "300",
-    color: "#F97316",
-    fontVariant: ["tabular-nums"],
-    letterSpacing: -2,
-  },
-  skipRestButton: {
-    marginTop: 32,
-    paddingVertical: 14,
-    paddingHorizontal: 32,
-    backgroundColor: "#FEF3E2",
-    borderRadius: 16,
-    borderWidth: 1.5,
-    borderColor: "#FB923C",
-  },
-  skipRestText: {
-    fontSize: 16,
-    color: "#F97316",
-    fontWeight: "700",
   },
 });

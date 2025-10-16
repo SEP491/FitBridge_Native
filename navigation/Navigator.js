@@ -415,6 +415,20 @@ export default function Navigator({
           }}
         />
         <Stack.Screen
+          name="TrainingActivityScreen"
+          component={TrainingActivityScreen}
+          options={{
+            headerShown: true,
+            title: "Tập luyện",
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
           name="VideoCallScreen"
           component={VideoCallScreen}
           options={{
@@ -441,14 +455,14 @@ export default function Navigator({
             ) : null,
         })}
       >
-        <Stack.Screen
+        {/* <Stack.Screen
           name="VideoCallScreen"
           component={VideoCallScreen}
           options={{
             headerShown: false,
             orientation: "portrait",
           }}
-        />
+        /> */}
         <Stack.Screen
           name="SchedulePTScreen"
           component={SchedulePTScreen}

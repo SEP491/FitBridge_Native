@@ -14,6 +14,9 @@ import { Ionicons } from "@expo/vector-icons";
 import bookingService from "../../../services/bookingService";
 import { fetchUserFromStorage } from "../../../lib";
 import colors from "../../../constants/color";
+import { useTranslation } from "../../../hooks/useTranslation";
+import { KeyboardAvoidingView } from "react-native-web";
+import { Platform } from "react-native";
 
 const ACTIVITY_TYPES = [
   { id: "WarmUp", name: "Warm Up", color: "#FFB6C1" },
@@ -32,6 +35,7 @@ const MUSCLE_GROUPS = [
 ];
 
 export default function BookingDetailScreen({ route, navigation }) {
+  const { t } = useTranslation();
   const { bookingId } = route.params;
   const [bookingDetail, setBookingDetail] = useState(null);
   const [userRole, setUserRole] = useState(null);
@@ -199,9 +203,9 @@ export default function BookingDetailScreen({ route, navigation }) {
     return (
       <View style={styles.emptyContainer}>
         <Ionicons name="document-outline" size={80} color="#ccc" />
-        <Text style={styles.emptyTitle}>Chưa có nội dung</Text>
+        <Text style={styles.emptyTitle}>{t("bookingDetail.noContent")}</Text>
         <Text style={styles.emptySubtitle}>
-          PT chưa tạo nội dung cho buổi tập này
+          {t("bookingDetail.ptHasNotCreatedContent")}
         </Text>
       </View>
     );
@@ -251,7 +255,9 @@ export default function BookingDetailScreen({ route, navigation }) {
               <Text style={styles.headerTitle}>
                 {bookingDetail.bookingName}
               </Text>
-              <Text style={styles.headerSubtitle}>Chi tiết buổi tập</Text>
+              <Text style={styles.headerSubtitle}>
+                {t("bookingDetail.sessionDetails")}
+              </Text>
             </View>
           </View>
         )}
@@ -260,7 +266,9 @@ export default function BookingDetailScreen({ route, navigation }) {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons name="fitness" size={20} color={colors.red} />
-            <Text style={styles.sectionLabel}>Loại hình hoạt động</Text>
+            <Text style={styles.sectionLabel}>
+              {t("bookingDetail.activityTypes")}
+            </Text>
           </View>
           <View style={styles.activityTypesContainer}>
             {getUniqueActivityTypes().map((activityType, index) => {
@@ -294,7 +302,9 @@ export default function BookingDetailScreen({ route, navigation }) {
                   size={20}
                   color="#999"
                 />
-                <Text style={styles.emptyText}>Chưa có loại hoạt động nào</Text>
+                <Text style={styles.emptyText}>
+                  {t("bookingDetail.noActivityTypes")}
+                </Text>
               </View>
             )}
           </View>
@@ -304,7 +314,9 @@ export default function BookingDetailScreen({ route, navigation }) {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons name="body" size={20} color={colors.red} />
-            <Text style={styles.sectionLabel}>Các nhóm cơ chính</Text>
+            <Text style={styles.sectionLabel}>
+              {t("bookingDetail.mainMuscleGroups")}
+            </Text>
           </View>
           <View style={styles.muscleGrid}>
             {getUniqueMuscleGroups().map((muscleId) => {
@@ -327,7 +339,9 @@ export default function BookingDetailScreen({ route, navigation }) {
                   size={20}
                   color="#999"
                 />
-                <Text style={styles.emptyText}>Chưa có nhóm cơ nào</Text>
+                <Text style={styles.emptyText}>
+                  {t("bookingDetail.noMuscleGroups")}
+                </Text>
               </View>
             )}
           </View>
@@ -338,8 +352,8 @@ export default function BookingDetailScreen({ route, navigation }) {
           <View style={styles.sectionHeader}>
             <Ionicons name="list" size={20} color={colors.red} />
             <Text style={styles.sectionLabel}>
-              Danh sách bài tập ({bookingDetail?.sessionActivities?.length || 0}
-              )
+              {t("bookingDetail.exerciseList")} (
+              {bookingDetail?.sessionActivities?.length || 0})
             </Text>
           </View>
 
@@ -362,7 +376,7 @@ export default function BookingDetailScreen({ route, navigation }) {
                     color={colors.orange}
                   />
                   <Text style={styles.setTitle}>
-                    {activity.activityName || "Tên bài tập"}
+                    {activity.activityName || t("bookingDetail.exerciseName")}
                   </Text>
                 </View>
               </View>
@@ -405,10 +419,12 @@ export default function BookingDetailScreen({ route, navigation }) {
             bookingDetail.sessionActivities.length === 0) && (
             <View style={styles.emptySetContainer}>
               <Ionicons name="clipboard-outline" size={48} color="#ddd" />
-              <Text style={styles.emptySetText}>Chưa có bài tập nào</Text>
+              <Text style={styles.emptySetText}>
+                {t("bookingDetail.noExercises")}
+              </Text>
               {userRole === "FreelancePT" && (
                 <Text style={styles.emptySetHint}>
-                  Nhấn nút bên dưới để thêm bài tập
+                  {t("bookingDetail.addExerciseHint")}
                 </Text>
               )}
             </View>
@@ -420,8 +436,10 @@ export default function BookingDetailScreen({ route, navigation }) {
               style={styles.addButton}
               onPress={() => setShowAddModal(true)}
             >
-              <Ionicons name="add-circle" size={24} color={colors.orange} />
-              <Text style={styles.addButtonText}>Thêm bài tập</Text>
+              <Ionicons name="add-circle" size={24} color={colors.white} />
+              <Text style={styles.addButtonText}>
+                {t("bookingDetail.addExercise")}
+              </Text>
             </TouchableOpacity>
           )}
         </View>
@@ -430,15 +448,15 @@ export default function BookingDetailScreen({ route, navigation }) {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons name="document-text" size={20} color={colors.red} />
-            <Text style={styles.sectionLabel}>Ghi Chú</Text>
+            <Text style={styles.sectionLabel}>{t("bookingDetail.notes")}</Text>
           </View>
           <View style={styles.noteBox}>
             <TextInput
               style={styles.noteInput}
               placeholder={
                 userRole === "FreelancePT"
-                  ? "Thêm ghi chú cho buổi tập..."
-                  : "Chưa có ghi chú"
+                  ? t("bookingDetail.addNotesPlaceholder")
+                  : t("bookingDetail.noNotes")
               }
               placeholderTextColor="#999"
               value={bookingDetail?.note || ""}
@@ -463,38 +481,50 @@ export default function BookingDetailScreen({ route, navigation }) {
           <View style={styles.modalContent}>
             {/* Modal Header */}
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Thêm Bài Tập</Text>
+              <Text style={styles.modalTitle}>
+                {t("bookingDetail.addExerciseModal")}
+              </Text>
               <TouchableOpacity
                 onPress={() => {
                   setShowAddModal(false);
                   resetForm();
                 }}
+                style={styles.closeButton}
               >
-                <Ionicons name="close" size={28} color="#666" />
+                <Ionicons name="close" size={24} color="#64748B" />
               </TouchableOpacity>
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false}>
               {/* Activity Type Selection */}
               <View style={styles.formSection}>
-                <Text style={styles.formLabel}>Loại hoạt động</Text>
+                <Text style={styles.formLabel}>
+                  {t("bookingDetail.activityType")}
+                </Text>
                 <View style={styles.typeButtonsContainer}>
                   {ACTIVITY_TYPES.map((type) => (
                     <TouchableOpacity
                       key={type.id}
                       style={[
                         styles.typeButton,
-                        activityType === type.id && {
-                          backgroundColor: type.color,
-                        },
+                        activityType === type.id && styles.activityTypeActive,
                       ]}
                       onPress={() => setActivityType(type.id)}
                     >
+                      {activityType === type.id && (
+                        <View style={styles.selectedIndicator}>
+                          <Ionicons
+                            name="checkmark"
+                            size={14}
+                            color="#FFFFFF"
+                          />
+                        </View>
+                      )}
                       <Text
                         style={[
                           styles.typeButtonText,
                           activityType === type.id &&
-                            styles.typeButtonTextActive,
+                            styles.activityTypeTextActive,
                         ]}
                       >
                         {type.name}
@@ -506,7 +536,9 @@ export default function BookingDetailScreen({ route, navigation }) {
 
               {/* Activity Set Type */}
               <View style={styles.formSection}>
-                <Text style={styles.formLabel}>Kiểu bài tập</Text>
+                <Text style={styles.formLabel}>
+                  {t("bookingDetail.exerciseType")}
+                </Text>
                 <View style={styles.typeButtonsContainer}>
                   {ACTIVITY_SET_TYPES.map((type) => (
                     <TouchableOpacity
@@ -518,6 +550,20 @@ export default function BookingDetailScreen({ route, navigation }) {
                       ]}
                       onPress={() => setActivitySetType(type)}
                     >
+                      {activitySetType === type && (
+                        <View
+                          style={[
+                            styles.selectedIndicator,
+                            styles.blueIndicator,
+                          ]}
+                        >
+                          <Ionicons
+                            name="checkmark"
+                            size={14}
+                            color="#FFFFFF"
+                          />
+                        </View>
+                      )}
                       <Text
                         style={[
                           styles.typeButtonText,
@@ -525,7 +571,9 @@ export default function BookingDetailScreen({ route, navigation }) {
                             styles.typeButtonTextActive,
                         ]}
                       >
-                        {type === "Reps" ? "Số lần" : "Thời gian"}
+                        {type === "Reps"
+                          ? t("bookingDetail.reps")
+                          : t("bookingDetail.time")}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -534,7 +582,9 @@ export default function BookingDetailScreen({ route, navigation }) {
 
               {/* Muscle Groups Selection */}
               <View style={styles.formSection}>
-                <Text style={styles.formLabel}>Chọn nhóm cơ</Text>
+                <Text style={styles.formLabel}>
+                  {t("bookingDetail.selectMuscleGroups")}
+                </Text>
                 <View style={styles.muscleGrid}>
                   {MUSCLE_GROUPS.map((muscle) => (
                     <TouchableOpacity
@@ -557,10 +607,12 @@ export default function BookingDetailScreen({ route, navigation }) {
 
               {/* Activity Name */}
               <View style={styles.formSection}>
-                <Text style={styles.formLabel}>Tên bài tập</Text>
+                <Text style={styles.formLabel}>
+                  {t("bookingDetail.exerciseName")}
+                </Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="Nhập tên bài tập..."
+                  placeholder={t("bookingDetail.enterExerciseName")}
                   value={activityName}
                   onChangeText={setActivityName}
                 />
@@ -568,7 +620,9 @@ export default function BookingDetailScreen({ route, navigation }) {
 
               {/* Activity Sets */}
               <View style={styles.formSection}>
-                <Text style={styles.formLabel}>Chi tiết bài tập</Text>
+                <Text style={styles.formLabel}>
+                  {t("bookingDetail.exerciseDetails")}
+                </Text>
                 {activitySets.map((set, index) => (
                   <View key={index} style={styles.setInputCard}>
                     <View style={styles.setInputHeader}>
@@ -583,7 +637,9 @@ export default function BookingDetailScreen({ route, navigation }) {
                     {activitySetType === "Reps" ? (
                       <View style={styles.setInputRow}>
                         <View style={styles.inputWrapper}>
-                          <Text style={styles.inputLabel}>Số lần</Text>
+                          <Text style={styles.inputLabel}>
+                            {t("bookingDetail.reps")}
+                          </Text>
                           <TextInput
                             style={styles.smallInput}
                             placeholder="15"
@@ -596,7 +652,7 @@ export default function BookingDetailScreen({ route, navigation }) {
                         </View>
                         <View style={styles.inputWrapper}>
                           <Text style={styles.inputLabel}>
-                            Trọng lượng (kg)
+                            {t("bookingDetail.weight")}
                           </Text>
                           <TextInput
                             style={styles.smallInput}
@@ -613,7 +669,7 @@ export default function BookingDetailScreen({ route, navigation }) {
                       <View style={styles.setInputRow}>
                         <View style={styles.inputWrapper}>
                           <Text style={styles.inputLabel}>
-                            Thời gian (giây)
+                            {t("bookingDetail.duration")}
                           </Text>
                           <TextInput
                             style={styles.smallInput}
@@ -633,10 +689,12 @@ export default function BookingDetailScreen({ route, navigation }) {
                 <TouchableOpacity style={styles.addSetButton} onPress={addSet}>
                   <Ionicons
                     name="add-circle-outline"
-                    size={20}
-                    color={colors.orange}
+                    size={22}
+                    color="#64748B"
                   />
-                  <Text style={styles.addSetButtonText}>Thêm set</Text>
+                  <Text style={styles.addSetButtonText}>
+                    {t("bookingDetail.addSet")}
+                  </Text>
                 </TouchableOpacity>
               </View>
 
@@ -649,7 +707,9 @@ export default function BookingDetailScreen({ route, navigation }) {
                 {creating ? (
                   <ActivityIndicator size="small" color={colors.white} />
                 ) : (
-                  <Text style={styles.submitButtonText}>Xác nhận</Text>
+                  <Text style={styles.submitButtonText}>
+                    {t("bookingDetail.confirm")}
+                  </Text>
                 )}
               </TouchableOpacity>
             </ScrollView>
@@ -809,30 +869,32 @@ const styles = StyleSheet.create({
     width: "30%",
     aspectRatio: 1,
     backgroundColor: "#FFFFFF",
-    borderRadius: 20,
+    borderRadius: 16,
     padding: 14,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1.5,
+    borderWidth: 2,
     borderColor: "#E2E8F0",
     shadowColor: "#64748B",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
     elevation: 2,
   },
   muscleCardSelected: {
-    borderColor: "#FB923C",
+    borderColor: "#F97316",
     backgroundColor: "#FEF3E2",
     shadowColor: "#F97316",
-    shadowOpacity: 0.15,
-    transform: [{ scale: 1.05 }],
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 2.5,
   },
   muscleIcon: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: "#FEF3E2",
+    backgroundColor: "#F8FAFC",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 8,
@@ -841,10 +903,11 @@ const styles = StyleSheet.create({
     fontSize: 24,
   },
   muscleName: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "700",
-    color: "#2D3142",
+    color: "#475569",
     textAlign: "center",
+    lineHeight: 14,
   },
   // Set Cards
   setCard: {
@@ -949,9 +1012,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     padding: 18,
     borderRadius: 20,
-    borderWidth: 2,
-    borderColor: "#FB923C",
-    backgroundColor: "#FEF3E2",
+    backgroundColor: colors.red,
     marginTop: 10,
     gap: 10,
     shadowColor: "#F97316",
@@ -963,7 +1024,7 @@ const styles = StyleSheet.create({
   addButtonText: {
     fontSize: 17,
     fontWeight: "700",
-    color: "#F97316",
+    color: colors.white,
   },
   // Note Box
   noteBox: {
@@ -989,106 +1050,180 @@ const styles = StyleSheet.create({
   // Modal Styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(30, 41, 59, 0.5)",
+    backgroundColor: "rgba(15, 23, 42, 0.6)",
     justifyContent: "flex-end",
   },
   modalContent: {
-    backgroundColor: "#FFFFFF",
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    maxHeight: "90%",
+    backgroundColor: "#F8FAFC",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: "92%",
     paddingBottom: 20,
-    borderTopWidth: 3,
-    borderTopColor: "#FB923C",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
   },
   modalHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 20,
-    borderBottomWidth: 1.5,
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    paddingBottom: 16,
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    borderBottomWidth: 1,
     borderBottomColor: "#E2E8F0",
   },
   modalTitle: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#F97316",
+    fontSize: 24,
+    fontWeight: "800",
+    color: "#1E293B",
+    letterSpacing: -0.5,
+  },
+  closeButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#F1F5F9",
+    justifyContent: "center",
+    alignItems: "center",
   },
   formSection: {
-    padding: 16,
-    paddingTop: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
   },
   formLabel: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: "700",
-    color: "#2D3142",
+    color: "#475569",
     marginBottom: 12,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
   typeButtonsContainer: {
     flexDirection: "row",
-    gap: 10,
+    gap: 12,
     flexWrap: "wrap",
   },
   typeButton: {
     flex: 1,
-    paddingVertical: 14,
-    paddingHorizontal: 18,
-    borderRadius: 22,
-    backgroundColor: "#FFF5E6",
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 16,
+    backgroundColor: "#FFFFFF",
     alignItems: "center",
     borderWidth: 2,
-    borderColor: "#FFE5CC",
+    borderColor: "#E2E8F0",
     minWidth: 100,
+    shadowColor: colors.red,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 1,
+    position: "relative",
+    overflow: "hidden",
   },
   halfButton: {
     flex: 0.48,
   },
-  typeButtonActive: {
-    backgroundColor: "#FF914D",
-    borderColor: "#FF6B35",
-    shadowColor: "#FF6B35",
+  activityTypeActive: {
+    backgroundColor: "#FFFFFF",
+    borderColor: colors.red,
+    borderWidth: 2.5,
+    shadowColor: colors.red,
     shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
     elevation: 4,
   },
+  typeButtonActive: {
+    backgroundColor: "#FFFFFF",
+    borderColor: colors.orange,
+    borderWidth: 2.5,
+    shadowColor: colors.orange,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  selectedIndicator: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: colors.red,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: colors.red,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  blueIndicator: {
+    backgroundColor: colors.orange,
+    shadowColor: colors.orange,
+  },
   typeButtonText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: "600",
-    color: "#666",
+    color: "#64748B",
+  },
+  activityTypeTextActive: {
+    color: colors.red,
+    fontWeight: "700",
   },
   typeButtonTextActive: {
-    color: "#F97316",
+    color: colors.orange,
     fontWeight: "700",
   },
   input: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 16,
+    borderRadius: 14,
     padding: 16,
     fontSize: 15,
-    borderWidth: 1.5,
+    borderWidth: 2,
     borderColor: "#E2E8F0",
-    color: "#334155",
+    color: "#1E293B",
     fontWeight: "500",
+    shadowColor: "#64748B",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 1,
   },
   setInputCard: {
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#FFFFFF",
     borderRadius: 16,
-    padding: 14,
+    padding: 16,
     marginBottom: 12,
-    borderWidth: 1.5,
+    borderWidth: 2,
     borderColor: "#E2E8F0",
+    shadowColor: "#64748B",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
   },
   setInputHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: 14,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F1F5F9",
   },
   setInputTitle: {
     fontSize: 16,
-    fontWeight: "600",
-    color: "#475569",
+    fontWeight: "700",
+    color: "#334155",
   },
   setInputRow: {
     flexDirection: "row",
@@ -1098,55 +1233,63 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   inputLabel: {
-    fontSize: 13,
+    fontSize: 12,
     color: "#64748B",
     marginBottom: 8,
-    fontWeight: "600",
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
   smallInput: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#F8FAFC",
     borderRadius: 12,
-    padding: 12,
-    fontSize: 14,
-    borderWidth: 1.5,
+    padding: 14,
+    fontSize: 15,
+    borderWidth: 2,
     borderColor: "#E2E8F0",
-    color: "#334155",
-    fontWeight: "500",
+    color: "#1E293B",
+    fontWeight: "600",
   },
   addSetButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    padding: 14,
-    borderRadius: 16,
+    padding: 16,
+    borderRadius: 14,
     borderWidth: 2,
-    borderColor: "#FB923C",
-    borderStyle: "dashed",
-    backgroundColor: "#FEF3E2",
+    borderColor: "#E2E8F0",
+    backgroundColor: "#FFFFFF",
     gap: 8,
+    shadowColor: "#64748B",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 1,
   },
   addSetButtonText: {
     fontSize: 15,
-    fontWeight: "600",
-    color: "#F97316",
+    fontWeight: "700",
+    color: "#64748B",
   },
   submitButton: {
     backgroundColor: "#F97316",
-    marginHorizontal: 16,
-    marginTop: 12,
+    marginHorizontal: 20,
+    marginTop: 20,
     marginBottom: 16,
     paddingVertical: 18,
-    borderRadius: 20,
+    borderRadius: 16,
     alignItems: "center",
     shadowColor: "#F97316",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 6,
+    borderWidth: 0,
   },
   submitButtonText: {
     color: "#FFFFFF",
     fontSize: 17,
     fontWeight: "700",
+    letterSpacing: 0.5,
   },
 });

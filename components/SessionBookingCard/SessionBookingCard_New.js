@@ -21,8 +21,8 @@ const SessionBookingCard = ({
   const sessionStatus = booking.sessionStatus;
 
   // Use gym slot times from the API response
-  const startTime = booking.startTime;
-  const endTime = booking.endTime;
+  const startTime = booking.startTime || booking.ptFreelanceStartTime;
+  const endTime = booking.endTime || booking.ptFreelanceEndTime;
 
   // Use translation with fallbacks
   const displayPtName =
@@ -175,24 +175,19 @@ const SessionBookingCard = ({
         </View>
 
         {/* View Detail Button - Always visible */}
-        {viewDetailAction && (
+        {!booking.ptGymSlotId && viewDetailAction && (
           <TouchableOpacity
             style={styles.viewDetailButton}
             onPress={viewDetailAction}
           >
             <Ionicons
               name="information-circle-outline"
-              size={16}
-              color={colors.orange}
+              size={18}
+              color={colors.white}
             />
             <Text style={styles.viewDetailText}>
               {t ? t("calendar.viewDetail") : "View Detail"}
             </Text>
-            <Ionicons
-              name="chevron-forward-outline"
-              size={16}
-              color={colors.orange}
-            />
           </TouchableOpacity>
         )}
 
@@ -212,8 +207,8 @@ const SessionBookingCard = ({
               >
                 <Ionicons
                   name={isActionDisabled ? "ban-outline" : "create-outline"}
-                  size={16}
-                  color={isActionDisabled ? "#999" : colors.orange}
+                  size={18}
+                  color={isActionDisabled ? "#999" : "#F97316"}
                 />
                 <Text
                   style={[
@@ -240,8 +235,8 @@ const SessionBookingCard = ({
             >
               <Ionicons
                 name={isActionDisabled ? "ban-outline" : "close-circle-outline"}
-                size={16}
-                color={isActionDisabled ? "#999" : colors.red}
+                size={18}
+                color={isActionDisabled ? "#999" : colors.white}
               />
               <Text
                 style={[
@@ -274,6 +269,8 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 5,
     overflow: "hidden",
+    borderWidth: 2,
+    borderColor: "#E2E8F0",
   },
   cardHeader: {
     paddingHorizontal: 20,
@@ -391,20 +388,33 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   editButton: {
-    backgroundColor: "#FFF8F0",
-    borderColor: "#FFE5CC",
+    backgroundColor: "#FFFFFF",
+    borderColor: "#F97316",
+    borderWidth: 2,
+    shadowColor: "#F97316",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 2,
   },
   editButtonText: {
-    color: colors.orange,
+    color: "#F97316",
+    fontWeight: "700",
   },
   cancelButton: {
-    backgroundColor: "#FFF5F5",
-    borderColor: "#FFE5E5",
+    backgroundColor: "#EF4444",
+    borderColor: "#EF4444",
+    borderWidth: 2,
+    shadowColor: "#EF4444",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   actionButtonText: {
     fontSize: 15,
-    color: colors.red,
-    fontWeight: "600",
+    color: colors.white,
+    fontWeight: "700",
   },
   disabledButton: {
     backgroundColor: "#F8F9FA",
@@ -420,16 +430,21 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 25,
-    borderWidth: 1,
-    backgroundColor: "#FFF8F0",
-    borderColor: colors.orange,
+    borderWidth: 2,
+    backgroundColor: "#FF6B35",
+    borderColor: "#FF6B35",
     gap: 6,
     marginTop: 12,
+    shadowColor: "#FF6B35",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
   },
   viewDetailText: {
     fontSize: 15,
-    color: colors.orange,
-    fontWeight: "600",
+    color: colors.white,
+    fontWeight: "700",
   },
 });
 

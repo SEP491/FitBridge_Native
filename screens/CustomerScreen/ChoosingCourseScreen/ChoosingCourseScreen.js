@@ -114,12 +114,12 @@ export default function ChoosingCourseScreen() {
                   if (course.packageType === "FreelancePTPackage") {
                     navigation.navigate("ScheduleFreelanceScreen", {
                       customerPurchasedId: course.customerPurchasedId,
-                      ptId: course.ptId,
+                      ptId: course.pt?.id,
                     });
                   } else {
                     navigation.navigate("ScheduleScreen", {
                       customerPurchasedId: course.customerPurchasedId,
-                      ptId: course.ptId,
+                      ptId: course.pt?.id,
                     });
                   }
                 }}
