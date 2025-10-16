@@ -8,10 +8,12 @@ import {
   StatusBar,
   Alert,
   Platform,
+  Modal,
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import Constants from "expo-constants";
+import { Audio } from "expo-av";
 import { useMeetingState } from "../../../context/meetingStateContext";
 
 // Check if running in Expo Go
@@ -38,6 +40,9 @@ export default function VideoCallScreen({ route, navigation }) {
   const [callDuration, setCallDuration] = useState(0);
   const [showExpoGoWarning, setShowExpoGoWarning] = useState(false);
   const [showControls, setShowControls] = useState(true);
+  const [isSpeakerOn, setIsSpeakerOn] = useState(true); // Speaker is on by default for video calls
+  const [showAudioSourceModal, setShowAudioSourceModal] = useState(false);
+  const [selectedAudioSource, setSelectedAudioSource] = useState("speaker"); // "speaker", "earpiece", "bluetooth", "wired"
   const hideControlsTimeout = React.useRef(null);
 
   // Get video call state and methods from context
@@ -57,7 +62,6 @@ export default function VideoCallScreen({ route, navigation }) {
     onToggleMinimize,
   } = useMeetingState();
 
-
   const callerInfo = {
     name: recipientName || "Personal Trainer",
     avatar: recipientAvatar || "PT",
@@ -75,6 +79,20 @@ export default function VideoCallScreen({ route, navigation }) {
       try {
         console.log("VideoCallScreen: Starting call", { roomId, username });
         await startCall(username, roomId, 5000, false);
+
+        // Set audio mode for video call with speaker on
+        try {
+          await Audio.setAudioModeAsync({
+            allowsRecordingIOS: true,
+            playsInSilentModeIOS: true,
+            staysActiveInBackground: true,
+            shouldDuckAndroid: true,
+            playThroughEarpieceAndroid: false, // Use speaker by default
+          });
+          console.log("Audio mode set: Speaker ON");
+        } catch (audioError) {
+          console.log("Error setting audio mode:", audioError);
+        }
       } catch (error) {
         console.error("VideoCallScreen: Error starting call:", error);
         Alert.alert("Error", "Failed to start video call");
@@ -136,6 +154,30 @@ export default function VideoCallScreen({ route, navigation }) {
   const handleMinimize = () => {
     onToggleMinimize();
     navigation.goBack();
+  };
+
+  // Toggle speaker/earpiece
+  const toggleSpeaker = async () => {
+    try {
+      const newSpeakerState = !isSpeakerOn;
+      setIsSpeakerOn(newSpeakerState);
+
+      // Update audio mode
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+        staysActiveInBackground: true,
+        shouldDuckAndroid: true,
+        playThroughEarpieceAndroid: !newSpeakerState, // true = earpiece, false = speaker
+      });
+
+      console.log(`Speaker ${newSpeakerState ? "ON" : "OFF"}`);
+    } catch (error) {
+      console.error("Error toggling speaker:", error);
+      Alert.alert("Error", "Failed to toggle speaker");
+      // Revert state if error
+      setIsSpeakerOn(!isSpeakerOn);
+    }
   };
 
   // Handle screen touch to show/hide controls
@@ -249,24 +291,6 @@ export default function VideoCallScreen({ route, navigation }) {
       <StatusBar barStyle="light-content" backgroundColor="#000" />
       {/* Top bar with call info */}
       <View style={styles.topBar}>
-        <View style={styles.callInfo}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{callerInfo.avatar}</Text>
-          </View>
-          <View style={styles.callerDetails}>
-            <Text style={styles.callerNameText}>{callerInfo.name}</Text>
-            <Text style={styles.callDurationText}>
-              {formatDuration(callDuration)}
-            </Text>
-          </View>
-        </View>
-        <TouchableOpacity
-          style={styles.minimizeButton}
-          onPress={handleMinimize}
-        >
-          <Ionicons name="remove-outline" size={24} color="#FFF" />
-        </TouchableOpacity>
-        {/* Middle section - spacer */}
         <View style={styles.middleSection}>
           {/* Local video (Picture-in-Picture) */}
           <View style={styles.localVideoContainer}>
@@ -284,6 +308,21 @@ export default function VideoCallScreen({ route, navigation }) {
             )}
           </View>
         </View>
+        <View style={styles.callInfo}>
+          <View style={styles.callerDetails}>
+            <Text style={styles.callerNameText}>{callerInfo.name}</Text>
+            <Text style={styles.callDurationText}>
+              {formatDuration(callDuration)}
+            </Text>
+          </View>
+        </View>
+        <TouchableOpacity
+          style={styles.minimizeButton}
+          onPress={handleMinimize}
+        >
+          <Ionicons name="remove-outline" size={24} color="#FFF" />
+        </TouchableOpacity>
+        
       </View>
 
       {/* Video container - fills entire screen */}
@@ -360,14 +399,19 @@ export default function VideoCallScreen({ route, navigation }) {
               <Ionicons name="camera-reverse" size={28} color="#FFF" />
             </TouchableOpacity>
 
-            {/* Speaker (placeholder for now) */}
+            {/* Speaker toggle */}
             <TouchableOpacity
-              style={styles.controlButton}
-              onPress={() =>
-                Alert.alert("Speaker", "Speaker toggle coming soon")
-              }
+              style={[
+                styles.controlButton,
+                !isSpeakerOn && styles.controlButtonMuted,
+              ]}
+              onPress={toggleSpeaker}
             >
-              <Ionicons name="volume-high" size={28} color="#FFF" />
+              <Ionicons
+                name={isSpeakerOn ? "volume-high" : "volume-low"}
+                size={28}
+                color="#FFF"
+              />
             </TouchableOpacity>
           </View>
         </View>
@@ -379,21 +423,25 @@ export default function VideoCallScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#4f2828ff",
     flexDirection: "column",
+    backgroundColor: "#FF914D",
+    padding: 15,
+    gap: 10,
+    justifyContent: "space-between",
   },
   videoContainer: {
     width: "100%",
-    backgroundColor: "#000",
-    flex: 100,
   },
   remoteVideo: {
     flex: 1,
     width: "100%",
-    height: "100%",
+    height: "90%",
   },
   remoteVideoPlaceholder: {
-    height: "100%",
+    height: "85%",
+    borderRadius: 30,
+    justifyContent: "center",
+    alignItems: "center",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -401,39 +449,45 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: "rgba(255, 255, 255, 0.3)",
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.2)",
   },
   avatarLargeText: {
     fontSize: 48,
-    fontWeight: "bold",
+    fontWeight: "600",
     color: "#FFF",
   },
   callerName: {
     fontSize: 28,
-    fontWeight: "bold",
+    fontWeight: "600",
     color: "#FFF",
     marginBottom: 8,
   },
   waitingText: {
     fontSize: 16,
-    color: "rgba(255, 255, 255, 0.8)",
+    color: "rgba(255, 255, 255, 0.7)",
   },
   overlayContainer: {
     flex: 1,
     justifyContent: "space-between",
   },
   topBar: {
-    paddingTop: StatusBar.currentHeight + 60 || 60,
     paddingBottom: 20,
+    marginTop: StatusBar.currentHeight + 60 || 40,
     paddingHorizontal: 20,
-    // backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    backgroundColor: "#f5c6c6ff",
+    borderRadius: 30,
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    backdropFilter: "blur(100px)",
+    borderWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.1)",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    gap: 10,
   },
   callInfo: {
     flexDirection: "row",
@@ -444,22 +498,26 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
     justifyContent: "center",
     alignItems: "center",
+    borderWidth: 0.5,
+    borderColor: "rgba(255, 255, 255, 0.2)",
   },
   avatar: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: "#667eea",
+    backgroundColor: "rgba(102, 126, 234, 0.8)",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
+    borderWidth: 0.5,
+    borderColor: "rgba(255, 255, 255, 0.2)",
   },
   avatarText: {
     fontSize: 20,
-    fontWeight: "bold",
+    fontWeight: "600",
     color: "#FFF",
   },
   callerDetails: {
@@ -473,31 +531,28 @@ const styles = StyleSheet.create({
   },
   callDurationText: {
     fontSize: 14,
-    color: "rgba(255, 255, 255, 0.8)",
+    color: "rgba(255, 255, 255, 0.7)",
   },
   middleSection: {
     flex: 1,
     justifyContent: "flex-start",
     alignItems: "flex-end",
     paddingTop: 20,
-    paddingRight: 20,
   },
   localVideoContainer: {
-    width: 120,
-    height: 160,
-    borderRadius: 12,
+    width: 150,
+    height: 120,
+    borderRadius: 30,
     overflow: "hidden",
-    backgroundColor: "#1a1a1a",
-    borderWidth: 2,
-    borderColor: "#FFF",
+    backgroundColor: "rgba(255, 255, 255, 0.5)",
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 8,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 8,
   },
   localVideo: {
     flex: 1,
@@ -508,42 +563,73 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#2a2a2a",
+    backgroundColor: "rgba(42, 42, 42, 0.8)",
   },
   controlsContainer: {
     position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 10,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    borderRadius: 35,
-    margin: 10,
+    bottom: 23,
+    left: 20,
+    right: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    backdropFilter: "blur(40px)",
+    borderRadius: 30,
+    borderWidth: 0.5,
+    borderColor: "rgba(255, 255, 255, 0.15)",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 10,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 10,
   },
   controls: {
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
-    paddingVertical: 6,
+    paddingVertical: 15,
+    paddingHorizontal: 10,
   },
   controlButton: {
-    width: 46,
-    height: 46,
-    borderRadius: 28,
-    backgroundColor: "#f5576c",
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
     justifyContent: "center",
     alignItems: "center",
+    borderWidth: 0.5,
+    borderColor: "rgba(255, 255, 255, 0.2)",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   controlButtonMuted: {
-    backgroundColor: "#ED2A46",
+    backgroundColor: "rgba(237, 42, 70, 0.8)",
+    borderColor: "rgba(255, 255, 255, 0.3)",
   },
   endCallButton: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: "#f5576c",
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: "rgba(245, 87, 108, 0.9)",
     justifyContent: "center",
     alignItems: "center",
+    borderWidth: 0.5,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+    shadowColor: "#f5576c",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 6,
   },
   loadingContainer: {
     flex: 1,
@@ -556,6 +642,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
+    borderWidth: 0.5,
+    borderColor: "rgba(255, 255, 255, 0.2)",
   },
   loadingText: {
     fontSize: 20,
@@ -575,10 +663,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
+    borderWidth: 0.5,
+    borderColor: "rgba(255, 255, 255, 0.2)",
   },
   errorText: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontWeight: "600",
     color: "#FFF",
     marginTop: 20,
   },
@@ -592,8 +682,10 @@ const styles = StyleSheet.create({
     marginTop: 30,
     paddingHorizontal: 30,
     paddingVertical: 12,
-    backgroundColor: "rgba(255, 255, 255, 0.3)",
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
     borderRadius: 25,
+    borderWidth: 0.5,
+    borderColor: "rgba(255, 255, 255, 0.2)",
   },
   errorButtonText: {
     fontSize: 16,
@@ -612,10 +704,12 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 40,
     alignItems: "center",
+    borderWidth: 0.5,
+    borderColor: "rgba(255, 255, 255, 0.2)",
   },
   expoGoWarningTitle: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontWeight: "600",
     color: "#FFF",
     marginTop: 20,
     marginBottom: 10,
@@ -630,15 +724,18 @@ const styles = StyleSheet.create({
   },
   expoGoWarningCode: {
     fontFamily: Platform.OS === "ios" ? "Courier" : "monospace",
-    backgroundColor: "rgba(0, 0, 0, 0.2)",
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
     padding: 4,
+    borderRadius: 4,
   },
   expoGoWarningButton: {
     marginTop: 30,
     paddingHorizontal: 40,
     paddingVertical: 15,
-    backgroundColor: "rgba(255, 255, 255, 0.3)",
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
     borderRadius: 25,
+    borderWidth: 0.5,
+    borderColor: "rgba(255, 255, 255, 0.2)",
   },
   expoGoWarningButtonText: {
     fontSize: 18,

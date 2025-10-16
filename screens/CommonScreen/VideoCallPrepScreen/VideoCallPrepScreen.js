@@ -39,7 +39,7 @@ if (!isExpoGo) {
 const { width, height } = Dimensions.get('window');
 
 export default function VideoCallPrepScreen({ navigation }) {
-  const [roomId, setRoomId] = useState('');
+  const [roomId, setRoomId] = useState('e1d7ae1c-b7d5-43d7-8811-a13e8aec983a');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [previewStream, setPreviewStream] = useState(null);
@@ -360,30 +360,6 @@ export default function VideoCallPrepScreen({ navigation }) {
                 secureTextEntry
                 returnKeyType="next"
               />
-            </View>
-
-            {/* Room ID Input */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Room ID</Text>
-              <View style={styles.roomIdContainer}>
-                <TextInput
-                  style={[styles.input, styles.roomIdInput]}
-                  placeholder="Enter room ID"
-                  value={roomId}
-                  onChangeText={setRoomId}
-                  autoCapitalize="characters"
-                  returnKeyType="done"
-                />
-                <TouchableOpacity
-                  style={styles.generateButton}
-                  onPress={generateRoomId}
-                >
-                  <MaterialIcons name="refresh" size={24} color="#667eea" />
-                </TouchableOpacity>
-              </View>
-              <Text style={styles.inputHint}>
-                Share this room ID with others to join the same call
-              </Text>
             </View>
             
             {/* Error Message */}
