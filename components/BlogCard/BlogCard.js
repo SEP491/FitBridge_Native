@@ -3,12 +3,14 @@ import React from "react";
 import { TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
+import { useTranslation } from "../../hooks/useTranslation";
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = width / 2 - 25;
 
 export default function BlogCard({ blog }) {
   const navigation = useNavigation();
+  const { t } = useTranslation();
 
   return (
     <TouchableOpacity
@@ -33,10 +35,10 @@ export default function BlogCard({ blog }) {
 
       <View style={styles.infoContainer}>
         <Text style={styles.title} numberOfLines={2}>
-          {blog?.title}
+          {t(blog?.title)}
         </Text>
         <Text style={styles.summary} numberOfLines={2} ellipsizeMode="tail">
-          {blog?.summary}
+          {t(blog?.summary)}
         </Text>
       </View>
     </TouchableOpacity>

@@ -45,9 +45,7 @@ export default function GymCard({ gym, fullWidth = false, height = 140 }) {
         {gym?.rating && (
           <View style={styles.ratingBadge}>
             <Ionicons name="star" size={12} color="#FFD700" />
-            <Text style={styles.ratingText}>
-              {gym.rating.toFixed(1)}
-            </Text>
+            <Text style={styles.ratingText}>{gym.rating.toFixed(1)}</Text>
           </View>
         )}
 
@@ -80,7 +78,7 @@ export default function GymCard({ gym, fullWidth = false, height = 140 }) {
           <View style={styles.addressContainer}>
             <Ionicons name="location-outline" size={12} color="#6B6B6B" />
             <Text style={styles.address} numberOfLines={2} ellipsizeMode="tail">
-              {gym.gymDescription}
+              {gym.gymAddress || gym.gymDescription.substring(0, 20) + "..."}
             </Text>
           </View>
         )}
@@ -92,9 +90,13 @@ export default function GymCard({ gym, fullWidth = false, height = 140 }) {
               {[...Array(5)].map((_, i) => (
                 <Ionicons
                   key={i}
-                  name={i < Math.floor(gym?.rating || 0) ? "star" : "star-outline"}
+                  name={
+                    i < Math.floor(gym?.rating || 0) ? "star" : "star-outline"
+                  }
                   size={12}
-                  color={i < Math.floor(gym?.rating || 0) ? "#FFD700" : "#E5E5E5"}
+                  color={
+                    i < Math.floor(gym?.rating || 0) ? "#FFD700" : "#E5E5E5"
+                  }
                 />
               ))}
             </View>

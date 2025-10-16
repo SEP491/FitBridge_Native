@@ -234,7 +234,11 @@ export default function UserMenuScreen() {
               {user && user.role && (
                 <View style={styles.roleContainer}>
                   <Text style={styles.roleText}>
-                    {user.role === "GymPT" ? "Gym PT" : t("userMenu.user")}
+                    {user.role === "GymPT"
+                      ? "Gym PT"
+                      : user.role === "FreelancePT"
+                      ? "Freelance PT"
+                      : t("userMenu.user")}
                   </Text>
                 </View>
               )}

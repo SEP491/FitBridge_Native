@@ -87,7 +87,7 @@ export default function GymDetailScreen({ route }) {
 
     fetchGymDetail();
     fetchCourseGym();
-    fetchComments();
+    // fetchComments();
   }, [gymId]);
 
   // Fetch comments function
@@ -134,7 +134,7 @@ export default function GymDetailScreen({ route }) {
       Alert.alert(t("common.success"), t("gymDetail.commentSuccess"));
 
       // Refresh comments
-      fetchComments(1, true);
+      // fetchComments(1, true);
     } catch (error) {
       console.error("Error posting comment:", error);
       Alert.alert(t("gymDetail.error"), t("gymDetail.errorPostingComment"));
@@ -146,7 +146,7 @@ export default function GymDetailScreen({ route }) {
   // Load more comments
   const handleLoadMoreComments = () => {
     if (!commentsLoading && hasMoreComments) {
-      fetchComments(commentsPage + 1);
+      // fetchComments(commentsPage + 1);
     }
   };
 

@@ -14,20 +14,24 @@ import { useTranslation } from "../../hooks/useTranslation";
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = width / 2 - 25;
 
-export default function FreelancePTProfileCard({ pt, fullWidth = false, height = 140 }) {
+export default function FreelancePTProfileCard({
+  pt,
+  fullWidth = false,
+  height = 140,
+}) {
   const navigation = useNavigation();
   const { t } = useTranslation();
 
   const formatPrice = (price) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND',
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
     }).format(price);
   };
 
   const handlePress = () => {
     // Navigate to PT profile or detail screen
-    navigation.navigate("PTProfileScreen", { 
+    navigation.navigate("PTProfileScreen", {
       ptId: pt.id,
     });
   };
@@ -55,15 +59,13 @@ export default function FreelancePTProfileCard({ pt, fullWidth = false, height =
         {pt?.rating ? (
           <View style={styles.ratingBadge}>
             <Ionicons name="star" size={12} color="#FFD700" />
-            <Text style={styles.ratingText}>
-              {pt.rating.toFixed(1)}
-            </Text>
+            <Text style={styles.ratingText}>{pt.rating.toFixed(1)}</Text>
           </View>
         ) : (
           <View style={styles.ratingBadge}>
             <Ionicons name="star" size={12} color="#FFD700" />
             <Text style={styles.ratingText}>
-              {pt.rating ? pt.rating.toFixed(1) : 'N/A'}
+              {pt.rating ? pt.rating.toFixed(1) : "N/A"}
             </Text>
           </View>
         )}
@@ -80,7 +82,8 @@ export default function FreelancePTProfileCard({ pt, fullWidth = false, height =
           <View style={styles.experienceBadge}>
             <Ionicons name="medal-outline" size={12} color="#FFF" />
             <Text style={styles.experienceText}>
-              {pt.experienceYears ? pt.experienceYears : 'N/A'} {t("freelancePT.years") || "years"}
+              {pt.experienceYears ? pt.experienceYears : "N/A"}{" "}
+              {t("freelancePT.years") || "years"}
             </Text>
           </View>
         )}
@@ -94,18 +97,26 @@ export default function FreelancePTProfileCard({ pt, fullWidth = false, height =
 
         {/* Description */}
         {pt?.description ? (
-          <Text style={styles.description} numberOfLines={1} ellipsizeMode="tail"  >
+          <Text
+            style={styles.description}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
             {pt.description}
           </Text>
         ) : (
-          <Text style={styles.description} numberOfLines={1} ellipsizeMode="tail"  >
-            Description not available
+          <Text
+            style={styles.description}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {/* Description not available */}
           </Text>
         )}
 
         {/* Goal Training Tags */}
         {pt?.goalTrainings && pt.goalTrainings.length > 0 ? (
-          <View style={styles.tagsContainer} numberOfLines={1} >
+          <View style={styles.tagsContainer} numberOfLines={1}>
             {pt.goalTrainings.slice(0, 2).map((goal, index) => (
               <View key={index} style={styles.tag}>
                 <Text style={styles.tagText} numberOfLines={1}>
@@ -122,11 +133,9 @@ export default function FreelancePTProfileCard({ pt, fullWidth = false, height =
             )}
           </View>
         ) : (
-          <View style={styles.tagsContainer} numberOfLines={1} >
+          <View style={styles.tagsContainer} numberOfLines={1}>
             <View style={styles.tag}>
-              <Text style={styles.tagText}>
-                Goal Training Tags
-              </Text>
+              <Text style={styles.tagText}>Goal Training Tags</Text>
             </View>
           </View>
         )}
@@ -134,10 +143,10 @@ export default function FreelancePTProfileCard({ pt, fullWidth = false, height =
         {/* Price and Total Purchased */}
         <View style={styles.bottomRow}>
           <View style={styles.priceContainer}>
-            <Text style={styles.priceLabel}>{t("freelancePT.from") || "From"}</Text>
-            <Text style={styles.price}>
-              {formatPrice(pt?.priceFrom || 0)}
+            <Text style={styles.priceLabel}>
+              {t("freelancePT.from") || "From"}
             </Text>
+            <Text style={styles.price}>{formatPrice(pt?.priceFrom || 0)}</Text>
           </View>
           {pt?.totalPurchased && (
             <View style={styles.statsContainer}>

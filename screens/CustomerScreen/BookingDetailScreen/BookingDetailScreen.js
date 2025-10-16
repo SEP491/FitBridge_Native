@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
   Modal,
+  Image,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
@@ -18,6 +19,18 @@ import { useTranslation } from "../../../hooks/useTranslation";
 import { KeyboardAvoidingView } from "react-native-web";
 import { Platform } from "react-native";
 
+// Body part images mapping
+const bodyPartImages = {
+  shoulder: require("../../../assets/images/bodyparts/shoulder.png"),
+  biceps: require("../../../assets/images/bodyparts/biceps.png"),
+  calf: require("../../../assets/images/bodyparts/calf.png"),
+  chest: require("../../../assets/images/bodyparts/chest.png"),
+  foreArm: require("../../../assets/images/bodyparts/foreArm.png"),
+  hip: require("../../../assets/images/bodyparts/hip.png"),
+  waist: require("../../../assets/images/bodyparts/waist.png"),
+  thigh: require("../../../assets/images/bodyparts/thigh.png"),
+};
+
 const ACTIVITY_TYPES = [
   { id: "WarmUp", name: "Warm Up", color: "#FFB6C1" },
   { id: "Workout", name: "Work Out", color: "#98FB98" },
@@ -26,12 +39,15 @@ const ACTIVITY_TYPES = [
 const ACTIVITY_SET_TYPES = ["Reps", "Time"];
 
 const MUSCLE_GROUPS = [
-  { id: "Biceps", name: "Toàn thân", icon: "💪" },
-  { id: "ForeArm", name: "Cơ bụng", icon: "🔴" },
-  { id: "Thigh", name: "Tay", icon: "👟" },
-  { id: "Calf", name: "Lưng", icon: "🔴" },
-  { id: "Chest", name: "Chân & Mông", icon: "🔴" },
-  { id: "Waist", name: "Vai", icon: "🔴" },
+  { id: "Biceps", name: "Tay Sau", image: bodyPartImages.biceps },
+  { id: "ForeArm", name: "Tay Trước", image: bodyPartImages.foreArm },
+  { id: "Thigh", name: "Đùi", image: bodyPartImages.thigh },
+  { id: "Calf", name: "Bắp chân", image: bodyPartImages.calf },
+  { id: "Chest", name: "Ngực", image: bodyPartImages.chest },
+  { id: "Waist", name: "Bụng", image: bodyPartImages.waist },
+  { id: "Shoulder", name: "Vai", image: bodyPartImages.shoulder },
+  { id: "Hip", name: "Hông", image: bodyPartImages.hip },
+  { id: "Legs", name: "Chân", image: bodyPartImages.legs },
 ];
 
 export default function BookingDetailScreen({ route, navigation }) {
@@ -324,9 +340,17 @@ export default function BookingDetailScreen({ route, navigation }) {
               if (!muscle) return null;
               return (
                 <View key={muscleId} style={styles.muscleCard}>
-                  <View style={styles.muscleIcon}>
-                    <Text style={styles.muscleEmoji}>{muscle.icon}</Text>
-                  </View>
+                  {muscle.image ? (
+                    <Image
+                      source={muscle.image}
+                      style={styles.muscleImage}
+                      resizeMode="contain"
+                    />
+                  ) : (
+                    <View style={styles.muscleIcon}>
+                      <Ionicons name="body" size={32} color="#FF914D" />
+                    </View>
+                  )}
                   <Text style={styles.muscleName}>{muscle.name}</Text>
                 </View>
               );
@@ -596,9 +620,17 @@ export default function BookingDetailScreen({ route, navigation }) {
                       ]}
                       onPress={() => toggleMuscleGroup(muscle.id)}
                     >
-                      <View style={styles.muscleIcon}>
-                        <Text style={styles.muscleEmoji}>{muscle.icon}</Text>
-                      </View>
+                      {muscle.image ? (
+                        <Image
+                          source={muscle.image}
+                          style={styles.muscleImage}
+                          resizeMode="contain"
+                        />
+                      ) : (
+                        <View style={styles.muscleIcon}>
+                          <Ionicons name="body" size={32} color="#FF914D" />
+                        </View>
+                      )}
                       <Text style={styles.muscleName}>{muscle.name}</Text>
                     </TouchableOpacity>
                   ))}
@@ -897,6 +929,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#F8FAFC",
     justifyContent: "center",
     alignItems: "center",
+    marginBottom: 8,
+  },
+  muscleImage: {
+    width: 48,
+    height: 48,
     marginBottom: 8,
   },
   muscleEmoji: {

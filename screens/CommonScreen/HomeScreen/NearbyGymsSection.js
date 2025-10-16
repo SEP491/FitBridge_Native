@@ -1,5 +1,11 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import PairedSwiper from "../../../components/PairSwiper/PairSwiper";
 import GymCard from "../../../components/GymCard/GymCard";
@@ -17,9 +23,7 @@ export default function NearbyGymsSection({ gyms, loading }) {
     <View style={styles.section}>
       <View style={styles.titleContainer}>
         <View style={styles.titleWithIcon}>
-          <Text style={styles.sectionTitle}>
-            {t("home.nearbyGymsTitle")}
-          </Text>
+          <Text style={styles.sectionTitle}>{t("home.nearbyGymsTitle")}</Text>
           <View style={styles.titleUnderline} />
         </View>
         <TouchableOpacity
@@ -41,7 +45,7 @@ export default function NearbyGymsSection({ gyms, loading }) {
           showsPagination={true}
           renderItem={renderGymCard}
           itemsPerSlide={2}
-          height={240}
+          height={280}
           loop={true}
           dotStyle={styles.paginationDot}
           activeDotStyle={styles.activePaginationDot}

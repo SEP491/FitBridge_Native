@@ -29,8 +29,6 @@ const bodyPartImages = {
   thigh: require("../../../assets/images/bodyparts/thigh.png"),
 };
 
-
-
 const PTProfileScreen = ({ route, navigation }) => {
   const { t } = useTranslation();
   const { ptId } = route.params;
@@ -56,7 +54,9 @@ const PTProfileScreen = ({ route, navigation }) => {
         setPt(response.data);
       }
       if (response.data.freelancePTPackages) {
-        const purchasedPackage = response.data.freelancePTPackages.find(pkg => pkg.isPurchased === true);
+        const purchasedPackage = response.data.freelancePTPackages.find(
+          (pkg) => pkg.isPurchased === true
+        );
         if (purchasedPackage) {
           setPurchasedPackage(purchasedPackage);
         } else {
@@ -67,10 +67,7 @@ const PTProfileScreen = ({ route, navigation }) => {
       console.log("Fetched PT Detail:", response.data);
     } catch (error) {
       console.error("Error fetching PT detail:", error);
-      Alert.alert(
-        t("errors.error"),
-        t("errors.failedToLoadPackage")
-      );
+      Alert.alert(t("errors.error"), t("errors.failedToLoadPackage"));
     } finally {
       setLoading(false);
     }
@@ -86,30 +83,74 @@ const PTProfileScreen = ({ route, navigation }) => {
   // Body measurements data structure
   const getBodyMeasurements = () => {
     if (!pt?.userDetail) return [];
-    
+
     const { userDetail } = pt;
     return [
-      { key: "shoulder", label: "Shoulder", value: userDetail.shoulder, unit: "cm", image: bodyPartImages.shoulder },
-      { key: "chest", label: "Chest", value: userDetail.chest, unit: "cm", image: bodyPartImages.chest },
-      { key: "waist", label: "Waist", value: userDetail.waist, unit: "cm", image: bodyPartImages.waist },
-      { key: "biceps", label: "Biceps", value: userDetail.biceps, unit: "cm", image: bodyPartImages.biceps },
-      { key: "hip", label: "Hip", value: userDetail.hip, unit: "cm", image: bodyPartImages.hip },
-      { key: "foreArm", label: "Forearm", value: userDetail.foreArm, unit: "cm", image: bodyPartImages.foreArm },
-      { key: "thigh", label: "Thigh", value: userDetail.thigh, unit: "cm", image: bodyPartImages.thigh },
-      { key: "calf", label: "Calf", value: userDetail.calf, unit: "cm", image: bodyPartImages.calf },
+      {
+        key: "shoulder",
+        label: t("freelancePT.shoulder"),
+        value: userDetail.shoulder,
+        unit: t("units.cm"),
+        image: bodyPartImages.shoulder,
+      },
+      {
+        key: "chest",
+        label: t("freelancePT.chest"),
+        value: userDetail.chest,
+        unit: t("units.cm"),
+        image: bodyPartImages.chest,
+      },
+      {
+        key: "waist",
+        label: t("freelancePT.waist"),
+        value: userDetail.waist,
+        unit: t("units.cm"),
+        image: bodyPartImages.waist,
+      },
+      {
+        key: "biceps",
+        label: t("freelancePT.biceps"),
+        value: userDetail.biceps,
+        unit: t("units.cm"),
+        image: bodyPartImages.biceps,
+      },
+      {
+        key: "hip",
+        label: t("freelancePT.hip"),
+        value: userDetail.hip,
+        unit: t("units.cm"),
+        image: bodyPartImages.hip,
+      },
+      {
+        key: "foreArm",
+        label: t("freelancePT.foreArm"),
+        value: userDetail.foreArm,
+        unit: t("units.cm"),
+        image: bodyPartImages.foreArm,
+      },
+      {
+        key: "thigh",
+        label: t("freelancePT.thigh"),
+        value: userDetail.thigh,
+        unit: t("units.cm"),
+        image: bodyPartImages.thigh,
+      },
+      {
+        key: "calf",
+        label: t("freelancePT.calf"),
+        value: userDetail.calf,
+        unit: t("units.cm"),
+        image: bodyPartImages.calf,
+      },
     ];
   };
 
   const handleContactPress = () => {
     // Handle contact action (e.g., open chat or phone)
-    Alert.alert(
-      t("common.contact"),
-      t("freelancePT.contactTrainer"),
-      [
-        { text: t("common.cancel"), style: "cancel" },
-        { text: t("common.ok") },
-      ]
-    );
+    Alert.alert(t("common.contact"), t("freelancePT.contactTrainer"), [
+      { text: t("common.cancel"), style: "cancel" },
+      { text: t("common.ok") },
+    ]);
   };
 
   const handleBookSession = () => {
@@ -149,298 +190,317 @@ const PTProfileScreen = ({ route, navigation }) => {
       contentContainerStyle={{ paddingBottom: 20 }}
       showsVerticalScrollIndicator={false}
     >
-        {/* Header Section with Gradient */}
-        <LinearGradient
-          colors={["#FF914D", "#ED2A46"]}
-          style={styles.gradientContainer}
-        >
-          <View style={styles.profileHeader}>
-            <View style={styles.avatarContainer}>
-              <Image
-                source={
-                  pt.freelancePt?.avatarUrl 
-                    ? { uri: pt.freelancePt.avatarUrl }
-                    : require("../../../assets/LogoColor.png")
-                }
-                style={styles.avatar}
-              />
-              {pt.freelancePt?.rating ? (
-                <View style={styles.ratingBadge}>
-                  <Ionicons name="star" size={14} color="#FFD700" />
-                  <Text style={styles.ratingText}>{pt.freelancePt.rating}</Text>
-                </View>
-              ) : (
-                <View style={styles.ratingBadge}>
-                  <Ionicons name="star" size={14} color="#FFD700" />
-                  <Text style={styles.ratingText}>N/A</Text>
-                </View>
-              )}
-            </View>
-
-            <Text style={styles.name}>{pt.freelancePt?.fullName}</Text>
-            <Text style={styles.description}>
-              {pt.freelancePt?.description || "Professional Personal Trainer"}
-            </Text>
-
-            <View style={styles.basicInfoContainer}>
-              <View style={styles.basicInfoItem}>
-                <MaterialCommunityIcons
-                  name="medal-outline"
-                  size={18}
-                  color="#FFD700"
-                />
-                <Text style={styles.basicInfoText}>
-                  {pt.freelancePt?.experienceYears || 0} {t("freelancePT.experienceYears")}
-                </Text>
-              </View>
-              <View style={styles.basicInfoItem}>
-                <Ionicons name="people-outline" size={18} color="#FFD700" />
-                <Text style={styles.basicInfoText}>
-                  {pt.freelancePt?.totalPurchased ?? 0} {t("freelancePT.totalPurchased")}
-                </Text>
-              </View>
-            </View>
-          </View>
-        </LinearGradient>
-
-        {/* Quick Stats Cards */}
-        <View style={styles.statsContainer}>
-          <View style={styles.statCard}>
-            <MaterialCommunityIcons
-              name="human-male-height"
-              size={24}
-              color="#FF914D"
+      {/* Header Section with Gradient */}
+      <LinearGradient
+        colors={["#FF914D", "#ED2A46"]}
+        style={styles.gradientContainer}
+      >
+        <View style={styles.profileHeader}>
+          <View style={styles.avatarContainer}>
+            <Image
+              source={
+                pt.freelancePt?.avatarUrl
+                  ? { uri: pt.freelancePt.avatarUrl }
+                  : require("../../../assets/LogoColor.png")
+              }
+              style={styles.avatar}
             />
-            <Text style={styles.statValue}>
-              {pt?.userDetail?.height || "N/A"}
-            </Text>
-            <Text style={styles.statLabel}>Height (cm)</Text>
+            {pt.freelancePt?.rating ? (
+              <View style={styles.ratingBadge}>
+                <Ionicons name="star" size={14} color="#FFD700" />
+                <Text style={styles.ratingText}>{pt.freelancePt.rating}</Text>
+              </View>
+            ) : (
+              <View style={styles.ratingBadge}>
+                <Ionicons name="star" size={14} color="#FFD700" />
+                <Text style={styles.ratingText}>N/A</Text>
+              </View>
+            )}
           </View>
 
-          <View style={styles.statCard}>
-            <MaterialCommunityIcons
-              name="weight-kilogram"
-              size={24}
-              color="#FF914D"
-            />
-            <Text style={styles.statValue}>
-              {pt?.userDetail?.weight || "N/A"}
-            </Text>
-            <Text style={styles.statLabel}>Weight (kg)</Text>
-          </View>
-
-          <View style={styles.statCard}>
-            <Ionicons name="people-outline" size={24} color="#FF914D" />
-            <Text style={styles.statValue}>
-              {pt?.freelancePt?.totalPurchased ?? 0}
-            </Text>
-            <Text style={styles.statLabel}>{t("freelancePT.clients")}</Text>
-          </View>
-        </View>
-
-        {/* Tab Navigation */}
-        <View style={styles.tabContainer}>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === "profile" && styles.activeTab]}
-            onPress={() => setActiveTab("profile")}
-          >
-            <Text style={[styles.tabText, activeTab === "profile" && styles.activeTabText]}>
-              PT Profile
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === "packages" && styles.activeTab]}
-            onPress={() => setActiveTab("packages")}
-          >
-            <Text style={[styles.tabText, activeTab === "packages" && styles.activeTabText]}>
-              Packages ({pt?.freelancePTPackages?.length || 0})
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Profile Tab Content */}
-        {activeTab === "profile" && (
-          <>
-        {/* Price Information Section */}
-        <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>
-            {t("freelancePT.pricing")}
+          <Text style={styles.name}>{pt.freelancePt?.fullName}</Text>
+          <Text style={styles.description}>
+            {pt.freelancePt?.description ||
+              t("freelancePT.professionalPersonalTrainer")}
           </Text>
 
-          <View style={styles.healthCard}>
-            <View style={styles.healthHeader}>
+          <View style={styles.basicInfoContainer}>
+            <View style={styles.basicInfoItem}>
               <MaterialCommunityIcons
-                name="cash"
-                size={24}
-                color="#FF914D"
+                name="medal-outline"
+                size={18}
+                color="#FFD700"
               />
-              <View style={styles.healthInfo}>
-                <Text style={styles.healthTitle}>
-                  {t("freelancePT.priceFrom")}
-                </Text>
-                <Text style={styles.healthSubtitle}>
-                  {t("freelancePT.perSession")}
-                </Text>
-              </View>
-              <Text style={[styles.healthValue, { color: "#FF914D" }]}>
-                {pt.freelancePt?.priceFrom ? formatPrice(pt.freelancePt.priceFrom) : "Contact for pricing"}
+              <Text style={styles.basicInfoText}>
+                {pt.freelancePt?.experienceYears || 0}{" "}
+                {t("freelancePT.experienceYears")}
+              </Text>
+            </View>
+            <View style={styles.basicInfoItem}>
+              <Ionicons name="people-outline" size={18} color="#FFD700" />
+              <Text style={styles.basicInfoText}>
+                {pt.freelancePt?.totalPurchased ?? 0}{" "}
+                {t("freelancePT.totalPurchased")}
               </Text>
             </View>
           </View>
         </View>
+      </LinearGradient>
 
-        {/* Body Measurements Section */}
-        <View style={styles.sectionContainer}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>
-              <MaterialCommunityIcons
-                name="human-handsup"
-                size={20}
-                color="#FF914D"
-              />{" "}
-              Body Measurements
-            </Text>
-          </View>
-
-          <View style={styles.measurementsGrid}>
-            {getBodyMeasurements().map((measurement, index) => (
-              <View key={measurement.key} style={styles.measurementCard}>
-                {measurement.image ? (
-                  <Image
-                    source={measurement.image}
-                    style={styles.bodyPartImage}
-                    resizeMode="contain"
-                  />
-                ) : (
-                  <View style={styles.bodyPartImagePlaceholder}>
-                    <MaterialCommunityIcons
-                      name="human"
-                      size={32}
-                      color="#FF"
-                    />
-                  </View>
-                )}
-                <Text style={styles.measurementLabel}>
-                  {measurement.label}
-                </Text>
-                <Text style={styles.measurementValue}>
-                  {measurement.value || "N/A"}{" "}
-                  {measurement.value && (
-                    <Text style={styles.measurementUnit}>
-                      {measurement.unit}
-                    </Text>
-                  )}
-                </Text>
-              </View>
-            ))}
-          </View>
+      {/* Quick Stats Cards */}
+      <View style={styles.statsContainer}>
+        <View style={styles.statCard}>
+          <MaterialCommunityIcons
+            name="human-male-height"
+            size={24}
+            color="#FF914D"
+          />
+          <Text style={styles.statValue}>
+            {pt?.userDetail?.height || "N/A"}
+          </Text>
+          <Text style={styles.statLabel}>{t("freelancePT.heightLabel")}</Text>
         </View>
 
-        {/* Trainer Information Section */}
-        <View style={styles.sectionContainer}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>
-              {t("freelancePT.trainerInfo")}
-            </Text>
+        <View style={styles.statCard}>
+          <MaterialCommunityIcons
+            name="weight-kilogram"
+            size={24}
+            color="#FF914D"
+          />
+          <Text style={styles.statValue}>
+            {pt?.userDetail?.weight || "N/A"}
+          </Text>
+          <Text style={styles.statLabel}>{t("freelancePT.weightLabel")}</Text>
+        </View>
+
+        <View style={styles.statCard}>
+          <Ionicons name="people-outline" size={24} color="#FF914D" />
+          <Text style={styles.statValue}>
+            {pt?.freelancePt?.totalPurchased ?? 0}
+          </Text>
+          <Text style={styles.statLabel}>{t("freelancePT.clients")}</Text>
+        </View>
+      </View>
+
+      {/* Tab Navigation */}
+      <View style={styles.tabContainer}>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === "profile" && styles.activeTab]}
+          onPress={() => setActiveTab("profile")}
+        >
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === "profile" && styles.activeTabText,
+            ]}
+          >
+            {t("freelancePT.ptProfileTab")}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === "packages" && styles.activeTab]}
+          onPress={() => setActiveTab("packages")}
+        >
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === "packages" && styles.activeTabText,
+            ]}
+          >
+            {t("freelancePT.packagesTab")} (
+            {pt?.freelancePTPackages?.length || 0})
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Profile Tab Content */}
+      {activeTab === "profile" && (
+        <>
+          {/* Price Information Section */}
+          <View style={styles.sectionContainer}>
+            <Text style={styles.sectionTitle}>{t("freelancePT.pricing")}</Text>
+
+            <View style={styles.healthCard}>
+              <View style={styles.healthHeader}>
+                <MaterialCommunityIcons name="cash" size={24} color="#FF914D" />
+                <View style={styles.healthInfo}>
+                  <Text style={styles.healthTitle}>
+                    {t("freelancePT.priceFrom")}
+                  </Text>
+                  <Text style={styles.healthSubtitle}>
+                    {t("freelancePT.perSession")}
+                  </Text>
+                </View>
+                <Text style={[styles.healthValue, { color: "#FF914D" }]}>
+                  {pt.freelancePt?.priceFrom
+                    ? formatPrice(pt.freelancePt.priceFrom)
+                    : t("freelancePT.contactForPricing")}
+                </Text>
+              </View>
+            </View>
           </View>
 
-          <View style={styles.formContainer}>
-            {/* Specializations */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>
-                <Ionicons name="fitness-outline" size={16} color="#FF914D" />{" "}
-                {t("freelancePT.specializations")}
-              </Text>
-              <View style={styles.tagsContainer}>
-                {pt.freelancePt?.goalTrainings && pt.freelancePt.goalTrainings.length > 0 ? (
-                  pt.freelancePt.goalTrainings.map((goal, index) => (
-                    <View key={index} style={styles.tag}>
-                      <Text style={styles.tagText}>{goal}</Text>
-                    </View>
-                  ))
-                ) : (
-                  <View style={styles.emptyTag}>
-                    <Text style={styles.emptyTagText}>No Specializations</Text>
-                  </View>
-                )}
-              </View>
-            </View>
-
-            {/* Certifications */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>
-                <Ionicons name="ribbon-outline" size={16} color="#FF914D" />{" "}
-                {t("freelancePT.certifications")}
-              </Text>
-              <View style={styles.certificationsContainer}>
-                {pt.freelancePt?.certifications && pt.freelancePt.certifications.length > 0 ? (
-                  pt.freelancePt.certifications.map((cert, index) => (
-                    <View key={index} style={styles.certificationItem}>
-                      <Text style={styles.certificationText}>{cert}</Text>
-                    </View>
-                  ))
-                ) : (
-                  <View style={styles.certificationItem}>
-                    <Text style={[styles.certificationText, { color: "#999" }]}>
-                      No Certifications
-                    </Text>
-                  </View>
-                )}
-              </View>
-            </View>
-
-            {/* About/Bio */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>
+          {/* Body Measurements Section */}
+          <View style={styles.sectionContainer}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>
                 <MaterialCommunityIcons
-                  name="information-outline"
-                  size={16}
+                  name="human-handsup"
+                  size={20}
                   color="#FF914D"
                 />{" "}
-                {t("freelancePT.about")}
+                {t("freelancePT.bodyMeasurements")}
               </Text>
-              <View style={[styles.textInput, styles.disabledInput]}>
-                <Text style={styles.bioText}>
-                  {pt.bio || pt.description || "No description available"}
+            </View>
+
+            <View style={styles.measurementsGrid}>
+              {getBodyMeasurements().map((measurement, index) => (
+                <View key={measurement.key} style={styles.measurementCard}>
+                  {measurement.image ? (
+                    <Image
+                      source={measurement.image}
+                      style={styles.bodyPartImage}
+                      resizeMode="contain"
+                    />
+                  ) : (
+                    <View style={styles.bodyPartImagePlaceholder}>
+                      <MaterialCommunityIcons
+                        name="human"
+                        size={32}
+                        color="#FF"
+                      />
+                    </View>
+                  )}
+                  <Text style={styles.measurementLabel}>
+                    {measurement.label}
+                  </Text>
+                  <Text style={styles.measurementValue}>
+                    {measurement.value || "N/A"}{" "}
+                    {measurement.value && (
+                      <Text style={styles.measurementUnit}>
+                        {measurement.unit}
+                      </Text>
+                    )}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          {/* Trainer Information Section */}
+          <View style={styles.sectionContainer}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>
+                {t("freelancePT.trainerInfo")}
+              </Text>
+            </View>
+
+            <View style={styles.formContainer}>
+              {/* Specializations */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>
+                  <Ionicons name="fitness-outline" size={16} color="#FF914D" />{" "}
+                  {t("freelancePT.specializations")}
                 </Text>
+                <View style={styles.tagsContainer}>
+                  {pt.freelancePt?.goalTrainings &&
+                  pt.freelancePt.goalTrainings.length > 0 ? (
+                    pt.freelancePt.goalTrainings.map((goal, index) => (
+                      <View key={index} style={styles.tag}>
+                        <Text style={styles.tagText}>{goal}</Text>
+                      </View>
+                    ))
+                  ) : (
+                    <View style={styles.emptyTag}>
+                      <Text style={styles.emptyTagText}>
+                        {t("freelancePT.noSpecializations")}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+
+              {/* Certifications */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>
+                  <Ionicons name="ribbon-outline" size={16} color="#FF914D" />{" "}
+                  {t("freelancePT.certifications")}
+                </Text>
+                <View style={styles.certificationsContainer}>
+                  {pt.freelancePt?.certifications &&
+                  pt.freelancePt.certifications.length > 0 ? (
+                    pt.freelancePt.certifications.map((cert, index) => (
+                      <View key={index} style={styles.certificationItem}>
+                        <Text style={styles.certificationText}>{cert}</Text>
+                      </View>
+                    ))
+                  ) : (
+                    <View style={styles.certificationItem}>
+                      <Text
+                        style={[styles.certificationText, { color: "#999" }]}
+                      >
+                        {t("freelancePT.noCertifications")}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+
+              {/* About/Bio */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>
+                  <MaterialCommunityIcons
+                    name="information-outline"
+                    size={16}
+                    color="#FF914D"
+                  />{" "}
+                  {t("freelancePT.about")}
+                </Text>
+                <View style={[styles.textInput, styles.disabledInput]}>
+                  <Text style={styles.bioText}>
+                    {pt.bio || pt.description || t("freelancePT.noDescription")}
+                  </Text>
+                </View>
               </View>
             </View>
           </View>
-        </View>
         </>
-        )}
+      )}
 
-        {/* Packages Tab Content */}
-        {activeTab === "packages" && (
-          <View style={styles.packagesContainer}>
-            {pt?.freelancePTPackages && pt.freelancePTPackages.length > 0 ? (
-              // Sort packages: purchased packages first, then unpurchased
-              [...pt.freelancePTPackages]
-                .sort((a, b) => {
-                  // If a is purchased and b is not, a comes first (return -1)
-                  // If b is purchased and a is not, b comes first (return 1)
-                  // If both have same purchase status, keep original order (return 0)
-                  if (a.isPurchased && !b.isPurchased) return -1;
-                  if (!a.isPurchased && b.isPurchased) return 1;
-                  return 0;
-                })
-                .map((packageItem, index) => (
+      {/* Packages Tab Content */}
+      {activeTab === "packages" && (
+        <View style={styles.packagesContainer}>
+          {pt?.freelancePTPackages && pt.freelancePTPackages.length > 0 ? (
+            // Sort packages: purchased packages first, then unpurchased
+            [...pt.freelancePTPackages]
+              .sort((a, b) => {
+                // If a is purchased and b is not, a comes first (return -1)
+                // If b is purchased and a is not, b comes first (return 1)
+                // If both have same purchase status, keep original order (return 0)
+                if (a.isPurchased && !b.isPurchased) return -1;
+                if (!a.isPurchased && b.isPurchased) return 1;
+                return 0;
+              })
+              .map((packageItem, index) => (
                 <TouchableOpacity
                   key={packageItem.id}
                   style={[
                     styles.packageCard,
-                    packageItem.isPurchased && styles.purchasedPackageCard
+                    packageItem.isPurchased && styles.purchasedPackageCard,
                   ]}
-                  onPress={() => navigation.navigate("FreelancePTPackageDetailScreen", {
-                    freelancePTPackageId: packageItem.id,
-                    purchasedPackage: purchasedPackage,
-                  })}
+                  onPress={() =>
+                    navigation.navigate("FreelancePTPackageDetailScreen", {
+                      freelancePTPackageId: packageItem.id,
+                      purchasedPackage: purchasedPackage,
+                    })
+                  }
                 >
                   {/* Package Image */}
                   <View style={styles.packageImageContainer}>
                     <Image
                       source={
-                        packageItem.imageUrl && packageItem.imageUrl !== "string"
+                        packageItem.imageUrl &&
+                        packageItem.imageUrl !== "string"
                           ? { uri: packageItem.imageUrl }
                           : require("../../../assets/gymroom.jpg")
                       }
@@ -454,8 +514,14 @@ const PTProfileScreen = ({ route, navigation }) => {
                     {/* Purchased Badge */}
                     {packageItem.isPurchased && (
                       <View style={styles.purchasedBadge}>
-                        <Ionicons name="checkmark-circle" size={20} color="#fff" />
-                        <Text style={styles.purchasedBadgeText}>Purchased</Text>
+                        <Ionicons
+                          name="checkmark-circle"
+                          size={20}
+                          color="#fff"
+                        />
+                        <Text style={styles.purchasedBadgeText}>
+                          {t("freelancePT.purchased")}
+                        </Text>
                       </View>
                     )}
                   </View>
@@ -463,30 +529,42 @@ const PTProfileScreen = ({ route, navigation }) => {
                   {/* Package Info */}
                   <View style={styles.packageInfo}>
                     <Text style={styles.packageName} numberOfLines={2}>
-                      {packageItem.name || "Untitled Package"}
+                      {packageItem.name || t("freelancePT.untitledPackage")}
                     </Text>
-                    
+
                     <Text style={styles.packageDescription} numberOfLines={2}>
-                      {packageItem.description || "No description available"}
+                      {packageItem.description ||
+                        t("freelancePT.noDescription")}
                     </Text>
 
                     <View style={styles.packageDetailsRow}>
                       <View style={styles.packageDetailItem}>
-                        <Ionicons name="calendar-outline" size={14} color="#666" />
+                        <Ionicons
+                          name="calendar-outline"
+                          size={14}
+                          color="#666"
+                        />
                         <Text style={styles.packageDetailText}>
-                          {packageItem.durationInDays || 0} days
+                          {packageItem.durationInDays || 0}{" "}
+                          {t("freelancePT.days")}
                         </Text>
                       </View>
                       <View style={styles.packageDetailItem}>
-                        <MaterialCommunityIcons name="dumbbell" size={14} color="#666" />
+                        <MaterialCommunityIcons
+                          name="dumbbell"
+                          size={14}
+                          color="#666"
+                        />
                         <Text style={styles.packageDetailText}>
-                          {packageItem.numOfSessions || 0} sessions
+                          {packageItem.numOfSessions || 0}{" "}
+                          {t("freelancePT.sessions")}
                         </Text>
                       </View>
                       <View style={styles.packageDetailItem}>
                         <Ionicons name="time-outline" size={14} color="#666" />
                         <Text style={styles.packageDetailText}>
-                          {packageItem.sessionDurationInMinutes || 0} min
+                          {packageItem.sessionDurationInMinutes || 0}{" "}
+                          {t("freelancePT.minutes")}
                         </Text>
                       </View>
                     </View>
@@ -494,34 +572,51 @@ const PTProfileScreen = ({ route, navigation }) => {
                     <View style={styles.packageFooter}>
                       <View style={styles.packagePriceContainer}>
                         <Text style={styles.packagePrice}>
-                          {packageItem.price ? formatPrice(packageItem.price) : "Contact"}
+                          {packageItem.price
+                            ? formatPrice(packageItem.price)
+                            : t("freelancePT.contactForPricing")}
                         </Text>
                       </View>
                       <TouchableOpacity
                         style={styles.packageButton}
-                        onPress={() => navigation.navigate("FreelancePTPackageDetailScreen", {
-                          freelancePTPackageId: packageItem.id,
-                          purchasedPackage: purchasedPackage,
-                        })}
+                        onPress={() =>
+                          navigation.navigate(
+                            "FreelancePTPackageDetailScreen",
+                            {
+                              freelancePTPackageId: packageItem.id,
+                              purchasedPackage: purchasedPackage,
+                            }
+                          )
+                        }
                       >
-                        <Text style={styles.packageButtonText}>View Details</Text>
-                        <Ionicons name="arrow-forward" size={16} color="#ED2A46" />
+                        <Text style={styles.packageButtonText}>
+                          {t("freelancePT.viewDetails")}
+                        </Text>
+                        <Ionicons
+                          name="arrow-forward"
+                          size={16}
+                          color="#ED2A46"
+                        />
                       </TouchableOpacity>
                     </View>
                   </View>
                 </TouchableOpacity>
               ))
-            ) : (
-              <View style={styles.emptyPackagesContainer}>
-                <MaterialCommunityIcons name="package-variant" size={64} color="#ccc" />
-                <Text style={styles.emptyPackagesText}>
-                  No packages available yet
-                </Text>
-              </View>
-            )}
-          </View>
-        )}
-      </ScrollView>
+          ) : (
+            <View style={styles.emptyPackagesContainer}>
+              <MaterialCommunityIcons
+                name="package-variant"
+                size={64}
+                color="#ccc"
+              />
+              <Text style={styles.emptyPackagesText}>
+                {t("freelancePT.noPackagesAvailableYet")}
+              </Text>
+            </View>
+          )}
+        </View>
+      )}
+    </ScrollView>
   );
 };
 
@@ -975,7 +1070,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 4,
-
   },
   // Package Styles
   packagesContainer: {

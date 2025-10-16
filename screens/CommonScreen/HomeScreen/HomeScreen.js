@@ -49,7 +49,8 @@ export default function HomeScreen() {
       fullName: "Luna Star",
       avatarUrl:
         "https://i.pinimg.com/736x/0e/fc/b5/0efcb577e982d3b47739b3d10d47ce42.jpg",
-      description: "Expert Fitness Coach specializing in HIIT and Strength Training",
+      description:
+        "Expert Fitness Coach specializing in HIIT and Strength Training",
       rating: 4.9,
       goalTrainingList: ["HIIT", "Strength Training", "Endurance"],
       certifications: ["NSCA", "ACSM"],
@@ -62,7 +63,8 @@ export default function HomeScreen() {
       fullName: "Mia Khalifa",
       avatarUrl:
         "https://i.pinimg.com/736x/63/69/ab/6369ab27dca3a6331a12c517441fabd2.jpg",
-      description: "Yoga Instructor and Wellness Coach with a holistic approach",
+      description:
+        "Yoga Instructor and Wellness Coach with a holistic approach",
       rating: 4.7,
       goalTrainingList: ["Yoga", "Mindfulness", "Flexibility"],
       certifications: ["RYT 200", "Wellness Coach"],
@@ -79,6 +81,7 @@ export default function HomeScreen() {
         size: pageSize,
       });
       const { items, total, page: currentPage } = response.data;
+      console.log("Fetched freelance PT:", items);
       setAllFreelancePT(items);
     } catch (error) {
       console.error("Error fetching freelance PT:", error);
@@ -98,7 +101,6 @@ export default function HomeScreen() {
       console.error("Error fetching hot research gym:", error);
     }
   };
-
 
   const handleFilterGymsByDistance = () => {
     if (!coordinates || !allGyms.length) return;
@@ -172,18 +174,12 @@ export default function HomeScreen() {
       >
         <CarouselBannerSection />
         <FitnessSummarySection />
-        <FreelancePTTrainersSection 
-          freelancePT={allFreelancePT} 
-          loading={loading} 
+        <FreelancePTTrainersSection
+          freelancePT={allFreelancePT}
+          loading={loading}
         />
-        <FeaturedGymsSection 
-          gyms={allGyms} 
-          loading={loading} 
-        />
-        <NearbyGymsSection 
-          gyms={nearbyGyms} 
-          loading={loading} 
-        />
+        <FeaturedGymsSection gyms={allGyms} loading={loading} />
+        <NearbyGymsSection gyms={nearbyGyms} loading={loading} />
         <BlogSection />
       </ScrollView>
     </View>

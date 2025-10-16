@@ -41,13 +41,16 @@ export default function PaymentScreen({ navigation, route }) {
 
     requestData = {
       request: {
-        voucherId: null,
+        couponId: null,
+        customerPurchasedIdToExtend: null,
         shippingFee: 0,
         addressId: null,
         paymentMethodId:
           selectedPaymentMethod === "bank"
             ? "01997597-d188-7f12-95f4-43ef8d442612"
             : "01997597-d188-7f12-95f4-43ef8d412633",
+        // voucherId: null,
+
         orderItems: displayItems.map((item) =>
           item.type === "FreelancePT"
             ? {

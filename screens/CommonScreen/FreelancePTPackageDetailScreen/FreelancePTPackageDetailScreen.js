@@ -207,7 +207,9 @@ export default function FreelancePTPackageDetailScreen() {
           {/* Package Name with Icon */}
           <View style={styles.packageHeader}>
             <View style={styles.packageTitleContainer}>
-              <Text style={styles.packageNameTitle}>{t("freelancePT.packageName")}</Text>
+              <Text style={styles.packageNameTitle}>
+                {t("freelancePT.packageName")}
+              </Text>
               <Text style={styles.packageName}>
                 {packageData.name || t("freelancePT.premiumPackage")}
               </Text>
@@ -995,5 +997,4 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     fontWeight: "600",
   },
-}
-);
+});
