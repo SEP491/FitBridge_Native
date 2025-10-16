@@ -25,21 +25,25 @@ export default function FreelancePTPackageDetailScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const { t } = useTranslation();
-  const { addToCart, isPackageInCart } = useCart();
-  
+
   const [packageData, setPackageData] = useState(null);
   const [ptData, setPtData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [addingToCart, setAddingToCart] = useState(false);
 
   // Get packageId from route params
-  const packageId = route.params?.packageId || route.params?.freelancePTPackageId;
-
+  const packageId =
+    route.params?.packageId || route.params?.freelancePTPackageId;
+  const purchasedPackage = route.params?.purchasedPackage || null;
+  console.log("Purchased Package:", purchasedPackage);
   useEffect(() => {
     if (packageId) {
       fetchPackageDetail();
     } else {
-      showAlert(t("error.title") || "Error", t("error.noPackageId") || "No package ID provided");
+      showAlert(
+        t("error.title") || "Error",
+        t("error.noPackageId") || "No package ID provided"
+      );
       navigation.goBack();
     }
   }, [packageId]);
@@ -47,29 +51,35 @@ export default function FreelancePTPackageDetailScreen() {
   const fetchPackageDetail = async () => {
     try {
       setLoading(true);
-      const response = await freelancePTPackageService.getFreelancePTPackageById(packageId);
-      
+      const response =
+        await freelancePTPackageService.getFreelancePTPackageById(packageId);
+
       if (response.status === "200" && response.data) {
         setPackageData(response.data);
         console.log("Fetched package data:", response.data);
       } else {
-        showAlert(t("error.title") || "Error", t("error.failedToLoadPackage") || "Failed to load package details");
+        showAlert(
+          t("error.title") || "Error",
+          t("error.failedToLoadPackage") || "Failed to load package details"
+        );
       }
     } catch (error) {
       console.error("Error fetching package detail:", error);
-      showAlert(t("error.title") || "Error", t("error.failedToLoadPackage") || "Failed to load package details");
+      showAlert(
+        t("error.title") || "Error",
+        t("error.failedToLoadPackage") || "Failed to load package details"
+      );
     } finally {
       setLoading(false);
     }
   };
-
 
   const handleBuyNow = async () => {
     if (!packageData) return;
 
     try {
       setAddingToCart(true);
-      
+
       // Prepare order item data for direct purchase
       const orderItem = {
         id: packageData.id,
@@ -87,13 +97,15 @@ export default function FreelancePTPackageDetailScreen() {
         description: packageData.description,
         imageUrl: packageData.imageUrl,
         // Freelance PT info
-        pt: ptData ? {
-          id: ptData.id,
-          fullName: ptData.fullName,
-          avatar: ptData.avatar,
-          gender: ptData.gender,
-          goalTraining: ptData.goalTraining,
-        } : null,
+        pt: ptData
+          ? {
+              id: ptData.id,
+              fullName: ptData.fullName,
+              avatar: ptData.avatar,
+              gender: ptData.gender,
+              goalTraining: ptData.goalTraining,
+            }
+          : null,
       };
 
       // Navigate directly to payment screen with the package data
@@ -104,7 +116,10 @@ export default function FreelancePTPackageDetailScreen() {
       });
     } catch (error) {
       console.error("Error proceeding to payment:", error);
-      showAlert(t("error.title") || "Error", t("error.failedToProceed") || "Failed to proceed to payment");
+      showAlert(
+        t("error.title") || "Error",
+        t("error.failedToProceed") || "Failed to proceed to payment"
+      );
     } finally {
       setAddingToCart(false);
     }
@@ -115,7 +130,9 @@ export default function FreelancePTPackageDetailScreen() {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#ED2A46" />
-          <Text style={styles.loadingText}>{t("common.loading") || "Loading..."}</Text>
+          <Text style={styles.loadingText}>
+            {t("common.loading") || "Loading..."}
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -129,8 +146,13 @@ export default function FreelancePTPackageDetailScreen() {
           <Text style={styles.errorText}>
             {t("error.packageNotFound") || "Package not found"}
           </Text>
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Text style={styles.backButtonText}>{t("common.goBack") || "Go Back"}</Text>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={styles.backButtonText}>
+              {t("common.goBack") || "Go Back"}
+            </Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -138,23 +160,17 @@ export default function FreelancePTPackageDetailScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={["bottom"]}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerButton}>
-          <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t("freelancePT.packageDetail") || "Package Details"}</Text>
-        <View style={styles.headerButton} />
-      </View>
-
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+    <SafeAreaView style={styles.container}>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Hero Image with Overlay */}
         <View style={styles.imageContainer}>
           <Image
             source={{
               uri:
-                packageData.imageUrl && packageData.imageUrl !== 'string'
+                packageData.imageUrl && packageData.imageUrl !== "string"
                   ? packageData.imageUrl
                   : "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800",
             }}
@@ -164,38 +180,37 @@ export default function FreelancePTPackageDetailScreen() {
           <LinearGradient
             colors={["transparent", "rgba(0,0,0,0.8)"]}
             style={styles.imageGradient}
-          >
-            {/* Price Badge on Image */}
-            <View style={styles.priceOnImageBadge}>
-              <LinearGradient
-                colors={["#ED2A46", "#FF6B6B"]}
-                style={styles.priceBadgeGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
-                <Text style={styles.priceBadgeLabel}>{t("freelancePT.totalPrice").toUpperCase() || "TOTAL PRICE"}</Text>
-                <Text style={styles.priceBadgeValue}>{formatPrice(packageData.price)}</Text>
-                <Text style={styles.priceBadgeSubtext}>
-                  {formatPrice(Math.round(packageData.price / packageData.numOfSessions))} {t("freelancePT.perSession") || "per session"}
-                </Text>
-              </LinearGradient>
-            </View>
-          </LinearGradient>
+          ></LinearGradient>
+        </View>
+
+        {/* {Price Section} */}
+        <View style={styles.priceSection}>
+          {/* <View style={styles.popularBadge}>
+            <Ionicons name="flame" size={14} color="#FF6B6B" />
+            <Text style={styles.popularText}>
+              {t("freelancePT.popularChoice") || "POPULAR CHOICE"}
+            </Text>
+          </View> */}
+          <Text style={styles.priceValue}>
+            {formatPrice(packageData.price)}
+          </Text>
+          <Text style={styles.priceSubtext}>
+            {formatPrice(
+              Math.round(packageData.price / packageData.numOfSessions)
+            )}{" "}
+            {t("freelancePT.perSession") || "per session"}
+          </Text>
         </View>
 
         {/* Package Content */}
         <View style={styles.contentContainer}>
           {/* Package Name with Icon */}
           <View style={styles.packageHeader}>
-            <View style={styles.packageIconBadge}>
-              <Ionicons name="trophy" size={24} color="#FFD700" />
-            </View>
             <View style={styles.packageTitleContainer}>
-              <Text style={styles.packageName}>{packageData.name || t("freelancePT.premiumPackage")}</Text>
-              <View style={styles.popularBadge}>
-                <Ionicons name="flame" size={14} color="#FF6B6B" />
-                <Text style={styles.popularText}>{t("freelancePT.popularChoice") || "POPULAR CHOICE"}</Text>
-              </View>
+              <Text style={styles.packageNameTitle}>{t("freelancePT.packageName")}</Text>
+              <Text style={styles.packageName}>
+                {packageData.name || t("freelancePT.premiumPackage")}
+              </Text>
             </View>
           </View>
 
@@ -203,25 +218,35 @@ export default function FreelancePTPackageDetailScreen() {
           <View style={styles.quickStatsBar}>
             <View style={styles.quickStat}>
               <Ionicons name="calendar" size={18} color="#ED2A46" />
-              <Text style={styles.quickStatText}>{packageData.durationInDays} {t("freelancePT.days") || "Days"}</Text>
+              <Text style={styles.quickStatText}>
+                {packageData.durationInDays} {t("freelancePT.days") || "Days"}
+              </Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.quickStat}>
               <Ionicons name="barbell" size={18} color="#ED2A46" />
-              <Text style={styles.quickStatText}>{packageData.numOfSessions} {t("freelancePT.sessions") || "Sessions"}</Text>
+              <Text style={styles.quickStatText}>
+                {packageData.numOfSessions}{" "}
+                {t("freelancePT.sessions") || "Sessions"}
+              </Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.quickStat}>
               <Ionicons name="time" size={18} color="#ED2A46" />
-              <Text style={styles.quickStatText}>{packageData.sessionDurationInMinutes} {t("freelancePT.minutes") || "Min"}</Text>
+              <Text style={styles.quickStatText}>
+                {packageData.sessionDurationInMinutes}{" "}
+                {t("freelancePT.minutes") || "Min"}
+              </Text>
             </View>
           </View>
 
           {/* PT Information Card - Enhanced */}
           {ptData && (
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.ptCard}
-              onPress={() => navigation.navigate("PTProfileScreen", { ptId: ptData.id })}
+              onPress={() =>
+                navigation.navigate("PTProfileScreen", { ptId: ptData.id })
+              }
               activeOpacity={0.7}
             >
               <LinearGradient
@@ -236,11 +261,17 @@ export default function FreelancePTPackageDetailScreen() {
                     style={styles.ptAvatar}
                   />
                   <View style={styles.verifiedBadge}>
-                    <Ionicons name="checkmark-circle" size={18} color="#4CAF50" />
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={18}
+                      color="#4CAF50"
+                    />
                   </View>
                 </View>
                 <View style={styles.ptInfo}>
-                  <Text style={styles.ptLabel}>👨‍🏫 {t("freelancePT.yourTrainer") || "YOUR TRAINER"}</Text>
+                  <Text style={styles.ptLabel}>
+                    👨‍🏫 {t("freelancePT.yourTrainer") || "YOUR TRAINER"}
+                  </Text>
                   <Text style={styles.ptName}>{ptData.fullName}</Text>
                   {ptData.goalTraining && (
                     <View style={styles.ptGoalBadge}>
@@ -263,9 +294,13 @@ export default function FreelancePTPackageDetailScreen() {
             <View style={styles.descriptionContainer}>
               <View style={styles.sectionHeaderRow}>
                 <Ionicons name="document-text" size={20} color="#ED2A46" />
-                <Text style={styles.sectionTitle}>{t("freelancePT.aboutThisPackage") || "About This Package"}</Text>
+                <Text style={styles.sectionTitle}>
+                  {t("freelancePT.aboutThisPackage") || "About This Package"}
+                </Text>
               </View>
-              <Text style={styles.packageDescription}>{packageData.description}</Text>
+              <Text style={styles.packageDescription}>
+                {packageData.description}
+              </Text>
             </View>
           )}
 
@@ -273,9 +308,11 @@ export default function FreelancePTPackageDetailScreen() {
           <View style={styles.valueSection}>
             <View style={styles.sectionHeaderRow}>
               <Ionicons name="gift" size={20} color="#ED2A46" />
-              <Text style={styles.sectionTitle}>{t("freelancePT.whatYouGet") || "What You Get"}</Text>
+              <Text style={styles.sectionTitle}>
+                {t("freelancePT.whatYouGet") || "What You Get"}
+              </Text>
             </View>
-            
+
             <View style={styles.benefitsList}>
               <View style={styles.benefitItem}>
                 <View style={styles.benefitIconContainer}>
@@ -283,10 +320,13 @@ export default function FreelancePTPackageDetailScreen() {
                 </View>
                 <View style={styles.benefitContent}>
                   <Text style={styles.benefitTitle}>
-                    {packageData.numOfSessions} {t("freelancePT.trainingSessionsCount") || "Personal Training Sessions"}
+                    {packageData.numOfSessions}{" "}
+                    {t("freelancePT.trainingSessionsCount") ||
+                      "Personal Training Sessions"}
                   </Text>
                   <Text style={styles.benefitSubtitle}>
-                    {t("freelancePT.oneOnOneCoaching") || "One-on-one coaching with expert trainer"}
+                    {t("freelancePT.oneOnOneCoaching") ||
+                      "One-on-one coaching with expert trainer"}
                   </Text>
                 </View>
               </View>
@@ -297,22 +337,13 @@ export default function FreelancePTPackageDetailScreen() {
                 </View>
                 <View style={styles.benefitContent}>
                   <Text style={styles.benefitTitle}>
-                    {packageData.durationInDays} {t("freelancePT.daysAccess") || "Days Access"}
+                    {packageData.sessionDurationInMinutes}{" "}
+                    {t("freelancePT.minutesPerSession") ||
+                      "Minutes per Session"}
                   </Text>
                   <Text style={styles.benefitSubtitle}>
-                    {t("freelancePT.flexibleSchedulingWithin") || "Flexible scheduling within validity period"}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.benefitItem}>
-                <View style={styles.benefitIconContainer}>
-                  <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
-                </View>
-                <View style={styles.benefitContent}>
-                  <Text style={styles.benefitTitle}>{t("freelancePT.customizedTrainingPlan") || "Customized Training Plan"}</Text>
-                  <Text style={styles.benefitSubtitle}>
-                    {t("freelancePT.tailoredToGoals") || "Tailored to your fitness goals and level"}
+                    {t("freelancePT.focusOnYourGoals") ||
+                      "Focused sessions tailored to your goals"}
                   </Text>
                 </View>
               </View>
@@ -322,9 +353,13 @@ export default function FreelancePTPackageDetailScreen() {
                   <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
                 </View>
                 <View style={styles.benefitContent}>
-                  <Text style={styles.benefitTitle}>{t("freelancePT.progressTracking") || "Progress Tracking"}</Text>
+                  <Text style={styles.benefitTitle}>
+                    {packageData.durationInDays}{" "}
+                    {t("freelancePT.daysAccess") || "Days Access"}
+                  </Text>
                   <Text style={styles.benefitSubtitle}>
-                    {t("freelancePT.monitorImprovements") || "Monitor your improvements throughout"}
+                    {t("freelancePT.flexibleSchedulingWithin") ||
+                      "Flexible scheduling within validity period"}
                   </Text>
                 </View>
               </View>
@@ -334,9 +369,13 @@ export default function FreelancePTPackageDetailScreen() {
                   <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
                 </View>
                 <View style={styles.benefitContent}>
-                  <Text style={styles.benefitTitle}>{t("freelancePT.nutritionGuidance") || "Nutrition Guidance"}</Text>
+                  <Text style={styles.benefitTitle}>
+                    {t("freelancePT.customizedTrainingPlan") ||
+                      "Customized Training Plan"}
+                  </Text>
                   <Text style={styles.benefitSubtitle}>
-                    {t("freelancePT.basicDietaryTips") || "Basic dietary tips and recommendations"}
+                    {t("freelancePT.tailoredToGoals") ||
+                      "Tailored to your fitness goals and level"}
                   </Text>
                 </View>
               </View>
@@ -346,9 +385,42 @@ export default function FreelancePTPackageDetailScreen() {
                   <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
                 </View>
                 <View style={styles.benefitContent}>
-                  <Text style={styles.benefitTitle}>{t("freelancePT.chatSupport") || "24/7 Chat Support"}</Text>
+                  <Text style={styles.benefitTitle}>
+                    {t("freelancePT.progressTracking") || "Progress Tracking"}
+                  </Text>
                   <Text style={styles.benefitSubtitle}>
-                    {t("freelancePT.askQuestionsAnytime") || "Ask questions anytime via in-app messaging"}
+                    {t("freelancePT.monitorImprovements") ||
+                      "Monitor your improvements throughout"}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.benefitItem}>
+                <View style={styles.benefitIconContainer}>
+                  <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
+                </View>
+                <View style={styles.benefitContent}>
+                  <Text style={styles.benefitTitle}>
+                    {t("freelancePT.nutritionGuidance") || "Nutrition Guidance"}
+                  </Text>
+                  <Text style={styles.benefitSubtitle}>
+                    {t("freelancePT.basicDietaryTips") ||
+                      "Basic dietary tips and recommendations"}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.benefitItem}>
+                <View style={styles.benefitIconContainer}>
+                  <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
+                </View>
+                <View style={styles.benefitContent}>
+                  <Text style={styles.benefitTitle}>
+                    {t("freelancePT.chatSupport") || "24/7 Chat Support"}
+                  </Text>
+                  <Text style={styles.benefitSubtitle}>
+                    {t("freelancePT.askQuestionsAnytime") ||
+                      "Ask questions anytime via in-app messaging"}
                   </Text>
                 </View>
               </View>
@@ -359,15 +431,22 @@ export default function FreelancePTPackageDetailScreen() {
           <View style={styles.trustSection}>
             <View style={styles.trustItem}>
               <Ionicons name="shield-checkmark" size={28} color="#4CAF50" />
-              <Text style={styles.trustText}>{t("freelancePT.moneyBackGuarantee") || "Money-Back Guarantee"}</Text>
+              <Text style={styles.trustText}>
+                {t("freelancePT.moneyBackGuarantee") || "Money-Back Guarantee"}
+              </Text>
             </View>
             <View style={styles.trustItem}>
               <Ionicons name="calendar-outline" size={28} color="#4CAF50" />
-              <Text style={styles.trustText}>{t("freelancePT.flexibleRescheduling") || "Flexible Rescheduling"}</Text>
+              <Text style={styles.trustText}>
+                {t("freelancePT.flexibleRescheduling") ||
+                  "Flexible Rescheduling"}
+              </Text>
             </View>
             <View style={styles.trustItem}>
               <Ionicons name="star" size={28} color="#FFD700" />
-              <Text style={styles.trustText}>{t("freelancePT.topRatedTrainer") || "Top-Rated Trainer"}</Text>
+              <Text style={styles.trustText}>
+                {t("freelancePT.topRatedTrainer") || "Top-Rated Trainer"}
+              </Text>
             </View>
           </View>
 
@@ -377,39 +456,77 @@ export default function FreelancePTPackageDetailScreen() {
       </ScrollView>
 
       {/* Bottom Action Bar - Enhanced */}
-      <View style={styles.bottomBar}>
-        <View style={styles.priceSection}>
-          <Text style={styles.priceLabel}>💎 {t("freelancePT.totalInvestment") || "TOTAL INVESTMENT"}</Text>
-          <View style={styles.priceRow}>
-            <Text style={styles.priceValue}>{formatPrice(packageData.price)}</Text>
+      {!purchasedPackage ? (
+        <View style={styles.bottomBar}>
+          <View style={styles.priceSection}>
+            <Text style={styles.priceLabel}>
+              {t("freelancePT.totalInvestment") || "TOTAL INVESTMENT"}
+            </Text>
+            <View style={styles.priceRow}>
+              <Text style={styles.priceValue}>
+                {formatPrice(packageData.price)}
+              </Text>
+            </View>
+          </View>
+          <TouchableOpacity
+            style={[
+              styles.buyNowButton,
+              addingToCart && styles.buyNowButtonDisabled,
+            ]}
+            onPress={handleBuyNow}
+            disabled={addingToCart}
+            activeOpacity={0.85}
+          >
+            <LinearGradient
+              colors={
+                addingToCart ? ["#CCCCCC", "#CCCCCC"] : ["#ED2A46", "#FF6B6B"]
+              }
+              style={styles.buyNowGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+            >
+              <Ionicons name="flash" size={24} color="#FFF" />
+              <Text style={styles.buyNowText}>
+                {t("freelancePT.buyNow") || "BUY NOW"}
+              </Text>
+              <Ionicons name="arrow-forward-circle" size={24} color="#FFF" />
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <View style={styles.purchasedBottomBar}>
+          <View style={styles.purchasedNotification}>
+            <View style={styles.purchasedIconContainer}>
+              <Ionicons name="checkmark-circle" size={28} color="#4CAF50" />
+            </View>
+            <View style={styles.purchasedContent}>
+              <Text style={styles.purchasedTitle}>
+                {t("freelancePT.alreadyPurchased") ||
+                  "You Already Have a Package"}
+              </Text>
+              <Text style={styles.purchasedPackageName} numberOfLines={1}>
+                {purchasedPackage.name}
+              </Text>
+              {purchasedPackage.description && (
+                <Text style={styles.purchasedDescription} numberOfLines={2}>
+                  {purchasedPackage.description}
+                </Text>
+              )}
+              <View style={styles.purchasedWarning}>
+                <Ionicons
+                  name="alert-circle-outline"
+                  size={16}
+                  color="#FF9800"
+                />
+                <Text style={styles.purchasedWarningText}>
+                  {t("freelancePT.completeCurrentPackage") ||
+                    "Please complete your current package before purchasing a new one"}
+                </Text>
+              </View>
+            </View>
           </View>
         </View>
-        <TouchableOpacity
-          style={[styles.buyNowButton, addingToCart && styles.buyNowButtonDisabled]}
-          onPress={handleBuyNow}
-          disabled={addingToCart}
-          activeOpacity={0.85}
-        >
-          <LinearGradient
-            colors={addingToCart ? ["#CCCCCC", "#CCCCCC"] : ["#ED2A46", "#FF6B6B"]}
-            style={styles.buyNowGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-          >
-            {addingToCart ? (
-              <ActivityIndicator color="#FFF" size="small" />
-            ) : (
-              <>
-                <Ionicons name="flash" size={24} color="#FFF" />
-                <Text style={styles.buyNowText}>
-                  {t("freelancePT.buyNow") || "BUY NOW"}
-                </Text>
-                <Ionicons name="arrow-forward-circle" size={24} color="#FFF" />
-              </>
-            )}
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -441,40 +558,10 @@ const styles = StyleSheet.create({
     marginTop: 16,
     textAlign: "center",
   },
-  backButton: {
-    marginTop: 24,
-    backgroundColor: "#ED2A46",
-    paddingHorizontal: 32,
-    paddingVertical: 12,
-    borderRadius: 25,
-  },
-  backButtonText: {
-    color: "#FFF",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F0F0F0",
-  },
-  headerButton: {
-    width: 40,
-    height: 40,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#1A1A1A",
-  },
   scrollView: {
     flex: 1,
+    backgroundColor: "#F8F9FA",
+    marginTop: -65,
   },
   imageContainer: {
     width: width,
@@ -552,11 +639,17 @@ const styles = StyleSheet.create({
   packageTitleContainer: {
     flex: 1,
   },
+  packageNameTitle: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#FF6B6B",
+    marginBottom: 4,
+    letterSpacing: 1,
+  },
   packageName: {
     fontSize: 26,
-    fontWeight: "900",
+    fontWeight: "700",
     color: "#1A1A1A",
-    marginBottom: 8,
     lineHeight: 32,
   },
   popularBadge: {
@@ -772,13 +865,18 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
   },
   priceSection: {
-    marginBottom: 14,
+    backgroundColor: "#ED2A46",
+    paddingHorizontal: 16,
+    paddingVertical: 15,
+    shadowColor: "#ED2A46",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
   },
   priceLabel: {
     fontSize: 11,
-    fontWeight: "700",
+    fontWeight: "600",
     color: "#6B6B6B",
-    marginBottom: 6,
+    marginBottom: 10,
     letterSpacing: 1,
   },
   priceRow: {
@@ -787,15 +885,14 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   priceValue: {
-    fontSize: 32,
+    fontSize: 22,
     fontWeight: "900",
-    color: "#ED2A46",
+    color: "#fff",
   },
-  savingsBadge: {
-    backgroundColor: "#4CAF50",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+  priceSubtext: {
+    fontSize: 13,
+    color: "rgba(255, 255, 255, 0.85)",
+    fontWeight: "500",
   },
   savingsText: {
     fontSize: 11,
@@ -832,4 +929,71 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: "center",
   },
-});
+  // Purchased Package Notification Styles
+  purchasedBottomBar: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "#FFF9F0",
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 20,
+    borderTopWidth: 2,
+    borderTopColor: "#FF9800",
+    elevation: 12,
+    shadowColor: "#FF9800",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+  },
+  purchasedNotification: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 12,
+  },
+  purchasedIconContainer: {
+    marginTop: 2,
+  },
+  purchasedContent: {
+    flex: 1,
+  },
+  purchasedTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#4CAF50",
+    marginBottom: 6,
+    letterSpacing: 0.5,
+  },
+  purchasedPackageName: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#1A1A1A",
+    marginBottom: 4,
+  },
+  purchasedDescription: {
+    fontSize: 13,
+    color: "#6B6B6B",
+    lineHeight: 18,
+    marginBottom: 10,
+  },
+  purchasedWarning: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    backgroundColor: "#FFF3E0",
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: "#FF9800",
+    gap: 8,
+  },
+  purchasedWarningText: {
+    flex: 1,
+    fontSize: 12,
+    color: "#E65100",
+    lineHeight: 16,
+    fontWeight: "600",
+  },
+}
+);

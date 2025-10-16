@@ -394,7 +394,9 @@
     "flexibleRescheduling": "Flexible Rescheduling",
     "topRatedTrainer": "Top-Rated Trainer",
     "totalInvestment": "TOTAL INVESTMENT",
-    "premiumPackage": "Premium Package"
+    "premiumPackage": "Premium Package",
+    "alreadyPurchased": "You Already Have a Package",
+    "completeCurrentPackage": "Please complete your current package before purchasing a new one"
   },
 
   "account": {

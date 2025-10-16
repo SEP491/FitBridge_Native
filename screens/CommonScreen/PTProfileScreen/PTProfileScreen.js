@@ -19,14 +19,14 @@ import accountService from "../../../services/accountService";
 
 // Body part images mapping
 const bodyPartImages = {
-  shoulder: require("../../../assets/bodyparts/shoulder.png"),
-  biceps: require("../../../assets/bodyparts/biceps.png"),
-  calf: require("../../../assets/bodyparts/calf.png"),
-  chest: require("../../../assets/bodyparts/chest.png"),
-  foreArm: require("../../../assets/bodyparts/foreArm.png"),
-  hip: require("../../../assets/bodyparts/hip.png"),
-  waist: require("../../../assets/bodyparts/waist.png"),
-  thigh: require("../../../assets/bodyparts/thigh.png"),
+  shoulder: require("../../../assets/images/bodyparts/shoulder.png"),
+  biceps: require("../../../assets/images/bodyparts/biceps.png"),
+  calf: require("../../../assets/images/bodyparts/calf.png"),
+  chest: require("../../../assets/images/bodyparts/chest.png"),
+  foreArm: require("../../../assets/images/bodyparts/foreArm.png"),
+  hip: require("../../../assets/images/bodyparts/hip.png"),
+  waist: require("../../../assets/images/bodyparts/waist.png"),
+  thigh: require("../../../assets/images/bodyparts/thigh.png"),
 };
 
 
@@ -38,6 +38,7 @@ const PTProfileScreen = ({ route, navigation }) => {
   const [pt, setPt] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("profile"); // "profile" or "packages"
+  const [purchasedPackage, setPurchasedPackage] = useState(null);
 
   console.log("PT Data:", pt);
 
@@ -53,6 +54,14 @@ const PTProfileScreen = ({ route, navigation }) => {
       const response = await accountService.getFreelancePTDetail(ptId);
       if (response.status === "200" && response.data) {
         setPt(response.data);
+      }
+      if (response.data.freelancePTPackages) {
+        const purchasedPackage = response.data.freelancePTPackages.find(pkg => pkg.isPurchased === true);
+        if (purchasedPackage) {
+          setPurchasedPackage(purchasedPackage);
+        } else {
+          setPurchasedPackage(null);
+        }
       }
 
       console.log("Fetched PT Detail:", response.data);
@@ -424,6 +433,7 @@ const PTProfileScreen = ({ route, navigation }) => {
                   ]}
                   onPress={() => navigation.navigate("FreelancePTPackageDetailScreen", {
                     freelancePTPackageId: packageItem.id,
+                    purchasedPackage: purchasedPackage,
                   })}
                 >
                   {/* Package Image */}
@@ -491,6 +501,7 @@ const PTProfileScreen = ({ route, navigation }) => {
                         style={styles.packageButton}
                         onPress={() => navigation.navigate("FreelancePTPackageDetailScreen", {
                           freelancePTPackageId: packageItem.id,
+                          purchasedPackage: purchasedPackage,
                         })}
                       >
                         <Text style={styles.packageButtonText}>View Details</Text>

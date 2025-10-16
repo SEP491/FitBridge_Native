@@ -250,7 +250,7 @@ export default function Navigator({
           component={FreelancePTPackageDetailScreen}
           options={{
             headerTitleAlign: "center",
-            headerShown: false,
+            headerShown: true,
             title: t("screenTitles.packageDetail"),
           }}
         />

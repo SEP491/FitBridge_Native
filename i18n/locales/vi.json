@@ -1241,6 +1241,11 @@
     "flexibleRescheduling": "Đổi Lịch Linh Hoạt",
     "topRatedTrainer": "HLV Hàng Đầu",
     "totalInvestment": "TỔNG ĐẦU TƯ",
-    "premiumPackage": "Gói Premium"
+    "premiumPackage": "Gói Premium",
+    "alreadyPurchased": "Bạn Đã Có Gói Tập",
+    "completeCurrentPackage": "Vui lòng hoàn thành gói hiện tại trước khi mua gói mới",
+    "packageName": "Tên Gói Tập",
+    "minutesPerSession": "phút/buổi",
+    "focusOnYourGoals": "Tập Trung Vào Mục Tiêu Của Bạn"
   }
 }
