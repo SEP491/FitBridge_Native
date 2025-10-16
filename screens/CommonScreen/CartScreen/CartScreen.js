@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
-  Animated,
   Dimensions,
 } from "react-native";
 import React, { useState, useMemo, useRef, useEffect } from "react";
@@ -25,53 +24,28 @@ export default function CartScreen() {
     useCart(); // Use the cart context
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("gym"); // gym, freelance, product
-  const slideAnim = useRef(new Animated.Value(0)).current;
-  const fadeAnim = useRef(new Animated.Value(1)).current;
+
   console.log("Cart items:", cart);
 
   // Map tab keys to indices
   const tabIndices = { gym: 0, freelance: 1, product: 2 };
 
-  // Animate when tab changes
-  useEffect(() => {
-    const toValue = tabIndices[activeTab];
-    
-    // Fade out and slide
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 150,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      // Fade back in
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 150,
-        useNativeDriver: true,
-      }).start();
-    });
-  }, [activeTab]);
+  // Animations removed: content will render statically when tab changes
 
   // Filter cart items by type
   const filteredCart = useMemo(() => {
     if (!cart || cart.length === 0) return [];
-    
+
     return cart.filter((item) => {
       if (activeTab === "gym") {
         // Gym courses: items with gymId but not freelance PT (no pt or type !== "WithPt")
         return item.gymName;
       } else if (activeTab === "freelance") {
         // Freelance PT courses: items with pt and type "WithPt"
-        return item
+        return item;
       } else if (activeTab === "product") {
         // Products: items without gymId (future implementation)
-        return item
+        return item;
       }
       return false;
     });
@@ -135,7 +109,10 @@ export default function CartScreen() {
       showAlert(t("cart.emptyCart"), t("cart.addPackageBeforePayment"));
       return;
     }
-    navigation.navigate("PaymentScreen", { total: tabTotalPrice, items: filteredCart });
+    navigation.navigate("PaymentScreen", {
+      total: tabTotalPrice,
+      items: filteredCart,
+    });
   };
 
   // Render tab button
@@ -151,7 +128,9 @@ export default function CartScreen() {
         </Text>
         {count > 0 && (
           <View style={[styles.badge, isActive && styles.activeBadge]}>
-            <Text style={[styles.badgeText, isActive && styles.activeBadgeText]}>
+            <Text
+              style={[styles.badgeText, isActive && styles.activeBadgeText]}
+            >
               {count}
             </Text>
           </View>
@@ -164,28 +143,26 @@ export default function CartScreen() {
     <View style={styles.cartScreen}>
       {/* Tab Navigation */}
       <View style={styles.tabContainer}>
-        {renderTabButton("gym", t("cart.gymCourses") || "Gym Courses", tabCounts.gym)}
-        {renderTabButton("freelance", t("cart.freelancePTCourses") || "Freelance PT Courses", tabCounts.freelance)}
-        {renderTabButton("product", t("cart.products") || "Products ", tabCounts.product)}
+        {renderTabButton(
+          "gym",
+          t("cart.gymCourses") || "Gym Courses",
+          tabCounts.gym
+        )}
+        {renderTabButton(
+          "freelance",
+          t("cart.freelancePTCourses") || "Freelance PT Courses",
+          tabCounts.freelance
+        )}
+        {renderTabButton(
+          "product",
+          t("cart.products") || "Products ",
+          tabCounts.product
+        )}
       </View>
 
       {filteredCart.length > 0 ? (
         <>
-          <Animated.View
-            style={{
-              flex: 1,
-              opacity: fadeAnim,
-              transform: [
-                {
-                  translateX: slideAnim.interpolate({
-                    inputRange: [0, 50, 50],
-                    outputRange: [0, 0, 0],
-                    extrapolate: "clamp",
-                  }),
-                },
-              ],
-            }}
-          >
+          <View style={{ flex: 1 }}>
             <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
               {filteredCart.map((item, index) => (
                 <CartCard
@@ -221,7 +198,7 @@ export default function CartScreen() {
                 />
               ))}
             </ScrollView>
-          </Animated.View>
+          </View>
 
           <View style={styles.orderSummary}>
             <View style={styles.proceedContainer}>
@@ -243,20 +220,11 @@ export default function CartScreen() {
           </View>
         </>
       ) : (
-        <Animated.View
+        <View
           style={{
             flex: 1,
             justifyContent: "center",
             alignItems: "center",
-            opacity: fadeAnim,
-            transform: [
-              {
-                translateX: slideAnim.interpolate({
-                  inputRange: [0, 1, 2],
-                  outputRange: [0, SCREEN_WIDTH * 0.05, SCREEN_WIDTH * -0.05],
-                }),
-              },
-            ],
           }}
         >
           <FontAwesome5 name="shopping-cart" size={100} color="#FF914D" />
@@ -272,7 +240,8 @@ export default function CartScreen() {
             {activeTab === "gym"
               ? t("cart.noGymCourses") || "No gym courses in cart"
               : activeTab === "freelance"
-              ? t("cart.noFreelancePTCourses") || "No freelance PT courses in cart"
+              ? t("cart.noFreelancePTCourses") ||
+                "No freelance PT courses in cart"
               : t("cart.noProducts") || "No products in cart"}
           </Text>
 
@@ -282,7 +251,7 @@ export default function CartScreen() {
           >
             <Text style={styles.buttonText}>{t("cart.backToHome")}</Text>
           </TouchableOpacity>
-        </Animated.View>
+        </View>
       )}
     </View>
   );
@@ -291,7 +260,7 @@ export default function CartScreen() {
 const styles = StyleSheet.create({
   cartScreen: {
     flex: 1,
-    backgroundColor: "#ffffff"
+    backgroundColor: "#ffffff",
   },
   tabContainer: {
     flexDirection: "row",
@@ -301,7 +270,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     flexWrap: "wrap",
-    gap: 10
+    gap: 10,
   },
   tabButton: {
     flex: 1,
@@ -320,14 +289,14 @@ const styles = StyleSheet.create({
     borderColor: "#ED2A46",
     borderWidth: 0.5,
     // backgroundColor:'#ED2A46',
-    
-    backgroundColor:'#ffffff'
+
+    backgroundColor: "#ffffff",
   },
   activeTabButton: {
-    backgroundColor:'#ED2A46',
+    backgroundColor: "#ED2A46",
     borderBottomWidth: 2,
     borderRightWidth: 2,
-    borderColor:'#000',
+    borderColor: "#000",
     borderWidth: 1,
     shadowColor: "#ED2A46",
     shadowOpacity: 0.35,

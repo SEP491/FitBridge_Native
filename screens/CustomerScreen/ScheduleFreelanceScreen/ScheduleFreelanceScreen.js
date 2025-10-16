@@ -23,7 +23,7 @@ import { useTranslation } from "../../../hooks/useTranslation";
 import { fetchUserFromStorage, formatDateForAPI } from "../../../lib";
 import BookingRequestCard from "../../../components/BookingRequestCard";
 
-export default function ScheduleFreelanceScreen() {
+export default function ScheduleFreelanceScreen({ route }) {
   const { t } = useTranslation();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -43,6 +43,7 @@ export default function ScheduleFreelanceScreen() {
   const [showEndTimePicker, setShowEndTimePicker] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userRole, setUserRole] = useState(null);
+  const { customerPurchasedId } = route.params;
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -59,7 +60,7 @@ export default function ScheduleFreelanceScreen() {
   const loadAllRequestForUser = async () => {
     try {
       const response = await accountService.getAllRequestForUser({
-        customerPurchasedId: "0199e436-fae3-7ab9-bd79-1dd53ba004ed",
+        customerPurchasedId: customerPurchasedId,
         doApplyPaging: false,
       });
       setRequests(response.data?.items || []);
@@ -197,7 +198,7 @@ export default function ScheduleFreelanceScreen() {
     setIsSubmitting(true);
     try {
       const payload = {
-        customerPurchasedId: "0199e436-fae3-7ab9-bd79-1dd53ba004ed",
+        customerPurchasedId: customerPurchasedId,
         requestBookings: [
           {
             bookingName: bookingName.trim(),

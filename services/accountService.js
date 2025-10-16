@@ -39,6 +39,9 @@ const accountService = {
     request("POST", "v1/bookings/request-edit-booking", data),
   acceptEditBooking: (data) =>
     request("POST", "v1/bookings/accept-edit-booking", data),
+
+  getCustomerPurchasedFreelancePT: () =>
+    request("GET", "v1/customer-purchased/freelance-pt"),
 };
 
 export default accountService;

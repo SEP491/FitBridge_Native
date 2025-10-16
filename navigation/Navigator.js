@@ -809,8 +809,8 @@ export default function Navigator({
         })}
       >
         <Stack.Screen
-          name="FreelancePTRequestScreen"
-          component={FreelancePTRequestScreen}
+          name="FreelanceChoosingCourseScreen"
+          component={FreelanceChoosingCourseScreen}
           options={{
             headerShown: true,
             title: t("screenTitles.freelancePTSchedule"),
@@ -823,8 +823,8 @@ export default function Navigator({
           }}
         />
         <Stack.Screen
-          name="FreelanceChoosingCourseScreen"
-          component={FreelanceChoosingCourseScreen}
+          name="FreelancePTRequestScreen"
+          component={FreelancePTRequestScreen}
           options={{
             headerShown: true,
             title: t("screenTitles.freelancePTSchedule"),

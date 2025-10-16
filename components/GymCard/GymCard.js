@@ -19,7 +19,7 @@ export default function GymCard({ gym, fullWidth = false, height = 140 }) {
   const handlePress = () => {
     navigation.navigate("GymDetailScreen", { gymId: gym.id, gym: gym });
   };
-
+  console.log("GymCard gym data:", gym?.gymImages[0]?.url);
   return (
     <TouchableOpacity
       style={[styles.card, fullWidth && styles.fullWidthCard]}
@@ -30,7 +30,7 @@ export default function GymCard({ gym, fullWidth = false, height = 140 }) {
         <Image
           source={{
             uri:
-              gym?.gymImages[0]?.url ||
+              // gym?.gymImages[0]?.url ||
               "https://thesaigontimes.vn/wp-content/uploads/2024/12/g1-2.jpeg",
           }}
           style={[styles.image, { height: height }]}
@@ -78,13 +78,13 @@ export default function GymCard({ gym, fullWidth = false, height = 140 }) {
           <View style={styles.addressContainer}>
             <Ionicons name="location-outline" size={12} color="#6B6B6B" />
             <Text style={styles.address} numberOfLines={2} ellipsizeMode="tail">
-              {gym.gymAddress || gym.gymDescription.substring(0, 20) + "..."}
+              {gym.gymAddress || gym.gymDescription.substring(0, 15) + "..."}
             </Text>
           </View>
         )}
 
         {/* Bottom Row - Rating and Reviews */}
-        <View style={styles.bottomRow}>
+        {/* <View style={styles.bottomRow}>
           <View style={styles.ratingContainer}>
             <View style={styles.starsContainer}>
               {[...Array(5)].map((_, i) => (
@@ -107,7 +107,7 @@ export default function GymCard({ gym, fullWidth = false, height = 140 }) {
               <Text style={styles.statsText}>{gym.totalVote}</Text>
             </View>
           )}
-        </View>
+        </View> */}
       </View>
     </TouchableOpacity>
   );

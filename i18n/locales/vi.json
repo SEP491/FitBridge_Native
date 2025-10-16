@@ -273,6 +273,9 @@
     "gymCourses": "Gói Tập Gym",
     "freelancePTCourses": "Gói Tập Freelance PT",
     "products": "Sản Phẩm",
+    "noGymCourses": "Không có gói tập gym trong giỏ hàng",
+    "noFreelancePTCourses": "Không có gói tập freelance PT trong giỏ hàng",
+    "noProducts": "Không có sản phẩm trong giỏ hàng",
     "alreadyInCart": "Đã có trong giỏ hàng",
     "packageAlreadyAdded": "Gói tập này đã có trong giỏ hàng của bạn",
     "success": "Thành công",
@@ -406,7 +409,8 @@
     "optional": "Tùy chọn",
     "personalTrainer": "Huấn Luyện Viên",
     "clear": "Xóa tất cả",
-    "delete": "Xóa"
+    "delete": "Xóa",
+    "loading": "Đang tải..."
   },
 
   "account": {
@@ -972,6 +976,22 @@
     "yearsExperience": "năm kinh nghiệm",
     "male": "Nam",
     "female": "Nữ"
+  },
+
+  "freelanceCourseScreen": {
+    "title": "Khách Hàng Của Tôi",
+    "subtitle": "Quản lý gói tập và lịch trình của khách hàng",
+    "loading": "Đang tải...",
+    "searchPlaceholder": "Tìm theo tên khách hàng hoặc gói tập...",
+    "noCustomerFound": "Không tìm thấy khách hàng nào",
+    "tryDifferentKeyword": "Thử từ khóa khác để tìm kiếm",
+    "noCustomerYet": "Bạn chưa có khách hàng nào",
+    "customer": "khách hàng",
+    "customers": "khách hàng",
+    "sessionsAvailable": "buổi còn lại",
+    "expiresOn": "Hết hạn",
+    "daysLeft": "ngày còn lại",
+    "expired": "Đã hết hạn"
   },
 
   "searchGymScreen": {

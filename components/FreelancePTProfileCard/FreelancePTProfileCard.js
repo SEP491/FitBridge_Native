@@ -45,7 +45,9 @@ export default function FreelancePTProfileCard({
       <View style={styles.imageContainer}>
         <Image
           source={{
-            uri: pt?.avatarUrl || "https://via.placeholder.com/200",
+            uri:
+              pt?.avatarUrl ||
+              "https://www.npta.ca/cdn/shop/files/Everything_You_Need_to_Know.jpg?v=1745621834&width=1100",
           }}
           style={[styles.image, { height: height }]}
           resizeMode="cover"

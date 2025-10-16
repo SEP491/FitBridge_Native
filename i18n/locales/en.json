@@ -272,6 +272,9 @@
     "gymCourses": "Gym Courses",
     "freelancePTCourses": "Freelance PT Courses",
     "products": "Products",
+    "noGymCourses": "No gym courses in cart",
+    "noFreelancePTCourses": "No freelance PT courses in cart",
+    "noProducts": "No products in cart",
     "alreadyInCart": "Already in Cart",
     "packageAlreadyAdded": "This package is already in your cart",
     "success": "Success",
@@ -1099,6 +1102,22 @@
     "yearsExperience": "years of experience",
     "male": "Male",
     "female": "Female"
+  },
+
+  "freelanceCourseScreen": {
+    "title": "My Customers",
+    "subtitle": "Manage your customer's packages and schedules",
+    "loading": "Loading...",
+    "searchPlaceholder": "Search by customer or package name...",
+    "noCustomerFound": "No customers found",
+    "tryDifferentKeyword": "Try different keywords to search",
+    "noCustomerYet": "You don't have any customers yet",
+    "customer": "customer",
+    "customers": "customers",
+    "sessionsAvailable": "sessions available",
+    "expiresOn": "Expires on",
+    "daysLeft": "days left",
+    "expired": "Expired"
   },
 
   "searchGymScreen": {

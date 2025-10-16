@@ -183,14 +183,13 @@ export default function FreelancePTPackageDetailScreen() {
           ></LinearGradient>
         </View>
 
-        {/* {Price Section} */}
-        <View style={styles.priceSection}>
-          {/* <View style={styles.popularBadge}>
-            <Ionicons name="flame" size={14} color="#FF6B6B" />
-            <Text style={styles.popularText}>
-              {t("freelancePT.popularChoice") || "POPULAR CHOICE"}
-            </Text>
-          </View> */}
+        {/* Price Section - Compact Under Image */}
+        <LinearGradient
+          colors={["#FF6B6B", "#ED2A46"]}
+          style={styles.priceSection}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+        >
           <Text style={styles.priceValue}>
             {formatPrice(packageData.price)}
           </Text>
@@ -200,7 +199,7 @@ export default function FreelancePTPackageDetailScreen() {
             )}{" "}
             {t("freelancePT.perSession") || "per session"}
           </Text>
-        </View>
+        </LinearGradient>
 
         {/* Package Content */}
         <View style={styles.contentContainer}>
@@ -224,7 +223,6 @@ export default function FreelancePTPackageDetailScreen() {
                 {packageData.durationInDays} {t("freelancePT.days") || "Days"}
               </Text>
             </View>
-            <View style={styles.statDivider} />
             <View style={styles.quickStat}>
               <Ionicons name="barbell" size={18} color="#ED2A46" />
               <Text style={styles.quickStatText}>
@@ -232,7 +230,6 @@ export default function FreelancePTPackageDetailScreen() {
                 {t("freelancePT.sessions") || "Sessions"}
               </Text>
             </View>
-            <View style={styles.statDivider} />
             <View style={styles.quickStat}>
               <Ionicons name="time" size={18} color="#ED2A46" />
               <Text style={styles.quickStatText}>
@@ -453,22 +450,20 @@ export default function FreelancePTPackageDetailScreen() {
           </View>
 
           {/* Spacer for bottom bar */}
-          <View style={{ height: 120 }} />
+          <View style={{ height: 100 }} />
         </View>
       </ScrollView>
 
-      {/* Bottom Action Bar - Enhanced */}
+      {/* Bottom Action Bar - Compact */}
       {!purchasedPackage ? (
         <View style={styles.bottomBar}>
-          <View style={styles.priceSection}>
-            <Text style={styles.priceLabel}>
+          <View style={styles.priceInfoContainer}>
+            <Text style={styles.bottomPriceLabel}>
               {t("freelancePT.totalInvestment") || "TOTAL INVESTMENT"}
             </Text>
-            <View style={styles.priceRow}>
-              <Text style={styles.priceValue}>
-                {formatPrice(packageData.price)}
-              </Text>
-            </View>
+            <Text style={styles.bottomPriceValue}>
+              {formatPrice(packageData.price)}
+            </Text>
           </View>
           <TouchableOpacity
             style={[
@@ -487,11 +482,18 @@ export default function FreelancePTPackageDetailScreen() {
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
             >
-              <Ionicons name="flash" size={24} color="#FFF" />
-              <Text style={styles.buyNowText}>
-                {t("freelancePT.buyNow") || "BUY NOW"}
-              </Text>
-              <Ionicons name="arrow-forward-circle" size={24} color="#FFF" />
+              {addingToCart ? (
+                <Text style={styles.buyNowText}>
+                  {t("common.loading") || "Loading..."}
+                </Text>
+              ) : (
+                <>
+                  <Ionicons name="flash" size={20} color="#FFF" />
+                  <Text style={styles.buyNowText}>
+                    {t("freelancePT.buyNow") || "BUY NOW"}
+                  </Text>
+                </>
+              )}
             </LinearGradient>
           </TouchableOpacity>
         </View>
@@ -619,6 +621,23 @@ const styles = StyleSheet.create({
   contentContainer: {
     padding: 20,
   },
+  priceSection: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    alignItems: "flex-start",
+    width: "100%",
+  },
+  priceValue: {
+    fontSize: 24,
+    fontWeight: "900",
+    color: "#FFFFFF",
+    marginBottom: 2,
+  },
+  priceSubtext: {
+    fontSize: 12,
+    color: "rgba(255, 255, 255, 0.9)",
+    fontWeight: "500",
+  },
   packageHeader: {
     flexDirection: "row",
     alignItems: "flex-start",
@@ -696,11 +715,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#1A1A1A",
   },
-  statDivider: {
-    width: 1,
-    height: 24,
-    backgroundColor: "#E5E5E5",
-  },
+
   descriptionContainer: {
     backgroundColor: "#F8F9FA",
     borderRadius: 16,
@@ -856,8 +871,8 @@ const styles = StyleSheet.create({
     right: 0,
     backgroundColor: "#FFF",
     paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 20,
+    paddingTop: 12,
+    paddingBottom: 16,
     borderTopWidth: 1,
     borderTopColor: "#E5E5E5",
     elevation: 12,
@@ -865,59 +880,43 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.12,
     shadowRadius: 12,
-  },
-  priceSection: {
-    backgroundColor: "#ED2A46",
-    paddingHorizontal: 16,
-    paddingVertical: 15,
-    shadowColor: "#ED2A46",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-  },
-  priceLabel: {
-    fontSize: 11,
-    fontWeight: "600",
-    color: "#6B6B6B",
-    marginBottom: 10,
-    letterSpacing: 1,
-  },
-  priceRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 16,
   },
-  priceValue: {
-    fontSize: 22,
-    fontWeight: "900",
-    color: "#fff",
+  priceInfoContainer: {
+    flex: 1,
   },
-  priceSubtext: {
-    fontSize: 13,
-    color: "rgba(255, 255, 255, 0.85)",
-    fontWeight: "500",
-  },
-  savingsText: {
-    fontSize: 11,
-    fontWeight: "800",
-    color: "#FFFFFF",
+  bottomPriceLabel: {
+    fontSize: 10,
+    fontWeight: "600",
+    color: "#6B6B6B",
+    marginBottom: 4,
     letterSpacing: 0.5,
+    textTransform: "uppercase",
+  },
+  bottomPriceValue: {
+    fontSize: 20,
+    fontWeight: "900",
+    color: "#1A1A1A",
   },
   buyNowButton: {
-    borderRadius: 30,
+    borderRadius: 25,
     overflow: "hidden",
-    elevation: 8,
+    elevation: 6,
     shadowColor: "#ED2A46",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.5,
-    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    minWidth: 140,
   },
   buyNowGradient: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 20,
-    paddingHorizontal: 28,
-    gap: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    gap: 8,
   },
   buyNowButtonDisabled: {
     elevation: 2,
@@ -925,11 +924,9 @@ const styles = StyleSheet.create({
   },
   buyNowText: {
     color: "#FFF",
-    fontSize: 19,
-    fontWeight: "900",
-    letterSpacing: 1.5,
-    flex: 1,
-    textAlign: "center",
+    fontSize: 16,
+    fontWeight: "800",
+    letterSpacing: 1,
   },
   // Purchased Package Notification Styles
   purchasedBottomBar: {

@@ -85,7 +85,9 @@ const BookingRequestCard = ({
     if (userRole === "FreelancePT") {
       return {
         name: request.customerName || "Unknown Customer",
-        avatarUrl: request.customerAvatarUrl,
+        avatarUrl:
+          request.customerAvatarUrl ||
+          "https://i0.wp.com/www.muscleandfitness.com/wp-content/uploads/2018/12/Personal-Trainer-Training-Partner-GettyImages-654427364.jpg?quality=86&strip=all",
         label: "Customer",
       };
     }
@@ -95,7 +97,7 @@ const BookingRequestCard = ({
         name: request.ptName || "Unknown PT",
         avatarUrl:
           request.ptAvatarUrl ||
-          "https://media.vov.vn/sites/default/files/styles/large/public/2022-08/anh-nen-avatar-dep_652403.jpg",
+          "https://cdn.prod.website-files.com/66aa8fe9dc4db68f448a978f/67d23ab405a87450847e4872_RT_240717_ANYTIME_FITNESS_3489-BATCH_rgb.jpg",
         label: "Personal Trainer",
       };
     }

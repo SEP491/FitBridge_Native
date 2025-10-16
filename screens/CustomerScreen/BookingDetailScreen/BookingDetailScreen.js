@@ -9,6 +9,8 @@ import {
   Alert,
   Modal,
   Image,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
@@ -16,8 +18,6 @@ import bookingService from "../../../services/bookingService";
 import { fetchUserFromStorage } from "../../../lib";
 import colors from "../../../constants/color";
 import { useTranslation } from "../../../hooks/useTranslation";
-import { KeyboardAvoidingView } from "react-native-web";
-import { Platform } from "react-native";
 
 // Body part images mapping
 const bodyPartImages = {
@@ -29,6 +29,7 @@ const bodyPartImages = {
   hip: require("../../../assets/images/bodyparts/hip.png"),
   waist: require("../../../assets/images/bodyparts/waist.png"),
   thigh: require("../../../assets/images/bodyparts/thigh.png"),
+  back: require("../../../assets/images/bodyparts/back.png"),
 };
 
 const ACTIVITY_TYPES = [
@@ -39,15 +40,15 @@ const ACTIVITY_TYPES = [
 const ACTIVITY_SET_TYPES = ["Reps", "Time"];
 
 const MUSCLE_GROUPS = [
-  { id: "Biceps", name: "Tay Sau", image: bodyPartImages.biceps },
   { id: "ForeArm", name: "Tay Trước", image: bodyPartImages.foreArm },
-  { id: "Thigh", name: "Đùi", image: bodyPartImages.thigh },
-  { id: "Calf", name: "Bắp chân", image: bodyPartImages.calf },
+  { id: "Legs", name: "Lưng", image: bodyPartImages.back },
+  { id: "Shoulder", name: "Vai", image: bodyPartImages.shoulder },
+  { id: "Biceps", name: "Tay Sau", image: bodyPartImages.biceps },
   { id: "Chest", name: "Ngực", image: bodyPartImages.chest },
   { id: "Waist", name: "Bụng", image: bodyPartImages.waist },
-  { id: "Shoulder", name: "Vai", image: bodyPartImages.shoulder },
   { id: "Hip", name: "Hông", image: bodyPartImages.hip },
-  { id: "Legs", name: "Chân", image: bodyPartImages.legs },
+  { id: "Thigh", name: "Đùi", image: bodyPartImages.thigh },
+  { id: "Calf", name: "Bắp chân", image: bodyPartImages.calf },
 ];
 
 export default function BookingDetailScreen({ route, navigation }) {
@@ -501,7 +502,10 @@ export default function BookingDetailScreen({ route, navigation }) {
           resetForm();
         }}
       >
-        <View style={styles.modalOverlay}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.modalOverlay}
+        >
           <View style={styles.modalContent}>
             {/* Modal Header */}
             <View style={styles.modalHeader}>
@@ -746,7 +750,7 @@ export default function BookingDetailScreen({ route, navigation }) {
               </TouchableOpacity>
             </ScrollView>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
