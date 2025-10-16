@@ -46,10 +46,9 @@ const CourseCard = ({ course, onPress }) => {
                 {course.name}
               </Text>
               <Text style={styles.courseType}>
-                {course.type === "WithPt" ||
-                course.packageType === "FreelancePTPackage"
-                  ? t("courseScreen.courseWithPT")
-                  : t("courseScreen.courseWithoutPT")}
+                {course.packageType === "FreelancePTPackage"
+                  ? t("courseScreen.courseWithPTFreelance")
+                  : t("courseScreen.courseWithPT")}
               </Text>
               <Text style={styles.priceText}>{formatPrice(course.price)}</Text>
             </View>

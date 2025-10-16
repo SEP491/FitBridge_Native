@@ -955,8 +955,8 @@
     "noCourseFound": "Không tìm thấy khóa học nào",
     "tryDifferentKeyword": "Thử từ khóa khác để tìm kiếm khóa học",
     "noCourseInSchedule": "Bạn chưa có khóa học nào",
+    "courseWithPTFreelance": "Khóa học với PT (Tự do)",
     "courseWithPT": "Khóa học với PT",
-    "courseWithoutPT": "Khóa học tự do",
     "sessionsRemaining": "buổi còn lại",
     "expiresOn": "Hết hạn",
     "sessions": "buổi",
@@ -1303,7 +1303,7 @@
     "topRatedTrainer": "HLV Hàng Đầu",
     "totalInvestment": "TỔNG ĐẦU TƯ",
     "premiumPackage": "Gói Premium"
-  }
+  },
   "bookingRequest": {
     "title": "Yêu Cầu Đặt Lịch",
     "createRequest": "Tạo Yêu Cầu Đặt Lịch",
