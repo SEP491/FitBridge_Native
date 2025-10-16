@@ -19,6 +19,7 @@ const TabBarIcon = ({ routeName, focused, color, size = 24 }) => {
       Schedule: focused ? "calendar" : "calendar-outline",
       "Đăng Ký Lịch PT": focused ? "calendar" : "calendar-outline",
       "PT Schedule": focused ? "calendar" : "calendar-outline",
+      "Lịch Dạy": focused ? "calendar" : "calendar-outline",
 
       // Chat/AI Chatbox icons
       "AI Chatbox": focused ? "chatbubbles" : "chatbubbles-outline",
@@ -39,6 +40,9 @@ const TabBarIcon = ({ routeName, focused, color, size = 24 }) => {
       // Withdrawal/Money icons
       "Rút Tiền": focused ? "wallet" : "wallet-outline",
       Withdrawal: focused ? "wallet" : "wallet-outline",
+
+      "Yêu cầu": focused ? "clipboard" : "clipboard-outline",
+      Requests: focused ? "clipboard" : "clipboard-outline",
     };
 
     return iconMap[routeName] || (focused ? "ellipse" : "ellipse-outline");

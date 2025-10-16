@@ -71,6 +71,13 @@ import NotificationScreen from "../screens/CommonScreen/NotificationScreen/Notif
 import { useSignalR } from "../context/SignalRContext";
 import * as Notifications from "expo-notifications";
 import notificationService from "../services/notificationService";
+import ScheduleFreelanceScreen from "../screens/CustomerScreen/ScheduleFreelanceScreen/ScheduleFreelanceScreen";
+import FreelanceChoosingCourseScreen from "../screens/FreelancePTScreen/FreelanceChoosingCourseScreen/FreelanceChoosingCourseScreen";
+import FreelancePTRequestScreen from "../screens/FreelancePTScreen/FreelancePTRequestScreen/FreelancePTRequestScreen";
+import BookingDetailScreen from "../screens/CustomerScreen/BookingDetailScreen/BookingDetailScreen";
+import SessionActivityDetailScreen from "../screens/CustomerScreen/SessionActivityDetailScreen/SessionActivityDetailScreen";
+import TrainingActivityScreen from "../screens/CustomerScreen/TrainingActivityScreen/TrainingActivityScreen";
+
 export default function Navigator({
   isAuthenticated: propIsAuthenticated,
   user: propUser,
@@ -83,7 +90,6 @@ export default function Navigator({
   const [user, setUser] = useState(propUser);
   const [isAuthenticated, setIsAuthenticated] = useState(propIsAuthenticated);
   const [isLoading, setIsLoading] = useState(false);
-
 
   // Update local state when props change
   useEffect(() => {
@@ -176,7 +182,6 @@ export default function Navigator({
             ) : null,
         })}
       >
-      
         <Stack.Screen
           name="HomeMain"
           component={HomeScreen}
@@ -295,7 +300,7 @@ export default function Navigator({
           component={VideoCallPrepScreen}
           options={{
             headerShown: false,
-            orientation: 'portrait',
+            orientation: "portrait",
           }}
         />
         <Stack.Screen
@@ -330,7 +335,7 @@ export default function Navigator({
           component={VideoCallScreen}
           options={{
             headerShown: false,
-            orientation: 'portrait',
+            orientation: "portrait",
           }}
         />
       </Stack.Navigator>
@@ -380,7 +385,6 @@ export default function Navigator({
             ) : null,
         })}
       >
-      
         <Stack.Screen
           name="CalendarScheduleScreen"
           component={CalendarScheduleScreen}
@@ -396,12 +400,12 @@ export default function Navigator({
           }}
         />
 
-        {/* <Stack.Screen
-          name="ChoosingCourseScreen"
-          component={ChoosingCourseScreen}
+        <Stack.Screen
+          name="BookingDetailScreen"
+          component={BookingDetailScreen}
           options={{
             headerShown: true,
-            title: t("screenTitles.bookSession"),
+            title: t("screenTitles.bookingDetail"),
             headerTitleAlign: "center",
             headerTitleStyle: {
               fontWeight: "bold",
@@ -409,13 +413,27 @@ export default function Navigator({
               color: "#ED2A46",
             },
           }}
-        /> */}
+        />
+        <Stack.Screen
+          name="TrainingActivityScreen"
+          component={TrainingActivityScreen}
+          options={{
+            headerShown: true,
+            title: "Tập luyện",
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
         <Stack.Screen
           name="VideoCallScreen"
           component={VideoCallScreen}
           options={{
             headerShown: false,
-            orientation: 'portrait',
+            orientation: "portrait",
           }}
         />
       </Stack.Navigator>
@@ -437,14 +455,14 @@ export default function Navigator({
             ) : null,
         })}
       >
-      <Stack.Screen
+        {/* <Stack.Screen
           name="VideoCallScreen"
           component={VideoCallScreen}
           options={{
             headerShown: false,
-            orientation: 'portrait',
+            orientation: "portrait",
           }}
-        />
+        /> */}
         <Stack.Screen
           name="SchedulePTScreen"
           component={SchedulePTScreen}
@@ -519,7 +537,7 @@ export default function Navigator({
           component={VideoCallScreen}
           options={{
             headerShown: false,
-            orientation: 'portrait',
+            orientation: "portrait",
           }}
         />
       </Stack.Navigator>
@@ -556,6 +574,21 @@ export default function Navigator({
           }}
         />
         <Stack.Screen
+          name="ScheduleFreelanceScreen"
+          component={ScheduleFreelanceScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.schedule"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+
+        <Stack.Screen
           name="ScheduleScreen"
           component={ScheduleScreen}
           options={{
@@ -569,6 +602,7 @@ export default function Navigator({
             },
           }}
         />
+
         <Stack.Screen
           name="BookingHistoryScreen"
           component={BookingHistoryScreen}
@@ -620,7 +654,7 @@ export default function Navigator({
           component={VideoCallScreen}
           options={{
             headerShown: false,
-            orientation: 'portrait',
+            orientation: "portrait",
           }}
         />
       </Stack.Navigator>
@@ -661,7 +695,7 @@ export default function Navigator({
           component={VideoCallPrepScreen}
           options={{
             headerShown: false,
-            orientation: 'portrait',
+            orientation: "portrait",
           }}
         />
         <Stack.Screen
@@ -706,21 +740,108 @@ export default function Navigator({
           }}
         />
         <Stack.Screen
+          name="BookingDetailScreen"
+          component={BookingDetailScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.bookingDetail") || "Chi tiết buổi tập",
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="SessionActivityDetailScreen"
+          component={SessionActivityDetailScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.activityDetail") || "Chi tiết bài tập",
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="TrainingActivityScreen"
+          component={TrainingActivityScreen}
+          options={{
+            headerShown: true,
+            title: "Tập luyện",
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
           name="VideoCallScreen"
           component={VideoCallScreen}
           options={{
             headerShown: false,
-            orientation: 'portrait',
+            orientation: "portrait",
           }}
         />
-         
+      </Stack.Navigator>
+    );
+  };
+
+  const FreelancePTRequestStack = () => {
+    return (
+      <Stack.Navigator
+        screenOptions={({ navigation, route }) => ({
+          headerTitleAlign: "center",
+          headerShown: false,
+          headerTintColor: "#ED2A46",
+          headerLeft: (props) =>
+            navigation.canGoBack() ? (
+              <TouchableOpacity onPress={() => navigation.goBack()}>
+                <Ionicons name="caret-back" size={30} color="#ED2A46" />
+              </TouchableOpacity>
+            ) : null,
+        })}
+      >
+        <Stack.Screen
+          name="FreelancePTRequestScreen"
+          component={FreelancePTRequestScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.freelancePTSchedule"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="FreelanceChoosingCourseScreen"
+          component={FreelanceChoosingCourseScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.freelancePTSchedule"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
       </Stack.Navigator>
     );
   };
 
   const FreelancePTChatStack = () => {
     return (
-      
       <Stack.Navigator
         screenOptions={({ navigation, route }) => ({
           headerTitleAlign: "center",
@@ -728,7 +849,6 @@ export default function Navigator({
           headerTintColor: "#ED2A46",
         })}
       >
-      
         <Stack.Screen
           name="FreelancePTChatScreen"
           component={FreelancePTChatScreen}
@@ -748,7 +868,7 @@ export default function Navigator({
           component={VideoCallScreen}
           options={{
             headerShown: false,
-            orientation: 'portrait',
+            orientation: "portrait",
           }}
         />
       </Stack.Navigator>
@@ -994,7 +1114,7 @@ export default function Navigator({
           component={VideoCallPrepScreen}
           options={{
             headerShown: false,
-            orientation: 'portrait',
+            orientation: "portrait",
           }}
         />
         <Stack.Screen
@@ -1010,7 +1130,6 @@ export default function Navigator({
   };
 
   const MainTab = () => {
-    // Debug log to check user role
     const { service: signalrService } = useSignalR();
     const registerPushToken = async () => {
       try {
@@ -1151,8 +1270,17 @@ export default function Navigator({
             }}
           />
         )}
-
         {user?.role === "FreelancePT" && (
+          <Tab.Screen
+            name={t("navigation.freelancePTBookingRequest")}
+            component={FreelancePTRequestStack}
+            options={{
+              headerShown: false,
+            }}
+          />
+        )}
+
+        {/* {user?.role === "FreelancePT" && (
           <Tab.Screen
             name={t("navigation.withdrawal")}
             component={WithdrawalStack}
@@ -1160,7 +1288,7 @@ export default function Navigator({
               headerShown: false,
             }}
           />
-        )}
+        )} */}
 
         {user?.role === "FreelancePT" && (
           <Tab.Screen

@@ -35,10 +35,11 @@
     "me": "Tôi",
     "ptSchedule": "Đăng Ký Lịch PT",
     "withdrawal": "Rút Tiền",
-    "freelancePTSchedule": "Lịch Tập",
+    "freelancePTSchedule": "Lịch Dạy",
     "freelancePTHome": "Trang chủ",
     "freelancePTChat": "Nhắn tin",
-    "Booking": "Đặt lịch"
+    "Booking": "Đặt lịch",
+    "freelancePTBookingRequest": "Yêu cầu"
   },
 
   "screenTitles": {
@@ -79,7 +80,9 @@
     "freelancePTSchedule": "Lịch Tập Freelance PT",
     "voucherDetails": "Chi Tiết Voucher",
     "notification": "Thông Báo",
-    "packageDetail": "Chi Tiết Gói Tập"
+    "packageDetail": "Chi Tiết Gói Tập",
+    "bookingDetail": "Chi Tiết Đặt Lịch",
+    "activityDetail": "Chi Tiết Bài Tập"
   },
 
   "myPackage": {
@@ -120,7 +123,7 @@
     "viewMore": "Xem thêm",
     "freelancePT": "Gói Tập Freelance PT",
     "noFreelancePTPackages": "Hiện chưa có gói tập Freelance PT",
-    "freelancePTTrainers": "Huấn luyện viên tự do"
+    "freelancePTTrainers": "PT Freelance"
   },
 
   "gym": {
@@ -192,6 +195,60 @@
     "personalTrainer": "Personal Trainer",
     "bookedBy": "Người đặt",
     "yearsExperience": "năm kinh nghiệm"
+  },
+
+  "bookingDetail": {
+    "noContent": "Chưa Có Nội Dung",
+    "ptHasNotCreatedContent": "PT chưa tạo nội dung cho buổi tập này",
+    "sessionDetails": "Chi Tiết Buổi Tập",
+    "activityTypes": "Loại Hình Hoạt Động",
+    "noActivityTypes": "Chưa có loại hoạt động nào",
+    "mainMuscleGroups": "Các Nhóm Cơ Chính",
+    "noMuscleGroups": "Chưa có nhóm cơ nào",
+    "exerciseList": "Danh Sách Bài Tập",
+    "exerciseName": "Tên Bài Tập",
+    "noExercises": "Chưa có bài tập nào",
+    "addExerciseHint": "Nhấn nút bên dưới để thêm bài tập",
+    "addExercise": "Thêm Bài Tập",
+    "notes": "Ghi Chú",
+    "addNotesPlaceholder": "Thêm ghi chú cho buổi tập...",
+    "noNotes": "Chưa có ghi chú",
+    "addExerciseModal": "Thêm Bài Tập",
+    "activityType": "Loại Hoạt Động",
+    "exerciseType": "Kiểu Bài Tập",
+    "reps": "Số Lần",
+    "time": "Thời Gian",
+    "selectMuscleGroups": "Chọn Nhóm Cơ",
+    "enterExerciseName": "Nhập tên bài tập...",
+    "exerciseDetails": "Chi Tiết Bài Tập",
+    "weight": "Trọng Lượng (kg)",
+    "duration": "Thời Gian (giây)",
+    "addSet": "Thêm Set",
+    "confirm": "Xác Nhận"
+  },
+
+  "trainingActivity": {
+    "loading": "Đang tải...",
+    "errorLoadingActivity": "Không thể tải thông tin bài tập",
+    "warning": "Cảnh Báo",
+    "saveBeforeContinue": "Bạn cần lưu kết quả bài tập hiện tại trước khi tiếp tục",
+    "saveBeforeSwitch": "Bạn cần lưu kết quả bài tập hiện tại trước khi chuyển sang bài tập khác",
+    "resultSaved": "Đã lưu kết quả bài tập",
+    "errorSavingResult": "Không thể lưu kết quả bài tập",
+    "restTime": "Thời Gian Nghỉ",
+    "completed": "hoàn thành",
+    "training": "Đang Tập",
+    "set": "Hiệp",
+    "kg": "Kg",
+    "reps": "Lượt",
+    "seconds": "Giây",
+    "rest": "Nghỉ",
+    "completedStatus": "Đã Hoàn Thành",
+    "start": "Bắt Đầu",
+    "save": "Lưu",
+    "pause": "Tạm Dừng",
+    "resume": "Tiếp Tục",
+    "finish": "Kết Thúc"
   },
 
   "cart": {
@@ -808,7 +865,11 @@
     "statusPending": "Chờ Xử Lý",
     "confirmCancelSession": "Bạn có chắc chắn muốn hủy buổi tập này?",
     "yes": "Có",
-    "no": "Không"
+    "no": "Không",
+    "requestEdit": "Thay Đổi",
+    "viewDetail": "Chi Tiết",
+    "requestEditBooking": "Yêu Cầu Thay Đổi Lịch",
+    "sendEditRequest": "Gửi Yêu Cầu Thay Đổi"
   },
 
   "pt": {
@@ -1113,7 +1174,7 @@
   },
 
   "fitness": {
-    "todaysActivity": "Hoạt động hôm nay",
+    "todaysActivity": "Hôm nay",
     "viewDetails": "Xem chi tiết",
     "steps": "Bước chân",
     "distance": "Khoảng cách",
@@ -1242,5 +1303,70 @@
     "topRatedTrainer": "HLV Hàng Đầu",
     "totalInvestment": "TỔNG ĐẦU TƯ",
     "premiumPackage": "Gói Premium"
+  }
+  "bookingRequest": {
+    "title": "Yêu Cầu Đặt Lịch",
+    "createRequest": "Tạo Yêu Cầu Đặt Lịch",
+    "loadingRequests": "Đang tải yêu cầu...",
+    "noRequests": "Chưa có yêu cầu đặt lịch",
+    "noRequestsSubtext": "Bạn chưa có yêu cầu đặt lịch nào",
+    "noPendingRequests": "Không có yêu cầu đang chờ xử lý",
+    "noApprovedRequests": "Không tìm thấy yêu cầu đã chấp nhận",
+    "noRejectedRequests": "Không tìm thấy yêu cầu đã từ chối",
+    "noPTRequests": "Chưa có yêu cầu từ PT của bạn",
+    "bookingName": "Tên Buổi Tập",
+    "bookingNamePlaceholder": "Nhập tên buổi tập",
+    "bookingNameRequired": "Vui lòng nhập tên buổi tập",
+    "date": "Ngày",
+    "startTime": "Giờ Bắt Đầu",
+    "endTime": "Giờ Kết Thúc",
+    "selectStartTime": "Chọn giờ bắt đầu",
+    "selectEndTime": "Chọn giờ kết thúc",
+    "startTimeRequired": "Vui lòng chọn giờ bắt đầu",
+    "endTimeRequired": "Vui lòng chọn giờ kết thúc",
+    "note": "Ghi Chú",
+    "type": "Từ",
+    "time": "Giờ",
+    "status": "Trạng Thái",
+    "from": "Từ",
+    "customer": "Khách Hàng",
+    "pt": "PT",
+    "approve": "Chấp Nhận",
+    "reject": "Từ Chối",
+    "approved": "Đã Chấp Nhận",
+    "rejected": "Đã Từ Chối",
+    "pending": "Đang Chờ",
+    "originalBooking": "Lịch Cũ:",
+    "requestTypes": {
+      "customerRequest": "Từ Khách Hàng",
+      "ptProposal": "Từ PT",
+      "customerEditRequest": "Thay Đổi Từ Khách Hàng",
+      "ptEditRequest": "Thay Đổi Từ PT"
+    },
+    "filters": {
+      "all": "Tất Cả",
+      "pending": "Đang Chờ",
+      "approved": "Đã Chấp Nhận",
+      "rejected": "Đã Từ Chối"
+    },
+    "createSuccess": "Tạo yêu cầu đặt lịch thành công",
+    "createError": "Tạo yêu cầu đặt lịch thất bại",
+    "approveSuccess": "Chấp nhận yêu cầu thành công",
+    "approveError": "Chấp nhận yêu cầu thất bại",
+    "rejectSuccess": "Từ chối yêu cầu thành công",
+    "rejectError": "Từ chối yêu cầu thất bại",
+    "approveConfirmTitle": "Chấp Nhận Yêu Cầu",
+    "approveConfirmMessage": "Bạn có chắc chắn muốn chấp nhận yêu cầu đặt lịch cho",
+    "rejectConfirmTitle": "Từ Chối Yêu Cầu",
+    "rejectConfirmMessage": "Bạn có chắc chắn muốn từ chối yêu cầu đặt lịch cho",
+    "pastTimeError": "Không thể chọn thời gian trong quá khứ",
+    "selectStartTimeFirst": "Vui lòng chọn giờ bắt đầu trước",
+    "endTimeMinimum": "Giờ kết thúc phải ít nhất 1 giờ sau giờ bắt đầu",
+    "loadSlotsError": "Tải yêu cầu thất bại",
+    "noRequestsYet": "Bạn chưa có yêu cầu đặt lịch nào",
+    "selectStartEndTime": "Vui lòng chọn cả giờ bắt đầu và giờ kết thúc",
+    "editRequestSuccess": "Gửi yêu cầu thay đổi thành công",
+    "editRequestError": "Gửi yêu cầu thay đổi thất bại",
+    "notePlaceholder": "Nhập ghi chú thêm (không bắt buộc)"
   }
 }
