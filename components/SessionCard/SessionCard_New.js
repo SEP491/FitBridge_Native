@@ -88,7 +88,7 @@ const SessionCard = ({
 
         {/* Action button */}
         <TouchableOpacity style={styles.actionButton} onPress={buttonAction}>
-          <Ionicons name="close-circle-outline" size={16} color={colors.red} />
+          <Ionicons name="calendar" size={18} color={colors.white} />
           <Text style={styles.actionButtonText}>{cancelText}</Text>
         </TouchableOpacity>
       </View>
@@ -111,6 +111,8 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 5,
     overflow: "hidden",
+    borderWidth: 2,
+    borderColor: "#E2E8F0",
   },
   cardHeader: {
     backgroundColor: colors.red,
@@ -212,18 +214,23 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#FFF5F5",
+    backgroundColor: "#FF6B35",
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 25,
-    borderWidth: 1,
-    borderColor: "#FFE5E5",
+    borderWidth: 2,
+    borderColor: "#FF6B35",
     gap: 8,
+    shadowColor: "#FF6B35",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
   },
   actionButtonText: {
     fontSize: 15,
-    color: colors.red,
-    fontWeight: "600",
+    color: colors.white,
+    fontWeight: "700",
   },
 });
 

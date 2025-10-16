@@ -20,24 +20,23 @@ import { useTranslation } from "../../../hooks/useTranslation";
 export default function PaymentScreen({ navigation, route }) {
   const { cart, getTotalPrice, removeFromCart, clearCart } = useCart();
   const { t } = useTranslation();
-  
+
   // Check if this is a direct purchase
   const directPurchaseItems = route?.params?.items || null;
   const directPurchaseAmount = route?.params?.totalAmount || 0;
   const isDirectPurchase = route?.params?.fromDirectPurchase || false;
 
-  
   // Use direct purchase items if available, otherwise use cart
   const displayItems = isDirectPurchase ? directPurchaseItems : cart;
   console.log("displayItems:", displayItems);
   const totalPrice = isDirectPurchase ? directPurchaseAmount : getTotalPrice();
-  
+
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("bank");
   const handleCheckout = async () => {
     // Use displayItems (either direct purchase or cart items)
     console.log("Processing payment for:", displayItems);
     console.log("Is direct purchase:", isDirectPurchase);
-    
+
     let requestData = {};
 
     requestData = {
@@ -49,25 +48,36 @@ export default function PaymentScreen({ navigation, route }) {
           selectedPaymentMethod === "bank"
             ? "01997597-d188-7f12-95f4-43ef8d442612"
             : "01997597-d188-7f12-95f4-43ef8d412633",
-        orderItems: displayItems.map((item) => (
-          item.type === "FreelancePT" ? {
-          quantity: 1,
-          productDetailId: null,
-          gymCourseId: null,
-          gymPtId: null,
-          serviceInformationId: null,
-          freelancePTPackageId: item.id // Use actual item ID
-        } 
-          : 
-          item.type === "GymCourse" ? {
-          quantity: 0,
-          productDetailId: null,
-          gymCourseId: item.id,
-          gymPtId: item.pt ? item.pt.id : null,
-          serviceInformationId: null,
-          freelancePTPackageId: null,
-          } : {}
-        )),
+        orderItems: displayItems.map((item) =>
+          item.type === "FreelancePT"
+            ? {
+                quantity: 1,
+                productDetailId: null,
+                gymCourseId: null,
+                gymPtId: null,
+                serviceInformationId: null,
+                freelancePTPackageId: item.id, // Use actual item ID
+              }
+            : item.type === "WithPt"
+            ? {
+                quantity: item.quantity,
+                productDetailId: null,
+                gymCourseId: item.id,
+                gymPtId: item.pt ? item.pt.id : null,
+                serviceInformationId: null,
+                freelancePTPackageId: null,
+              }
+            : item.type === "Normal"
+            ? {
+                quantity: item.quantity,
+                productDetailId: null,
+                gymCourseId: item.id,
+                gymPtId: null,
+                serviceInformationId: null,
+                freelancePTPackageId: null,
+              }
+            : {}
+        ),
       },
     };
     console.log("Checkout request:", requestData);
@@ -85,7 +95,7 @@ export default function PaymentScreen({ navigation, route }) {
         response.data.data.checkoutUrl
       ) {
         Linking.openURL(response.data.data.checkoutUrl);
-        
+
         // If direct purchase, navigate back after successful payment initiation
         if (isDirectPurchase) {
           setTimeout(() => {
@@ -126,7 +136,6 @@ export default function PaymentScreen({ navigation, route }) {
   };
   return (
     <View style={styles.container}>
-      
       <View style={styles.innerContainer}>
         {displayItems.length > 0 ? (
           <ScrollView
@@ -145,7 +154,7 @@ export default function PaymentScreen({ navigation, route }) {
                   />
                 );
               }
-              
+
               // Use regular CartCard for other types (GymCourse, etc.)
               return (
                 <CartCard
@@ -273,7 +282,7 @@ export default function PaymentScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff"
+    backgroundColor: "#fff",
   },
   header: {
     flexDirection: "row",
@@ -320,7 +329,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginTop: 20,
     padding: 15,
-    shadowColor: "#000",shadowOpacity: 0.25,
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
     shadowRadius: 3,
     elevation: 6,
   },
@@ -328,7 +338,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-  },cardUnder: {
+  },
+  cardUnder: {
     marginTop: 10,
   },
   row: {
@@ -350,7 +361,8 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     backgroundColor: "#fff",
-    shadowColor: "#000",shadowOpacity: 0.2,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
     shadowRadius: 3.84,
     elevation: 9,
   },
@@ -368,7 +380,8 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 30,
     fontWeight: "bold",
-    shadowColor: "#000",shadowOpacity: 0.25,
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
   },

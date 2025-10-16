@@ -9,25 +9,30 @@ const SessionBookingCard = ({
   calculateDuration,
   buttonText,
   buttonAction,
+  editButtonText, // text for edit button
+  editButtonAction, // action for edit button
+  showEditButton = true, // whether to show edit button
+  viewDetailAction, // action for view detail button
   t, // translation function
   ptName, // PT name from props
   ptAvatar = null, // optional PT avatar
-  currentLanguage = "en", // language for date formatting
 }) => {
   // Extract data from booking API response
   const sessionStatus = booking.sessionStatus;
 
   // Use gym slot times from the API response
-  const startTime = booking.gymSlotStartTime;
-  const endTime = booking.gymSlotEndTime;
+  const startTime = booking.startTime || booking.ptFreelanceStartTime;
+  const endTime = booking.endTime || booking.ptFreelanceEndTime;
 
   // Use translation with fallbacks
   const displayPtName =
     ptName || (t ? t("common.personalTrainer") : "Personal Trainer");
   const sessionTitle =
-    booking.slotName || (t ? t("schedule.ptSession") : "PT Training Session");
+    booking.bookingName ||
+    (t ? t("schedule.ptSession") : "PT Training Session");
   const cancelText =
     buttonText || (t ? t("calendar.cancelSession") : "Cancel Session");
+  const editText = editButtonText || (t ? t("calendar.requestEdit") : "Edit");
 
   // Determine status badge color and icon
   const getStatusInfo = (status) => {
@@ -65,40 +70,30 @@ const SessionBookingCard = ({
 
   const statusInfo = getStatusInfo(sessionStatus);
 
-  // Format booking date for display
-  const formatBookingDate = (dateString) => {
-    if (!dateString) return "";
-    try {
-      const date = new Date(dateString);
-      const locale = currentLanguage === "vi" ? "vi-VN" : "en-US";
-      return date.toLocaleDateString(locale, {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      });
-    } catch (error) {
-      return dateString;
-    }
-  };
-
   const isActionDisabled =
     sessionStatus?.toLowerCase() === "cancelled" ||
     sessionStatus?.toLowerCase() === "completed";
 
-  // Check if the booking is in the past
+  // Check if the booking startTime is in the past
   const isBookingInPast = (() => {
     try {
       const now = new Date();
 
-      // Create a date object from the booking date
-      const bookingDate = new Date(booking.date);
+      // Create a date object from the booking date (format: "YYYY-MM-DD")
+      const bookingDateString = booking.bookingDate || booking.date;
+      if (!bookingDateString || !startTime) return false;
 
-      // Extract hours and minutes from startTime (format: "HH:MM")
-      if (startTime && startTime.includes(":")) {
-        const [hours, minutes] = startTime.split(":").map(Number);
+      const bookingDate = new Date(bookingDateString);
+
+      // Extract hours, minutes, and seconds from startTime (format: "HH:MM:SS")
+      const timeParts = startTime.split(":");
+      if (timeParts.length >= 2) {
+        const hours = parseInt(timeParts[0], 10);
+        const minutes = parseInt(timeParts[1], 10);
+        const seconds = timeParts.length > 2 ? parseInt(timeParts[2], 10) : 0;
 
         // Set the exact booking datetime
-        bookingDate.setHours(hours, minutes, 0, 0);
+        bookingDate.setHours(hours, minutes, seconds, 0);
 
         // Check if this datetime is in the past
         return bookingDate < now;
@@ -179,30 +174,80 @@ const SessionBookingCard = ({
           </View>
         </View>
 
-        {/* Action button - only show if not in past and not disabled */}
-        {!shouldHideButton && (
+        {/* View Detail Button - Always visible */}
+        {!booking.ptGymSlotId && viewDetailAction && (
           <TouchableOpacity
-            style={[
-              styles.actionButton,
-              isActionDisabled && styles.disabledButton,
-            ]}
-            onPress={buttonAction}
-            disabled={isActionDisabled}
+            style={styles.viewDetailButton}
+            onPress={viewDetailAction}
           >
             <Ionicons
-              name={isActionDisabled ? "ban-outline" : "close-circle-outline"}
-              size={16}
-              color={isActionDisabled ? "#999" : colors.red}
+              name="information-circle-outline"
+              size={18}
+              color={colors.white}
             />
-            <Text
-              style={[
-                styles.actionButtonText,
-                isActionDisabled && styles.disabledButtonText,
-              ]}
-            >
-              {cancelText}
+            <Text style={styles.viewDetailText}>
+              {t ? t("calendar.viewDetail") : "View Detail"}
             </Text>
           </TouchableOpacity>
+        )}
+
+        {/* Action buttons - only show if not in past and not disabled */}
+        {!shouldHideButton && (
+          <View style={styles.actionButtonsContainer}>
+            {/* Request Edit Button */}
+            {showEditButton && (
+              <TouchableOpacity
+                style={[
+                  styles.actionButton,
+                  styles.editButton,
+                  isActionDisabled && styles.disabledButton,
+                ]}
+                onPress={editButtonAction}
+                disabled={isActionDisabled}
+              >
+                <Ionicons
+                  name={isActionDisabled ? "ban-outline" : "create-outline"}
+                  size={18}
+                  color={isActionDisabled ? "#999" : "#F97316"}
+                />
+                <Text
+                  style={[
+                    styles.actionButtonText,
+                    styles.editButtonText,
+                    isActionDisabled && styles.disabledButtonText,
+                  ]}
+                >
+                  {editText}
+                </Text>
+              </TouchableOpacity>
+            )}
+
+            {/* Cancel Button */}
+            <TouchableOpacity
+              style={[
+                styles.actionButton,
+                styles.cancelButton,
+                isActionDisabled && styles.disabledButton,
+                showEditButton && styles.halfWidthButton,
+              ]}
+              onPress={buttonAction}
+              disabled={isActionDisabled}
+            >
+              <Ionicons
+                name={isActionDisabled ? "ban-outline" : "close-circle-outline"}
+                size={18}
+                color={isActionDisabled ? "#999" : colors.white}
+              />
+              <Text
+                style={[
+                  styles.actionButtonText,
+                  isActionDisabled && styles.disabledButtonText,
+                ]}
+              >
+                {cancelText}
+              </Text>
+            </TouchableOpacity>
+          </View>
         )}
       </View>
     </View>
@@ -224,6 +269,8 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 5,
     overflow: "hidden",
+    borderWidth: 2,
+    borderColor: "#E2E8F0",
   },
   cardHeader: {
     paddingHorizontal: 20,
@@ -321,22 +368,53 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontWeight: "500",
   },
+  actionButtonsContainer: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 16,
+  },
   actionButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#FFF5F5",
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 25,
     borderWidth: 1,
-    borderColor: "#FFE5E5",
     gap: 8,
+    flex: 1,
+  },
+  halfWidthButton: {
+    flex: 1,
+  },
+  editButton: {
+    backgroundColor: "#FFFFFF",
+    borderColor: "#F97316",
+    borderWidth: 2,
+    shadowColor: "#F97316",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  editButtonText: {
+    color: "#F97316",
+    fontWeight: "700",
+  },
+  cancelButton: {
+    backgroundColor: "#EF4444",
+    borderColor: "#EF4444",
+    borderWidth: 2,
+    shadowColor: "#EF4444",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   actionButtonText: {
     fontSize: 15,
-    color: colors.red,
-    fontWeight: "600",
+    color: colors.white,
+    fontWeight: "700",
   },
   disabledButton: {
     backgroundColor: "#F8F9FA",
@@ -344,6 +422,29 @@ const styles = StyleSheet.create({
   },
   disabledButtonText: {
     color: "#999",
+  },
+  viewDetailButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    borderWidth: 2,
+    backgroundColor: "#FF6B35",
+    borderColor: "#FF6B35",
+    gap: 6,
+    marginTop: 12,
+    shadowColor: "#FF6B35",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  viewDetailText: {
+    fontSize: 15,
+    color: colors.white,
+    fontWeight: "700",
   },
 });
 

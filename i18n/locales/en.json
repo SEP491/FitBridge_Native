@@ -39,7 +39,8 @@
     "freelancePTSchedule": "Schedule",
     "freelancePTHome": "Home",
     "freelancePTChat": "Messages",
-    "Booking": "Booking"
+    "Booking": "Booking",
+    "freelancePTBookingRequest": "Requests"
   },
 
   "screenTitles": {
@@ -80,7 +81,9 @@
     "freelancePTSchedule": "Freelance PT Schedule",
     "voucherDetails": "Voucher Detail",
     "notification": "Notifications",
-    "packageDetail": "Package Details"
+    "packageDetail": "Package Details",
+    "bookingDetail": "Booking Detail",
+    "activityDetail": "Activity Detail"
   },
 
   "myPackage": {
@@ -192,6 +195,60 @@
     "personalTrainer": "Personal Trainer",
     "bookedBy": "Booked by",
     "yearsExperience": "years experience"
+  },
+
+  "bookingDetail": {
+    "noContent": "No Content",
+    "ptHasNotCreatedContent": "PT has not created content for this session yet",
+    "sessionDetails": "Session Details",
+    "activityTypes": "Activity Types",
+    "noActivityTypes": "No activity types yet",
+    "mainMuscleGroups": "Main Muscle Groups",
+    "noMuscleGroups": "No muscle groups yet",
+    "exerciseList": "Exercise List",
+    "exerciseName": "Exercise Name",
+    "noExercises": "No exercises yet",
+    "addExerciseHint": "Tap the button below to add exercises",
+    "addExercise": "Add Exercise",
+    "notes": "Notes",
+    "addNotesPlaceholder": "Add notes for this session...",
+    "noNotes": "No notes",
+    "addExerciseModal": "Add Exercise",
+    "activityType": "Activity Type",
+    "exerciseType": "Exercise Type",
+    "reps": "Reps",
+    "time": "Time",
+    "selectMuscleGroups": "Select Muscle Groups",
+    "enterExerciseName": "Enter exercise name...",
+    "exerciseDetails": "Exercise Details",
+    "weight": "Weight (kg)",
+    "duration": "Duration (seconds)",
+    "addSet": "Add Set",
+    "confirm": "Confirm"
+  },
+
+  "trainingActivity": {
+    "loading": "Loading...",
+    "errorLoadingActivity": "Unable to load exercise information",
+    "warning": "Warning",
+    "saveBeforeContinue": "You need to save current exercise result before continuing",
+    "saveBeforeSwitch": "You need to save current exercise result before switching to another exercise",
+    "resultSaved": "Exercise result saved",
+    "errorSavingResult": "Unable to save exercise result",
+    "restTime": "Rest Time",
+    "completed": "completed",
+    "training": "Training",
+    "set": "Set",
+    "kg": "Kg",
+    "reps": "Reps",
+    "seconds": "Sec",
+    "rest": "Rest",
+    "completedStatus": "Completed",
+    "start": "Start",
+    "save": "Save",
+    "pause": "Pause",
+    "resume": "Resume",
+    "finish": "Finish"
   },
 
   "cart": {
@@ -860,7 +917,11 @@
     "statusPending": "Pending",
     "confirmCancelSession": "Are you sure you want to cancel this session?",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "requestEdit": "Edit",
+    "viewDetail": "View Detail",
+    "requestEditBooking": "Request Edit Booking",
+    "sendEditRequest": "Send Edit Request"
   },
 
   "pt": {
@@ -996,8 +1057,8 @@
     "noCourseFound": "No courses found",
     "tryDifferentKeyword": "Try different keywords to search for courses",
     "noCourseInSchedule": "You don't have any courses yet",
+    "courseWithPTFreelance": "Course with PT Freelance",
     "courseWithPT": "Course with PT",
-    "courseWithoutPT": "Self-guided course",
     "sessionsRemaining": "sessions remaining",
     "expiresOn": "Expires on",
     "sessions": "sessions",
@@ -1261,5 +1322,71 @@
       "warning": "Warning",
       "error": "Error"
     }
+  },
+
+  "bookingRequest": {
+    "title": "Booking Requests",
+    "createRequest": "Create Booking Request",
+    "loadingRequests": "Loading requests...",
+    "noRequests": "No booking requests yet",
+    "noRequestsSubtext": "You don't have any booking requests",
+    "noPendingRequests": "No pending requests to review",
+    "noApprovedRequests": "No approved requests found",
+    "noRejectedRequests": "No rejected requests found",
+    "noPTRequests": "No requests from your PT yet",
+    "bookingName": "Booking Name",
+    "bookingNamePlaceholder": "Enter booking name",
+    "bookingNameRequired": "Please enter a booking name",
+    "date": "Date",
+    "startTime": "Start Time",
+    "endTime": "End Time",
+    "selectStartTime": "Select start time",
+    "selectEndTime": "Select end time",
+    "startTimeRequired": "Please select start time",
+    "endTimeRequired": "Please select end time",
+    "note": "Note",
+    "type": "Type",
+    "time": "Time",
+    "status": "Status",
+    "from": "From",
+    "customer": "Customer",
+    "pt": "PT",
+    "approve": "Approve",
+    "reject": "Reject",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "pending": "Pending",
+    "originalBooking": "Original Booking:",
+    "requestTypes": {
+      "customerRequest": "Customer Request",
+      "ptProposal": "PT Proposal",
+      "customerEditRequest": "Customer Edit Request",
+      "ptEditRequest": "PT Edit Request"
+    },
+    "filters": {
+      "all": "All",
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "createSuccess": "Booking request created successfully",
+    "createError": "Failed to create booking request",
+    "approveSuccess": "Request approved successfully",
+    "approveError": "Failed to approve request",
+    "rejectSuccess": "Request rejected successfully",
+    "rejectError": "Failed to reject request",
+    "approveConfirmTitle": "Approve Request",
+    "approveConfirmMessage": "Are you sure you want to approve this booking request for",
+    "rejectConfirmTitle": "Reject Request",
+    "rejectConfirmMessage": "Are you sure you want to reject this booking request for",
+    "pastTimeError": "Cannot select a time in the past",
+    "selectStartTimeFirst": "Please select start time first",
+    "endTimeMinimum": "End time must be at least 1 hour after start time",
+    "loadSlotsError": "Failed to load requests",
+    "noRequestsYet": "You don't have any booking requests yet",
+    "selectStartEndTime": "Please select both start time and end time",
+    "editRequestSuccess": "Edit request sent successfully",
+    "editRequestError": "Failed to send edit request",
+    "notePlaceholder": "Enter additional notes (optional)"
   }
 }

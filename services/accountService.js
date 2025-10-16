@@ -1,3 +1,4 @@
+import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 import { request } from "./request";
 
 const accountService = {
@@ -21,7 +22,23 @@ const accountService = {
   getAllFreelancePT: (params) =>
     request("GET", "v1/accounts/freelance-pts", null, {}, params),
 
-  getFreelancePTDetail: (ptId) => request("GET", `v1/accounts/freelance-pt/${ptId}`),
+  getFreelancePTDetail: (ptId) =>
+    request("GET", `v1/accounts/freelance-pt/${ptId}`),
+  getBookingForPT: (params) =>
+    request("GET", "v1/bookings/freelance-pt-schedule", null, {}, params),
+  getAllRequestForUser: (params) =>
+    request("GET", "v1/bookings/booking-request", null, {}, params),
+  createBookingRequest: (data) =>
+    request("POST", "v1/bookings/request-booking", data),
+
+  acceptBookingRequest: (data) =>
+    request("POST", "v1/bookings/accept-booking-request", data),
+  rejectBookingRequest: (data) =>
+    request("POST", "v1/bookings/reject-booking-request", data),
+  requestEditBooking: (data) =>
+    request("POST", "v1/bookings/request-edit-booking", data),
+  acceptEditBooking: (data) =>
+    request("POST", "v1/bookings/accept-edit-booking", data),
 };
 
 export default accountService;

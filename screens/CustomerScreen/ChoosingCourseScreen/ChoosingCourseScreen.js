@@ -110,12 +110,19 @@ export default function ChoosingCourseScreen() {
               <CourseCard
                 key={course.id}
                 course={course}
-                onPress={() =>
-                  navigation.navigate("ScheduleScreen", {
-                    customerPurchasedId: course.customerPurchasedId,
-                    ptId: course.gymPtId,
-                  })
-                }
+                onPress={() => {
+                  if (course.packageType === "FreelancePTPackage") {
+                    navigation.navigate("ScheduleFreelanceScreen", {
+                      customerPurchasedId: course.customerPurchasedId,
+                      ptId: course.pt?.id,
+                    });
+                  } else {
+                    navigation.navigate("ScheduleScreen", {
+                      customerPurchasedId: course.customerPurchasedId,
+                      ptId: course.pt?.id,
+                    });
+                  }
+                }}
               />
             ))
           ) : (

@@ -46,9 +46,9 @@ const CourseCard = ({ course, onPress }) => {
                 {course.name}
               </Text>
               <Text style={styles.courseType}>
-                {course.type === "WithPt"
-                  ? t("courseScreen.courseWithPT")
-                  : t("courseScreen.courseWithoutPT")}
+                {course.packageType === "FreelancePTPackage"
+                  ? t("courseScreen.courseWithPTFreelance")
+                  : t("courseScreen.courseWithPT")}
               </Text>
               <Text style={styles.priceText}>{formatPrice(course.price)}</Text>
             </View>
@@ -83,14 +83,14 @@ const CourseCard = ({ course, onPress }) => {
           </View>
 
           {/* PT Information */}
-          {course.gymPt && (
+          {course.pt && (
             <View style={styles.ptSection}>
               <View style={styles.ptInfo}>
                 <View style={styles.avatarContainer}>
                   <Image
                     source={{
                       uri:
-                        course.gymPt.avatarUrl ||
+                        course.pt.avatarUrl ||
                         "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcREDVautKC6iIhByPKtNOGlHRa2E52Ahxt4jQ&s",
                     }}
                     style={styles.avatar}
@@ -98,10 +98,10 @@ const CourseCard = ({ course, onPress }) => {
                 </View>
 
                 <View style={styles.ptDetails}>
-                  <Text style={styles.ptName}>{course.gymPt.fullName}</Text>
+                  <Text style={styles.ptName}>{course.pt.fullName}</Text>
 
                   <View style={styles.ptInfoRow}>
-                    {course.gymPt.isMale ? (
+                    {course.pt.isMale ? (
                       <Foundation
                         name="male-symbol"
                         size={12}
@@ -115,10 +115,10 @@ const CourseCard = ({ course, onPress }) => {
                       />
                     )}
                     <Text style={styles.ptInfoText}>
-                      {course.gymPt.isMale
+                      {course.pt.isMale
                         ? t("courseScreen.male")
                         : t("courseScreen.female")}
-                      • {course.gymPt.experience}{" "}
+                      • {course.pt.experience}{" "}
                       {t("courseScreen.yearsExperience")}
                     </Text>
                   </View>
