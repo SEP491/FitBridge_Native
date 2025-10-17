@@ -16,6 +16,9 @@ const bookingService = {
 
   updateActivitySet: (data) =>
     request("PUT", `v1/activity-sets/activity-progress`, data),
+
+  getBookingResult: (bookingId) =>
+    request("GET", `v1/bookings/result/${bookingId}`),
 };
 
 export default bookingService;

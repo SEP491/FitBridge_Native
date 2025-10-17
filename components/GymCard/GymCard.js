@@ -19,7 +19,6 @@ export default function GymCard({ gym, fullWidth = false, height = 140 }) {
   const handlePress = () => {
     navigation.navigate("GymDetailScreen", { gymId: gym.id, gym: gym });
   };
-  console.log("GymCard gym data:", gym?.gymImages[0]?.url);
   return (
     <TouchableOpacity
       style={[styles.card, fullWidth && styles.fullWidthCard]}

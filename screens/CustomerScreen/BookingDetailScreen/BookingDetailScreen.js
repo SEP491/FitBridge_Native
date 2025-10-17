@@ -18,6 +18,8 @@ import bookingService from "../../../services/bookingService";
 import { fetchUserFromStorage } from "../../../lib";
 import colors from "../../../constants/color";
 import { useTranslation } from "../../../hooks/useTranslation";
+import BookingDetailContent from "../../../components/BookingDetailContent";
+import BookingResultCard from "../../../components/BookingResultCard";
 
 // Body part images mapping
 const bodyPartImages = {
@@ -55,10 +57,13 @@ export default function BookingDetailScreen({ route, navigation }) {
   const { t } = useTranslation();
   const { bookingId } = route.params;
   const [bookingDetail, setBookingDetail] = useState(null);
+  const [bookingResult, setBookingResult] = useState(null);
   const [userRole, setUserRole] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadingResult, setLoadingResult] = useState(false);
   const [creating, setCreating] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [activeTab, setActiveTab] = useState("details"); // "details" or "results"
 
   // Form states for PT - Add Activity Modal
   const [activityType, setActivityType] = useState("WarmUp");
@@ -73,6 +78,12 @@ export default function BookingDetailScreen({ route, navigation }) {
     fetchUser();
     fetchBookingDetail();
   }, [bookingId]);
+
+  useEffect(() => {
+    if (activeTab === "results" && !bookingResult) {
+      fetchBookingResult();
+    }
+  }, [activeTab]);
 
   const fetchUser = async () => {
     try {
@@ -94,6 +105,20 @@ export default function BookingDetailScreen({ route, navigation }) {
       console.error("Error fetching booking detail:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchBookingResult = async () => {
+    try {
+      setLoadingResult(true);
+      const response = await bookingService.getBookingResult(bookingId);
+      console.log("Booking Result:", response.data);
+      setBookingResult(response.data);
+    } catch (error) {
+      console.error("Error fetching booking result:", error);
+      // Don't show error if result doesn't exist yet
+    } finally {
+      setLoadingResult(false);
     }
   };
 
@@ -256,241 +281,73 @@ export default function BookingDetailScreen({ route, navigation }) {
     return [...new Set(muscleGroups)];
   };
 
+  const renderTabContent = () => {
+    if (activeTab === "details") {
+      return (
+        <BookingDetailContent
+          bookingDetail={bookingDetail}
+          userRole={userRole}
+          navigation={navigation}
+          t={t}
+          onAddExercise={() => setShowAddModal(true)}
+        />
+      );
+    } else {
+      if (loadingResult) {
+        return (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.orange} />
+          </View>
+        );
+      }
+      return <BookingResultCard result={bookingResult} />;
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Booking Header */}
-        {bookingDetail?.bookingName && (
-          <View style={styles.headerCard}>
-            <View style={styles.headerIconContainer}>
-              <Ionicons name="barbell" size={28} color={colors.orange} />
-            </View>
-            <View style={styles.headerContent}>
-              <Text style={styles.headerTitle}>
-                {bookingDetail.bookingName}
-              </Text>
-              <Text style={styles.headerSubtitle}>
-                {t("bookingDetail.sessionDetails")}
-              </Text>
-            </View>
-          </View>
-        )}
+      {/* Tab Navigation */}
+      <View style={styles.tabContainer}>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === "details" && styles.activeTab]}
+          onPress={() => setActiveTab("details")}
+        >
+          <Ionicons
+            name="document-text"
+            size={20}
+            color={activeTab === "details" ? colors.orange : "#64748B"}
+          />
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === "details" && styles.activeTabText,
+            ]}
+          >
+            Chi tiết buổi tập
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === "results" && styles.activeTab]}
+          onPress={() => setActiveTab("results")}
+        >
+          <Ionicons
+            name="stats-chart"
+            size={20}
+            color={activeTab === "results" ? colors.orange : "#64748B"}
+          />
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === "results" && styles.activeTabText,
+            ]}
+          >
+            Kết quả tập luyện
+          </Text>
+        </TouchableOpacity>
+      </View>
 
-        {/* Activity Types Section */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Ionicons name="fitness" size={20} color={colors.red} />
-            <Text style={styles.sectionLabel}>
-              {t("bookingDetail.activityTypes")}
-            </Text>
-          </View>
-          <View style={styles.activityTypesContainer}>
-            {getUniqueActivityTypes().map((activityType, index) => {
-              const activityTypeInfo = ACTIVITY_TYPES.find(
-                (t) => t.id === activityType
-              );
-              return (
-                <View
-                  key={index}
-                  style={[
-                    styles.activityTypeChip,
-                    { backgroundColor: activityTypeInfo?.color || "#f0f0f0" },
-                  ]}
-                >
-                  <Ionicons
-                    name={activityType === "WarmUp" ? "walk" : "barbell"}
-                    size={16}
-                    color="#333"
-                  />
-                  <Text style={styles.activityTypeText}>
-                    {activityTypeInfo?.name || activityType}
-                  </Text>
-                </View>
-              );
-            })}
-            {/* Empty state */}
-            {getUniqueActivityTypes().length === 0 && (
-              <View style={styles.emptyStateCard}>
-                <Ionicons
-                  name="information-circle-outline"
-                  size={20}
-                  color="#999"
-                />
-                <Text style={styles.emptyText}>
-                  {t("bookingDetail.noActivityTypes")}
-                </Text>
-              </View>
-            )}
-          </View>
-        </View>
-
-        {/* Muscle Groups Section */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Ionicons name="body" size={20} color={colors.red} />
-            <Text style={styles.sectionLabel}>
-              {t("bookingDetail.mainMuscleGroups")}
-            </Text>
-          </View>
-          <View style={styles.muscleGrid}>
-            {getUniqueMuscleGroups().map((muscleId) => {
-              const muscle = MUSCLE_GROUPS.find((m) => m.id === muscleId);
-              if (!muscle) return null;
-              return (
-                <View key={muscleId} style={styles.muscleCard}>
-                  {muscle.image ? (
-                    <Image
-                      source={muscle.image}
-                      style={styles.muscleImage}
-                      resizeMode="contain"
-                    />
-                  ) : (
-                    <View style={styles.muscleIcon}>
-                      <Ionicons name="body" size={32} color="#FF914D" />
-                    </View>
-                  )}
-                  <Text style={styles.muscleName}>{muscle.name}</Text>
-                </View>
-              );
-            })}
-            {/* Empty state */}
-            {getUniqueMuscleGroups().length === 0 && (
-              <View style={styles.emptyStateCard}>
-                <Ionicons
-                  name="information-circle-outline"
-                  size={20}
-                  color="#999"
-                />
-                <Text style={styles.emptyText}>
-                  {t("bookingDetail.noMuscleGroups")}
-                </Text>
-              </View>
-            )}
-          </View>
-        </View>
-
-        {/* Activity Sets Section */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Ionicons name="list" size={20} color={colors.red} />
-            <Text style={styles.sectionLabel}>
-              {t("bookingDetail.exerciseList")} (
-              {bookingDetail?.sessionActivities?.length || 0})
-            </Text>
-          </View>
-
-          {bookingDetail?.sessionActivities?.map((activity, actIndex) => (
-            <TouchableOpacity
-              key={actIndex}
-              style={styles.setCard}
-              onPress={() =>
-                navigation.navigate("TrainingActivityScreen", {
-                  activityId: activity.id,
-                })
-              }
-              activeOpacity={0.7}
-            >
-              <View style={styles.setHeader}>
-                <View style={styles.setTitleContainer}>
-                  <Ionicons
-                    name="checkmark-circle"
-                    size={20}
-                    color={colors.orange}
-                  />
-                  <Text style={styles.setTitle}>
-                    {activity.activityName || t("bookingDetail.exerciseName")}
-                  </Text>
-                </View>
-              </View>
-              <View
-                style={[
-                  styles.setTag,
-                  {
-                    backgroundColor:
-                      ACTIVITY_TYPES.find((t) => t.id === activity.activityType)
-                        ?.color || "#f0f0f0",
-                  },
-                ]}
-              >
-                <Text style={styles.setTagText}>
-                  {ACTIVITY_TYPES.find((t) => t.id === activity.activityType)
-                    ?.name || activity.activityType}
-                </Text>
-              </View>
-              <View style={styles.setDetailContainer}>
-                <View style={styles.setDetailRow}>
-                  <Ionicons name="layers-outline" size={16} color="#666" />
-                  <Text style={styles.setDetailText}>
-                    {activity.totalSets || 0} sets
-                  </Text>
-                </View>
-                <View style={styles.setDetailRow}>
-                  <Ionicons name="analytics-outline" size={16} color="#666" />
-                  <Text style={styles.setDetailText}>
-                    {activity.activitySetType === "Reps"
-                      ? `${activity.totalPlannedNumOfReps || 0} reps`
-                      : `${activity.totalPlannedPracticeTime || 0}s`}
-                  </Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))}
-
-          {/* Empty state for sets */}
-          {(!bookingDetail?.sessionActivities ||
-            bookingDetail.sessionActivities.length === 0) && (
-            <View style={styles.emptySetContainer}>
-              <Ionicons name="clipboard-outline" size={48} color="#ddd" />
-              <Text style={styles.emptySetText}>
-                {t("bookingDetail.noExercises")}
-              </Text>
-              {userRole === "FreelancePT" && (
-                <Text style={styles.emptySetHint}>
-                  {t("bookingDetail.addExerciseHint")}
-                </Text>
-              )}
-            </View>
-          )}
-
-          {/* Add Button - Only for PT */}
-          {userRole === "FreelancePT" && (
-            <TouchableOpacity
-              style={styles.addButton}
-              onPress={() => setShowAddModal(true)}
-            >
-              <Ionicons name="add-circle" size={24} color={colors.white} />
-              <Text style={styles.addButtonText}>
-                {t("bookingDetail.addExercise")}
-              </Text>
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {/* Notes Section */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Ionicons name="document-text" size={20} color={colors.red} />
-            <Text style={styles.sectionLabel}>{t("bookingDetail.notes")}</Text>
-          </View>
-          <View style={styles.noteBox}>
-            <TextInput
-              style={styles.noteInput}
-              placeholder={
-                userRole === "FreelancePT"
-                  ? t("bookingDetail.addNotesPlaceholder")
-                  : t("bookingDetail.noNotes")
-              }
-              placeholderTextColor="#999"
-              value={bookingDetail?.note || ""}
-              editable={userRole === "FreelancePT"}
-              multiline
-            />
-          </View>
-        </View>
-      </ScrollView>
+      {/* Tab Content */}
+      {renderTabContent()}
 
       {/* Add Activity Modal */}
       <Modal
@@ -760,6 +617,45 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F8FAFC",
+  },
+  tabContainer: {
+    flexDirection: "row",
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E2E8F0",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  tab: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    marginHorizontal: 4,
+    gap: 8,
+  },
+  activeTab: {
+    backgroundColor: "#FFF7ED",
+    borderWidth: 2,
+    borderColor: colors.orange,
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#64748B",
+  },
+  activeTabText: {
+    color: colors.orange,
+    fontWeight: "700",
   },
   scrollView: {
     flex: 1,
