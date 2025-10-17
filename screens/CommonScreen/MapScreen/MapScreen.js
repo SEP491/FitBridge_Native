@@ -278,7 +278,7 @@ export default function MapScreen({ route }) {
           >
             <View style={styles.markerContainer}>
               <Image
-                source={require("../../../assets/LogoColor.png")}
+                source={require("../../../assets/images/LogoColor.png")}
                 style={styles.markerImage}
               />
               {gym.hotResearch && (

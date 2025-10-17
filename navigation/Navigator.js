@@ -782,6 +782,20 @@ export default function Navigator({
           }}
         />
         <Stack.Screen
+          name="VideoCallPrep"
+          component={VideoCallPrepScreen}
+          options={{
+            headerShown: true,
+            orientation: "portrait",
+             headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
           name="VideoCallScreen"
           component={VideoCallScreen}
           options={{

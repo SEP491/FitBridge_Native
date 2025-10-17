@@ -160,7 +160,7 @@ const PTProfileScreen = ({ route, navigation }) => {
                 source={
                   pt.freelancePt?.avatarUrl 
                     ? { uri: pt.freelancePt.avatarUrl }
-                    : require("../../../assets/LogoColor.png")
+                    : require("../../../assets/images/LogoColor.png")
                 }
                 style={styles.avatar}
               />
@@ -442,7 +442,7 @@ const PTProfileScreen = ({ route, navigation }) => {
                       source={
                         packageItem.imageUrl && packageItem.imageUrl !== "string"
                           ? { uri: packageItem.imageUrl }
-                          : require("../../../assets/gymroom.jpg")
+                          : require("../../../assets/images/gymroom.jpg")
                       }
                       style={styles.packageImage}
                       resizeMode="cover"

@@ -1,7 +1,8 @@
-import React from "react";
+import React, { use } from "react";
 import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import colors from "../../constants/color";
+import { useNavigation } from "@react-navigation/native";
 
 const SessionBookingCard = ({
   booking,
@@ -19,7 +20,8 @@ const SessionBookingCard = ({
 }) => {
   // Extract data from booking API response
   const sessionStatus = booking.sessionStatus;
-
+  const navigation = useNavigation();
+  console.log("Booking data in SessionBookingCard:", booking);
   // Use gym slot times from the API response
   const startTime = booking.startTime || booking.ptFreelanceStartTime;
   const endTime = booking.endTime || booking.ptFreelanceEndTime;
@@ -109,6 +111,12 @@ const SessionBookingCard = ({
   // Hide button if booking is in the past or disabled by status
   const shouldHideButton = isBookingInPast || isActionDisabled;
 
+  const handleJoinMeeting = () => {
+    navigation.navigate("VideoCallPrep", {
+      booking: booking,
+    });
+  }
+
   return (
     <View style={styles.sessionCard}>
       {/* Header with status */}
@@ -173,6 +181,22 @@ const SessionBookingCard = ({
             </View>
           </View>
         </View>
+
+        {/* Meeting Button Section */}
+          <TouchableOpacity
+            style={styles.meetingButton}
+            onPress={handleJoinMeeting}
+          >
+            <Ionicons
+              name="videocam-outline"
+              size={18}
+              color={colors.white}
+            />
+            <Text style={styles.meetingButtonText}>
+              {t ? t("calendar.meetingOnline") : "Join Meeting Online"}
+            </Text>
+          </TouchableOpacity>
+       
 
         {/* View Detail Button - Always visible */}
         {!booking.ptGymSlotId && viewDetailAction && (
@@ -387,6 +411,30 @@ const styles = StyleSheet.create({
   halfWidthButton: {
     flex: 1,
   },
+  meetingButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    borderWidth: 2,
+    backgroundColor: "#ED2A46",
+    borderColor: "#ED2A46",
+    gap: 6,
+    marginTop: 12,
+    shadowColor: "#ED2A46",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  meetingButtonText: {
+    fontSize: 15,
+    color: colors.white,
+    fontWeight: "700",
+  },
+
   editButton: {
     backgroundColor: "#FFFFFF",
     borderColor: "#F97316",

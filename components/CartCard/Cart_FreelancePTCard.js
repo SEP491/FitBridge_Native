@@ -16,9 +16,9 @@ export default function Cart_FreelancePTCard({
     <View style={styles.cartCart}>
       <View style={styles.cartUpper}>
         <View style={styles.imageContainer}>
-          <Image 
-            source={item.imageUrl && item.imageUrl !== "string" ? { uri: item.imageUrl } : require("../../assets/gymroom.jpg")} 
-            style={styles.gymImage} 
+          <Image
+            source={item.imageUrl && item.imageUrl !== "string" ? { uri: item.imageUrl } : require("../../assets/images/gymroom.jpg")}
+            style={styles.gymImage}
           />
           <View style={styles.imageOverlay} />
         </View>

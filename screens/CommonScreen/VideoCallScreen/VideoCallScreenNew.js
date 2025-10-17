@@ -9,15 +9,19 @@ import {
   Alert,
   Platform,
   Modal,
+  Image,
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import Constants from "expo-constants";
 import { Audio } from "expo-av";
 import { useMeetingState } from "../../../context/meetingStateContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Check if running in Expo Go
 const isExpoGo = Constants.appOwnership === "expo";
+const defaultAvatar = require("../../../assets/images/LogoColor.png");
+
 
 // Conditionally import WebRTC (only in development builds)
 let RTCView;
@@ -34,8 +38,9 @@ const { width, height } = Dimensions.get("window");
 
 export default function VideoCallScreen({ route, navigation }) {
   // Get params from navigation
-  const { roomId, username, recipientName, recipientAvatar } =
+  const { roomId, booking } =
     route.params || {};
+
 
   const [callDuration, setCallDuration] = useState(0);
   const [showExpoGoWarning, setShowExpoGoWarning] = useState(false);
@@ -44,7 +49,7 @@ export default function VideoCallScreen({ route, navigation }) {
   const [showAudioSourceModal, setShowAudioSourceModal] = useState(false);
   const [selectedAudioSource, setSelectedAudioSource] = useState("speaker"); // "speaker", "earpiece", "bluetooth", "wired"
   const hideControlsTimeout = React.useRef(null);
-
+  const [username, setUsername] = useState("");
   // Get video call state and methods from context
   const {
     isInCall,
@@ -62,10 +67,6 @@ export default function VideoCallScreen({ route, navigation }) {
     onToggleMinimize,
   } = useMeetingState();
 
-  const callerInfo = {
-    name: recipientName || "Personal Trainer",
-    avatar: recipientAvatar || "PT",
-  };
 
   // Initialize call on mount
   useEffect(() => {
@@ -75,9 +76,10 @@ export default function VideoCallScreen({ route, navigation }) {
         setShowExpoGoWarning(true);
         return;
       }
+      const user = await AsyncStorage.getItem("user");
+      setUsername(user ? JSON.parse(user).fullName : "Guest");
 
       try {
-        console.log("VideoCallScreen: Starting call", { roomId, username });
         await startCall(username, roomId, 5000, false);
 
         // Set audio mode for video call with speaker on
@@ -103,8 +105,12 @@ export default function VideoCallScreen({ route, navigation }) {
 
     // Cleanup on unmount
     return () => {
-      if (isInCall) {
-        endCall();
+      try {
+        if (isInCall && endCall) {
+          endCall();
+        }
+      } catch (error) {
+        console.error('Error during cleanup:', error);
       }
     };
   }, []);
@@ -310,7 +316,7 @@ export default function VideoCallScreen({ route, navigation }) {
         </View>
         <View style={styles.callInfo}>
           <View style={styles.callerDetails}>
-            <Text style={styles.callerNameText}>{callerInfo.name}</Text>
+            <Text style={styles.callerNameText}>{booking ? booking.customerName : 'Customer'}</Text>
             <Text style={styles.callDurationText}>
               {formatDuration(callDuration)}
             </Text>
@@ -341,16 +347,17 @@ export default function VideoCallScreen({ route, navigation }) {
             style={styles.remoteVideoPlaceholder}
           >
             <View style={styles.avatarLarge}>
-              <Text style={styles.avatarLargeText}>{callerInfo.avatar}</Text>
+              <Image
+                source={booking?.customerAvatarUrl ? { uri: booking.customerAvatarUrl } : defaultAvatar}
+                style={styles.avatarLargeImage}
+              />
             </View>
-            <Text style={styles.callerName}>{callerInfo.name}</Text>
+            <Text style={styles.callerName}>{booking ? booking.customerName : 'Customer'}</Text>
             <Text style={styles.waitingText}>Waiting for connection...</Text>
           </LinearGradient>
         )}
       </View>
 
-      {/* Overlay content */}
-      <View style={styles.overlayContainer}></View>
 
       {/* Bottom controls - absolute positioned with auto-hide */}
       {showControls && (
@@ -429,6 +436,7 @@ const styles = StyleSheet.create({
     gap: 10,
     justifyContent: "space-between",
   },
+
   videoContainer: {
     width: "100%",
   },
@@ -455,6 +463,11 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.2)",
+  },
+  avatarLargeImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
   },
   avatarLargeText: {
     fontSize: 48,
@@ -573,7 +586,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 255, 255, 0.1)",
     backdropFilter: "blur(40px)",
     borderRadius: 30,
-    borderWidth: 0.5,
+    borderWidth: 2,
     borderColor: "rgba(255, 255, 255, 0.15)",
     shadowColor: "#000",
     shadowOffset: {
@@ -583,6 +596,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 20,
     elevation: 10,
+
   },
   controls: {
     flexDirection: "row",

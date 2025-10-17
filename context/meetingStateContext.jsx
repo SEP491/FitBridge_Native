@@ -251,36 +251,49 @@ export const MeetingStateProvider = ({ children }) => {
   );
 
   const endCall = useCallback(() => {
-    if (localMediaStream) {
-      localMediaStream.getTracks().forEach((track) => {
-        track.stop();
-      });
+    try {
+      if (localMediaStream) {
+        localMediaStream.getTracks().forEach((track) => {
+          track.stop();
+        });
+      }
+      if (remoteMediaStream) {
+        remoteMediaStream.getTracks().forEach((track) => {
+          track.stop();
+        });
+      }
+      
+      if (webrtcService) {
+        webrtcService.closeConnection();
+        webrtcService.setOnTrackCallback(null);
+        webrtcService.setLocalStreamCallback(null);
+      }
+
+      setSkipInitializeCall(false);
+      setIsInCall(false);
+      setIsMinimized(false);
+      setIsAudioMuted(false);
+      setIsVideoMuted(false);
+      setIsLoading(false);
+      setError(null);
+
+      if (signalrService) {
+        try {
+          signalrService.offEvent(
+            CLIENT_METHODS.SHOW_EXPIRATION_ALERT,
+            handleShowExpirationAlert
+          );
+          signalrService.offEvent(CLIENT_METHODS.STOP_MEETING, handleStopMeeting);
+        } catch (error) {
+          console.error('Error removing signalR event handlers:', error);
+        }
+      }
+      
+      unregisterMeetingManagementHandlers(signalrService?.connection);
+    } catch (error) {
+      console.error('Error in endCall:', error);
     }
-    if (remoteMediaStream) {
-      remoteMediaStream.getTracks().forEach((track) => {
-        track.stop();
-      });
-    }
-    webrtcService.closeConnection();
-    webrtcService.setOnTrackCallback(null);
-    webrtcService.setLocalStreamCallback(null);
-
-    setSkipInitializeCall(false);
-    setIsInCall(false);
-    setIsMinimized(false);
-    setIsAudioMuted(false);
-    setIsVideoMuted(false);
-    setIsLoading(false);
-    setError(null);
-
-    signalrService.offEvent(
-      CLIENT_METHODS.SHOW_EXPIRATION_ALERT,
-      handleShowExpirationAlert
-    );
-    signalrService.offEvent(CLIENT_METHODS.STOP_MEETING, handleStopMeeting);
-    unregisterMeetingManagementHandlers(signalrService.connection);
-
-  }, [webrtcService, localMediaStream, remoteMediaStream]);
+  }, [webrtcService, localMediaStream, remoteMediaStream, signalrService]);
 
   const handleShowExpirationAlert = useCallback(() => {
     console.log("handleShowExpirationAlert");
