@@ -58,6 +58,7 @@ export default function VideoCallPrepScreen({ navigation, route }) {
     setIsCheckingMeeting(true);
     setMeetingStatus('checking');
     try {
+      await signalR_webrtcService.startConnection();  
       const response = await meetingService.getMeetingById(booking.bookingId);
       if (response.data) {
         setMeetingID(response.data.id);
