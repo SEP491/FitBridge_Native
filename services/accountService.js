@@ -44,6 +44,9 @@ const accountService = {
 
   getCustomerPurchasedFreelancePT: () =>
     request("GET", "v1/customer-purchased/freelance-pt"),
+
+  getKeywords: (params) =>
+    request("GET", "v1/accounts/hot-research", null, {}, params),
 };
 
 export default accountService;

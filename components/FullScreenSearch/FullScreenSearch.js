@@ -18,6 +18,7 @@ import {
   removeRecentSearch,
   clearRecentSearches,
 } from "../../lib/storage/storageUtils";
+import accountService from "../../services/accountService";
 
 export default function FullScreenSearch({
   visible,
@@ -30,20 +31,33 @@ export default function FullScreenSearch({
   const [searchText, setSearchText] = useState(initialSearchText);
   const { t } = useTranslation();
   const searchInputRef = useRef(null);
+  const [keywords, setKeywords] = useState([]);
+
+  const loadKeywords = async () => {
+    try {
+      const response = await accountService.getKeywords({
+        doApplyPaging: false,
+      });
+      setKeywords(response.data.items);
+      console.log("Keywords Data:", response.data.items);
+    } catch (error) {
+      console.error("Error loading keywords:", error);
+    }
+  };
 
   // Hot keywords data
-  const [hotKeywords] = useState([
-    { id: 1, text: "Gym 24/7", trend: "hot", icon: "trending-up" },
-    { id: 2, text: "Boxing", trend: "rising", icon: "flame" },
-    { id: 3, text: "Yoga Studio", trend: "hot", icon: "trending-up" },
-    { id: 4, text: "Swimming Pool", trend: "rising", icon: "flame" },
-    // { id: 5, text: "Personal Training", trend: "hot", icon: "trending-up" },
-    // { id: 6, text: "Crossfit", trend: "new", icon: "sparkles" },
-    // { id: 7, text: "Pilates", trend: "rising", icon: "flame" },
-    // { id: 8, text: "Fitness Center", trend: "hot", icon: "trending-up" },
-    // { id: 9, text: "Dance Studio", trend: "new", icon: "sparkles" },
-    // { id: 10, text: "Martial Arts", trend: "rising", icon: "flame" },
-  ]);
+  // const [hotKeywords] = useState([
+  //   { id: 1, text: "Gym 24/7", trend: "hot", icon: "trending-up" },
+  //   { id: 2, text: "Boxing", trend: "rising", icon: "flame" },
+  //   { id: 3, text: "Yoga Studio", trend: "hot", icon: "trending-up" },
+  //   { id: 4, text: "Swimming Pool", trend: "rising", icon: "flame" },
+  //   { id: 5, text: "Personal Training", trend: "hot", icon: "trending-up" },
+  //   { id: 6, text: "Crossfit", trend: "new", icon: "sparkles" },
+  //   { id: 7, text: "Pilates", trend: "rising", icon: "flame" },
+  //   { id: 8, text: "Fitness Center", trend: "hot", icon: "trending-up" },
+  //   { id: 9, text: "Dance Studio", trend: "new", icon: "sparkles" },
+  //   { id: 10, text: "Martial Arts", trend: "rising", icon: "flame" },
+  // ]);
 
   const [recentSearches, setRecentSearches] = useState([]);
 
@@ -51,6 +65,8 @@ export default function FullScreenSearch({
   useEffect(() => {
     if (visible) {
       loadRecentSearches();
+      loadKeywords();
+
       // Auto focus on search input when visible
       if (searchInputRef.current) {
         setTimeout(() => {
@@ -81,19 +97,6 @@ export default function FullScreenSearch({
         return "#5352ED";
       default:
         return "#FF4757";
-    }
-  };
-
-  const getTrendText = (trend) => {
-    switch (trend) {
-      case "hot":
-        return t("hotKeywords.hot");
-      case "rising":
-        return t("hotKeywords.rising");
-      case "new":
-        return t("hotKeywords.new");
-      default:
-        return t("hotKeywords.hot");
     }
   };
 
@@ -273,22 +276,22 @@ export default function FullScreenSearch({
               </View>
             </View>
             <View style={styles.keywordsList}>
-              {hotKeywords.map((keyword, index) => (
+              {keywords.map((keyword, index) => (
                 <TouchableOpacity
                   key={keyword.id}
                   style={styles.keywordItem}
-                  onPress={() => handleKeywordSelect(keyword.text)}
+                  onPress={() => handleKeywordSelect(keyword.gymName)}
                   activeOpacity={0.7}
                 >
                   <View style={styles.keywordContent}>
                     <Ionicons
-                      name={keyword.icon}
+                      name={"trending-up"}
                       size={18}
-                      color={getTrendColor(keyword.trend)}
+                      color={getTrendColor("hot")}
                     />
-                    <Text style={styles.keywordText}>{keyword.text}</Text>
+                    <Text style={styles.keywordText}>{keyword.gymName}</Text>
                   </View>
-                  <View
+                  {/* <View
                     style={[
                       styles.trendBadge,
                       { backgroundColor: getTrendColor(keyword.trend) },
@@ -297,7 +300,7 @@ export default function FullScreenSearch({
                     <Text style={styles.trendBadgeText}>
                       {getTrendText(keyword.trend)}
                     </Text>
-                  </View>
+                  </View> */}
                 </TouchableOpacity>
               ))}
             </View>

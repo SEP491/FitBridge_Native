@@ -16,7 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "../../../hooks/useTranslation";
 import { SafeAreaView } from "react-native-safe-area-context";
 import accountService from "../../../services/accountService";
-
+import LogoColor from "../../../assets/images/LogoColor.png";
 // Body part images mapping
 const bodyPartImages = {
   shoulder: require("../../../assets/images/bodyparts/shoulder.png"),
@@ -201,7 +201,7 @@ const PTProfileScreen = ({ route, navigation }) => {
               source={
                 pt.freelancePt?.avatarUrl
                   ? { uri: pt.freelancePt.avatarUrl }
-                  : require("../../../assets/LogoColor.png")
+                  : LogoColor
               }
               style={styles.avatar}
             />
