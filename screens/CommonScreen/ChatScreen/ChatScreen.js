@@ -614,7 +614,7 @@ export default function ChatScreen({ navigation }) {
               <Image
                 source={{ uri: avatarUrl }}
                 style={styles.userAvatarImage}
-                defaultSource={require("../../../assets/icon.png")}
+                defaultSource={require("../../../assets/images/icon.png")}
               />
             ) : (
               <Ionicons name="person-circle" size={32} color="#666" />

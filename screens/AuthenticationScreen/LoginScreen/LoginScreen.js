@@ -108,7 +108,7 @@ export default function LoginScreen() {
           {/* Header Section */}
           <View style={styles.headerSection}>
             <Image
-              source={require("../../../assets/LogoColor.png")}
+              source={require("../../../assets/images/LogoColor.png")}
               style={styles.logo}
             />
             <Text style={styles.welcomeTitle}>{t("welcome")}</Text>

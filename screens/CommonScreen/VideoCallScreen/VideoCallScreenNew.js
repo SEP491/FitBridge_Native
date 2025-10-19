@@ -9,15 +9,19 @@ import {
   Alert,
   Platform,
   Modal,
+  Image,
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import Constants from "expo-constants";
 import { Audio } from "expo-av";
 import { useMeetingState } from "../../../context/meetingStateContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Check if running in Expo Go
 const isExpoGo = Constants.appOwnership === "expo";
+const defaultAvatar = require("../../../assets/images/LogoColor.png");
+
 
 // Conditionally import WebRTC (only in development builds)
 let RTCView;
@@ -34,8 +38,9 @@ const { width, height } = Dimensions.get("window");
 
 export default function VideoCallScreen({ route, navigation }) {
   // Get params from navigation
-  const { roomId, username, recipientName, recipientAvatar } =
+  const { roomId, booking } =
     route.params || {};
+
 
   const [callDuration, setCallDuration] = useState(0);
   const [showExpoGoWarning, setShowExpoGoWarning] = useState(false);
@@ -44,7 +49,7 @@ export default function VideoCallScreen({ route, navigation }) {
   const [showAudioSourceModal, setShowAudioSourceModal] = useState(false);
   const [selectedAudioSource, setSelectedAudioSource] = useState("speaker"); // "speaker", "earpiece", "bluetooth", "wired"
   const hideControlsTimeout = React.useRef(null);
-
+  const [username, setUsername] = useState("");
   // Get video call state and methods from context
   const {
     isInCall,
@@ -62,26 +67,89 @@ export default function VideoCallScreen({ route, navigation }) {
     onToggleMinimize,
   } = useMeetingState();
 
-  const callerInfo = {
-    name: recipientName || "Personal Trainer",
-    avatar: recipientAvatar || "PT",
-  };
+  // Debug: Monitor stream changes
+  useEffect(() => {
+    console.log("🎥 [VideoCallScreen] localMediaStream changed:", {
+      exists: !!localMediaStream,
+      stream: localMediaStream,
+      tracks: localMediaStream?.getTracks().map(t => ({
+        kind: t.kind,
+        id: t.id,
+        enabled: t.enabled,
+        readyState: t.readyState
+      }))
+    });
+  }, [localMediaStream]);
+
+  useEffect(() => {
+    console.log("🎥 [VideoCallScreen] remoteMediaStream changed:", {
+      exists: !!remoteMediaStream,
+      stream: remoteMediaStream,
+      tracks: remoteMediaStream?.getTracks().map(t => ({
+        kind: t.kind,
+        id: t.id,
+        enabled: t.enabled,
+        readyState: t.readyState
+      }))
+    });
+  }, [remoteMediaStream]);
+
+  useEffect(() => {
+    console.log("📊 [VideoCallScreen] Call state changed:", {
+      isInCall,
+      isLoading,
+      isAudioMuted,
+      isVideoMuted,
+      hasLocalStream: !!localMediaStream,
+      hasRemoteStream: !!remoteMediaStream,
+      error
+    });
+  }, [isInCall, isLoading, isAudioMuted, isVideoMuted, error]);
+
 
   // Initialize call on mount
   useEffect(() => {
     const initializeCall = async () => {
+      console.log("📞 [VideoCallScreen] Initializing call...");
+      console.log("📞 [VideoCallScreen] Route params:", { roomId, booking });
+      
       // Check if running in Expo Go
       if (isExpoGo) {
+        console.warn("⚠️ [VideoCallScreen] Running in Expo Go - WebRTC not available");
         setShowExpoGoWarning(true);
         return;
       }
 
+      // Check if RTCView is available
+      if (!RTCView) {
+        console.error("❌ [VideoCallScreen] RTCView component not available!");
+        Alert.alert("Error", "WebRTC components not available. Please use a development build.");
+        return;
+      }
+      console.log("✅ [VideoCallScreen] RTCView component available");
+
       try {
-        console.log("VideoCallScreen: Starting call", { roomId, username });
-        await startCall(username, roomId, 5000, false);
+        const user = await AsyncStorage.getItem("user");
+        console.log("👤 [VideoCallScreen] User from AsyncStorage:", user);
+        
+        const userName = user ? JSON.parse(user).fullName : "Guest";
+        setUsername(userName);
+        console.log("👤 [VideoCallScreen] Username set to:", userName);
+
+        if (!roomId) {
+          console.error("❌ [VideoCallScreen] No roomId provided!");
+          Alert.alert("Error", "No room ID provided for video call");
+          return;
+        }
+        console.log("🔑 [VideoCallScreen] Room ID:", roomId);
+
+        console.log("🚀 [VideoCallScreen] Starting call with:", { userName, roomId });
+        await startCall(userName, roomId, 5000, false);
+        console.log("✅ [VideoCallScreen] startCall completed");
 
         // Set audio mode for video call with speaker on
         try {
+          console.log("🔊 [VideoCallScreen] Setting audio mode...");
           await Audio.setAudioModeAsync({
             allowsRecordingIOS: true,
             playsInSilentModeIOS: true,
@@ -89,13 +157,14 @@ export default function VideoCallScreen({ route, navigation }) {
             shouldDuckAndroid: true,
             playThroughEarpieceAndroid: false, // Use speaker by default
           });
-          console.log("Audio mode set: Speaker ON");
+          console.log("✅ [VideoCallScreen] Audio mode set: Speaker ON");
         } catch (audioError) {
-          console.log("Error setting audio mode:", audioError);
+          console.error("❌ [VideoCallScreen] Error setting audio mode:", audioError);
         }
       } catch (error) {
-        console.error("VideoCallScreen: Error starting call:", error);
-        Alert.alert("Error", "Failed to start video call");
+        console.error("❌ [VideoCallScreen] Error starting call:", error);
+        console.error("❌ [VideoCallScreen] Error stack:", error.stack);
+        Alert.alert("Error", "Failed to start video call: " + error.message);
       }
     };
 
@@ -103,8 +172,14 @@ export default function VideoCallScreen({ route, navigation }) {
 
     // Cleanup on unmount
     return () => {
-      if (isInCall) {
-        endCall();
+      console.log("🧹 [VideoCallScreen] Component unmounting, cleaning up...");
+      try {
+        if (isInCall && endCall) {
+          console.log("🛑 [VideoCallScreen] Ending call on unmount");
+          endCall();
+        }
+      } catch (error) {
+        console.error('❌ [VideoCallScreen] Error during cleanup:', error);
       }
     };
   }, []);
@@ -131,22 +206,27 @@ export default function VideoCallScreen({ route, navigation }) {
 
   // Handle end call
   const handleEndCall = () => {
+    console.log("📞 [VideoCallScreen] Ending call...");
     endCall();
+    console.log("📞 [VideoCallScreen] Navigating back");
     navigation.goBack();
   };
 
   // Toggle microphone
   const toggleMicrophone = () => {
+    console.log("🎤 [VideoCallScreen] Toggling microphone, current state:", isAudioMuted);
     onToggleAudio();
   };
 
   // Toggle camera
   const toggleCamera = () => {
+    console.log("📹 [VideoCallScreen] Toggling camera, current state:", isVideoMuted);
     onToggleVideo();
   };
 
   // Flip camera
   const flipCamera = () => {
+    console.log("🔄 [VideoCallScreen] Flipping camera");
     onToggleFlipCamera();
   };
 
@@ -294,23 +374,38 @@ export default function VideoCallScreen({ route, navigation }) {
         <View style={styles.middleSection}>
           {/* Local video (Picture-in-Picture) */}
           <View style={styles.localVideoContainer}>
-            {localMediaStream && !isVideoMuted ? (
-              <RTCView
-                streamURL={localMediaStream.toURL()}
-                style={styles.localVideo}
-                objectFit="cover"
-                mirror={true}
-              />
-            ) : (
-              <View style={styles.localVideoOff}>
-                <Ionicons name="videocam-off" size={32} color="#FFF" />
-              </View>
-            )}
+            {(() => {
+              console.log("🖼️ [VideoCallScreen] Rendering local video:", {
+                hasStream: !!localMediaStream,
+                isVideoMuted,
+                streamURL: localMediaStream?.toURL?.(),
+                RTCViewAvailable: !!RTCView
+              });
+              
+              if (localMediaStream && !isVideoMuted) {
+                console.log("✅ [VideoCallScreen] Rendering RTCView for local stream");
+                return (
+                  <RTCView
+                    streamURL={localMediaStream.toURL()}
+                    style={styles.localVideo}
+                    objectFit="cover"
+                    mirror={true}
+                  />
+                );
+              } else {
+                console.log("⚠️ [VideoCallScreen] Showing local video off placeholder");
+                return (
+                  <View style={styles.localVideoOff}>
+                    <Ionicons name="videocam-off" size={32} color="#FFF" />
+                  </View>
+                );
+              }
+            })()}
           </View>
         </View>
         <View style={styles.callInfo}>
           <View style={styles.callerDetails}>
-            <Text style={styles.callerNameText}>{callerInfo.name}</Text>
+            <Text style={styles.callerNameText}>{booking ? booking.customerName : 'Customer'}</Text>
             <Text style={styles.callDurationText}>
               {formatDuration(callDuration)}
             </Text>
@@ -328,29 +423,46 @@ export default function VideoCallScreen({ route, navigation }) {
       {/* Video container - fills entire screen */}
       <View style={styles.videoContainer}>
         {/* Background (Remote video or placeholder) */}
-        {remoteMediaStream ? (
-          <RTCView
-            streamURL={remoteMediaStream.toURL()}
-            style={styles.remoteVideo}
-            objectFit="cover"
-            mirror={false}
-          />
-        ) : (
-          <LinearGradient
-            colors={["#667eea", "#d1ced4ff"]}
-            style={styles.remoteVideoPlaceholder}
-          >
-            <View style={styles.avatarLarge}>
-              <Text style={styles.avatarLargeText}>{callerInfo.avatar}</Text>
-            </View>
-            <Text style={styles.callerName}>{callerInfo.name}</Text>
-            <Text style={styles.waitingText}>Waiting for connection...</Text>
-          </LinearGradient>
-        )}
+        {(() => {
+          console.log("🖼️ [VideoCallScreen] Rendering remote video:", {
+            hasStream: !!remoteMediaStream,
+            streamURL: remoteMediaStream?.toURL?.(),
+            RTCViewAvailable: !!RTCView,
+            tracks: remoteMediaStream?.getTracks()
+          });
+          
+          if (remoteMediaStream) {
+            console.log("✅ [VideoCallScreen] Rendering RTCView for remote stream");
+            return (
+              <RTCView
+                streamURL={remoteMediaStream.toURL()}
+                style={styles.remoteVideo}
+                objectFit="cover"
+                zOrder={1}
+                mirror={false}
+              />
+            );
+          } else {
+            console.log("⚠️ [VideoCallScreen] Showing waiting placeholder for remote video");
+            return (
+              <LinearGradient
+                colors={["#667eea", "#d1ced4ff"]}
+                style={styles.remoteVideoPlaceholder}
+              >
+                <View style={styles.avatarLarge}>
+                  <Image
+                    source={booking?.customerAvatarUrl ? { uri: booking.customerAvatarUrl } : defaultAvatar}
+                    style={styles.avatarLargeImage}
+                  />
+                </View>
+                <Text style={styles.callerName}>{booking ? booking.customerName : 'Customer'}</Text>
+                <Text style={styles.waitingText}>Waiting for connection...</Text>
+              </LinearGradient>
+            );
+          }
+        })()}
       </View>
 
-      {/* Overlay content */}
-      <View style={styles.overlayContainer}></View>
 
       {/* Bottom controls - absolute positioned with auto-hide */}
       {showControls && (
@@ -429,13 +541,16 @@ const styles = StyleSheet.create({
     gap: 10,
     justifyContent: "space-between",
   },
+
   videoContainer: {
     width: "100%",
+    height: "100%",
   },
   remoteVideo: {
     flex: 1,
     width: "100%",
-    height: "90%",
+    height: "100%",
+    backgroundColor: "#000",
   },
   remoteVideoPlaceholder: {
     height: "85%",
@@ -455,6 +570,11 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.2)",
+  },
+  avatarLargeImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
   },
   avatarLargeText: {
     fontSize: 48,
@@ -573,7 +693,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 255, 255, 0.1)",
     backdropFilter: "blur(40px)",
     borderRadius: 30,
-    borderWidth: 0.5,
+    borderWidth: 2,
     borderColor: "rgba(255, 255, 255, 0.15)",
     shadowColor: "#000",
     shadowOffset: {
@@ -583,6 +703,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 20,
     elevation: 10,
+
   },
   controls: {
     flexDirection: "row",

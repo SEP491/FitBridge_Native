@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Image } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 import { useTranslation } from "../../hooks/useTranslation";
 import { Ionicons } from "@expo/vector-icons";
-import LogoColor from "../../assets/LogoColor.png";
+import LogoColor from "../../assets/images/LogoColor.png";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { t } from "../../i18n";
 

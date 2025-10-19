@@ -15,9 +15,9 @@ class VideoCallService {
       this.webrtcService = new WebRTCService();
       
       // Connect to SignalR if not already connected
-      // if (signalR_webrtcService.connectionStatus.state !== 'Connected') {
-      //   await signalR_webrtcService.startConnection();
-      // }
+      if (signalR_webrtcService.connectionStatus.state !== 'Connected') {
+        await signalR_webrtcService.startConnection();
+      }
       
       // Initialize WebRTC connection
       await this.webrtcService.initializeConnection(roomId, username);

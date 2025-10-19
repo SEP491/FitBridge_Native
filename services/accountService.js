@@ -21,9 +21,11 @@ const accountService = {
 
   getAllFreelancePT: (params) =>
     request("GET", "v1/accounts/freelance-pts", null, {}, params),
-
   getFreelancePTDetail: (ptId) =>
     request("GET", `v1/accounts/freelance-pt/${ptId}`),
+  getFreelancePTCustomers: (params) =>
+    request("GET", "v1/accounts/freelance-pt/customers", null, {}, params),
+
   getBookingForPT: (params) =>
     request("GET", "v1/bookings/freelance-pt-schedule", null, {}, params),
   getAllRequestForUser: (params) =>

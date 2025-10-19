@@ -502,7 +502,7 @@ const PTProfileScreen = ({ route, navigation }) => {
                         packageItem.imageUrl &&
                         packageItem.imageUrl !== "string"
                           ? { uri: packageItem.imageUrl }
-                          : require("../../../assets/gymroom.jpg")
+                          : require("../../../assets/images/gymroom.jpg")
                       }
                       style={styles.packageImage}
                       resizeMode="cover"

@@ -63,13 +63,17 @@ export const MeetingStateProvider = ({ children }) => {
   }, [webrtcService]);
 
   const onToggleAudio = useCallback(() => {
+    console.log("🔇 [MeetingState] Toggling audio, current state:", isAudioMuted);
     webrtcService.toggleAudio();
     setIsAudioMuted(!isAudioMuted);
+    console.log("🔇 [MeetingState] Audio toggled to:", !isAudioMuted);
   }, [webrtcService, isAudioMuted]);
 
   const onToggleVideo = useCallback(() => {
+    console.log("📹 [MeetingState] Toggling video, current state:", isVideoMuted);
     webrtcService.toggleVideo();
     setIsVideoMuted(!isVideoMuted);
+    console.log("📹 [MeetingState] Video toggled to:", !isVideoMuted);
   }, [webrtcService, isVideoMuted]);
 
   const onToggleMinimize = useCallback(() => {
@@ -136,6 +140,7 @@ export const MeetingStateProvider = ({ children }) => {
 
   const showCallNotifications = useCallback(async () => {
     try {
+      console.log("🔔 [MeetingState] Showing call notification");
       await Notifications.scheduleNotificationAsync({
         content: {
           title: "Video Call in Progress",
@@ -146,16 +151,19 @@ export const MeetingStateProvider = ({ children }) => {
         },
         trigger: null, // show immediately
       });
+      console.log("✅ [MeetingState] Call notification shown");
     } catch (error) {
-      console.error("Failed to show call notification:", error);
+      console.error("❌ [MeetingState] Failed to show call notification:", error);
     }
   }, [callInfo]);
 
   const hideCallNotifications = useCallback(async () => {
     try {
+      console.log("🔕 [MeetingState] Hiding call notifications");
       await Notifications.dismissAllNotificationsAsync();
+      console.log("✅ [MeetingState] Call notifications hidden");
     } catch (error) {
-      console.error("Failed to hide call notification:", error);
+      console.error("❌ [MeetingState] Failed to hide call notification:", error);
     }
   }, []);
 
@@ -202,48 +210,92 @@ export const MeetingStateProvider = ({ children }) => {
       logInverval = DEFAULT_LOG_INTERVAL,
       logStats = true
     ) => {
+      console.log("🚀 [MeetingState] startCall called with:", {
+        username,
+        roomId,
+        logInverval,
+        logStats
+      });
+
       const initializeWebRTC = async () => {
-        registerMeetingManagementHandlers(
-          signalrService.connection,
-          signalrService.boundTriggerCallback
-        );
+        try {
+          console.log("📡 [MeetingState] Initializing WebRTC...");
+          console.log("📡 [MeetingState] SignalR connection:", signalrService.connection);
+          
+          setIsLoading(true);
+          setError(null);
 
-        signalrService.onEvent(
-          CLIENT_METHODS.SHOW_EXPIRATION_ALERT,
-          handleShowExpirationAlert
-        );
-        signalrService.onEvent(CLIENT_METHODS.STOP_MEETING, handleStopMeeting);
+          console.log("📝 [MeetingState] Registering meeting management handlers...");
+          registerMeetingManagementHandlers(
+            signalrService.connection,
+            signalrService.boundTriggerCallback
+          );
 
-        webrtcService.setLocalStreamCallback((stream) => {
-          setLocalMediaStream(stream);
-        });
-        webrtcService.setOnTrackCallback((stream) => {
-          setRemoteMediaStream(stream);
-        });
+          console.log("📝 [MeetingState] Setting up expiration alert handler...");
+          signalrService.onEvent(
+            CLIENT_METHODS.SHOW_EXPIRATION_ALERT,
+            handleShowExpirationAlert
+          );
+          
+          console.log("📝 [MeetingState] Setting up stop meeting handler...");
+          signalrService.onEvent(CLIENT_METHODS.STOP_MEETING, handleStopMeeting);
 
-        await webrtcService.initializeConnection(
-          roomId ? roomId : "e1d7ae1c-b7d5-43d7-8811-a13e8aec983a",
-          username
-        );
-        // webrtcService.startStatsCollection(
-        //   (stats) => {
-        //     if (logStats) {
-        //       // webrtcService.logCallQualityStats(stats);
-        //     }
-        //   },
-        //   logInverval ? parseInt(logInverval) : DEFAULT_LOG_INTERVAL
-        // );
+          console.log("🎥 [MeetingState] Setting local stream callback...");
+          webrtcService.setLocalStreamCallback((stream) => {
+            console.log("✅ [MeetingState] Local stream callback triggered:", stream);
+            console.log("🎥 [MeetingState] Local stream tracks:", stream?.getTracks());
+            setLocalMediaStream(stream);
+          });
+          
+          console.log("🎥 [MeetingState] Setting remote stream callback...");
+          webrtcService.setOnTrackCallback((stream) => {
+            console.log("✅ [MeetingState] Remote stream callback triggered:", stream);
+            console.log("🎥 [MeetingState] Remote stream tracks:", stream?.getTracks());
+            setRemoteMediaStream(stream);
+          });
 
-        setIsInCall(true);
+          const finalRoomId = roomId ? roomId : "e1d7ae1c-b7d5-43d7-8811-a13e8aec983a";
+          console.log("🔗 [MeetingState] Initializing WebRTC connection...", {
+            roomId: finalRoomId,
+            username
+          });
 
-        signalrService.offEvent("onConnected", initializeWebRTC);
+          await webrtcService.initializeConnection(finalRoomId, username);
+          
+          console.log("✅ [MeetingState] WebRTC connection initialized successfully");
+          
+          // webrtcService.startStatsCollection(
+          //   (stats) => {
+          //     if (logStats) {
+          //       // webrtcService.logCallQualityStats(stats);
+          //     }
+          //   },
+          //   logInverval ? parseInt(logInverval) : DEFAULT_LOG_INTERVAL
+          // );
+
+          setIsInCall(true);
+          setIsLoading(false);
+          console.log("✅ [MeetingState] Call started successfully, isInCall set to true");
+
+          signalrService.offEvent("onConnected", initializeWebRTC);
+        } catch (error) {
+          console.error("❌ [MeetingState] Error initializing WebRTC:", error);
+          console.error("❌ [MeetingState] Error stack:", error.stack);
+          setError(error.message || "Failed to initialize call");
+          setIsLoading(false);
+          setIsInCall(false);
+        }
       };
 
+      console.log("🔍 [MeetingState] Checking SignalR connection status:", signalrService.connectionStatus.state);
+      
       if (
         signalrService.connectionStatus.state === ConnectionStates.CONNECTED
       ) {
+        console.log("✅ [MeetingState] SignalR already connected, initializing WebRTC now");
         await initializeWebRTC();
       } else {
+        console.log("⏳ [MeetingState] SignalR not connected, waiting for connection...");
         signalrService.onEvent("onConnected", initializeWebRTC);
       }
     },
@@ -251,45 +303,82 @@ export const MeetingStateProvider = ({ children }) => {
   );
 
   const endCall = useCallback(() => {
-    if (localMediaStream) {
-      localMediaStream.getTracks().forEach((track) => {
-        track.stop();
-      });
+    try {
+      console.log("🛑 [MeetingState] endCall called");
+      
+      if (localMediaStream) {
+        console.log("🛑 [MeetingState] Stopping local media stream tracks...");
+        localMediaStream.getTracks().forEach((track) => {
+          console.log("🛑 [MeetingState] Stopping track:", track.kind, track.id);
+          track.stop();
+        });
+      } else {
+        console.log("⚠️ [MeetingState] No local media stream to stop");
+      }
+      
+      if (remoteMediaStream) {
+        console.log("🛑 [MeetingState] Stopping remote media stream tracks...");
+        remoteMediaStream.getTracks().forEach((track) => {
+          console.log("🛑 [MeetingState] Stopping track:", track.kind, track.id);
+          track.stop();
+        });
+      } else {
+        console.log("⚠️ [MeetingState] No remote media stream to stop");
+      }
+      
+      if (webrtcService) {
+        console.log("🛑 [MeetingState] Closing WebRTC connection...");
+        webrtcService.closeConnection();
+        webrtcService.setOnTrackCallback(null);
+        webrtcService.setLocalStreamCallback(null);
+        console.log("✅ [MeetingState] WebRTC connection closed");
+      } else {
+        console.log("⚠️ [MeetingState] No WebRTC service to close");
+      }
+
+      console.log("🛑 [MeetingState] Resetting call state...");
+      setSkipInitializeCall(false);
+      setIsInCall(false);
+      setIsMinimized(false);
+      setIsAudioMuted(false);
+      setIsVideoMuted(false);
+      setIsLoading(false);
+      setError(null);
+
+      if (signalrService) {
+        try {
+          console.log("🛑 [MeetingState] Removing SignalR event handlers...");
+          signalrService.offEvent(
+            CLIENT_METHODS.SHOW_EXPIRATION_ALERT,
+            handleShowExpirationAlert
+          );
+          signalrService.offEvent(CLIENT_METHODS.STOP_MEETING, handleStopMeeting);
+          console.log("✅ [MeetingState] SignalR event handlers removed");
+        } catch (error) {
+          console.error('❌ [MeetingState] Error removing signalR event handlers:', error);
+        }
+      } else {
+        console.log("⚠️ [MeetingState] No SignalR service for event cleanup");
+      }
+      
+      console.log("🛑 [MeetingState] Unregistering meeting management handlers...");
+      unregisterMeetingManagementHandlers(signalrService?.connection);
+      
+      console.log("✅ [MeetingState] endCall completed successfully");
+    } catch (error) {
+      console.error('❌ [MeetingState] Error in endCall:', error);
+      console.error('❌ [MeetingState] Error stack:', error.stack);
     }
-    if (remoteMediaStream) {
-      remoteMediaStream.getTracks().forEach((track) => {
-        track.stop();
-      });
-    }
-    webrtcService.closeConnection();
-    webrtcService.setOnTrackCallback(null);
-    webrtcService.setLocalStreamCallback(null);
-
-    setSkipInitializeCall(false);
-    setIsInCall(false);
-    setIsMinimized(false);
-    setIsAudioMuted(false);
-    setIsVideoMuted(false);
-    setIsLoading(false);
-    setError(null);
-
-    signalrService.offEvent(
-      CLIENT_METHODS.SHOW_EXPIRATION_ALERT,
-      handleShowExpirationAlert
-    );
-    signalrService.offEvent(CLIENT_METHODS.STOP_MEETING, handleStopMeeting);
-    unregisterMeetingManagementHandlers(signalrService.connection);
-
-  }, [webrtcService, localMediaStream, remoteMediaStream]);
+  }, [webrtcService, localMediaStream, remoteMediaStream, signalrService]);
 
   const handleShowExpirationAlert = useCallback(() => {
-    console.log("handleShowExpirationAlert");
+    console.log("⏰ [MeetingState] handleShowExpirationAlert - Meeting expiring soon");
     setShowExpirationAlert(true);
     setExpirationAlertMessage("Meeting will end in 5 minutes");
   }, []);
 
   const handleStopMeeting = useCallback(() => {
-    console.log("handleStopMeeting");
+    console.log("🛑 [MeetingState] handleStopMeeting - Meeting stopped by server");
     endCall();
     setStopMeeting(true);
   }, [endCall]);

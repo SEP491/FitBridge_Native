@@ -403,7 +403,7 @@ export default function GymDetailScreen({ route }) {
                   >
                     <View style={styles.markerContainer}>
                       <Image
-                        source={require("../../../assets/LogoColor.png")}
+                        source={require("../../../assets/images/LogoColor.png")}
                         style={styles.markerImage}
                       />
                       {gymDetail.hotResearch && (

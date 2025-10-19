@@ -259,7 +259,7 @@ export default function TransactionHistoryScreen() {
               <View style={styles.cardHeader}>
                 <View style={styles.imageContainer}>
                   <Image
-                    source={require("../../../assets/gymroom.jpg")}
+                    source={require("../../../assets/images/gymroom.jpg")}
                     style={styles.gymImage}
                   />
                 </View>

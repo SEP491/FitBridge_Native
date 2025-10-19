@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { Ionicons } from '@expo/vector-icons';
-import LogoColor from '../../assets/LogoColor.png';
+import LogoColor from '../../assets/images/LogoColor.png';
 import { LinearGradient } from 'expo-linear-gradient';
 import VoucherShareModal from './VoucherShareModal';
 

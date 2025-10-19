@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import {
   View,
   Text,
@@ -20,6 +20,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { useMeetingState } from '../../../context/meetingStateContext';
 import signalR_webrtcService from '../../../services/signalR/signalR-webrtcService';
+import meetingService from '../../../services/meetingService';
 
 // Check if running in Expo Go
 const isExpoGo = Constants.appOwnership === 'expo';
@@ -38,76 +39,66 @@ if (!isExpoGo) {
 
 const { width, height } = Dimensions.get('window');
 
-export default function VideoCallPrepScreen({ navigation }) {
+export default function VideoCallPrepScreen({ navigation, route }) {
   const [roomId, setRoomId] = useState('e1d7ae1c-b7d5-43d7-8811-a13e8aec983a');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
   const [previewStream, setPreviewStream] = useState(null);
   const [isAudioMuted, setIsAudioMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingPreview, setLoadingPreview] = useState(true);
   const [error, setError] = useState('');
+  const [meetingID, setMeetingID] = useState(null);
+  const [isCheckingMeeting, setIsCheckingMeeting] = useState(false);
+  const [meetingStatus, setMeetingStatus] = useState(''); // 'checking', 'creating', 'ready'
 
-  async function handleSubmit() {
-    if (!isFormValid || loading) return;
-    setError("");
-    setLoading(true);
+  const { booking } = route.params || {};
+  console.log("VideoCallPrepScreen: booking =", booking);
+
+  const checkMeetingExists = async (booking) => {
+    setIsCheckingMeeting(true);
+    setMeetingStatus('checking');
     try {
-      const url = process.env.EXPO_PUBLIC_API_WEBRTC_URL + "/meetingroom/login";
-      console.log('Logging in to:', url);
-      const response = await axios.post(url, {
-        username,
-        password,
-        roomId,
-      });
-
-      if (response.status === 200) {
-        const token = response.data.accessToken;
-        console.log('Login successful, token received');
-        await AsyncStorage.setItem("accessSignalRToken", token);
-        await AsyncStorage.setItem("username", username);
-        await AsyncStorage.setItem("roomId", roomId);
-        await signalR_webrtcService.startConnection();
-        
-        // Navigate to video call after successful login
-        handleJoinCall();
+      await signalR_webrtcService.startConnection();  
+      const response = await meetingService.getMeetingById(booking.bookingId);
+      if (response.data) {
+        setMeetingID(response.data.id);
+        setMeetingStatus('ready');
       } else {
-        Alert.alert("Error", "Login failed. Please try again.");
+        createMeeting();
       }
-    } catch (e) {
-      console.error("Login error:", e);
-      const errorMsg = e.response?.data?.message || "Login failed. Please try again.";
-      Alert.alert("Error", errorMsg);
-      setError(errorMsg);
+    } catch (error) {
+      console.error('Error checking meeting existence:', error);
+      setMeetingStatus('');
+      setIsCheckingMeeting(false);
+      return null;
     } finally {
-      setLoading(false);
+      setIsCheckingMeeting(false);
     }
-  }
-  
-  // Load username from storage
+  };
+
+  const createMeeting = async () => {
+    setIsCheckingMeeting(true);
+    setMeetingStatus('creating');
+    try {
+      const response = await meetingService.createMeeting({
+        bookingId: booking.bookingId,
+      });
+      setMeetingID(response.data.id);
+      setMeetingStatus('ready');
+    } catch (error) {
+      console.error('Error creating meeting:', error);
+      setMeetingStatus('');
+    } finally {
+      setIsCheckingMeeting(false);
+    }
+  };
+
   useEffect(() => {
-    const loadUsername = async () => {
-      try {
-        const storedUsername = await AsyncStorage.getItem('username');
-        const storedEmail = await AsyncStorage.getItem('userEmail');
-        
-        if (storedUsername) {
-          setUsername(storedUsername);
-        } else if (storedEmail) {
-          // Use email without domain if username not found
-          setUsername(storedEmail.split('@')[0]);
-        } else {
-          setUsername('User');
-        }
-      } catch (error) {
-        console.error('Error loading username:', error);
-        setUsername('User');
-      }
-    };
-    
-    loadUsername();
-  }, []);
+    if (booking.bookingId) {
+      checkMeetingExists(booking);
+    }
+  }, [booking]);
+
 
   // Initialize preview stream
   useEffect(() => {
@@ -188,40 +179,26 @@ export default function VideoCallPrepScreen({ navigation }) {
     }
   };
 
-  // Join call
-  const handleJoinCall = () => {
-    if (!roomId.trim()) {
-      Alert.alert('Room ID Required', 'Please enter a room ID to join the call.');
-      return;
-    }
-
-    if (!username.trim()) {
-      Alert.alert('Username Required', 'Please enter your username.');
-      return;
-    }
-
+  // Handle join button press
+  const handleSubmit = () => {
     // Stop preview stream before joining
     if (previewStream) {
       previewStream.getTracks().forEach(track => track.stop());
       setPreviewStream(null);
     }
-
-    // Navigate to video call screen
-    navigation.navigate('VideoCallScreen', {
-      roomId: roomId.trim(),
-      username: username.trim(),
-      recipientName: 'Room ' + roomId.trim(),
-      recipientAvatar: 'R',
-    });
+    if (meetingID) {
+      // Navigate to video call screen
+      navigation.navigate('VideoCallScreen', {
+        roomId: meetingID.trim(),
+        booking: booking,
+      });
+    }
   };
 
-  // Generate random room ID
-  const generateRoomId = () => {
-    const randomId = Math.random().toString(36).substring(2, 8).toUpperCase();
-    setRoomId(randomId);
-  };
+  // Check if form is valid
+  const isFormValid = meetingID !== null && !isCheckingMeeting;
 
-  const isFormValid = roomId.trim().length > 0 && username.trim().length > 0 && password.trim().length > 0;
+
 
   if (isExpoGo) {
     return (
@@ -332,43 +309,119 @@ export default function VideoCallPrepScreen({ navigation }) {
             </View>
           </View>
 
-          {/* Room Details */}
-          <View style={styles.formSection}>
-            <Text style={styles.sectionTitle}>Call Details</Text>
-
-            {/* Username Input */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Your Name</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter your name"
-                value={username}
-                onChangeText={setUsername}
-                autoCapitalize="words"
-                returnKeyType="next"
-              />
-            </View>
-
-            {/* Password Input */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Password</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter password"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                returnKeyType="next"
-              />
-            </View>
-            
-            {/* Error Message */}
-            {error ? (
-              <View style={styles.errorContainer}>
-                <Text style={styles.errorText}>{error}</Text>
+          {/* Booking Information Card */}
+          {booking && (
+            <View style={styles.bookingCard}>
+              <View style={styles.bookingHeader}>
+                <Ionicons name="calendar" size={24} color="#667eea" />
+                <Text style={styles.bookingTitle}>Session Details</Text>
               </View>
-            ) : null}
-          </View>
+
+              {/* Session Name */}
+              <View style={styles.bookingRow}>
+                <View style={styles.bookingIconContainer}>
+                  <Ionicons name="fitness" size={20} color="#667eea" />
+                </View>
+                <View style={styles.bookingInfo}>
+                  <Text style={styles.bookingLabel}>Session</Text>
+                  <Text style={styles.bookingValue}>{booking.bookingName || 'Training Session'}</Text>
+                </View>
+              </View>
+
+              {/* Customer Info */}
+              <View style={styles.bookingRow}>
+                <View style={styles.bookingIconContainer}>
+                  <Ionicons name="person" size={20} color="#667eea" />
+                </View>
+                <View style={styles.bookingInfo}>
+                  <Text style={styles.bookingLabel}>Client</Text>
+                  <Text style={styles.bookingValue}>{booking.customerName || 'Client'}</Text>
+                </View>
+              </View>
+
+              {/* Date */}
+              <View style={styles.bookingRow}>
+                <View style={styles.bookingIconContainer}>
+                  <Ionicons name="calendar-outline" size={20} color="#667eea" />
+                </View>
+                <View style={styles.bookingInfo}>
+                  <Text style={styles.bookingLabel}>Date</Text>
+                  <Text style={styles.bookingValue}>
+                    {booking.bookingDate ? new Date(booking.bookingDate).toLocaleDateString('en-US', {
+                      weekday: 'short',
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric'
+                    }) : 'Not specified'}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Time */}
+              <View style={styles.bookingRow}>
+                <View style={styles.bookingIconContainer}>
+                  <Ionicons name="time-outline" size={20} color="#667eea" />
+                </View>
+                <View style={styles.bookingInfo}>
+                  <Text style={styles.bookingLabel}>Time</Text>
+                  <Text style={styles.bookingValue}>
+                    {booking.ptFreelanceStartTime && booking.ptFreelanceEndTime
+                      ? `${booking.ptFreelanceStartTime.substring(0, 5)} - ${booking.ptFreelanceEndTime.substring(0, 5)}`
+                      : 'Not specified'}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Note (if available) */}
+              {booking.note && (
+                <View style={styles.bookingNoteContainer}>
+                  <View style={styles.bookingIconContainer}>
+                    <Ionicons name="document-text-outline" size={20} color="#667eea" />
+                  </View>
+                  <View style={styles.bookingInfo}>
+                    <Text style={styles.bookingLabel}>Note</Text>
+                    <Text style={styles.bookingNoteText}>{booking.note}</Text>
+                  </View>
+                </View>
+              )}
+
+              {/* Nutrition Tip (if available) */}
+              {booking.nutritionTip && (
+                <View style={styles.nutritionTipContainer}>
+                  <View style={styles.nutritionTipHeader}>
+                    <Ionicons name="nutrition" size={18} color="#4CAF50" />
+                    <Text style={styles.nutritionTipTitle}>Nutrition Tip</Text>
+                  </View>
+                  <Text style={styles.nutritionTipText}>{booking.nutritionTip}</Text>
+                </View>
+              )}
+
+              {/* Meeting Status */}
+              {isCheckingMeeting && (
+                <View style={styles.statusContainer}>
+                  <ActivityIndicator size="small" color="#667eea" />
+                  <Text style={styles.statusText}>
+                    {meetingStatus === 'checking' ? 'Checking for existing meeting...' : 'Creating meeting...'}
+                  </Text>
+                </View>
+              )}
+
+              {meetingStatus === 'ready' && !isCheckingMeeting && (
+                <View style={styles.readyContainer}>
+                  <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
+                  <Text style={styles.readyText}>Ready to join</Text>
+                </View>
+              )}
+            </View>
+          )}
+          
+          {/* Error Message */}
+          {error ? (
+            <View style={styles.errorContainer}>
+              <Ionicons name="alert-circle" size={20} color="#c62828" />
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          ) : null}
         </ScrollView>
 
         {/* Join Button */}
@@ -376,17 +429,24 @@ export default function VideoCallPrepScreen({ navigation }) {
           <TouchableOpacity
             style={[
               styles.joinButton,
-              !isFormValid && styles.joinButtonDisabled,
+              (!isFormValid || isCheckingMeeting) && styles.joinButtonDisabled,
             ]}
             onPress={handleSubmit}
-            disabled={!isFormValid || loading}
+            disabled={!isFormValid || loading || isCheckingMeeting}
           >
-            {loading ? (
-              <ActivityIndicator color="#FFF" />
+            {loading || isCheckingMeeting ? (
+              <>
+                <ActivityIndicator color="#FFF" />
+                <Text style={styles.joinButtonText}>
+                  {meetingStatus === 'checking' && 'Checking Meeting...'}
+                  {meetingStatus === 'creating' && 'Creating Meeting...'}
+                  {loading && !meetingStatus && 'Loading...'}
+                </Text>
+              </>
             ) : (
               <>
                 <MaterialIcons name="video-call" size={24} color="#FFF" />
-                <Text style={styles.joinButtonText}>Login & Join Call</Text>
+                <Text style={styles.joinButtonText}>Join Call</Text>
               </>
             )}
           </TouchableOpacity>
@@ -496,49 +556,129 @@ const styles = StyleSheet.create({
   previewButtonMuted: {
     backgroundColor: '#f5576c',
   },
-  formSection: {
-    marginBottom: 24,
-  },
-  inputGroup: {
-    marginBottom: 20,
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 8,
-  },
-  input: {
+  bookingCard: {
     backgroundColor: '#FFF',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  roomIdContainer: {
+  bookingHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    marginBottom: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
   },
-  roomIdInput: {
-    flex: 1,
+  bookingTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    marginLeft: 12,
   },
-  generateButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 12,
-    backgroundColor: '#FFF',
+  bookingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  bookingIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: '#F0F4FF',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
+    marginRight: 12,
   },
-  inputHint: {
+  bookingInfo: {
+    flex: 1,
+  },
+  bookingLabel: {
     fontSize: 12,
+    color: '#999',
+    marginBottom: 4,
+    textTransform: 'uppercase',
+    fontWeight: '600',
+  },
+  bookingValue: {
+    fontSize: 16,
+    color: '#333',
+    fontWeight: '500',
+  },
+  bookingNoteContainer: {
+    flexDirection: 'row',
+    marginTop: 8,
+    padding: 12,
+    backgroundColor: '#FFF9E6',
+    borderRadius: 10,
+    borderLeftWidth: 3,
+    borderLeftColor: '#FFC107',
+  },
+  bookingNoteText: {
+    fontSize: 14,
     color: '#666',
-    marginTop: 6,
+    lineHeight: 20,
+    fontStyle: 'italic',
+  },
+  nutritionTipContainer: {
+    marginTop: 16,
+    padding: 16,
+    backgroundColor: '#E8F5E9',
+    borderRadius: 12,
+    borderLeftWidth: 3,
+    borderLeftColor: '#4CAF50',
+  },
+  nutritionTipHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  nutritionTipTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#4CAF50',
+    marginLeft: 8,
+    textTransform: 'uppercase',
+  },
+  nutritionTipText: {
+    fontSize: 14,
+    color: '#2E7D32',
+    lineHeight: 20,
+  },
+  statusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 16,
+    padding: 12,
+    backgroundColor: '#F0F4FF',
+    borderRadius: 10,
+  },
+  statusText: {
+    fontSize: 14,
+    color: '#667eea',
+    marginLeft: 8,
+    fontWeight: '500',
+  },
+  readyContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 16,
+    padding: 12,
+    backgroundColor: '#E8F5E9',
+    borderRadius: 10,
+  },
+  readyText: {
+    fontSize: 14,
+    color: '#4CAF50',
+    marginLeft: 8,
+    fontWeight: '600',
   },
   bottomSection: {
     padding: 20,
@@ -602,14 +742,17 @@ const styles = StyleSheet.create({
     color: '#FFF',
   },
   errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#ffebee',
-    borderRadius: 8,
-    padding: 12,
-    marginTop: 8,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
   },
   errorText: {
     color: '#c62828',
     fontSize: 14,
-    textAlign: 'center',
+    marginLeft: 8,
+    flex: 1,
   },
 });
