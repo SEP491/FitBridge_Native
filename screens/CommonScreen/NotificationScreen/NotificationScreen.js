@@ -70,7 +70,6 @@ export default function NotificationScreen() {
           style: "destructive",
           onPress: async () => {
             await deleteNotification(id);
-            setPingCount((prev) => Math.max(0, prev - 1));
           },
         },
       ]
@@ -218,7 +217,6 @@ export default function NotificationScreen() {
             ]}
           >
             {t("notifications.filters.all") || "All"}
-            {pingCount > 0 && ` (${pingCount})`}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -234,7 +232,7 @@ export default function NotificationScreen() {
               filter === "unread" && styles.filterTextActive,
             ]}
           >
-            {t("notifications.filters.unread") || "Unread"}{" "}
+            {t("notifications.filters.unread") || "Unread"}
             {unreadCount > 0 && `(${unreadCount})`}
           </Text>
         </TouchableOpacity>

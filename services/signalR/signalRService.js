@@ -153,6 +153,19 @@ export const stopConnection = async () => {
   }
 };
 
+export const pauseConnection = async () => {
+  if (connection) {
+    try {
+      await connection.stop();
+      console.log("SignalR: Connection paused");
+    } catch (error) {
+      console.error("SignalR: Error pausing connection", error);
+    } finally {
+      connectionCallbacks.clear();
+    }
+  }
+};
+
 export const onEvent = (eventName, callback) => {
   if (typeof eventName !== "string" || !eventName.trim()) {
     throw new Error("Event name must be a non-empty string");
@@ -305,6 +318,7 @@ const signalrService = {
   triggerCallback,
   invokeHubMethod,
   sendHubMethod,
+  pauseConnection,
   get boundTriggerCallback() {
     return triggerCallback;
   },

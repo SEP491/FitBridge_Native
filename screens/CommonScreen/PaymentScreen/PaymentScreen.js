@@ -149,7 +149,7 @@ export default function PaymentScreen({ navigation, route }) {
   };
   return (
     <View style={styles.container}>
-      <ScrollView 
+      <ScrollView
         style={styles.innerContainer}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}

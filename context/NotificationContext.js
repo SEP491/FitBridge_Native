@@ -16,7 +16,7 @@ import { LIFECYCLE_METHODS } from "../services/signalR/lifecycleMethods";
 import { ConnectionStates } from "../services/signalR/ConnectionStates";
 import notificationService from "../services/notificationService";
 import { useSignalR } from "./SignalRContext";
-
+import * as Notification from "expo-notifications";
 const NotificationContext = createContext();
 
 export const useNotification = () => {
@@ -57,7 +57,7 @@ export const NotificationProvider = ({ children }) => {
       // Calculate unread count
       const unread = sortedItems.filter((n) => !n.isRead).length;
       setUnreadCount(unread);
-
+      await Notification.setBadgeCountAsync(unread);
       console.log(
         `Notifications fetched successfully: ${total} total, ${unread} unread`
       );
@@ -77,7 +77,7 @@ export const NotificationProvider = ({ children }) => {
         prev.map((n) => (n.id === notificationId ? { ...n, isRead: true } : n))
       );
       setUnreadCount((prev) => Math.max(0, prev - 1));
-
+      await Notification.setBadgeCountAsync(Math.max(0, unreadCount - 1));
       console.log(`Notification ${notificationId} marked as read`);
     } catch (error) {
       console.error("Failed to mark notification as read:", error);
@@ -91,7 +91,7 @@ export const NotificationProvider = ({ children }) => {
 
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
       setUnreadCount(0);
-
+      await Notification.setBadgeCountAsync(0);
       console.log("All notifications marked as read");
     } catch (error) {
       console.error("Failed to mark all notifications as read:", error);
@@ -104,7 +104,7 @@ export const NotificationProvider = ({ children }) => {
       await notificationService.deleteNotification(notificationId);
 
       setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
-
+      await Notification.setBadgeCountAsync(Math.max(0, unreadCount - 1));
       console.log(`Notification ${notificationId} deleted`);
     } catch (error) {
       console.error("Failed to delete notification:", error);
@@ -118,7 +118,7 @@ export const NotificationProvider = ({ children }) => {
 
       setNotifications([]);
       setUnreadCount(0);
-
+      await Notification.setBadgeCountAsync(0);
       console.log("All notifications deleted");
     } catch (error) {
       console.error("Failed to delete all notifications:", error);

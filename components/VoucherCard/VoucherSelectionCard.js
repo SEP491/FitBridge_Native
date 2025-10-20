@@ -38,7 +38,8 @@ const VoucherSelectionCard = ({ voucher, isSelected, onSelect, disabled }) => {
         <View style={styles.detailRow}>
           <MaterialIcons name="inventory" size={14} color="#666" />
           <Text style={styles.detailText}>
-            {t("manageVoucher.remaining")}: {voucher.quantity - voucher.numberOfUsedCoupon}
+            {t("manageVoucher.remaining")}:{" "}
+            {voucher.quantity - voucher.numberOfUsedCoupon}
           </Text>
         </View>
       </View>
