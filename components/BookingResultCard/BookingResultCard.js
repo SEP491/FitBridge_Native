@@ -1,6 +1,6 @@
 import React from "react";
-import { View, Text, StyleSheet, Image, ScrollView } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import colors from "../../constants/color";
 
 const ProgressCircle = ({
@@ -9,10 +9,6 @@ const ProgressCircle = ({
   value,
   color = colors.orange,
 }) => {
-  const radius = 35;
-  const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (percentage / 100) * circumference;
-
   return (
     <View style={styles.progressCircleContainer}>
       <View style={styles.circleWrapper}>
@@ -28,6 +24,32 @@ const ProgressCircle = ({
   );
 };
 
+const ActivityTypeTag = ({ type }) => {
+  const activityConfig = {
+    WarmUp: { bg: "#FFF7ED", text: "#EA580C", icon: "fire" },
+    Resistance: { bg: "#ECFDF5", text: "#059669", icon: "dumbbell" },
+    Cardio: { bg: "#EFF6FF", text: "#2563EB", icon: "run" },
+    Mobility: { bg: "#F5F3FF", text: "#7C3AED", icon: "yoga" },
+    CoolDown: { bg: "#ECFEFF", text: "#06B6D4", icon: "snowflake" },
+    Rehab: { bg: "#FEF2F2", text: "#DC2626", icon: "medical-bag" },
+  };
+
+  const config = activityConfig[type] || activityConfig.Resistance;
+
+  return (
+    <View style={[styles.activityTypeTag, { backgroundColor: config.bg }]}>
+      <MaterialCommunityIcons
+        name={config.icon}
+        size={14}
+        color={config.text}
+      />
+      <Text style={[styles.activityTypeText, { color: config.text }]}>
+        {type}
+      </Text>
+    </View>
+  );
+};
+
 export default function BookingResultCard({ result }) {
   if (!result) {
     return (
@@ -39,22 +61,18 @@ export default function BookingResultCard({ result }) {
   }
 
   const {
-    bookingName,
-    bookingDate,
-    startTime,
-    endTime,
+    sessionName,
+    dateTraining,
+    plannedStartTime,
+    plannedEndTime,
     actualStartTime,
     actualEndTime,
-    setsPlan,
-    setsCompleted,
-    restTime,
-    repsProgress,
-    weightLiftedProgress,
-    practiceTimeProgress,
+    sessionTotalSummary,
+    activityTypesPerformed,
+    activitiesSummary,
+    muscleGroupAggregates,
+    note,
     nutritionTip,
-    notes,
-    ptName,
-    ptAvatarUrl,
   } = result;
 
   return (
@@ -70,7 +88,7 @@ export default function BookingResultCard({ result }) {
         </View>
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>Kết quả tập luyện</Text>
-          <Text style={styles.headerSubtitle}>{bookingName}</Text>
+          <Text style={styles.headerSubtitle}>{sessionName}</Text>
         </View>
       </View>
 
@@ -83,12 +101,13 @@ export default function BookingResultCard({ result }) {
         <View style={styles.timeRow}>
           <View style={styles.timeItem}>
             <Text style={styles.timeLabel}>Ngày tập</Text>
-            <Text style={styles.timeValue}>{bookingDate}</Text>
+            <Text style={styles.timeValue}>{dateTraining}</Text>
           </View>
           <View style={styles.timeItem}>
             <Text style={styles.timeLabel}>Dự kiến</Text>
             <Text style={styles.timeValue}>
-              {startTime?.substring(0, 5)} - {endTime?.substring(0, 5)}
+              {plannedStartTime?.substring(0, 5)} -{" "}
+              {plannedEndTime?.substring(0, 5)}
             </Text>
           </View>
         </View>
@@ -105,25 +124,66 @@ export default function BookingResultCard({ result }) {
         )}
       </View>
 
-      {/* Sets Info */}
+      {/* Activity Types Performed */}
+      {activityTypesPerformed && activityTypesPerformed.length > 0 && (
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <MaterialCommunityIcons
+              name="tag-multiple"
+              size={20}
+              color={colors.orange}
+            />
+            <Text style={styles.cardTitle}>Loại hoạt động đã thực hiện</Text>
+          </View>
+          <View style={styles.activityTypesContainer}>
+            {activityTypesPerformed.map((type, index) => (
+              <ActivityTypeTag key={index} type={type} />
+            ))}
+          </View>
+        </View>
+      )}
+
+      {/* Session Summary */}
       <View style={styles.card}>
         <View style={styles.cardHeader}>
-          <Ionicons name="repeat-outline" size={20} color={colors.orange} />
-          <Text style={styles.cardTitle}>Tổng quan</Text>
+          <Ionicons name="bar-chart" size={20} color={colors.orange} />
+          <Text style={styles.cardTitle}>Tổng quan buổi tập</Text>
         </View>
-        <View style={styles.setsContainer}>
-          <View style={styles.setItem}>
-            <Text style={styles.setLabel}>Số set đã hoàn thành</Text>
-            <View style={styles.setValueContainer}>
-              <Text style={styles.setValueCompleted}>{setsCompleted}</Text>
-              <Text style={styles.setValueSeparator}>/</Text>
-              <Text style={styles.setValuePlan}>{setsPlan}</Text>
-            </View>
+        <View style={styles.summaryGrid}>
+          <View style={styles.summaryItem}>
+            <Ionicons name="fitness" size={24} color="#8B5CF6" />
+            <Text style={styles.summaryValue}>
+              {sessionTotalSummary?.sessionActivityCount || 0}
+            </Text>
+            <Text style={styles.summaryLabel}>Bài tập</Text>
           </View>
-          {restTime > 0 && (
-            <View style={styles.setItem}>
-              <Text style={styles.setLabel}>Thời gian nghỉ</Text>
-              <Text style={styles.restTimeValue}>{restTime} phút</Text>
+          <View style={styles.summaryItem}>
+            <Ionicons name="repeat" size={24} color="#EC4899" />
+            <Text style={styles.summaryValue}>
+              {sessionTotalSummary?.totalCompletedSets || 0}/
+              {sessionTotalSummary?.plannedSets || 0}
+            </Text>
+            <Text style={styles.summaryLabel}>Sets</Text>
+          </View>
+          <View style={styles.summaryItem}>
+            <MaterialCommunityIcons name="counter" size={24} color="#10B981" />
+            <Text style={styles.summaryValue}>
+              {sessionTotalSummary?.totalCompletedReps || 0}/
+              {sessionTotalSummary?.plannedReps || 0}
+            </Text>
+            <Text style={styles.summaryLabel}>Reps</Text>
+          </View>
+          {sessionTotalSummary?.totalRestTimeSec > 0 && (
+            <View style={styles.summaryItem}>
+              <MaterialCommunityIcons
+                name="timer-sand"
+                size={24}
+                color="#F59E0B"
+              />
+              <Text style={styles.summaryValue}>
+                {Math.round(sessionTotalSummary.totalRestTimeSec / 60)}
+              </Text>
+              <Text style={styles.summaryLabel}>Phút nghỉ</Text>
             </View>
           )}
         </View>
@@ -133,58 +193,217 @@ export default function BookingResultCard({ result }) {
       <View style={styles.card}>
         <View style={styles.cardHeader}>
           <Ionicons name="stats-chart" size={20} color={colors.orange} />
-          <Text style={styles.cardTitle}>Tiến độ tập luyện</Text>
+          <Text style={styles.cardTitle}>Tiến độ hoàn thành</Text>
         </View>
         <View style={styles.progressGrid}>
-          {repsProgress && (
+          <ProgressCircle
+            percentage={sessionTotalSummary?.completionPercentage || 0}
+            label="Tổng thể"
+            value={`${sessionTotalSummary?.completionPercentage || 0}%`}
+            color={colors.orange}
+          />
+          {sessionTotalSummary?.plannedReps > 0 && (
             <ProgressCircle
-              percentage={repsProgress.repsProgressPercentage}
-              label="Số reps đã thực hiện"
-              value={`${repsProgress.repsCompleted}/ ${repsProgress.repsPlan} reps`}
-              color="#FF6B9D"
+              percentage={Math.round(
+                ((sessionTotalSummary?.totalCompletedReps || 0) /
+                  sessionTotalSummary.plannedReps) *
+                  100
+              )}
+              label="Reps"
+              value={`${sessionTotalSummary?.totalCompletedReps || 0}/${
+                sessionTotalSummary?.plannedReps || 0
+              }`}
+              color="#EC4899"
             />
           )}
-          {weightLiftedProgress && (
+          {sessionTotalSummary?.plannedSets > 0 && (
             <ProgressCircle
-              percentage={weightLiftedProgress.weightLiftedProgressPercentage}
-              label="Số cân nặng đã thực hiện"
-              value={`${weightLiftedProgress.weightLiftedCompleted.toLocaleString()}/ ${weightLiftedProgress.weightLiftedPlan.toLocaleString()} kg`}
-              color="#7C3AED"
-            />
-          )}
-          {practiceTimeProgress && (
-            <ProgressCircle
-              percentage={practiceTimeProgress.practiceTimeProgressPercentage}
-              label="Thời gian thực hiện"
-              value={`${practiceTimeProgress.practiceTimeCompleted}/ ${practiceTimeProgress.practiceTimePlan} phút`}
-              color="#3B82F6"
+              percentage={Math.round(
+                ((sessionTotalSummary?.totalCompletedSets || 0) /
+                  sessionTotalSummary.plannedSets) *
+                  100
+              )}
+              label="Sets"
+              value={`${sessionTotalSummary?.totalCompletedSets || 0}/${
+                sessionTotalSummary?.plannedSets || 0
+              }`}
+              color="#8B5CF6"
             />
           )}
         </View>
       </View>
 
-      {/* PT Info */}
-      {ptName && (
+      {/* Muscle Groups Analysis */}
+      {muscleGroupAggregates && muscleGroupAggregates.length > 0 && (
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Ionicons name="person-outline" size={20} color={colors.orange} />
-            <Text style={styles.cardTitle}>Huấn luyện viên</Text>
+            <MaterialCommunityIcons
+              name="arm-flex"
+              size={20}
+              color={colors.orange}
+            />
+            <Text style={styles.cardTitle}>Phân tích buổi tập</Text>
           </View>
-          <View style={styles.ptContainer}>
-            {ptAvatarUrl ? (
-              <Image source={{ uri: ptAvatarUrl }} style={styles.ptAvatar} />
-            ) : (
-              <View style={[styles.ptAvatar, styles.ptAvatarPlaceholder]}>
-                <Ionicons name="person" size={24} color="#94A3B8" />
+          {muscleGroupAggregates.map((muscle, index) => (
+            <View key={index} style={styles.muscleGroupItem}>
+              <View style={styles.muscleGroupHeader}>
+                <Text style={styles.muscleGroupName}>{muscle.muscleGroup}</Text>
+                <Text style={styles.muscleGroupActivities}>
+                  {muscle.sessionActivitiesCount} bài tập
+                </Text>
               </View>
-            )}
-            <Text style={styles.ptName}>{ptName}</Text>
+              <View style={styles.muscleStatsRow}>
+                <View style={styles.muscleStat}>
+                  <Text style={styles.muscleStatLabel}>Sets</Text>
+                  <Text style={styles.muscleStatValue}>
+                    {muscle.totalSetsCompleted}
+                  </Text>
+                </View>
+                <View style={styles.muscleStat}>
+                  <Text style={styles.muscleStatLabel}>Reps</Text>
+                  <Text style={styles.muscleStatValue}>
+                    {muscle.totalRepsCompleted}
+                  </Text>
+                </View>
+                {/* <View style={styles.muscleStat}>
+                  <Text style={styles.muscleStatLabel}>Khối lượng</Text>
+                  <Text style={styles.muscleStatValue}>
+                    {muscle.volumeActualWeightLifted}/
+                    {muscle.volumePlannedWeightLifted} kg
+                  </Text>
+                </View> */}
+              </View>
+              {muscle.volumePlannedWeightLifted > 0 && (
+                <View style={styles.progressBar}>
+                  <View
+                    style={[
+                      styles.progressBarFill,
+                      {
+                        width: `${Math.min(
+                          (muscle.volumeActualWeightLifted /
+                            muscle.volumePlannedWeightLifted) *
+                            100,
+                          100
+                        )}%`,
+                      },
+                    ]}
+                  />
+                </View>
+              )}
+            </View>
+          ))}
+        </View>
+      )}
+
+      {/* Activities Summary */}
+      {activitiesSummary && activitiesSummary.length > 0 && (
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Ionicons name="list" size={20} color={colors.orange} />
+            <Text style={styles.cardTitle}>Chi tiết bài tập</Text>
           </View>
+          {activitiesSummary.map((activity, index) => {
+            const hasReps = activity.plannedReps > 0;
+            const hasTime = activity.plannedPracticeTimeSeconds > 0;
+            const hasWeight = activity.heaviestWeightLifted > 0;
+            const hasDistance = activity.plannedDistanceMeters > 0;
+
+            return (
+              <View
+                key={activity.sessionActivityId}
+                style={styles.activityItemCompact}
+              >
+                <View style={styles.activityCompactHeader}>
+                  <View style={styles.activityCompactTitleRow}>
+                    <Text style={styles.activityCompactName}>
+                      {activity.activityName}
+                    </Text>
+                    <ActivityTypeTag type={activity.activityType} />
+                  </View>
+                  <Text style={styles.activityCompactMuscle}>
+                    {activity.muscleGroup}
+                  </Text>
+                </View>
+
+                {/* Compact Stats Row */}
+                <View style={styles.activityCompactStats}>
+                  {/* Sets */}
+                  <View style={styles.compactStatItem}>
+                    <Ionicons name="repeat" size={14} color="#8B5CF6" />
+                    <Text style={styles.compactStatText}>
+                      {activity.completedSets}/{activity.plannedSets}
+                    </Text>
+                  </View>
+
+                  {/* Reps */}
+                  {hasReps && (
+                    <View style={styles.compactStatItem}>
+                      <MaterialCommunityIcons
+                        name="counter"
+                        size={14}
+                        color="#EC4899"
+                      />
+                      <Text style={styles.compactStatText}>
+                        {activity.completedReps}/{activity.plannedReps}
+                      </Text>
+                    </View>
+                  )}
+
+                  {/* Time */}
+                  {hasTime && (
+                    <View style={styles.compactStatItem}>
+                      <MaterialCommunityIcons
+                        name="timer"
+                        size={14}
+                        color="#3B82F6"
+                      />
+                      <Text style={styles.compactStatText}>
+                        {Math.round(activity.completedPracticeTimeSeconds / 60)}
+                        /{Math.round(activity.plannedPracticeTimeSeconds / 60)}m
+                      </Text>
+                    </View>
+                  )}
+
+                  {/* Distance */}
+                  {hasDistance && (
+                    <View style={styles.compactStatItem}>
+                      <MaterialCommunityIcons
+                        name="map-marker-distance"
+                        size={14}
+                        color="#10B981"
+                      />
+                      <Text style={styles.compactStatText}>
+                        {activity.completedDistanceMeters}/
+                        {activity.plannedDistanceMeters}m
+                      </Text>
+                    </View>
+                  )}
+
+                  {/* Weight Range */}
+                  {hasWeight && (
+                    <View style={styles.compactStatItem}>
+                      <MaterialCommunityIcons
+                        name="dumbbell"
+                        size={14}
+                        color="#F59E0B"
+                      />
+                      <Text style={styles.compactStatText}>
+                        {activity.lightestWeightLifted ===
+                        activity.heaviestWeightLifted
+                          ? `${activity.heaviestWeightLifted}kg`
+                          : `${activity.lightestWeightLifted}-${activity.heaviestWeightLifted}kg`}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+            );
+          })}
         </View>
       )}
 
       {/* Notes */}
-      {notes && (
+      {note && (
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <Ionicons
@@ -194,7 +413,7 @@ export default function BookingResultCard({ result }) {
             />
             <Text style={styles.cardTitle}>Ghi chú</Text>
           </View>
-          <Text style={styles.notesText}>{notes}</Text>
+          <Text style={styles.notesText}>{note}</Text>
         </View>
       )}
 
@@ -217,6 +436,7 @@ export default function BookingResultCard({ result }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#F8FAFC",
   },
   contentContainer: {
     padding: 16,
@@ -314,42 +534,48 @@ const styles = StyleSheet.create({
     color: "#1E293B",
     fontWeight: "600",
   },
-  setsContainer: {
-    gap: 16,
-  },
-  setItem: {
+  activityTypesContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  activityTypeTag: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    gap: 6,
+  },
+  activityTypeText: {
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  summaryGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+  },
+  summaryItem: {
+    flex: 1,
+    minWidth: "45%",
+    backgroundColor: "#F8FAFC",
+    borderRadius: 12,
+    padding: 16,
     alignItems: "center",
   },
-  setLabel: {
-    fontSize: 14,
-    color: "#64748B",
-    fontWeight: "600",
-  },
-  setValueContainer: {
-    flexDirection: "row",
-    alignItems: "baseline",
-  },
-  setValueCompleted: {
+  summaryValue: {
     fontSize: 24,
     fontWeight: "700",
-    color: colors.orange,
-  },
-  setValueSeparator: {
-    fontSize: 18,
-    color: "#CBD5E1",
-    marginHorizontal: 4,
-  },
-  setValuePlan: {
-    fontSize: 18,
-    color: "#94A3B8",
-    fontWeight: "600",
-  },
-  restTimeValue: {
-    fontSize: 16,
-    fontWeight: "700",
     color: "#1E293B",
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  summaryLabel: {
+    fontSize: 12,
+    color: "#64748B",
+    fontWeight: "600",
+    textTransform: "uppercase",
   },
   progressGrid: {
     flexDirection: "row",
@@ -400,25 +626,267 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontWeight: "700",
   },
-  ptContainer: {
+  muscleGroupItem: {
+    backgroundColor: "#F8FAFC",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+  },
+  muscleGroupHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  muscleGroupName: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#1E293B",
+  },
+  muscleGroupActivities: {
+    fontSize: 12,
+    color: "#64748B",
+    fontWeight: "600",
+  },
+  muscleStatsRow: {
+    flexDirection: "row",
+    gap: 16,
+    marginBottom: 12,
+  },
+  muscleStat: {
+    flex: 1,
+  },
+  muscleStatLabel: {
+    fontSize: 11,
+    color: "#64748B",
+    marginBottom: 4,
+    fontWeight: "600",
+    textTransform: "uppercase",
+  },
+  muscleStatValue: {
+    fontSize: 14,
+    color: "#1E293B",
+    fontWeight: "700",
+  },
+  progressBar: {
+    height: 8,
+    backgroundColor: "#E2E8F0",
+    borderRadius: 4,
+    overflow: "hidden",
+  },
+  progressBarFill: {
+    height: "100%",
+    backgroundColor: colors.orange,
+    borderRadius: 4,
+  },
+  activityItem: {
+    backgroundColor: "#F8FAFC",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+  },
+  activityHeader: {
+    marginBottom: 12,
+  },
+  activityTitleRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 6,
+  },
+  activityName: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#1E293B",
+    flex: 1,
+  },
+  activityMuscle: {
+    fontSize: 13,
+    color: "#64748B",
+    fontWeight: "600",
+  },
+  activityMainStats: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    marginBottom: 12,
+  },
+  activityStatBox: {
+    flex: 1,
+    minWidth: "45%",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 10,
+    padding: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  statBoxContent: {
+    flex: 1,
+  },
+  statBoxLabel: {
+    fontSize: 11,
+    color: "#64748B",
+    fontWeight: "600",
+    textTransform: "uppercase",
+    marginBottom: 4,
+  },
+  statValueRow: {
+    flexDirection: "row",
+    alignItems: "baseline",
+  },
+  statValueCompleted: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1E293B",
+  },
+  statValueSeparator: {
+    fontSize: 14,
+    color: "#CBD5E1",
+    marginHorizontal: 3,
+  },
+  statValuePlanned: {
+    fontSize: 14,
+    color: "#94A3B8",
+    fontWeight: "600",
+  },
+  statValueUnit: {
+    fontSize: 12,
+    color: "#64748B",
+    marginLeft: 2,
+  },
+  // Compact Activity Item Styles
+  activityItemCompact: {
+    backgroundColor: "#F8FAFC",
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 10,
+  },
+  activityCompactHeader: {
+    marginBottom: 10,
+  },
+  activityCompactTitleRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 4,
+  },
+  activityCompactName: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#1E293B",
+    flex: 1,
+    marginRight: 8,
+  },
+  activityCompactMuscle: {
+    fontSize: 11,
+    color: "#64748B",
+    fontWeight: "600",
+  },
+  activityCompactStats: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  compactStatItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  compactStatText: {
+    fontSize: 12,
+    color: "#1E293B",
+    fontWeight: "600",
+  },
+  weightDetailsContainer: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: "#FED7AA",
+  },
+  weightDetailRow: {
     flexDirection: "row",
     alignItems: "center",
   },
-  ptAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    marginRight: 12,
+  weightDetail: {
+    flex: 1,
+    alignItems: "center",
+    gap: 6,
   },
-  ptAvatarPlaceholder: {
-    backgroundColor: "#F1F5F9",
-    justifyContent: "center",
+  weightDetailDivider: {
+    width: 1,
+    height: 40,
+    backgroundColor: "#E2E8F0",
+    marginHorizontal: 12,
+  },
+  weightDetailLabel: {
+    fontSize: 11,
+    color: "#64748B",
+    fontWeight: "600",
+    textTransform: "uppercase",
+  },
+  weightDetailValue: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#1E293B",
+  },
+  timeDetailsContainer: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 10,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+  },
+  timeDetailRow: {
+    flexDirection: "row",
     alignItems: "center",
   },
-  ptName: {
-    fontSize: 16,
+  timeDetail: {
+    flex: 1,
+    alignItems: "center",
+    gap: 4,
+  },
+  timeDetailDivider: {
+    width: 1,
+    height: 35,
+    backgroundColor: "#E2E8F0",
+    marginHorizontal: 12,
+  },
+  timeDetailLabel: {
+    fontSize: 10,
+    color: "#64748B",
     fontWeight: "600",
+    textTransform: "uppercase",
+  },
+  timeDetailValue: {
+    fontSize: 14,
+    fontWeight: "700",
     color: "#1E293B",
+  },
+  activityStats: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+  },
+  activityStatItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  activityStatText: {
+    fontSize: 13,
+    color: "#475569",
+    fontWeight: "600",
   },
   notesText: {
     fontSize: 14,

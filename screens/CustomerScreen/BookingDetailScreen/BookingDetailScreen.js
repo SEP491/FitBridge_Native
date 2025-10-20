@@ -23,34 +23,50 @@ import BookingResultCard from "../../../components/BookingResultCard";
 
 // Body part images mapping
 const bodyPartImages = {
+  chest: require("../../../assets/images/bodyparts/chest.png"),
+  back: require("../../../assets/images/bodyparts/back.png"),
+
   shoulder: require("../../../assets/images/bodyparts/shoulder.png"),
   biceps: require("../../../assets/images/bodyparts/biceps.png"),
-  calf: require("../../../assets/images/bodyparts/calf.png"),
-  chest: require("../../../assets/images/bodyparts/chest.png"),
+  triceps: require("../../../assets/images/bodyparts/triceps.png"),
   foreArm: require("../../../assets/images/bodyparts/foreArm.png"),
-  hip: require("../../../assets/images/bodyparts/hip.png"),
-  waist: require("../../../assets/images/bodyparts/waist.png"),
   thigh: require("../../../assets/images/bodyparts/thigh.png"),
-  back: require("../../../assets/images/bodyparts/back.png"),
+  glutes: require("../../../assets/images/bodyparts/glutes.png"),
+  calf: require("../../../assets/images/bodyparts/calf.png"),
+  waist: require("../../../assets/images/bodyparts/waist.png"),
+  fullbody: require("../../../assets/images/bodyparts/fullbody.png"),
+  other: require("../../../assets/images/bodyparts/other.png"),
 };
 
 const ACTIVITY_TYPES = [
-  { id: "WarmUp", name: "Warm Up", color: "#FFB6C1" },
-  { id: "Workout", name: "Work Out", color: "#98FB98" },
+  { id: "WarmUp", name: "Warm Up", color: "#FFF7ED", iconColor: "#EA580C" },
+  {
+    id: "Resistance",
+    name: "Resistance",
+    color: "#ECFDF5",
+    iconColor: "#059669",
+  },
+  { id: "Cardio", name: "Cardio", color: "#EFF6FF", iconColor: "#2563EB" },
+  { id: "Mobility", name: "Mobility", color: "#F5F3FF", iconColor: "#7C3AED" },
+  { id: "CoolDown", name: "Cool Down", color: "#ECFEFF", iconColor: "#06B6D4" },
+  { id: "Rehab", name: "Rehab", color: "#FEF2F2", iconColor: "#DC2626" },
 ];
 
 const ACTIVITY_SET_TYPES = ["Reps", "Time"];
 
 const MUSCLE_GROUPS = [
-  { id: "ForeArm", name: "Tay Trước", image: bodyPartImages.foreArm },
-  { id: "Legs", name: "Lưng", image: bodyPartImages.back },
-  { id: "Shoulder", name: "Vai", image: bodyPartImages.shoulder },
-  { id: "Biceps", name: "Tay Sau", image: bodyPartImages.biceps },
   { id: "Chest", name: "Ngực", image: bodyPartImages.chest },
-  { id: "Waist", name: "Bụng", image: bodyPartImages.waist },
-  { id: "Hip", name: "Hông", image: bodyPartImages.hip },
-  { id: "Thigh", name: "Đùi", image: bodyPartImages.thigh },
-  { id: "Calf", name: "Bắp chân", image: bodyPartImages.calf },
+  { id: "Back", name: "Lưng", image: bodyPartImages.back },
+  { id: "Shoulders", name: "Vai", image: bodyPartImages.shoulder },
+  { id: "Biceps", name: "Tay Trước", image: bodyPartImages.biceps },
+  { id: "Triceps", name: "Tay Sau", image: bodyPartImages.triceps },
+  { id: "Forearms", name: "Cẳng Tay", image: bodyPartImages.foreArm },
+  { id: "Thighs", name: "Đùi", image: bodyPartImages.thigh },
+  { id: "Glutes", name: "Mông", image: bodyPartImages.glutes },
+  { id: "Calves", name: "Bắp chân", image: bodyPartImages.calf },
+  { id: "AbsCore", name: "Bụng", image: bodyPartImages.waist },
+  { id: "FullBody", name: "Toàn Thân", image: bodyPartImages.fullbody },
+  { id: "Other", name: "Khác", image: bodyPartImages.other },
 ];
 
 export default function BookingDetailScreen({ route, navigation }) {
@@ -1047,7 +1063,7 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
   },
   typeButton: {
-    flex: 1,
+    width: "48%",
     paddingVertical: 16,
     paddingHorizontal: 20,
     borderRadius: 16,
@@ -1055,7 +1071,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 2,
     borderColor: "#E2E8F0",
-    minWidth: 100,
     shadowColor: colors.red,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,

@@ -48,17 +48,17 @@ const FitnessDetailScreen = () => {
       console.log("Loading comprehensive fitness statistics...");
 
       const stats = await getFitnessStatistics();
-      console.log(
-        "Received fitness statistics:",
-        JSON.stringify(stats, null, 2)
-      );
+      // console.log(
+      //   "Received fitness statistics:",
+      //   JSON.stringify(stats, null, 2)
+      // );
 
-      if (stats) {
-        console.log("Weekly data length:", stats.weekly?.data?.length);
-        console.log("Monthly data length:", stats.monthly?.data?.length);
-        console.log("Weekly data sample:", stats.weekly?.data?.slice(-3)); // Last 3 days
-        console.log("Monthly data sample:", stats.monthly?.data?.slice(-7)); // Last 7 days
-      }
+      // if (stats) {
+      //   console.log("Weekly data length:", stats.weekly?.data?.length);
+      //   console.log("Monthly data length:", stats.monthly?.data?.length);
+      //   console.log("Weekly data sample:", stats.weekly?.data?.slice(-3)); // Last 3 days
+      //   console.log("Monthly data sample:", stats.monthly?.data?.slice(-7)); // Last 7 days
+      // }
 
       setStatistics(stats);
     } catch (err) {
@@ -516,7 +516,7 @@ const FitnessDetailScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8F9FA"
+    backgroundColor: "#F8F9FA",
   },
   content: {
     flex: 1,
@@ -552,7 +552,8 @@ const styles = StyleSheet.create({
     padding: 20,
     marginHorizontal: 16,
     marginTop: 16,
-    shadowColor: "#000",shadowOpacity: 0.1,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
   },
@@ -633,7 +634,8 @@ const styles = StyleSheet.create({
     padding: 20,
     marginHorizontal: 16,
     marginTop: 16,
-    shadowColor: "#000",shadowOpacity: 0.1,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
   },
@@ -679,7 +681,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginTop: 16,
     marginBottom: 32,
-    shadowColor: "#000",shadowOpacity: 0.1,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
   },
@@ -742,7 +745,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 28,
-    shadowColor: "#000",shadowOpacity: 0.15,
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
     shadowRadius: 6,
     elevation: 4,
     minWidth: 120,

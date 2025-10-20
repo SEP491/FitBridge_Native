@@ -89,10 +89,13 @@ class FitnessTrackingService {
         STORAGE_KEYS.LAST_RESET_DATE
       );
 
+      console.log(`🗓️  Today: ${today}, Last reset: ${lastResetDate}`);
+
       if (lastResetDate !== today) {
-        console.log("New day detected");
+        console.log("🔄 New day detected - resetting daily data");
         await this.resetDailyData();
-        await AsyncStorage.setItem(STORAGE_KEYS.LAST_RESET_DATE, today);
+      } else {
+        console.log("✅ Same day - no reset needed");
       }
     } catch (error) {
       console.error("Error checking daily data:", error.message);
@@ -120,9 +123,9 @@ class FitnessTrackingService {
       await AsyncStorage.removeItem(STORAGE_KEYS.TODAY_BASE_STEPS);
       await AsyncStorage.removeItem(STORAGE_KEYS.TODAY_DATA);
 
-      // Clear cached weekly/monthly data to force refresh
-      await AsyncStorage.removeItem(STORAGE_KEYS.WEEKLY_CACHE);
-      await AsyncStorage.removeItem(STORAGE_KEYS.MONTHLY_CACHE);
+      // Update cache with fresh data instead of clearing it
+      // This preserves historical data while resetting today's data
+      await this.updateCacheAfterDayReset();
 
       // Update last reset date
       const today = new Date().toDateString();
@@ -144,7 +147,7 @@ class FitnessTrackingService {
 
       const dataToSave = {
         steps: this.todaySteps,
-        distance: this.todayDistance,
+        distance: parseFloat(this.todayDistance.toFixed(2)),
         calories: this.todayCalories,
         date: yesterday.toISOString(),
       };
@@ -155,6 +158,9 @@ class FitnessTrackingService {
         STORAGE_KEYS.FITNESS_DATA,
         JSON.stringify(fitnessData)
       );
+
+      console.log(`✅ Saved yesterday (${yesterdayKey}):`, dataToSave);
+      console.log(`Total history entries: ${Object.keys(fitnessData).length}`);
     } catch (error) {
       console.error("Error saving yesterday data:", error.message);
     }
@@ -453,8 +459,26 @@ class FitnessTrackingService {
     try {
       const history = await this.getFitnessHistory();
       const keys = Object.keys(history);
-      console.log("Fitness history keys:", keys);
-      console.log("Fitness history data:", history);
+      console.log("=== FITNESS HISTORY DEBUG ===");
+      console.log("Total entries:", keys.length);
+      console.log("Date keys:", keys);
+
+      // Show last 7 days
+      const today = new Date();
+      console.log("\nLast 7 days in history:");
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        const dateKey = date.toDateString();
+        const data = history[dateKey];
+        console.log(
+          `  ${dateKey}: ${data ? `${data.steps} steps ✓` : "No data"}`
+        );
+      }
+
+      console.log("\nFull history data:", JSON.stringify(history, null, 2));
+      console.log("=== END DEBUG ===");
+
       return history;
     } catch (error) {
       console.error("Error getting debug fitness history:", error);
@@ -479,12 +503,16 @@ class FitnessTrackingService {
       // Check if we have cached weekly data
       const cached = await this.getCachedWeeklyData();
       if (cached) {
+        console.log("📊 Returning cached weekly data");
         return cached;
       }
 
+      console.log("🔄 Building fresh weekly data from history");
       const history = await this.getFitnessHistory();
       const today = new Date();
       const weekData = [];
+
+      console.log(`📅 History has ${Object.keys(history).length} entries`);
 
       for (let i = 6; i >= 0; i--) {
         const date = new Date(today);
@@ -500,6 +528,7 @@ class FitnessTrackingService {
             distance: parseFloat(this.todayDistance.toFixed(2)),
             calories: this.todayCalories,
           });
+          console.log(`  Today (${dateKey}): ${this.todaySteps} steps`);
         } else {
           // Historical data
           const dayData = history[dateKey] || {
@@ -514,11 +543,17 @@ class FitnessTrackingService {
             distance: parseFloat((dayData.distance || 0).toFixed(2)),
             calories: dayData.calories || 0,
           });
+          console.log(
+            `  ${dateKey}: ${dayData.steps || 0} steps ${
+              history[dateKey] ? "✓" : "(empty)"
+            }`
+          );
         }
       }
 
-      // Cache the result (excluding today's data which changes frequently)
+      // Cache the result
       await this.cacheWeeklyData(weekData);
+      console.log("💾 Weekly data cached");
 
       return weekData;
     } catch (error) {
@@ -533,9 +568,11 @@ class FitnessTrackingService {
       // Check if we have cached monthly data
       const cached = await this.getCachedMonthlyData();
       if (cached) {
+        console.log("📊 Returning cached monthly data");
         return cached;
       }
 
+      console.log("🔄 Building fresh monthly data from history");
       const history = await this.getFitnessHistory();
       const today = new Date();
       const monthData = [];
@@ -571,8 +608,9 @@ class FitnessTrackingService {
         }
       }
 
-      // Cache the result (excluding today's data)
+      // Cache the result
       await this.cacheMonthlyData(monthData);
+      console.log("💾 Monthly data cached");
 
       return monthData;
     } catch (error) {
@@ -585,20 +623,23 @@ class FitnessTrackingService {
   async getCachedWeeklyData() {
     try {
       const cached = await AsyncStorage.getItem(STORAGE_KEYS.WEEKLY_CACHE);
-      if (!cached) return null;
+      if (!cached) {
+        console.log("No weekly cache found");
+        return null;
+      }
 
       const cacheData = JSON.parse(cached);
       const today = new Date().toDateString();
 
-      // Check if cache is from today or yesterday (allow some flexibility)
-      const cacheDate = new Date(cacheData.date);
-      const currentDate = new Date();
-      const timeDiff = Math.abs(currentDate.getTime() - cacheDate.getTime());
-      const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+      // Check if cache is from today (same day)
+      const cacheDate = cacheData.date;
+      const isToday = cacheDate === today;
 
-      // Use cache if it's from today or yesterday, but update today's data
-      if (daysDiff <= 1 && cacheData.data) {
-        console.log("Using cached weekly data, updating today's values");
+      // If cache is from today, update today's data and return
+      if (isToday && cacheData.data) {
+        console.log(
+          "Using cached weekly data from today, updating current values"
+        );
         const weekData = [...cacheData.data];
         const todayIndex = weekData.length - 1; // Today is last item
 
@@ -612,7 +653,9 @@ class FitnessTrackingService {
         return weekData;
       }
 
-      console.log("Weekly cache expired, will fetch fresh data");
+      // If cache is from a previous day, rebuild from history
+      // This ensures we have all historical data including yesterday
+      console.log("Weekly cache is from previous day, rebuilding from history");
       return null;
     } catch (error) {
       console.error("Error getting cached weekly data:", error);
@@ -640,20 +683,23 @@ class FitnessTrackingService {
   async getCachedMonthlyData() {
     try {
       const cached = await AsyncStorage.getItem(STORAGE_KEYS.MONTHLY_CACHE);
-      if (!cached) return null;
+      if (!cached) {
+        console.log("No monthly cache found");
+        return null;
+      }
 
       const cacheData = JSON.parse(cached);
       const today = new Date().toDateString();
 
-      // Check if cache is from today or yesterday (allow some flexibility)
-      const cacheDate = new Date(cacheData.date);
-      const currentDate = new Date();
-      const timeDiff = Math.abs(currentDate.getTime() - cacheDate.getTime());
-      const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+      // Check if cache is from today (same day)
+      const cacheDate = cacheData.date;
+      const isToday = cacheDate === today;
 
-      // Use cache if it's from today or yesterday, but update today's data
-      if (daysDiff <= 1 && cacheData.data) {
-        console.log("Using cached monthly data, updating today's values");
+      // If cache is from today, update today's data and return
+      if (isToday && cacheData.data) {
+        console.log(
+          "Using cached monthly data from today, updating current values"
+        );
         const monthData = [...cacheData.data];
         const todayIndex = monthData.length - 1; // Today is last item
 
@@ -667,7 +713,11 @@ class FitnessTrackingService {
         return monthData;
       }
 
-      console.log("Monthly cache expired, will fetch fresh data");
+      // If cache is from a previous day, rebuild from history
+      // This ensures we have all historical data including yesterday
+      console.log(
+        "Monthly cache is from previous day, rebuilding from history"
+      );
       return null;
     } catch (error) {
       console.error("Error getting cached monthly data:", error);
@@ -700,6 +750,95 @@ class FitnessTrackingService {
       console.log("Caches cleared");
     } catch (error) {
       console.error("Error clearing caches:", error);
+    }
+  }
+
+  // Update cache after day reset - preserves historical data
+  async updateCacheAfterDayReset() {
+    try {
+      console.log("Updating cache after day reset...");
+
+      // Get the updated history with yesterday's data
+      const history = await this.getFitnessHistory();
+      const today = new Date();
+
+      // Rebuild weekly cache with yesterday's data included
+      const weekData = [];
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        const dateKey = date.toDateString();
+
+        if (i === 0) {
+          // Today's data (reset to 0)
+          weekData.push({
+            date: date.toISOString(),
+            day: date.toLocaleDateString("en-US", { weekday: "short" }),
+            steps: 0,
+            distance: 0,
+            calories: 0,
+          });
+        } else {
+          // Historical data from storage
+          const dayData = history[dateKey] || {
+            steps: 0,
+            distance: 0,
+            calories: 0,
+          };
+          weekData.push({
+            date: date.toISOString(),
+            day: date.toLocaleDateString("en-US", { weekday: "short" }),
+            steps: dayData.steps || 0,
+            distance: parseFloat((dayData.distance || 0).toFixed(2)),
+            calories: dayData.calories || 0,
+          });
+        }
+      }
+
+      // Rebuild monthly cache with yesterday's data included
+      const monthData = [];
+      for (let i = 29; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        const dateKey = date.toDateString();
+
+        if (i === 0) {
+          // Today's data (reset to 0)
+          monthData.push({
+            date: date.toISOString(),
+            day: date.getDate(),
+            steps: 0,
+            distance: 0,
+            calories: 0,
+          });
+        } else {
+          // Historical data from storage
+          const dayData = history[dateKey] || {
+            steps: 0,
+            distance: 0,
+            calories: 0,
+          };
+          monthData.push({
+            date: date.toISOString(),
+            day: date.getDate(),
+            steps: dayData.steps || 0,
+            distance: parseFloat((dayData.distance || 0).toFixed(2)),
+            calories: dayData.calories || 0,
+          });
+        }
+      }
+
+      // Update both caches
+      await this.cacheWeeklyData(weekData);
+      await this.cacheMonthlyData(monthData);
+
+      console.log("Cache updated successfully after day reset");
+      console.log(
+        "Week data includes days:",
+        weekData.map((d) => ({ day: d.day, steps: d.steps }))
+      );
+    } catch (error) {
+      console.error("Error updating cache after day reset:", error);
     }
   }
 
