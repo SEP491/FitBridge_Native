@@ -538,7 +538,8 @@
     "manageVoucher": "Quản lý Voucher",
     "managePackage": "Quản lý Gói tập",
     "manageTransaction": "Quản lý Giao dịch",
-    "myCustomer": "Khách hàng của tôi"
+    "myCustomer": "Khách hàng của tôi",
+    "customerDetail": "Chi tiết khách hàng"
   },
 
   "updatePassword": {
@@ -677,6 +678,7 @@
     "packageName": "Tên Gói Tập",
     "description": "Mô tả",
     "duration": "Thời gian",
+    "expiration": "Hạn sử dụng",
     "sessionDuration": "Thời lượng buổi tập",
     "numberOfSessions": "Số buổi tập",
     "success": "Thành công",
@@ -1309,6 +1311,39 @@
     "packageName": "Tên Gói Tập",
     "minutesPerSession": "phút/buổi",
     "focusOnYourGoals": "Tập Trung Vào Mục Tiêu Của Bạn"
+  },
+  "trainingResults": {
+    "title": "Thống Kê Luyện Tập",
+    "overview": "Tổng Quan",
+    "completionRate": "Tỷ Lệ Hoàn Thành",
+    "activityRate": "Tỷ Lệ Hoạt Động",
+    "sessions": "Buổi Tập",
+    "totalSessions": "Tổng Số Buổi",
+    "completedSessions": "Đã Hoàn Thành",
+    "cancelledSessions": "Đã Hủy",
+    "upcomingSessions": "Sắp Tới",
+    "availableSessions": "Còn Lại",
+    "expirationDate": "Ngày Hết Hạn",
+    "activities": "Hoạt Động",
+    "totalActivities": "Tổng Hoạt Động",
+    "totalActivitySets": "Tổng Số Set",
+    "completedActivitySets": "Set Đã Hoàn Thành",
+    "averageSetsPerSession": "Trung Bình Set/Buổi",
+    "performance": "Hiệu Suất",
+    "averageSessionTime": "Thời Gian TB/Buổi",
+    "averageWeightLifted": "Trọng Lượng TB Nâng",
+    "mostTrainedMuscleGroup": "Nhóm Cơ Tập Nhiều Nhất",
+    "leastTrainedMuscleGroup": "Nhóm Cơ Tập Ít Nhất",
+    "sets": "Sets",
+    "weightKg": "Trọng Lượng (kg)",
+    "reps": "Lần",
+    "workoutDetails": "Chi Tiết Tập Luyện",
+    "totalWeightLifted": "Tổng Trọng Lượng Nâng",
+    "totalRepsCompleted": "Tổng Số Lần Hoàn Thành",
+    "totalPracticeTime": "Tổng Thời Gian Tập",
+    "averageRestTime": "Thời Gian Nghỉ TB",
+    "activityTypeBreakdown": "Phân Loại Hoạt Động",
+    "muscleGroupBreakdown": "Phân Tích Nhóm Cơ"
   },
   "bookingRequest": {
     "title": "Yêu Cầu Đặt Lịch",

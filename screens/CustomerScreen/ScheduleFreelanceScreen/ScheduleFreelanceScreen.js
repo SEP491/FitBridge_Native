@@ -23,8 +23,9 @@ import { useTranslation } from "../../../hooks/useTranslation";
 import { fetchUserFromStorage, formatDateForAPI } from "../../../lib";
 import BookingRequestCard from "../../../components/BookingRequestCard";
 
-export default function ScheduleFreelanceScreen() {
+export default function ScheduleFreelanceScreen({ route }) {
   const { t } = useTranslation();
+  const { customerPurchasedId, ptId } = route.params;
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -43,6 +44,7 @@ export default function ScheduleFreelanceScreen() {
   const [showEndTimePicker, setShowEndTimePicker] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userRole, setUserRole] = useState(null);
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -59,7 +61,7 @@ export default function ScheduleFreelanceScreen() {
   const loadAllRequestForUser = async () => {
     try {
       const response = await accountService.getAllRequestForUser({
-        customerPurchasedId: "0199e436-fae3-7ab9-bd79-1dd53ba004ed",
+        customerPurchasedId: customerPurchasedId,
         doApplyPaging: false,
       });
       setRequests(response.data?.items || []);
@@ -197,7 +199,7 @@ export default function ScheduleFreelanceScreen() {
     setIsSubmitting(true);
     try {
       const payload = {
-        customerPurchasedId: "0199e436-fae3-7ab9-bd79-1dd53ba004ed",
+        customerPurchasedId: customerPurchasedId,
         requestBookings: [
           {
             bookingName: bookingName.trim(),
@@ -210,7 +212,7 @@ export default function ScheduleFreelanceScreen() {
 
       console.log("Creating request with payload:", payload);
       const response = await accountService.createBookingRequest(payload);
-
+      console.log("Create Booking Request Response:", response);
       Alert.alert(t("common.success"), t("bookingRequest.createSuccess"), [
         {
           text: t("common.ok"),

@@ -594,7 +594,8 @@
     "manageVoucher": "Manage Voucher",
     "managePackage": "Manage Package",
     "manageTransaction": "Manage Transaction",
-    "myCustomer": "My Customer"
+    "myCustomer": "My Customer",
+    "customerDetail": "Customer Detail"
   },
 
   "updatePassword": {
@@ -1322,6 +1323,40 @@
       "warning": "Warning",
       "error": "Error"
     }
+  },
+
+  "trainingResults": {
+    "title": "Training Statistics",
+    "overview": "Overview",
+    "completionRate": "Completion Rate",
+    "activityRate": "Activity Rate",
+    "sessions": "Sessions",
+    "totalSessions": "Total Sessions",
+    "completedSessions": "Completed Sessions",
+    "cancelledSessions": "Cancelled Sessions",
+    "upcomingSessions": "Upcoming Sessions",
+    "availableSessions": "Available Sessions",
+    "expirationDate": "Expiration Date",
+    "activities": "Activities",
+    "totalActivities": "Total Activities",
+    "totalActivitySets": "Total Activity Sets",
+    "completedActivitySets": "Completed Activity Sets",
+    "averageSetsPerSession": "Average Sets Per Session",
+    "performance": "Performance",
+    "averageSessionTime": "Average Session Time",
+    "averageWeightLifted": "Average Weight Lifted",
+    "mostTrainedMuscleGroup": "Most Trained Muscle Group",
+    "leastTrainedMuscleGroup": "Least Trained Muscle Group",
+    "sets": "Sets",
+    "weightKg": "Weight (kg)",
+    "reps": "Reps",
+    "workoutDetails": "Workout Details",
+    "totalWeightLifted": "Total Weight Lifted",
+    "totalRepsCompleted": "Total Reps Completed",
+    "totalPracticeTime": "Total Practice Time",
+    "averageRestTime": "Average Rest Time",
+    "activityTypeBreakdown": "Activity Type Breakdown",
+    "muscleGroupBreakdown": "Muscle Group Breakdown"
   },
 
   "bookingRequest": {

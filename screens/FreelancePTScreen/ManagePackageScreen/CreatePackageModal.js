@@ -12,10 +12,12 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
+  Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from '../../../hooks/useTranslation';
 import freelancePTPackageService from '../../../services/freelancePTPackageService';
+import uploadImageService from '../../../services/uploadImageService';
 import * as ImagePicker from 'expo-image-picker';
 
 const CreatePackageModal = ({ visible, onClose, onPackageCreated }) => {
@@ -28,9 +30,10 @@ const CreatePackageModal = ({ visible, onClose, onPackageCreated }) => {
     durationInDays: '',
     sessionDurationInMinutes: '',
     numOfSessions: '',
-    imageUrl: '',
   });
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null); // Local URI for preview
+  const [uploadedImageUrl, setUploadedImageUrl] = useState(null); // API URL after upload
+  const [uploadingImage, setUploadingImage] = useState(false);
   const scrollViewRef = useRef(null);
   const inputRefs = useRef({});
 
@@ -44,14 +47,95 @@ const CreatePackageModal = ({ visible, onClose, onPackageCreated }) => {
     }
   };
 
+  const uploadImage = async (imageUri) => {
+    try {
+      setUploadingImage(true);
+      
+      // Create FormData for image upload
+      const formDataImg = new FormData();
+      
+      // Extract filename from URI
+      const uriParts = imageUri.split('/');
+      let fileName = uriParts[uriParts.length - 1];
+      
+      // If filename doesn't have an extension, add one
+      if (!fileName.includes('.')) {
+        fileName = `image_${Date.now()}.jpg`;
+      }
+      
+      // Determine file type from filename or default to jpeg
+      const fileExtension = fileName.split('.').pop().toLowerCase();
+      let mimeType = 'image/jpeg'; // default
+      
+      if (fileExtension === 'png') {
+        mimeType = 'image/png';
+      } else if (fileExtension === 'jpg' || fileExtension === 'jpeg') {
+        mimeType = 'image/jpeg';
+      } else if (fileExtension === 'gif') {
+        mimeType = 'image/gif';
+      } else if (fileExtension === 'webp') {
+        mimeType = 'image/webp';
+      }
+      
+      // For React Native, we need to structure the file object properly
+      formDataImg.append('file', {
+        uri: Platform.OS === 'ios' ? imageUri.replace('file://', '') : imageUri,
+        name: fileName,
+        type: mimeType,
+      });
+
+      const uploadResponse = await uploadImageService.uploadImage(formDataImg);
+      
+      if (uploadResponse.status === "200" && uploadResponse.data) {
+        setUploadedImageUrl(uploadResponse.data);
+        setSelectedImage(imageUri); // Keep for preview
+        Alert.alert(
+          t("managePackage.success"),
+          "Image uploaded successfully!"
+        );
+      } else {
+        throw new Error("Failed to upload image");
+      }
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      Alert.alert(
+        t("managePackage.error"),
+        "Failed to upload image. Please try again.",
+        [
+          { text: "Cancel", style: "cancel" },
+          { text: "Retry", onPress: () => uploadImage(imageUri) }
+        ]
+      );
+      setSelectedImage(null);
+      setUploadedImageUrl(null);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const pickImage = async () => {
     try {
+      // Request permission to access media library
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
       
       if (permissionResult.granted === false) {
         Alert.alert(
           t("managePackage.error"),
-          "Permission to access gallery is required!"
+          "Permission to access gallery is required to upload an image. Please enable it in your device settings.",
+          [
+            { text: "Cancel", style: "cancel" },
+            { 
+              text: "Open Settings", 
+              onPress: () => {
+                // For iOS and Android, you can use Linking to open settings
+                if (Platform.OS === 'ios') {
+                  Linking.openURL('app-settings:');
+                } else {
+                  Linking.openSettings();
+                }
+              }
+            }
+          ]
         );
         return;
       }
@@ -64,8 +148,8 @@ const CreatePackageModal = ({ visible, onClose, onPackageCreated }) => {
       });
 
       if (!result.canceled) {
-        setSelectedImage(result.assets[0].uri);
-        setFormData(prev => ({ ...prev, imageUrl: result.assets[0].uri }));
+        // Upload image immediately after selection
+        await uploadImage(result.assets[0].uri);
       }
     } catch (error) {
       console.error('Error picking image:', error);
@@ -90,6 +174,10 @@ const CreatePackageModal = ({ visible, onClose, onPackageCreated }) => {
       Alert.alert(t("managePackage.error"), "Valid session duration is required");
       return false;
     }
+    if (parseInt(formData.sessionDurationInMinutes) < 60) {
+      Alert.alert(t("managePackage.error"), "Session duration must be greater than 60 minutes");
+      return false;
+    }
     if (!formData.numOfSessions || parseInt(formData.numOfSessions) <= 0) {
       Alert.alert(t("managePackage.error"), "Valid number of sessions is required");
       return false;
@@ -103,6 +191,9 @@ const CreatePackageModal = ({ visible, onClose, onPackageCreated }) => {
     try {
       setLoading(true);
       
+      // Use uploaded image URL or default
+      const imageUrl = uploadedImageUrl || 'string';
+      
       const packageData = {
         name: formData.name.trim(),
         description: formData.description.trim(),
@@ -110,7 +201,7 @@ const CreatePackageModal = ({ visible, onClose, onPackageCreated }) => {
         durationInDays: parseInt(formData.durationInDays),
         sessionDurationInMinutes: parseInt(formData.sessionDurationInMinutes),
         numOfSessions: parseInt(formData.numOfSessions),
-        imageUrl: formData.imageUrl || 'string', // Use 'string' as default if no image
+        imageUrl: imageUrl,
       };
 
       const response = await freelancePTPackageService.createFreelancePTPackage(packageData);
@@ -146,9 +237,9 @@ const CreatePackageModal = ({ visible, onClose, onPackageCreated }) => {
       durationInDays: '',
       sessionDurationInMinutes: '',
       numOfSessions: '',
-      imageUrl: '',
     });
     setSelectedImage(null);
+    setUploadedImageUrl(null);
     onClose();
   };
 
@@ -197,16 +288,41 @@ const CreatePackageModal = ({ visible, onClose, onPackageCreated }) => {
             {/* Image Picker */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Package Image</Text>
-              <TouchableOpacity style={styles.imagePicker} onPress={pickImage}>
-                {selectedImage ? (
-                  <Image source={{ uri: selectedImage }} style={styles.previewImage} />
+              <TouchableOpacity 
+                style={styles.imagePicker} 
+                onPress={pickImage}
+                disabled={uploadingImage}
+              >
+                {uploadingImage ? (
+                  <View style={styles.imagePickerPlaceholder}>
+                    <ActivityIndicator size="large" color="#ED2A46" />
+                    <Text style={[styles.imagePickerText, { marginTop: 12 }]}>Uploading image...</Text>
+                  </View>
+                ) : selectedImage && uploadedImageUrl ? (
+                  <View style={{ flex: 1 }}>
+                    <Image source={{ uri: selectedImage }} style={styles.previewImage} />
+                    <View style={styles.imageSuccessBadge}>
+                      <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
+                      <Text style={styles.imageSuccessText}>Uploaded</Text>
+                    </View>
+                  </View>
                 ) : (
                   <View style={styles.imagePickerPlaceholder}>
                     <Ionicons name="image-outline" size={48} color="#999" />
-                    <Text style={styles.imagePickerText}>Tap to select image</Text>
+                    <Text style={styles.imagePickerText}>Tap to select and upload image</Text>
                   </View>
                 )}
               </TouchableOpacity>
+              {uploadedImageUrl && (
+                <TouchableOpacity 
+                  style={styles.changeImageButton}
+                  onPress={pickImage}
+                  disabled={uploadingImage}
+                >
+                  <Ionicons name="refresh" size={16} color="#ED2A46" />
+                  <Text style={styles.changeImageText}>Change Image</Text>
+                </TouchableOpacity>
+              )}
             </View>
 
             {/* Package Name */}
@@ -267,13 +383,13 @@ const CreatePackageModal = ({ visible, onClose, onPackageCreated }) => {
               />
             </View>
 
-            {/* Duration in Days */}
+            {/* Expiration in Days */}
             <View 
               style={styles.inputGroup}
               ref={(ref) => (inputRefs.current['durationInDays'] = ref)}
             >
               <Text style={styles.label}>
-                {t("managePackage.duration")} ({t("managePackage.days")}) *
+                {t("managePackage.expiration")} ({t("managePackage.days")}) *
               </Text>
               <TextInput
                 style={styles.input}
@@ -430,6 +546,41 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
+  },
+  imageSuccessBadge: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    gap: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  imageSuccessText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#4CAF50',
+  },
+  changeImageButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+    paddingVertical: 8,
+    gap: 6,
+  },
+  changeImageText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#ED2A46',
   },
   modalFooter: {
     flexDirection: 'row',

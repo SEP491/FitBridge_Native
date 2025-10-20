@@ -58,6 +58,8 @@ import ManageVoucherScreen from "./../screens/FreelancePTScreen/ManageVoucherScr
 import ManagePackageScreen from "./../screens/FreelancePTScreen/ManagePackageScreen/ManagePackageScreen";
 import ManageTransactionScreen from "./../screens/FreelancePTScreen/ManageTransactionScreen/ManageTransactionScreen";
 import MyCustomerScreen from "./../screens/FreelancePTScreen/MyCustomerScreen/MyCustomerScreen";
+import CustomerDetailScreen from "../screens/FreelancePTScreen/CustomerDetailScreen/CustomerDetailScreen";
+import TrainingResultScreen from "../screens/FreelancePTScreen/TrainingResultScreen/TrainingResultScreen";
 import LoginScreen from "../screens/AuthenticationScreen/LoginScreen/LoginScreen";
 import ForgotPasswordScreen1 from "../screens/AuthenticationScreen/ForgotPasswordScreen/ForgotPasswordScreen1";
 import ForgotPasswordScreen2 from "../screens/AuthenticationScreen/ForgotPasswordScreen/ForgotPasswordScreen2";
@@ -1141,6 +1143,27 @@ export default function Navigator({
               fontSize: 20,
               color: "#ED2A46",
             },
+          }}
+        />
+        <Stack.Screen
+          name="CustomerDetailScreen"
+          component={CustomerDetailScreen}
+          options={{
+            headerShown: true,
+            title: t("userMenu.customerDetail"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="TrainingResultScreen"
+          component={TrainingResultScreen}
+          options={{
+            headerShown: false,
           }}
         />
         <Stack.Screen
