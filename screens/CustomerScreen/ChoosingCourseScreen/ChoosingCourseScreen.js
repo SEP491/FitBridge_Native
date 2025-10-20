@@ -8,7 +8,7 @@ import {
   SafeAreaView,
   StatusBar,
 } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import accountService from "../../../services/accountService";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -16,7 +16,7 @@ import Foundation from "@expo/vector-icons/Foundation";
 import { useTranslation } from "../../../hooks/useTranslation";
 import CourseCard from "../../../components/CourseCard/CourseCard";
 import colors from "../../../constants/color";
-
+import { useFocusEffect } from "@react-navigation/native";
 export default function ChoosingCourseScreen() {
   const { t } = useTranslation();
   const [searchText, setSearchText] = useState("");
@@ -40,9 +40,11 @@ export default function ChoosingCourseScreen() {
     }
   };
 
-  useEffect(() => {
-    loadCourseForUser();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadCourseForUser();
+    }, [])
+  );
 
   const filteredCourses = courseList.filter(
     (item) =>
