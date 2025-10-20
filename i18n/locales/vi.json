@@ -601,7 +601,26 @@
     "filter": "Bộ lọc",
     "details": "Chi tiết >",
     "enterCode": "Nhập mã voucher",
-    "eligible": "Đủ điều kiện áp dụng"
+    "eligible": "Đủ điều kiện áp dụng",
+    "title": "Áp Dụng Voucher",
+    "available": "Voucher Khả Dụng",
+    "noVouchers": "Không có voucher khả dụng",
+    "noVouchersDescription": "Hiện tại không có voucher khả dụng cho đơn hàng của bạn",
+    "discount": "Giảm giá",
+    "maxDiscount": "Giảm tối đa",
+    "validFor": "Áp dụng cho",
+    "apply": "Áp dụng",
+    "applied": "Đã áp dụng",
+    "remove": "Gỡ bỏ",
+    "loadingVouchers": "Đang tải voucher...",
+    "applySuccess": "Áp dụng voucher thành công",
+    "applyFailed": "Áp dụng voucher thất bại",
+    "removeSuccess": "Gỡ bỏ voucher thành công",
+    "voucherCode": "Mã Voucher",
+    "allPackages": "Tất cả gói tập",
+    "freelancePTOnly": "Chỉ gói PT Freelance",
+    "gymPackagesOnly": "Chỉ gói phòng gym",
+    "youSave": "Bạn tiết kiệm"
   },
 
   "manageVoucher": {
@@ -1157,7 +1176,12 @@
     "removePackage": "Xóa gói tập",
     "removePackageConfirm": "Bạn có chắc chắn muốn xóa gói tập này khỏi giỏ hàng?",
     "cancel": "Hủy",
-    "remove": "Xóa"
+    "remove": "Xóa",
+    "voucher": "Voucher",
+    "applyVoucher": "Áp dụng Voucher",
+    "voucherDiscount": "Giảm giá Voucher",
+    "change": "Thay đổi",
+    "voucherApplied": "Đã áp dụng Voucher"
   },
 
   "deleteAccount": {

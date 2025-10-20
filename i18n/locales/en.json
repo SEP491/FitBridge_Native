@@ -681,7 +681,26 @@
     "filter": "Filter",
     "details": "Details >",
     "enterCode": "Enter voucher code",
-    "eligible": "Eligible to apply"
+    "eligible": "Eligible to apply",
+    "title": "Apply Voucher",
+    "available": "Available Vouchers",
+    "noVouchers": "No vouchers available",
+    "noVouchersDescription": "There are currently no vouchers available for your items",
+    "discount": "Discount",
+    "maxDiscount": "Max Discount",
+    "validFor": "Valid For",
+    "apply": "Apply",
+    "applied": "Applied",
+    "remove": "Remove",
+    "loadingVouchers": "Loading vouchers...",
+    "applySuccess": "Voucher applied successfully",
+    "applyFailed": "Failed to apply voucher",
+    "removeSuccess": "Voucher removed successfully",
+    "voucherCode": "Voucher Code",
+    "allPackages": "All Packages",
+    "freelancePTOnly": "Freelance PT Packages Only",
+    "gymPackagesOnly": "Gym Packages Only",
+    "youSave": "You save"
   },
 
   "manageVoucher": {
@@ -1038,7 +1057,12 @@
     "removePackage": "Remove Package",
     "removePackageConfirm": "Are you sure you want to remove this package from your cart?",
     "cancel": "Cancel",
-    "remove": "Remove"
+    "remove": "Remove",
+    "voucher": "Voucher",
+    "applyVoucher": "Apply Voucher",
+    "voucherDiscount": "Voucher Discount",
+    "change": "Change",
+    "voucherApplied": "Voucher Applied"
   },
 
   "faq": {

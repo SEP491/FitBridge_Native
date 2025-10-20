@@ -77,6 +77,7 @@ import FreelancePTRequestScreen from "../screens/FreelancePTScreen/FreelancePTRe
 import BookingDetailScreen from "../screens/CustomerScreen/BookingDetailScreen/BookingDetailScreen";
 import SessionActivityDetailScreen from "../screens/CustomerScreen/SessionActivityDetailScreen/SessionActivityDetailScreen";
 import TrainingActivityScreen from "../screens/CustomerScreen/TrainingActivityScreen/TrainingActivityScreen";
+import ApplyVoucherScreen from "../screens/CommonScreen/ApplyVoucherScreen/ApplyVoucherScreen";
 
 export default function Navigator({
   isAuthenticated: propIsAuthenticated,
@@ -278,6 +279,15 @@ export default function Navigator({
           }}
         />
         <Stack.Screen
+          name="ApplyVoucherScreen"
+          component={ApplyVoucherScreen}
+          options={{
+            headerTitleAlign: "center",
+            headerShown: true,
+            title: t("screenTitles.applyVoucher"),
+          }}
+        />
+        <Stack.Screen
           name="OrderSuccessScreen"
           component={OrderSuccessScreen}
           options={{
@@ -301,7 +311,7 @@ export default function Navigator({
           options={{
             headerShown: true,
             orientation: "portrait",
-              headerTitleAlign: "center",
+            headerTitleAlign: "center",
             headerTitleStyle: {
               fontWeight: "bold",
               fontSize: 20,
@@ -440,7 +450,7 @@ export default function Navigator({
           options={{
             headerShown: true,
             orientation: "portrait",
-              headerTitleAlign: "center",
+            headerTitleAlign: "center",
             headerTitleStyle: {
               fontWeight: "bold",
               fontSize: 20,
@@ -807,7 +817,7 @@ export default function Navigator({
           options={{
             headerShown: true,
             orientation: "portrait",
-             headerTitleAlign: "center",
+            headerTitleAlign: "center",
             headerTitleStyle: {
               fontWeight: "bold",
               fontSize: 20,

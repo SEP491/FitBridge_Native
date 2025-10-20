@@ -3,7 +3,6 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
   TouchableOpacity,
   Linking,
   Alert,
@@ -18,7 +17,14 @@ import { formatPrice, showErrorAlert, showSuccessAlert } from "../../../lib";
 import { useTranslation } from "../../../hooks/useTranslation";
 
 export default function PaymentScreen({ navigation, route }) {
-  const { cart, getTotalPrice, removeFromCart, clearCart } = useCart();
+  const {
+    cart,
+    getTotalPrice,
+    removeFromCart,
+    clearCart,
+    selectedVoucher,
+    setSelectedVoucher,
+  } = useCart();
   const { t } = useTranslation();
 
   // Check if this is a direct purchase
@@ -31,6 +37,10 @@ export default function PaymentScreen({ navigation, route }) {
   console.log("displayItems:", displayItems);
   const totalPrice = isDirectPurchase ? directPurchaseAmount : getTotalPrice();
 
+  // Calculate discount
+  const voucherDiscount = selectedVoucher?.discountAmount || 0;
+  const finalTotal = Math.max(0, totalPrice - voucherDiscount);
+
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("bank");
   const handleCheckout = async () => {
     // Use displayItems (either direct purchase or cart items)
@@ -41,7 +51,7 @@ export default function PaymentScreen({ navigation, route }) {
 
     requestData = {
       request: {
-        couponId: null,
+        couponId: selectedVoucher?.id || null,
         customerPurchasedIdToExtend: null,
         shippingFee: 0,
         addressId: null,
@@ -139,12 +149,13 @@ export default function PaymentScreen({ navigation, route }) {
   };
   return (
     <View style={styles.container}>
-      <View style={styles.innerContainer}>
+      <ScrollView 
+        style={styles.innerContainer}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
         {displayItems.length > 0 ? (
-          <ScrollView
-            style={styles.scrollView}
-            contentContainerStyle={{ paddingVertical: 20 }}
-          >
+          <View style={styles.itemsContainer}>
             {displayItems.map((item, index) => {
               // Check if item type is FreelancePT
               if (item.type === "FreelancePT") {
@@ -191,7 +202,7 @@ export default function PaymentScreen({ navigation, route }) {
                 />
               );
             })}
-          </ScrollView>
+          </View>
         ) : (
           <View style={styles.emptyContainer}>
             <MaterialIcons name="shopping-cart" size={64} color="#CCCCCC" />
@@ -236,6 +247,63 @@ export default function PaymentScreen({ navigation, route }) {
           </View>
         </View>
 
+        {/* Voucher Section */}
+        <View style={styles.paymentMethod}>
+          <View style={styles.cartUpper}>
+            <Text style={{ fontSize: 15, color: "#ED2A46" }}>
+              {t("payment.voucher")}
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.voucherSection}
+            onPress={() => {
+              // Determine if this is a freelance PT package
+              const isFreelancePt = displayItems.some(
+                (item) => item.type === "FreelancePT"
+              );
+
+              navigation.navigate("ApplyVoucherScreen", {
+                items: displayItems,
+                totalPrice: totalPrice,
+                isFreelancePt: isFreelancePt,
+              });
+            }}
+          >
+            {selectedVoucher ? (
+              <View style={styles.voucherApplied}>
+                <View style={styles.voucherInfo}>
+                  <MaterialIcons name="local-offer" size={24} color="#4CAF50" />
+                  <View style={styles.voucherTextContainer}>
+                    <Text style={styles.voucherCodeText}>
+                      {selectedVoucher.couponCode}
+                    </Text>
+                    <Text style={styles.voucherDiscountText}>
+                      -{formatPrice(voucherDiscount)}
+                    </Text>
+                  </View>
+                </View>
+                <TouchableOpacity
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    setSelectedVoucher(null);
+                  }}
+                >
+                  <MaterialIcons name="close" size={24} color="#666" />
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={styles.voucherEmpty}>
+                <MaterialIcons name="card-giftcard" size={24} color="#ED2A46" />
+                <Text style={styles.voucherEmptyText}>
+                  {t("payment.applyVoucher")}
+                </Text>
+                <MaterialIcons name="chevron-right" size={24} color="#666" />
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.paymentMethod}>
           <View style={styles.cartUpper}>
             <Text style={{ fontSize: 15, color: "#ED2A46" }}>
@@ -248,26 +316,41 @@ export default function PaymentScreen({ navigation, route }) {
               <Text>{t("payment.totalServiceAmount")}</Text>
               <Text>{formatPrice(totalPrice)}</Text>
             </View>
+            {selectedVoucher && voucherDiscount > 0 && (
+              <View style={[styles.row, styles.discountRow]}>
+                <Text style={styles.discountText}>
+                  {t("payment.voucherDiscount")}
+                </Text>
+                <Text style={styles.discountAmount}>
+                  -{formatPrice(voucherDiscount)}
+                </Text>
+              </View>
+            )}
             <View style={[styles.row, styles.separator]}>
               <Text>{t("payment.additionalFees")}</Text>
               <Text>0 đ</Text>
             </View>
             <View style={styles.row}>
-              <Text>{t("payment.total")}</Text>
-              <Text>{formatPrice(totalPrice)}</Text>
+              <Text style={styles.totalText}>{t("payment.total")}</Text>
+              <Text style={styles.totalAmount}>{formatPrice(finalTotal)}</Text>
             </View>
           </View>
         </View>
-      </View>
+      </ScrollView>
 
       <View style={styles.orderSummary}>
         <View style={styles.proceedContainer}>
           <View>
             <Text style={{ fontSize: 15 }}>{t("payment.totalPayment")}</Text>
+            {selectedVoucher && voucherDiscount > 0 && (
+              <Text style={{ fontSize: 12, color: "#4CAF50", marginTop: 2 }}>
+                {t("voucher.youSave")} {formatPrice(voucherDiscount)}
+              </Text>
+            )}
             <Text
               style={{ fontSize: 20, fontWeight: "bold", color: "#ED2A46" }}
             >
-              {formatPrice(totalPrice)}
+              {formatPrice(finalTotal)}
             </Text>
           </View>
           <TouchableOpacity
@@ -312,6 +395,9 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
   },
+  scrollContent: {
+    paddingBottom: 120, // Space for the fixed bottom button
+  },
   emptyContainer: {
     flex: 1,
     justifyContent: "center",
@@ -323,8 +409,8 @@ const styles = StyleSheet.create({
     color: "#999",
     marginTop: 16,
   },
-  scrollView: {
-    maxHeight: 250, // or use flexGrow/shrink with minHeight logic
+  itemsContainer: {
+    paddingVertical: 20,
   },
   paymentMethod: {
     width: "100%",
@@ -355,11 +441,6 @@ const styles = StyleSheet.create({
     borderBottomColor: "#DDD9D9",
   },
   orderSummary: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-
     paddingVertical: 35,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
@@ -404,5 +485,76 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
+  },
+  voucherSection: {
+    marginTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: "#DDD9D9",
+    paddingTop: 10,
+  },
+  voucherEmpty: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 8,
+  },
+  voucherEmptyText: {
+    flex: 1,
+    marginLeft: 12,
+    fontSize: 14,
+    color: "#666",
+  },
+  voucherApplied: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 8,
+    backgroundColor: "#F1F8F4",
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
+  voucherInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  voucherTextContainer: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  voucherCodeText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#1A1A1A",
+  },
+  voucherDiscountText: {
+    fontSize: 12,
+    color: "#4CAF50",
+    fontWeight: "600",
+    marginTop: 2,
+  },
+  discountRow: {
+    backgroundColor: "#FFF9F0",
+    paddingHorizontal: 8,
+    borderRadius: 4,
+    marginVertical: 4,
+  },
+  discountText: {
+    color: "#4CAF50",
+    fontWeight: "600",
+  },
+  discountAmount: {
+    color: "#4CAF50",
+    fontWeight: "600",
+  },
+  totalText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#1A1A1A",
+  },
+  totalAmount: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#ED2A46",
   },
 });

@@ -12,6 +12,7 @@ export const useCart = () => {
 
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
+  const [selectedVoucher, setSelectedVoucher] = useState(null);
 
   const addToCart = (gymPackage) => {
     setCart((prevCart) => {
@@ -69,6 +70,7 @@ export const CartProvider = ({ children }) => {
 
   const clearCart = () => {
     setCart([]);
+    setSelectedVoucher(null); // Clear voucher when clearing cart
   };
 
   const getCartCount = () => {
@@ -103,6 +105,8 @@ export const CartProvider = ({ children }) => {
     getCartCount,
     getTotalPrice,
     isPackageInCart,
+    selectedVoucher,
+    setSelectedVoucher,
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
