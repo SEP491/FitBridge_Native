@@ -9,12 +9,14 @@ import {
   Alert,
   ActivityIndicator,
   Modal,
-  ScrollView
+  ScrollView,
+  TouchableHighlight
 } from 'react-native';
 import { useTranslation } from '../../../hooks/useTranslation';
 import { Ionicons } from "@expo/vector-icons";
 import customerPurchasedService from '../../../services/customerPurchased';
 import accountService from '../../../services/accountService';
+import OverallResultTab from './OverallResultTab';
 
 const MyCustomerScreen = ({ navigation }) => {
   const { t } = useTranslation();
@@ -52,18 +54,23 @@ const MyCustomerScreen = ({ navigation }) => {
           // Only count sessions from active packages
           const totalActiveSessions = activePackagesList.reduce((sum, pkg) => sum + pkg.availableSessions, 0);
           
+          // Get the earliest purchase date (first package purchased = join date)
+          const joinDate = packages.length > 0 
+            ? new Date(Math.min(...packages.map(p => new Date(p.purchaseDate)))).toLocaleDateString()
+            : 'N/A';
+          
           return {
             id: customer.id,
             name: customer.fullName,
             avatarUrl: customer.avatarUrl,
             email: customer.email || 'N/A',
-            phone: customer.phone || 'N/A',
+            phone: '(+84)' + (customer.phoneNumber || 'N/A'),
             status: activePackages > 0 ? 'active' : 'inactive',
             totalPackages: totalPackages,
             totalSessions: totalActiveSessions, // Only active sessions
             activePackages: activePackages,
             packages: packages,
-            joinDate: packages.length > 0 ? new Date(Math.min(...packages.map(p => new Date(p.expirationDate)))).toLocaleDateString() : 'N/A',
+            joinDate: joinDate,
             lastSession: 'N/A', // This would need to come from booking data
           };
         })
@@ -99,12 +106,14 @@ const MyCustomerScreen = ({ navigation }) => {
 
   const tabs = [
     { key: 'all', label: 'All Customers' },
+    { key: 'overallResult', label: 'Overall Training Result' },
     { key: 'active', label: 'Active' },
     { key: 'inactive', label: 'Inactive' }
   ];
 
   const filteredCustomers = customers.filter(customer => {
-    const matchesTab = selectedTab === 'all' || customer.status === selectedTab;
+    // For overallResult tab, show all customers (no status filter)
+    const matchesTab = selectedTab === 'all' || selectedTab === 'overallResult' || customer.status === selectedTab;
     const matchesSearch = customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          (customer.email && customer.email.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesTab && matchesSearch;
@@ -136,8 +145,14 @@ const MyCustomerScreen = ({ navigation }) => {
     return { status: 'Active', color: '#4CAF50' };
   };
 
+  const handleAllPackageScreen = (customer) => {
+    navigation.navigate('CustomerDetailScreen', { customer });
+  };
+
   const CustomerCard = ({ customer }) => (
     <View style={styles.customerCard}>
+      <TouchableOpacity onPress={() => handleAllPackageScreen(customer)}>
+
       <View style={styles.customerHeader}>
         <View style={styles.customerAvatar}>
           <Text style={styles.customerAvatarText}>
@@ -179,6 +194,7 @@ const MyCustomerScreen = ({ navigation }) => {
           <Text style={styles.detailText}>Packages: {customer.packages.map(p => p.packageName).join(', ') || 'None'}</Text>
         </View>
       </View>
+      </TouchableOpacity>
 
       <View style={styles.customerActions}>
         <TouchableOpacity 
@@ -277,7 +293,7 @@ const MyCustomerScreen = ({ navigation }) => {
                           <Ionicons name="calendar-outline" size={18} color="#666" />
                           <Text style={styles.packageDetailLabel}>Purchase Date:</Text>
                           <Text style={styles.packageDetailValue}>
-                            {new Date(pkg.purchasedDate).toLocaleDateString()}
+                            {new Date(pkg.purchaseDate).toLocaleDateString()}
                           </Text>
                         </View>
 
@@ -378,7 +394,12 @@ const MyCustomerScreen = ({ navigation }) => {
           </View>
 
           {/* Tab Buttons */}
-          <View style={styles.tabContainer}>
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={true}
+            style={styles.tabScrollView}
+            contentContainerStyle={styles.tabContainer}
+          >
             {tabs.map((tab) => (
               <TouchableOpacity
                 key={tab.key}
@@ -396,22 +417,27 @@ const MyCustomerScreen = ({ navigation }) => {
                 </Text>
               </TouchableOpacity>
             ))}
-          </View>
+          </ScrollView>
 
-          {/* Customers List */}
-          {filteredCustomers.length === 0 ? (
-            <View style={styles.emptyContainer}>
-              <Ionicons name="people-outline" size={64} color="#ccc" />
-              <Text style={styles.emptyText}>No customers found</Text>
-            </View>
+          {/* Customers List or Overall Training Results */}
+          {selectedTab === 'overallResult' ? (
+            <OverallResultTab customers={filteredCustomers} />
           ) : (
-            <FlatList
-              data={filteredCustomers}
-              keyExtractor={(item) => item.id.toString()}
-              renderItem={({ item }) => <CustomerCard customer={item} />}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.customersList}
-            />
+            // Regular customer list for other tabs
+            filteredCustomers.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <Ionicons name="people-outline" size={64} color="#ccc" />
+                <Text style={styles.emptyText}>No customers found</Text>
+              </View>
+            ) : (
+              <FlatList
+                data={filteredCustomers}
+                keyExtractor={(item) => item.id.toString()}
+                renderItem={({ item }) => <CustomerCard customer={item} />}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.customersList}
+              />
+            )
           )}
         </>
       )}
@@ -475,18 +501,27 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
   },
+  tabScrollView: {
+    paddingBottom: 9,
+    marginBottom: 16,
+    minHeight: 45,
+    maxHeight: 45,
+    backgroundColor: '#f8f9fa',
+
+  },
   tabContainer: {
     flexDirection: 'row',
-    marginBottom: 16,
     gap: 8,
+    paddingHorizontal: 2,
   },
   tabButton: {
-    flex: 1,
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 20,
     backgroundColor: '#fff',
     alignItems: 'center',
+    textAlign: 'center',
+    justifyContent: 'center',
     elevation: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },

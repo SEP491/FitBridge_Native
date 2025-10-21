@@ -8,5 +8,8 @@ const customerPurchasedService = {
   getCurrentCustomerPurchasedPackage: () =>
     request("GET", "v1/customer-purchased/customer/current"),
 
+  getCustomerPurchasedPackageResult: (customerPurchasedId) =>
+    request("GET", `v1/customer-purchased/result/${customerPurchasedId}`),
+
 };
 export default customerPurchasedService;

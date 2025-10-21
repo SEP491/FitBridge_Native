@@ -25,6 +25,7 @@ import BookingRequestCard from "../../../components/BookingRequestCard";
 
 export default function ScheduleFreelanceScreen({ route }) {
   const { t } = useTranslation();
+  const { customerPurchasedId, ptId } = route.params;
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -43,7 +44,6 @@ export default function ScheduleFreelanceScreen({ route }) {
   const [showEndTimePicker, setShowEndTimePicker] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userRole, setUserRole] = useState(null);
-  const { customerPurchasedId } = route.params;
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -211,7 +211,7 @@ export default function ScheduleFreelanceScreen({ route }) {
 
       console.log("Creating request with payload:", payload);
       const response = await accountService.createBookingRequest(payload);
-
+      console.log("Create Booking Request Response:", response);
       Alert.alert(t("common.success"), t("bookingRequest.createSuccess"), [
         {
           text: t("common.ok"),

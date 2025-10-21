@@ -3,6 +3,8 @@ import registerHandlers from "../signalR/registerHandlers";
 import unregisterHandlers from "../signalR/unregisterHandlers";
 import { HUB_METHODS, CLIENT_METHODS } from "../signalR/signalingMethods";
 import signalR_webrtcService from "../signalR/signalR-webrtcService";
+import { HubErrors } from "../../constants/exceptions/HubErrors";
+
 
 const iceServers = [
   {
@@ -143,9 +145,26 @@ class WebRTCService {
         this.#peerConnection.addTrack(track, this.#localStream);
       }
     } catch (error) {
-      console.warn(`WebRTC [${this.#username}]: Error initializing connection`);
-      console.error(error);
-      throw error;
+      const match = error.message.match(/HubException:\s*(\{.*\})/);
+      if (match) {
+        try {
+          const hubError = JSON.parse(match[1]);
+          switch (hubError.Code) {
+            case HubErrors.ROOM_NOT_FOUND:
+              alert("That room doesn’t exist.");
+              break;
+            case HubErrors.NOT_AUTHORIZED_TO_JOIN:
+              alert("You’re not authorized to join this room.");
+              break;
+            default:
+              console.warn("Unknown hub error:", hubError);
+          }
+        } catch (jsonErr) {
+          console.error("Failed to parse hub error JSON:", jsonErr);
+        }
+      } else {
+        console.error("SignalR error:", err.message);
+      }
     }
   }
 

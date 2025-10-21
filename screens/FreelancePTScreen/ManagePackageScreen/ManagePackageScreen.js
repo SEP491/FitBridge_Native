@@ -42,7 +42,7 @@ const ManagePackageScreen = ({ navigation }) => {
     try {
       setLoading(true);
       const response = await freelancePTPackageService.getFreelancePTPackages({ page, size: 10 });
-
+      console.log("Fetched Packages:", response.data);
       if (response.status === "200" && response.data) {
         setPackages(response.data.items);
         setPagination({
@@ -170,7 +170,7 @@ const ManagePackageScreen = ({ navigation }) => {
       </TouchableOpacity>
 
       {/* Packages List */}
-      <SafeAreaView style={{ width: "100%", flex: 1 }}>
+      <SafeAreaView style={{ width: "100%", flex: 1, marginTop: -50 }}>
         <FlatList
           data={packages}
           keyExtractor={(item) => item.id.toString()}
