@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   TextInput,
   Image,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import colors from "../../constants/color";
@@ -49,6 +51,9 @@ export default function BookingDetailContent({
   onAddExercise,
 }) {
   // Get unique activity types from sessionActivities
+  const scrollViewRef = React.useRef(null);
+
+  console.log("Booking Detail:", bookingDetail);  
   const getUniqueActivityTypes = () => {
     if (
       !bookingDetail?.sessionActivities ||
@@ -76,8 +81,23 @@ export default function BookingDetailContent({
     return [...new Set(muscleGroups)];
   };
 
+  const handleNoteFocus = () => {
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  };
+
   return (
-    <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
+    >
+      <ScrollView 
+        ref={scrollViewRef}
+        style={styles.scrollView} 
+        showsVerticalScrollIndicator={false}
+      >
       {/* Booking Header */}
       {bookingDetail?.bookingName && (
         <View style={styles.headerCard}>
@@ -199,7 +219,10 @@ export default function BookingDetailContent({
         {bookingDetail?.sessionActivities?.map((activity, actIndex) => (
           <TouchableOpacity
             key={actIndex}
-            style={styles.setCard}
+            style={[
+              styles.setCard,
+              activity.isCompleted && styles.completedSetCard
+            ]}
             onPress={() =>
               navigation.navigate("TrainingActivityScreen", {
                 activityId: activity.id,
@@ -210,14 +233,19 @@ export default function BookingDetailContent({
             <View style={styles.setHeader}>
               <View style={styles.setTitleContainer}>
                 <Ionicons
-                  name="checkmark-circle"
+                  name={activity.isCompleted ? "checkmark-circle" : "ellipse-outline"}
                   size={20}
-                  color={colors.orange}
+                  color={activity.isCompleted ? "#4CAF50" : colors.orange}
                 />
                 <Text style={styles.setTitle}>
                   {activity.activityName || t("bookingDetail.exerciseName")}
                 </Text>
               </View>
+              {activity.isCompleted && (
+                <View style={styles.completedBadge}>
+                  <Text style={styles.completedBadgeText}>Completed</Text>
+                </View>
+              )}
             </View>
             <View
               style={[
@@ -298,10 +326,12 @@ export default function BookingDetailContent({
             value={bookingDetail?.note || ""}
             editable={userRole === "FreelancePT"}
             multiline
+            onFocus={handleNoteFocus}
           />
         </View>
       </View>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -437,6 +467,11 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
   },
+  completedSetCard: {
+    backgroundColor: "#F0F8F0",
+    borderWidth: 2,
+    borderColor: "#4CAF50",
+  },
   setHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -454,6 +489,17 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#1E293B",
     flex: 1,
+  },
+  completedBadge: {
+    backgroundColor: "#4CAF50",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  completedBadgeText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#FFFFFF",
   },
   setTag: {
     alignSelf: "flex-start",

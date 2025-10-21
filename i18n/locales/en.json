@@ -241,6 +241,8 @@
     "warning": "Warning",
     "saveBeforeContinue": "You need to save current exercise result before continuing",
     "saveBeforeSwitch": "You need to save current exercise result before switching to another exercise",
+    "unsavedChangesWarning": "You have unsaved changes. Your workout result will not be saved if you leave now.",
+    "leaveAnyway": "Leave Anyway",
     "resultSaved": "Exercise result saved",
     "errorSavingResult": "Unable to save exercise result",
     "restTime": "Rest Time",

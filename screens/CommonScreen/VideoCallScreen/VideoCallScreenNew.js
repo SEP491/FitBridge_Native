@@ -405,7 +405,7 @@ export default function VideoCallScreen({ route, navigation }) {
         </View>
         <View style={styles.callInfo}>
           <View style={styles.callerDetails}>
-            <Text style={styles.callerNameText}>{booking ? booking.customerName : 'Customer'}</Text>
+            <Text style={styles.callerNameText}>{booking.customerName ? booking.customerName : booking.ptName ? booking.ptName : 'NaN'}</Text>
             <Text style={styles.callDurationText}>
               {formatDuration(callDuration)}
             </Text>

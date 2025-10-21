@@ -242,6 +242,8 @@
     "warning": "Cảnh Báo",
     "saveBeforeContinue": "Bạn cần lưu kết quả bài tập hiện tại trước khi tiếp tục",
     "saveBeforeSwitch": "Bạn cần lưu kết quả bài tập hiện tại trước khi chuyển sang bài tập khác",
+    "unsavedChangesWarning": "Bạn có thay đổi chưa được lưu. Kết quả bài tập sẽ không được lưu nếu bạn rời khỏi màn hình này.",
+    "leaveAnyway": "Vẫn Rời Đi",
     "resultSaved": "Đã lưu kết quả bài tập",
     "errorSavingResult": "Không thể lưu kết quả bài tập",
     "restTime": "Thời Gian Nghỉ",

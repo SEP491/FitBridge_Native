@@ -12,6 +12,7 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   ActivityIndicator,
+  ImageBackground,
 } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -63,13 +64,11 @@ export default function VideoCallPrepScreen({ navigation, route }) {
       if (response.data) {
         setMeetingID(response.data.id);
         setMeetingStatus('ready');
-      } else {
-        createMeeting();
-      }
+      } 
     } catch (error) {
-      console.error('Error checking meeting existence:', error);
       setMeetingStatus('');
       setIsCheckingMeeting(false);
+      createMeeting();
       return null;
     } finally {
       setIsCheckingMeeting(false);
@@ -203,8 +202,8 @@ export default function VideoCallPrepScreen({ navigation, route }) {
   if (isExpoGo) {
     return (
       <View style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor="#667eea" />
-        <LinearGradient colors={['#667eea', '#764ba2']} style={styles.expoGoContainer}>
+        <StatusBar barStyle="light-content" backgroundColor="#ED2A46" />
+        <LinearGradient colors={['#ED2A46', '#C41E3A']} style={styles.expoGoContainer}>
           <Ionicons name="warning-outline" size={80} color="#FFA500" />
           <Text style={styles.expoGoTitle}>Development Build Required</Text>
           <Text style={styles.expoGoText}>
@@ -225,20 +224,12 @@ export default function VideoCallPrepScreen({ navigation, route }) {
   }
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#667eea" />
-      
-      {/* Header */}
-      <LinearGradient colors={['#667eea', '#764ba2']} style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="arrow-back" size={24} color="#FFF" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Join Video Call</Text>
-        <View style={styles.backButton} />
-      </LinearGradient>
+    <ImageBackground 
+      source={require('../../../assets/images/bg-prepscreen.jpg')}
+      style={styles.container}
+      resizeMode="cover"
+    >
+      <StatusBar barStyle="light-content" backgroundColor="#ED2A46" />
 
       <KeyboardAvoidingView
         style={styles.content}
@@ -251,14 +242,13 @@ export default function VideoCallPrepScreen({ navigation, route }) {
         >
           {/* Video Preview */}
           <View style={styles.previewSection}>
-            <Text style={styles.sectionTitle}>Camera & Microphone Preview</Text>
             <View style={styles.previewContainer}>
               {loadingPreview ? (
                 <View style={styles.previewLoading}>
-                  <ActivityIndicator size="large" color="#667eea" />
+                  <ActivityIndicator size="large" color="#ED2A46" />
                   <Text style={styles.previewLoadingText}>Starting camera...</Text>
                 </View>
-              ) : previewStream && !isVideoOff && RTCView ? (
+              ) : previewStream && !isVideoOff ? (
                 <RTCView
                   streamURL={previewStream.toURL()}
                   style={styles.preview}
@@ -271,11 +261,12 @@ export default function VideoCallPrepScreen({ navigation, route }) {
                   <Text style={styles.previewOffText}>Camera Off</Text>
                 </View>
               )}
+            </View>
 
-              {/* Preview Controls */}
+            {/* Preview Controls */}
               <View style={styles.previewControls}>
                 <TouchableOpacity
-                  style={[styles.previewButton, isAudioMuted && styles.previewButtonMuted]}
+                  style={[styles.previewButton, isAudioMuted ? {backgroundColor: '#ED2A46', } : { backgroundColor: 'rgba(255, 255, 255, 0.1)' }]}
                   onPress={toggleAudio}
                   disabled={loadingPreview}
                 >
@@ -287,7 +278,7 @@ export default function VideoCallPrepScreen({ navigation, route }) {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={[styles.previewButton, isVideoOff && styles.previewButtonMuted]}
+                  style={[styles.previewButton, isVideoOff ? {backgroundColor: '#ED2A46', } : { backgroundColor: 'rgba(255, 255, 255, 0.1)' }]}
                   onPress={toggleVideo}
                   disabled={loadingPreview}
                 >
@@ -306,21 +297,20 @@ export default function VideoCallPrepScreen({ navigation, route }) {
                   <Ionicons name="camera-reverse" size={24} color="#FFF" />
                 </TouchableOpacity>
               </View>
-            </View>
           </View>
 
           {/* Booking Information Card */}
           {booking && (
             <View style={styles.bookingCard}>
               <View style={styles.bookingHeader}>
-                <Ionicons name="calendar" size={24} color="#667eea" />
+                <Ionicons name="calendar" size={24} color="#ED2A46" />
                 <Text style={styles.bookingTitle}>Session Details</Text>
               </View>
 
               {/* Session Name */}
               <View style={styles.bookingRow}>
                 <View style={styles.bookingIconContainer}>
-                  <Ionicons name="fitness" size={20} color="#667eea" />
+                  <Ionicons name="fitness" size={20} color="#ED2A46" />
                 </View>
                 <View style={styles.bookingInfo}>
                   <Text style={styles.bookingLabel}>Session</Text>
@@ -331,7 +321,7 @@ export default function VideoCallPrepScreen({ navigation, route }) {
               {/* Customer Info */}
               <View style={styles.bookingRow}>
                 <View style={styles.bookingIconContainer}>
-                  <Ionicons name="person" size={20} color="#667eea" />
+                  <Ionicons name="person" size={20} color="#ED2A46" />
                 </View>
                 <View style={styles.bookingInfo}>
                   <Text style={styles.bookingLabel}>Client</Text>
@@ -342,7 +332,7 @@ export default function VideoCallPrepScreen({ navigation, route }) {
               {/* Date */}
               <View style={styles.bookingRow}>
                 <View style={styles.bookingIconContainer}>
-                  <Ionicons name="calendar-outline" size={20} color="#667eea" />
+                  <Ionicons name="calendar-outline" size={20} color="#ED2A46" />
                 </View>
                 <View style={styles.bookingInfo}>
                   <Text style={styles.bookingLabel}>Date</Text>
@@ -360,7 +350,7 @@ export default function VideoCallPrepScreen({ navigation, route }) {
               {/* Time */}
               <View style={styles.bookingRow}>
                 <View style={styles.bookingIconContainer}>
-                  <Ionicons name="time-outline" size={20} color="#667eea" />
+                  <Ionicons name="time-outline" size={20} color="#ED2A46" />
                 </View>
                 <View style={styles.bookingInfo}>
                   <Text style={styles.bookingLabel}>Time</Text>
@@ -399,7 +389,7 @@ export default function VideoCallPrepScreen({ navigation, route }) {
               {/* Meeting Status */}
               {isCheckingMeeting && (
                 <View style={styles.statusContainer}>
-                  <ActivityIndicator size="small" color="#667eea" />
+                  <ActivityIndicator size="small" color="#ED2A46" />
                   <Text style={styles.statusText}>
                     {meetingStatus === 'checking' ? 'Checking for existing meeting...' : 'Creating meeting...'}
                   </Text>
@@ -452,33 +442,14 @@ export default function VideoCallPrepScreen({ navigation, route }) {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
-    </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    paddingHorizontal: 20,
     flex: 1,
-    backgroundColor: '#F5F5F5',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: StatusBar.currentHeight || 40,
-    paddingBottom: 16,
-    paddingHorizontal: 16,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFF',
   },
   content: {
     flex: 1,
@@ -487,10 +458,28 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    padding: 20,
+    paddingTop: 10,
   },
   previewSection: {
-    marginBottom: 24,
+    marginBottom: 15,
+    flex: 1,
+    flexDirection:'row',
+    justifyContent:'space-between',
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    backdropFilter: "blur(40px)",
+    borderRadius: 30,
+    borderBottomWidth: 2,
+    borderRightWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.21)",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 10,
+    },
+    padding:20,
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 10,
   },
   sectionTitle: {
     fontSize: 18,
@@ -499,11 +488,12 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   previewContainer: {
-    borderRadius: 16,
+    borderRadius: 30,
     overflow: 'hidden',
     backgroundColor: '#000',
-    aspectRatio: 3 / 4,
-    maxHeight: 400,
+    aspectRatio: 4 / 4,
+    maxHeight: 180,
+    width: '80%',
   },
   preview: {
     width: '100%',
@@ -534,27 +524,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   previewControls: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
+    flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     gap: 16,
   },
   previewButton: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+   
+    backdropFilter: 'blur(40px)',
+    borderBottomWidth: 1,
+    borderRightWidth: 0.2,
+    borderColor: 'rgba(255, 255, 255, 0.21)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   previewButtonMuted: {
-    backgroundColor: '#f5576c',
+    
   },
   bookingCard: {
     backgroundColor: '#FFF',
@@ -590,7 +578,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 10,
-    backgroundColor: '#F0F4FF',
+    backgroundColor: '#FFF0F2',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -656,12 +644,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 16,
     padding: 12,
-    backgroundColor: '#F0F4FF',
+    backgroundColor: '#FFF0F2',
     borderRadius: 10,
   },
   statusText: {
     fontSize: 14,
-    color: '#667eea',
+    color: '#ED2A46',
     marginLeft: 8,
     fontWeight: '500',
   },
@@ -681,16 +669,32 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   bottomSection: {
-    padding: 20,
-    backgroundColor: '#FFF',
     borderTopWidth: 1,
     borderTopColor: '#E0E0E0',
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    backdropFilter: "blur(40px)",
+    borderRadius: 30,
+    borderBottomWidth: 2,
+    borderRightWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.21)",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 10,
+    },
+    padding:20,
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 10,
+    marginBottom: 10,
+    maxWidth: 600,
+    
   },
   joinButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#667eea',
+    backgroundColor: '#ED2A46',
     borderRadius: 12,
     paddingVertical: 16,
     gap: 8,
