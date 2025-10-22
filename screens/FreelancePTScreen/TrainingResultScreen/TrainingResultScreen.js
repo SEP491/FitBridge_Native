@@ -50,6 +50,7 @@ export const TrainingResultScreen = ({ route, navigation }) => {
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState(null);
   const [selectedMetric, setSelectedMetric] = useState('Weight'); // 'Weight', 'Reps', 'Time'
   const [showMuscleDropdown, setShowMuscleDropdown] = useState(false);
+  const [activeTab, setActiveTab] = useState('overview'); // 'overview' or 'details'
 
   console.log('Muscle Report:', muscleReport);
 
@@ -205,14 +206,6 @@ export const TrainingResultScreen = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#333" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t('trainingResults.title')}</Text>
-        <View style={{ width: 24 }} />
-      </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Customer & Package Info */}
@@ -221,412 +214,513 @@ export const TrainingResultScreen = ({ route, navigation }) => {
           <Text style={styles.packageName}>{pkg.packageName}</Text>
         </View>
 
-        {/* Overview Statistics */}
-        <StatCard title={t('trainingResults.overview')} icon="stats-chart">
-          <View style={styles.overviewGrid}>
-            <View style={styles.overviewItem}>
-              <Text style={styles.overviewValue}>{stats.completionRate?.toFixed(2)}%</Text>
-              <Text style={styles.overviewLabel}>{t('trainingResults.completionRate')}</Text>
-            </View>
-            <View style={styles.overviewItem}>
-              <Text style={styles.overviewValue}>{stats.activityCompletionRate?.toFixed(2)}%</Text>
-              <Text style={styles.overviewLabel}>{t('trainingResults.activityRate')}</Text>
-            </View>
-          </View>
-        </StatCard>
+        {/* Tab Navigation */}
+        <View style={styles.tabContainer}>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === 'overview' && styles.activeTab]}
+            onPress={() => setActiveTab('overview')}
+          >
+            <Ionicons
+              name="stats-chart"
+              size={20}
+              color={activeTab === 'overview' ? '#ED2A46' : '#64748B'}
+            />
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === 'overview' && styles.activeTabText,
+              ]}
+            >
+              Overview & Progress
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === 'details' && styles.activeTab]}
+            onPress={() => setActiveTab('details')}
+          >
+            <Ionicons
+              name="analytics"
+              size={20}
+              color={activeTab === 'details' ? '#ED2A46' : '#64748B'}
+            />
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === 'details' && styles.activeTabText,
+              ]}
+            >
+              Detailed Statistics
+            </Text>
+          </TouchableOpacity>
+        </View>
 
-                {/* Daily Muscle Group Progress Chart */}
-        {muscleReport?.muscleGroupActivities && muscleReport.muscleGroupActivities.length > 0 && (
-          <StatCard title="Daily Progress Tracking" icon="trending-up">
-            {/* Muscle Group Dropdown */}
-            <View style={styles.chartControlsContainer}>
-              <Text style={styles.chartControlLabel}>Muscle Group:</Text>
-              <TouchableOpacity 
-                style={styles.dropdownButton}
-                onPress={() => setShowMuscleDropdown(true)}
-              >
-                <Text style={styles.dropdownButtonText}>
-                  {selectedMuscleGroup || 'Select Muscle Group'}
-                </Text>
-                <Ionicons name="chevron-down" size={20} color="#666" />
-              </TouchableOpacity>
-            </View>
-
-            {/* Metric Selection Buttons */}
-            <View style={styles.metricButtonsContainer}>
-              <TouchableOpacity
-                style={[
-                  styles.metricButton,
-                  selectedMetric === 'Weight' && styles.metricButtonActive
-                ]}
-                onPress={() => setSelectedMetric('Weight')}
-              >
-                <Ionicons 
-                  name="barbell" 
-                  size={18} 
-                  color={selectedMetric === 'Weight' ? '#fff' : '#666'} 
-                />
-                <Text style={[
-                  styles.metricButtonText,
-                  selectedMetric === 'Weight' && styles.metricButtonTextActive
-                ]}>
-                  Weight
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  styles.metricButton,
-                  selectedMetric === 'Reps' && styles.metricButtonActive
-                ]}
-                onPress={() => setSelectedMetric('Reps')}
-              >
-                <Ionicons 
-                  name="fitness" 
-                  size={18} 
-                  color={selectedMetric === 'Reps' ? '#fff' : '#666'} 
-                />
-                <Text style={[
-                  styles.metricButtonText,
-                  selectedMetric === 'Reps' && styles.metricButtonTextActive
-                ]}>
-                  Reps
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  styles.metricButton,
-                  selectedMetric === 'Time' && styles.metricButtonActive
-                ]}
-                onPress={() => setSelectedMetric('Time')}
-              >
-                <Ionicons 
-                  name="time" 
-                  size={18} 
-                  color={selectedMetric === 'Time' ? '#fff' : '#666'} 
-                />
-                <Text style={[
-                  styles.metricButtonText,
-                  selectedMetric === 'Time' && styles.metricButtonTextActive
-                ]}>
-                  Time
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Line Chart */}
-            {prepareLineChartData() && (
-              <View style={styles.lineChartContainer}>
-                <LineChart
-                  data={prepareLineChartData()}
-                  width={SCREEN_WIDTH - 64}
-                  height={250}
-                  chartConfig={{
-                    backgroundColor: '#ffffff',
-                    backgroundGradientFrom: '#ffffff',
-                    backgroundGradientTo: '#ffffff',
-                    decimalPlaces: 0,
-                    color: (opacity = 1) => `rgba(237, 42, 70, ${opacity})`,
-                    labelColor: (opacity = 1) => `rgba(51, 51, 51, ${opacity})`,
-                    style: {
-                      borderRadius: 16,
-                    },
-                    propsForDots: {
-                      r: '6',
-                      strokeWidth: '2',
-                      stroke: '#ED2A46'
-                    },
-                    propsForBackgroundLines: {
-                      strokeDasharray: '', // solid lines
-                      stroke: '#E0E0E0',
-                      strokeWidth: 1,
-                    },
-                  }}
-                  bezier
-                  style={styles.lineChart}
-                  withInnerLines={true}
-                  withOuterLines={true}
-                  withVerticalLabels={true}
-                  withHorizontalLabels={true}
-                  fromZero
-                />
+        {/* Overview & Progress Tab */}
+        {activeTab === 'overview' && (
+          <>
+            {/* Overview Statistics */}
+            <StatCard title={t('trainingResults.overview')} icon="stats-chart">
+              <View style={styles.overviewGrid}>
+                <View style={styles.overviewItem}>
+                  <Text style={styles.overviewValue}>{stats.completionRate?.toFixed(2)}%</Text>
+                  <Text style={styles.overviewLabel}>{t('trainingResults.completionRate')}</Text>
+                </View>
+                <View style={styles.overviewItem}>
+                  <Text style={styles.overviewValue}>{stats.activityCompletionRate?.toFixed(2)}%</Text>
+                  <Text style={styles.overviewLabel}>{t('trainingResults.activityRate')}</Text>
+                </View>
               </View>
+            </StatCard>
+
+            {/* Daily Muscle Group Progress Chart */}
+            {muscleReport?.muscleGroupActivities && muscleReport.muscleGroupActivities.length > 0 && (
+              <StatCard title="Daily Progress Tracking" icon="trending-up">
+                {/* Muscle Group Dropdown */}
+                <View style={styles.chartControlsContainer}>
+                  <Text style={styles.chartControlLabel}>Muscle Group:</Text>
+                  <TouchableOpacity 
+                    style={styles.dropdownButton}
+                    onPress={() => setShowMuscleDropdown(true)}
+                  >
+                    <Text style={styles.dropdownButtonText}>
+                      {selectedMuscleGroup || 'Select Muscle Group'}
+                    </Text>
+                    <Ionicons name="chevron-down" size={20} color="#666" />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Metric Selection Buttons */}
+                <View style={styles.metricButtonsContainer}>
+                  <TouchableOpacity
+                    style={[
+                      styles.metricButton,
+                      selectedMetric === 'Weight' && styles.metricButtonActive
+                    ]}
+                    onPress={() => setSelectedMetric('Weight')}
+                  >
+                    <Ionicons 
+                      name="barbell" 
+                      size={18} 
+                      color={selectedMetric === 'Weight' ? '#fff' : '#666'} 
+                    />
+                    <Text style={[
+                      styles.metricButtonText,
+                      selectedMetric === 'Weight' && styles.metricButtonTextActive
+                    ]}>
+                      Weight
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.metricButton,
+                      selectedMetric === 'Reps' && styles.metricButtonActive
+                    ]}
+                    onPress={() => setSelectedMetric('Reps')}
+                  >
+                    <Ionicons 
+                      name="fitness" 
+                      size={18} 
+                      color={selectedMetric === 'Reps' ? '#fff' : '#666'} 
+                    />
+                    <Text style={[
+                      styles.metricButtonText,
+                      selectedMetric === 'Reps' && styles.metricButtonTextActive
+                    ]}>
+                      Reps
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.metricButton,
+                      selectedMetric === 'Time' && styles.metricButtonActive
+                    ]}
+                    onPress={() => setSelectedMetric('Time')}
+                  >
+                    <Ionicons 
+                      name="time" 
+                      size={18} 
+                      color={selectedMetric === 'Time' ? '#fff' : '#666'} 
+                    />
+                    <Text style={[
+                      styles.metricButtonText,
+                      selectedMetric === 'Time' && styles.metricButtonTextActive
+                    ]}>
+                      Time
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Line Chart */}
+                {prepareLineChartData() && (
+                  <View style={styles.lineChartContainer}>
+                    <LineChart
+                      data={prepareLineChartData()}
+                      width={SCREEN_WIDTH - 64}
+                      height={250}
+                      chartConfig={{
+                        backgroundColor: '#ffffff',
+                        backgroundGradientFrom: '#ffffff',
+                        backgroundGradientTo: '#ffffff',
+                        decimalPlaces: 0,
+                        color: (opacity = 1) => `rgba(237, 42, 70, ${opacity})`,
+                        labelColor: (opacity = 1) => `rgba(51, 51, 51, ${opacity})`,
+                        style: {
+                          borderRadius: 16,
+                        },
+                        propsForDots: {
+                          r: '6',
+                          strokeWidth: '2',
+                          stroke: '#ED2A46'
+                        },
+                        propsForBackgroundLines: {
+                          strokeDasharray: '', // solid lines
+                          stroke: '#E0E0E0',
+                          strokeWidth: 1,
+                        },
+                      }}
+                      bezier
+                      style={styles.lineChart}
+                      withInnerLines={true}
+                      withOuterLines={true}
+                      withVerticalLabels={true}
+                      withHorizontalLabels={true}
+                      fromZero
+                    />
+                  </View>
+                )}
+
+                {/* Summary Stats for Selected Muscle */}
+                {selectedMuscleGroup && muscleReport.muscleGroupActivities.find(m => m.muscleGroup === selectedMuscleGroup) && (
+                  <View style={styles.muscleSummaryContainer}>
+                    {(() => {
+                      const muscleData = muscleReport.muscleGroupActivities.find(m => m.muscleGroup === selectedMuscleGroup);
+                      return (
+                        <>
+                          <View style={styles.muscleSummaryRow}>
+                            <View style={styles.muscleSummaryItem}>
+                              <Text style={styles.muscleSummaryValue}>{muscleData.setsCompleted}/{muscleData.setsCount}</Text>
+                              <Text style={styles.muscleSummaryLabel}>Sets Completed</Text>
+                            </View>
+                            <View style={styles.muscleSummaryItem}>
+                              <Text style={[styles.muscleSummaryValue, { color: '#4CAF50' }]}>
+                                {muscleData.totalWeight} kg
+                              </Text>
+                              <Text style={styles.muscleSummaryLabel}>Total Weight</Text>
+                            </View>
+                          </View>
+                          <View style={styles.muscleSummaryRow}>
+                            <View style={styles.muscleSummaryItem}>
+                              <Text style={[styles.muscleSummaryValue, { color: '#2196F3' }]}>
+                                {muscleData.totalReps}
+                              </Text>
+                              <Text style={styles.muscleSummaryLabel}>Total Reps</Text>
+                            </View>
+                            <View style={styles.muscleSummaryItem}>
+                              <Text style={[styles.muscleSummaryValue, { color: '#FF9800' }]}>
+                                {muscleData.averageWeightLifted?.toFixed(1)} kg
+                              </Text>
+                              <Text style={styles.muscleSummaryLabel}>Avg Weight</Text>
+                            </View>
+                          </View>
+                        </>
+                      );
+                    })()}
+                  </View>
+                )}
+              </StatCard>
             )}
 
-            {/* Summary Stats for Selected Muscle */}
-            {selectedMuscleGroup && muscleReport.muscleGroupActivities.find(m => m.muscleGroup === selectedMuscleGroup) && (
-              <View style={styles.muscleSummaryContainer}>
-                {(() => {
-                  const muscleData = muscleReport.muscleGroupActivities.find(m => m.muscleGroup === selectedMuscleGroup);
-                  return (
-                    <>
-                      <View style={styles.muscleSummaryRow}>
-                        <View style={styles.muscleSummaryItem}>
-                          <Text style={styles.muscleSummaryValue}>{muscleData.setsCompleted}/{muscleData.setsCount}</Text>
-                          <Text style={styles.muscleSummaryLabel}>Sets Completed</Text>
-                        </View>
-                        <View style={styles.muscleSummaryItem}>
-                          <Text style={[styles.muscleSummaryValue, { color: '#4CAF50' }]}>
-                            {muscleData.totalWeight} kg
-                          </Text>
-                          <Text style={styles.muscleSummaryLabel}>Total Weight</Text>
-                        </View>
-                      </View>
-                      <View style={styles.muscleSummaryRow}>
-                        <View style={styles.muscleSummaryItem}>
-                          <Text style={[styles.muscleSummaryValue, { color: '#2196F3' }]}>
-                            {muscleData.totalReps}
-                          </Text>
-                          <Text style={styles.muscleSummaryLabel}>Total Reps</Text>
-                        </View>
-                        <View style={styles.muscleSummaryItem}>
-                          <Text style={[styles.muscleSummaryValue, { color: '#FF9800' }]}>
-                            {muscleData.averageWeightLifted?.toFixed(1)} kg
-                          </Text>
-                          <Text style={styles.muscleSummaryLabel}>Avg Weight</Text>
-                        </View>
-                      </View>
-                    </>
-                  );
-                })()}
-              </View>
-            )}
-          </StatCard>
-        )}
-
-        {/* Session Statistics */}
-        <StatCard title={t('trainingResults.sessions')} icon="calendar">
-          <StatRow 
-            label={t('trainingResults.totalSessions')} 
-            value={stats.totalSessions} 
-            icon="fitness-outline"
-          />
-          <StatRow 
-            label={t('trainingResults.completedSessions')} 
-            value={stats.completedSessions} 
-            icon="checkmark-circle-outline"
-            valueColor="#4CAF50"
-          />
-          <StatRow 
-            label={t('trainingResults.cancelledSessions')} 
-            value={stats.cancelledSessions} 
-            icon="close-circle-outline"
-            valueColor="#F44336"
-          />
-          <StatRow 
-            label={t('trainingResults.upcomingSessions')} 
-            value={stats.upcomingSessions} 
-            icon="time-outline"
-            valueColor="#2196F3"
-          />
-          <StatRow 
-            label={t('trainingResults.availableSessions')} 
-            value={stats.availableSessions} 
-            icon="calendar-outline"
-          />
-          <StatRow 
-            label={t('trainingResults.expirationDate')} 
-            value={new Date(stats.expirationDate).toLocaleDateString()} 
-            icon="flag-outline"
-          />
-        </StatCard>
-
-        {/* Activity Statistics */}
-        <StatCard title={t('trainingResults.activities')} icon="barbell">
-          <StatRow 
-            label={t('trainingResults.totalActivities')} 
-            value={stats.totalActivities} 
-          />
-          <StatRow 
-            label={t('trainingResults.totalActivitySets')} 
-            value={stats.totalActivitySets} 
-          />
-          <StatRow 
-            label={t('trainingResults.completedActivitySets')} 
-            value={stats.completedActivitySets} 
-            valueColor="#4CAF50"
-          />
-          <StatRow 
-            label={t('trainingResults.averageSetsPerSession')} 
-            value={stats.averageSetsPerSession} 
-          />
-        </StatCard>
-
-        {/* Performance Metrics */}
-        <StatCard title={t('trainingResults.performance')} icon="trophy">
-          <StatRow 
-            label={t('trainingResults.averageSessionTime')} 
-            value={`${Math.floor(stats.averageSessionTimeSeconds / 60)}m ${stats.averageSessionTimeSeconds % 60}s`}
-            icon="timer-outline"
-          />
-          <StatRow 
-            label={t('trainingResults.averageWeightLifted')} 
-            value={`${stats.averageWeightLifted?.toFixed(1)} kg`}
-            icon="barbell-outline"
-          />
-        </StatCard>
-
-        {/* Muscle Group Performance */}
-        {stats.mostTrainedMuscleGroup && (
-          <StatCard title={t('trainingResults.mostTrainedMuscleGroup')} icon="body">
-            <View style={styles.muscleGroupCard}>
-              {getMuscleGroupImage(stats.mostTrainedMuscleGroup.muscleGroup) && (
-                <Image 
-                  source={getMuscleGroupImage(stats.mostTrainedMuscleGroup.muscleGroup)}
-                  style={styles.muscleGroupImage}
-                  resizeMode="contain"
-                />
-              )}
-              <Text style={styles.muscleGroupName}>{stats.mostTrainedMuscleGroup.muscleGroup}</Text>
-              <View style={styles.muscleGroupStats}>
-                <View style={styles.muscleGroupStat}>
-                  <Text style={[styles.muscleGroupStatValue, { color: '#2196F3' }]}>{stats.mostTrainedMuscleGroup.totalSets}</Text>
-                  <Text style={styles.muscleGroupStatLabel}>{t('trainingResults.sets')}</Text>
-                </View>
-                <View style={styles.muscleGroupStat}>
-                  <Text style={[styles.muscleGroupStatValue, { color: '#FF6B35' }]}>{stats.mostTrainedMuscleGroup.totalWeight}</Text>
-                  <Text style={styles.muscleGroupStatLabel}>{t('trainingResults.weightKg')}</Text>
-                </View>
-                <View style={styles.muscleGroupStat}>
-                  <Text style={[styles.muscleGroupStatValue, { color: '#4CAF50' }]}>{stats.mostTrainedMuscleGroup.activityCount}</Text>
-                  <Text style={styles.muscleGroupStatLabel}>{t('trainingResults.activities')}</Text>
-                </View>
-              </View>
-            </View>
-          </StatCard>
-        )}
-
-        {stats.leastTrainedMuscleGroup && (
-          <StatCard title={t('trainingResults.leastTrainedMuscleGroup')} icon="body-outline">
-            <View style={styles.muscleGroupCard}>
-              {getMuscleGroupImage(stats.leastTrainedMuscleGroup.muscleGroup) && (
-                <Image 
-                  source={getMuscleGroupImage(stats.leastTrainedMuscleGroup.muscleGroup)}
-                  style={styles.muscleGroupImage}
-                  resizeMode="contain"
-                />
-              )}
-              <Text style={styles.muscleGroupName}>{stats.leastTrainedMuscleGroup.muscleGroup}</Text>
-              <View style={styles.muscleGroupStats}>
-                <View style={styles.muscleGroupStat}>
-                  <Text style={[styles.muscleGroupStatValue, { color: '#2196F3' }]}>{stats.leastTrainedMuscleGroup.totalSets}</Text>
-                  <Text style={styles.muscleGroupStatLabel}>{t('trainingResults.sets')}</Text>
-                </View>
-                <View style={styles.muscleGroupStat}>
-                  <Text style={[styles.muscleGroupStatValue, { color: '#FF6B35' }]}>{stats.leastTrainedMuscleGroup.totalWeight}</Text>
-                  <Text style={styles.muscleGroupStatLabel}>{t('trainingResults.weightKg')}</Text>
-                </View>
-                <View style={styles.muscleGroupStat}>
-                  <Text style={[styles.muscleGroupStatValue, { color: '#4CAF50' }]}>{stats.leastTrainedMuscleGroup.activityCount}</Text>
-                  <Text style={styles.muscleGroupStatLabel}>{t('trainingResults.activities')}</Text>
-                </View>
-              </View>
-            </View>
-          </StatCard>
-        )}
-
-        {/* Workout Statistics */}
-        {stats.workoutStatistics && (
-          <StatCard title={t('trainingResults.workoutDetails')} icon="analytics">
-            <StatRow 
-              label={t('trainingResults.totalWeightLifted')} 
-              value={`${stats.workoutStatistics.totalWeightLifted} kg`}
-              icon="barbell-outline"
-            />
-            <StatRow 
-              label={t('trainingResults.totalRepsCompleted')} 
-              value={`${stats.workoutStatistics.totalRepsCompleted} / ${stats.workoutStatistics.plannedNumOfReps}`}
-            />
-            <StatRow 
-              label={t('trainingResults.totalPracticeTime')} 
-              value={`${Math.floor(stats.workoutStatistics.totalPracticeTimeSeconds / 60)}m / ${Math.floor(stats.workoutStatistics.plannedPracticeTime / 60)}m`}
-            />
-            <StatRow 
-              label={t('trainingResults.averageRestTime')} 
-              value={`${stats.workoutStatistics.averageRestTimeSeconds}s`}
-            />
-          </StatCard>
-        )}
-
-        {/* User Goals Progress */}
-        {mockedUserGoals && mockedUserGoals.length > 0 && (
-          <StatCard title={t('trainingResults.userGoals') || 'User Goals Progress'} icon="trending-up">
-            <View style={styles.chartContainer}>
-              <StackedBarChart
-                data={prepareGoalsChartData()}
-                width={SCREEN_WIDTH - 64}
-                height={280}
-                chartConfig={chartConfig}
-                style={styles.chart}
-                fromZero
-                showBarTops={false}
-                withInnerLines={true}
-                segments={5}
-              />
-              <View style={styles.legendContainer}>
-                <View style={styles.legendItem}>
-                  <View style={[styles.legendDot, { backgroundColor: '#94A3B8' }]} />
-                  <Text style={styles.legendText}>{t('trainingResults.start') || 'Start'}</Text>
-                </View>
-                <View style={styles.legendItem}>
-                  <View style={[styles.legendDot, { backgroundColor: '#4CAF50' }]} />
-                  <Text style={styles.legendText}>{t('trainingResults.current') || 'Current'}</Text>
-                </View>
-                <View style={styles.legendItem}>
-                  <View style={[styles.legendDot, { backgroundColor: '#ED2A46' }]} />
-                  <Text style={styles.legendText}>{t('trainingResults.target') || 'Target'}</Text>
-                </View>
-              </View>
-            </View>
-            
-            {/* Detailed Goals Info */}
-            <View style={styles.goalsDetailContainer}>
-              {mockedUserGoals.map((goal, index) => {
-                const muscleKey = goal.muscleGroup.toLowerCase();
-                const start = goal[`start${goal.muscleGroup}`] || 0;
-                const current = goal[`current${goal.muscleGroup}`] || 0;
-                const target = goal[`target${goal.muscleGroup}`] || 0;
-                const progressPercent = ((current - start) / (target - start) * 100)?.toFixed(1);
-                
-                return (
-                  <View key={index} style={styles.goalDetailItem}>
-                    <View style={styles.goalHeader}>
-                      <Text style={styles.goalMuscleGroup}>{goal.muscleGroup}</Text>
-                      <Text style={[
-                        styles.goalProgress,
-                        { color: progressPercent >= 100 ? '#4CAF50' : '#FF6B35' }
-                      ]}>
-                        {progressPercent}%
-                      </Text>
+            {/* Muscle Group Performance */}
+            {stats.mostTrainedMuscleGroup && (
+              <StatCard title={t('trainingResults.mostTrainedMuscleGroup')} icon="body">
+                <View style={styles.muscleGroupCard}>
+                  {getMuscleGroupImage(stats.mostTrainedMuscleGroup.muscleGroup) && (
+                    <Image 
+                      source={getMuscleGroupImage(stats.mostTrainedMuscleGroup.muscleGroup)}
+                      style={styles.muscleGroupImage}
+                      resizeMode="contain"
+                    />
+                  )}
+                  <Text style={styles.muscleGroupName}>{stats.mostTrainedMuscleGroup.muscleGroup}</Text>
+                  <View style={styles.muscleGroupStats}>
+                    <View style={styles.muscleGroupStat}>
+                      <Text style={[styles.muscleGroupStatValue, { color: '#2196F3' }]}>{stats.mostTrainedMuscleGroup.totalSets}</Text>
+                      <Text style={styles.muscleGroupStatLabel}>{t('trainingResults.sets')}</Text>
                     </View>
-                    <View style={styles.goalValues}>
-                      <View style={styles.goalValue}>
-                        <Text style={styles.goalValueLabel}>{t('trainingResults.start') || 'Start'}</Text>
-                        <Text style={styles.goalValueNumber}>{start}</Text>
-                      </View>
-                      <View style={styles.goalValue}>
-                        <Text style={styles.goalValueLabel}>{t('trainingResults.current') || 'Current'}</Text>
-                        <Text style={[styles.goalValueNumber, { color: '#4CAF50' }]}>{current}</Text>
-                      </View>
-                      <View style={styles.goalValue}>
-                        <Text style={styles.goalValueLabel}>{t('trainingResults.target') || 'Target'}</Text>
-                        <Text style={[styles.goalValueNumber, { color: '#ED2A46' }]}>{target}</Text>
-                      </View>
+                    <View style={styles.muscleGroupStat}>
+                      <Text style={[styles.muscleGroupStatValue, { color: '#FF6B35' }]}>{stats.mostTrainedMuscleGroup.totalWeight}</Text>
+                      <Text style={styles.muscleGroupStatLabel}>{t('trainingResults.weightKg')}</Text>
                     </View>
-                    <View style={styles.progressBar}>
-                      <View 
-                        style={[
-                          styles.progressBarFill, 
-                          { width: `${Math.min(progressPercent, 100)}%` }
-                        ]} 
-                      />
+                    <View style={styles.muscleGroupStat}>
+                      <Text style={[styles.muscleGroupStatValue, { color: '#4CAF50' }]}>{stats.mostTrainedMuscleGroup.activityCount}</Text>
+                      <Text style={styles.muscleGroupStatLabel}>{t('trainingResults.activities')}</Text>
                     </View>
                   </View>
-                );
-              })}
-            </View>
-          </StatCard>
+                </View>
+              </StatCard>
+            )}
+
+            {stats.leastTrainedMuscleGroup && (
+              <StatCard title={t('trainingResults.leastTrainedMuscleGroup')} icon="body-outline">
+                <View style={styles.muscleGroupCard}>
+                  {getMuscleGroupImage(stats.leastTrainedMuscleGroup.muscleGroup) && (
+                    <Image 
+                      source={getMuscleGroupImage(stats.leastTrainedMuscleGroup.muscleGroup)}
+                      style={styles.muscleGroupImage}
+                      resizeMode="contain"
+                    />
+                  )}
+                  <Text style={styles.muscleGroupName}>{stats.leastTrainedMuscleGroup.muscleGroup}</Text>
+                  <View style={styles.muscleGroupStats}>
+                    <View style={styles.muscleGroupStat}>
+                      <Text style={[styles.muscleGroupStatValue, { color: '#2196F3' }]}>{stats.leastTrainedMuscleGroup.totalSets}</Text>
+                      <Text style={styles.muscleGroupStatLabel}>{t('trainingResults.sets')}</Text>
+                    </View>
+                    <View style={styles.muscleGroupStat}>
+                      <Text style={[styles.muscleGroupStatValue, { color: '#FF6B35' }]}>{stats.leastTrainedMuscleGroup.totalWeight}</Text>
+                      <Text style={styles.muscleGroupStatLabel}>{t('trainingResults.weightKg')}</Text>
+                    </View>
+                    <View style={styles.muscleGroupStat}>
+                      <Text style={[styles.muscleGroupStatValue, { color: '#4CAF50' }]}>{stats.leastTrainedMuscleGroup.activityCount}</Text>
+                      <Text style={styles.muscleGroupStatLabel}>{t('trainingResults.activities')}</Text>
+                    </View>
+                  </View>
+                </View>
+              </StatCard>
+            )}
+
+            {/* User Goals Progress */}
+            {mockedUserGoals && mockedUserGoals.length > 0 && (
+              <StatCard title={t('trainingResults.userGoals') || 'User Goals Progress'} icon="trending-up">
+                <View style={styles.chartContainer}>
+                  <StackedBarChart
+                    data={prepareGoalsChartData()}
+                    width={SCREEN_WIDTH - 64}
+                    height={280}
+                    chartConfig={chartConfig}
+                    style={styles.chart}
+                    fromZero
+                    showBarTops={false}
+                    withInnerLines={true}
+                    segments={5}
+                  />
+                  <View style={styles.legendContainer}>
+                    <View style={styles.legendItem}>
+                      <View style={[styles.legendDot, { backgroundColor: '#94A3B8' }]} />
+                      <Text style={styles.legendText}>{t('trainingResults.start') || 'Start'}</Text>
+                    </View>
+                    <View style={styles.legendItem}>
+                      <View style={[styles.legendDot, { backgroundColor: '#4CAF50' }]} />
+                      <Text style={styles.legendText}>{t('trainingResults.current') || 'Current'}</Text>
+                    </View>
+                    <View style={styles.legendItem}>
+                      <View style={[styles.legendDot, { backgroundColor: '#ED2A46' }]} />
+                      <Text style={styles.legendText}>{t('trainingResults.target') || 'Target'}</Text>
+                    </View>
+                  </View>
+                </View>
+                
+                {/* Detailed Goals Info */}
+                <View style={styles.goalsDetailContainer}>
+                  {mockedUserGoals.map((goal, index) => {
+                    const muscleKey = goal.muscleGroup.toLowerCase();
+                    const start = goal[`start${goal.muscleGroup}`] || 0;
+                    const current = goal[`current${goal.muscleGroup}`] || 0;
+                    const target = goal[`target${goal.muscleGroup}`] || 0;
+                    const progressPercent = ((current - start) / (target - start) * 100)?.toFixed(1);
+                    
+                    return (
+                      <View key={index} style={styles.goalDetailItem}>
+                        <View style={styles.goalHeader}>
+                          <Text style={styles.goalMuscleGroup}>{goal.muscleGroup}</Text>
+                          <Text style={[
+                            styles.goalProgress,
+                            { color: progressPercent >= 100 ? '#4CAF50' : '#FF6B35' }
+                          ]}>
+                            {progressPercent}%
+                          </Text>
+                        </View>
+                        <View style={styles.goalValues}>
+                          <View style={styles.goalValue}>
+                            <Text style={styles.goalValueLabel}>{t('trainingResults.start') || 'Start'}</Text>
+                            <Text style={styles.goalValueNumber}>{start}</Text>
+                          </View>
+                          <View style={styles.goalValue}>
+                            <Text style={styles.goalValueLabel}>{t('trainingResults.current') || 'Current'}</Text>
+                            <Text style={[styles.goalValueNumber, { color: '#4CAF50' }]}>{current}</Text>
+                          </View>
+                          <View style={styles.goalValue}>
+                            <Text style={styles.goalValueLabel}>{t('trainingResults.target') || 'Target'}</Text>
+                            <Text style={[styles.goalValueNumber, { color: '#ED2A46' }]}>{target}</Text>
+                          </View>
+                        </View>
+                        <View style={styles.progressBar}>
+                          <View 
+                            style={[
+                              styles.progressBarFill, 
+                              { width: `${Math.min(progressPercent, 100)}%` }
+                            ]} 
+                          />
+                        </View>
+                      </View>
+                    );
+                  })}
+                </View>
+              </StatCard>
+            )}
+          </>
+        )}
+
+        {/* Detailed Statistics Tab */}
+        {activeTab === 'details' && (
+          <>
+            {/* Session Statistics */}
+            <StatCard title={t('trainingResults.sessions')} icon="calendar">
+              <StatRow 
+                label={t('trainingResults.totalSessions')} 
+                value={stats.totalSessions} 
+                icon="fitness-outline"
+              />
+              <StatRow 
+                label={t('trainingResults.completedSessions')} 
+                value={stats.completedSessions} 
+                icon="checkmark-circle-outline"
+                valueColor="#4CAF50"
+              />
+              <StatRow 
+                label={t('trainingResults.cancelledSessions')} 
+                value={stats.cancelledSessions} 
+                icon="close-circle-outline"
+                valueColor="#F44336"
+              />
+              <StatRow 
+                label={t('trainingResults.upcomingSessions')} 
+                value={stats.upcomingSessions} 
+                icon="time-outline"
+                valueColor="#2196F3"
+              />
+              <StatRow 
+                label={t('trainingResults.availableSessions')} 
+                value={stats.availableSessions} 
+                icon="calendar-outline"
+              />
+              <StatRow 
+                label={t('trainingResults.expirationDate')} 
+                value={new Date(stats.expirationDate).toLocaleDateString()} 
+                icon="flag-outline"
+              />
+            </StatCard>
+
+            {/* Activity Statistics */}
+            <StatCard title={t('trainingResults.activities')} icon="barbell">
+              <StatRow 
+                label={t('trainingResults.totalActivities')} 
+                value={stats.totalActivities} 
+              />
+              <StatRow 
+                label={t('trainingResults.totalActivitySets')} 
+                value={stats.totalActivitySets} 
+              />
+              <StatRow 
+                label={t('trainingResults.completedActivitySets')} 
+                value={stats.completedActivitySets} 
+                valueColor="#4CAF50"
+              />
+              <StatRow 
+                label={t('trainingResults.averageSetsPerSession')} 
+                value={stats.averageSetsPerSession} 
+              />
+            </StatCard>
+
+            {/* Performance Metrics */}
+            <StatCard title={t('trainingResults.performance')} icon="trophy">
+              <StatRow 
+                label={t('trainingResults.averageSessionTime')} 
+                value={`${Math.floor(stats.averageSessionTimeSeconds / 60)}m ${stats.averageSessionTimeSeconds % 60}s`}
+                icon="timer-outline"
+              />
+              <StatRow 
+                label={t('trainingResults.averageWeightLifted')} 
+                value={`${stats.averageWeightLifted?.toFixed(1)} kg`}
+                icon="barbell-outline"
+              />
+            </StatCard>
+
+            {/* Workout Statistics */}
+            {stats.workoutStatistics && (
+              <StatCard title={t('trainingResults.workoutDetails')} icon="analytics">
+                <StatRow 
+                  label={t('trainingResults.totalWeightLifted')} 
+                  value={`${stats.workoutStatistics.totalWeightLifted} kg`}
+                  icon="barbell-outline"
+                />
+                <StatRow 
+                  label={t('trainingResults.totalRepsCompleted')} 
+                  value={`${stats.workoutStatistics.totalRepsCompleted} / ${stats.workoutStatistics.plannedNumOfReps}`}
+                />
+                <StatRow 
+                  label={t('trainingResults.totalPracticeTime')} 
+                  value={`${Math.floor(stats.workoutStatistics.totalPracticeTimeSeconds / 60)}m / ${Math.floor(stats.workoutStatistics.plannedPracticeTime / 60)}m`}
+                />
+                <StatRow 
+                  label={t('trainingResults.averageRestTime')} 
+                  value={`${stats.workoutStatistics.averageRestTimeSeconds}s`}
+                />
+              </StatCard>
+            )}
+
+            {/* Activity Type Breakdown */}
+            {stats.workoutStatistics?.activityTypeBreakdown && (
+              <StatCard title={t('trainingResults.activityTypeBreakdown')} icon="list">
+                {Object.entries(stats.workoutStatistics.activityTypeBreakdown).map(([type, count]) => (
+                  <StatRow 
+                    key={type}
+                    label={type} 
+                    value={count}
+                  />
+                ))}
+              </StatCard>
+            )}
+
+            {/* Muscle Group Breakdown */}
+            {stats.muscleGroupBreakdown && stats.muscleGroupBreakdown.length > 0 && (
+              <StatCard title={t('trainingResults.muscleGroupBreakdown')} icon="body">
+                {stats.muscleGroupBreakdown.map((muscle, index) => (
+                  <View key={index} style={styles.muscleBreakdownItem}>
+                    <View style={styles.muscleBreakdownHeader}>
+                      {getMuscleGroupImage(muscle.muscleGroup) && (
+                        <Image 
+                          source={getMuscleGroupImage(muscle.muscleGroup)}
+                          style={styles.muscleBreakdownImage}
+                          resizeMode="contain"
+                        />
+                      )}
+                      <Text style={styles.muscleBreakdownName}>{muscle.muscleGroup}</Text>
+                    </View>
+                    <View style={styles.muscleBreakdownStats}>
+                      <View style={styles.muscleBreakdownStat}>
+                        <Text style={styles.muscleBreakdownLabel}>{t('trainingResults.activities')}</Text>
+                        <Text style={[styles.muscleBreakdownValue, { color: '#4CAF50' }]}>{muscle.activityCount}</Text>
+                      </View>
+                      <View style={styles.muscleBreakdownStat}>
+                        <Text style={styles.muscleBreakdownLabel}>{t('trainingResults.sets')}</Text>
+                        <Text style={[styles.muscleBreakdownValue, { color: '#2196F3' }]}>{muscle.setsCompleted}</Text>
+                      </View>
+                      <View style={styles.muscleBreakdownStat}>
+                        <Text style={styles.muscleBreakdownLabel}>{t('trainingResults.weightKg')}</Text>
+                        <Text style={[styles.muscleBreakdownValue, { color: '#FF6B35' }]}>{muscle.totalWeight}</Text>
+                      </View>
+                      <View style={styles.muscleBreakdownStat}>
+                        <Text style={styles.muscleBreakdownLabel}>{t('trainingResults.reps')}</Text>
+                        <Text style={[styles.muscleBreakdownValue, { color: '#9C27B0' }]}>{muscle.totalReps}</Text>
+                      </View>
+                    </View>
+                  </View>
+                ))}
+              </StatCard>
+            )}
+          </>
         )}
 
         {/* Muscle Group Dropdown Modal */}
@@ -790,6 +884,44 @@ const styles = StyleSheet.create({
   packageName: {
     fontSize: 16,
     color: '#666',
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 8,
+    padding: 4,
+    borderRadius: 12,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  tab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    gap: 6,
+  },
+  activeTab: {
+    backgroundColor: '#FFF0F2',
+    borderWidth: 2,
+    borderColor: '#ED2A46',
+  },
+  tabText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#64748B',
+  },
+  activeTabText: {
+    color: '#ED2A46',
+    fontWeight: '700',
   },
   statCard: {
     backgroundColor: '#fff',

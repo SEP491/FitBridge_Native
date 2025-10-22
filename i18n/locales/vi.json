@@ -82,7 +82,8 @@
     "notification": "Thông Báo",
     "packageDetail": "Chi Tiết Gói Tập",
     "bookingDetail": "Chi Tiết Đặt Lịch",
-    "activityDetail": "Chi Tiết Bài Tập"
+    "activityDetail": "Chi Tiết Bài Tập",
+    "trainingResult": "Thống Kê Tập Luyện"
   },
 
   "myPackage": {

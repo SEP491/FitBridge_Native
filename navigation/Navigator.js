@@ -1173,7 +1173,14 @@ export default function Navigator({
           name="TrainingResultScreen"
           component={TrainingResultScreen}
           options={{
-            headerShown: false,
+            headerShown: true,
+            title: t("screenTitles.trainingResult"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
           }}
         />
         <Stack.Screen
