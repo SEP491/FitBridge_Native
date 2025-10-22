@@ -315,7 +315,11 @@ export default function BookingDetailContent({
                     <Text style={styles.setDetailText}>
                       {activity.activitySetType === "Reps"
                         ? `${activity.totalPlannedNumOfReps || 0} reps`
-                        : `${activity.totalPlannedPracticeTime || 0}s`}
+                        : activity.activitySetType === "Time"
+                        ? `${activity.totalPlannedPracticeTime || 0}s`
+                        : activity.activitySetType === "Distance"
+                        ? `${activity.totalPlannedDistance || 0}m`
+                        : ""}
                     </Text>
                   </View>
                 </View>

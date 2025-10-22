@@ -79,6 +79,7 @@ import FreelancePTRequestScreen from "../screens/FreelancePTScreen/FreelancePTRe
 import BookingDetailScreen from "../screens/CustomerScreen/BookingDetailScreen/BookingDetailScreen";
 import TrainingActivityScreen from "../screens/CustomerScreen/TrainingActivityScreen/TrainingActivityScreen";
 import EditSessionActivityScreen from "../screens/CustomerScreen/EditSessionActivityScreen/EditSessionActivityScreen";
+import EditActivitySetScreen from "../screens/CustomerScreen/EditActivitySetScreen/EditActivitySetScreen";
 import ApplyVoucherScreen from "../screens/CommonScreen/ApplyVoucherScreen/ApplyVoucherScreen";
 
 export default function Navigator({
@@ -432,20 +433,7 @@ export default function Navigator({
             },
           }}
         />
-        <Stack.Screen
-          name="EditSessionActivityScreen"
-          component={EditSessionActivityScreen}
-          options={{
-            headerShown: true,
-            title: "Chỉnh sửa bài tập",
-            headerTitleAlign: "center",
-            headerTitleStyle: {
-              fontWeight: "bold",
-              fontSize: 20,
-              color: "#ED2A46",
-            },
-          }}
-        />
+
         <Stack.Screen
           name="TrainingActivityScreen"
           component={TrainingActivityScreen}
@@ -814,7 +802,20 @@ export default function Navigator({
             },
           }}
         />
-
+        <Stack.Screen
+          name="EditActivitySetScreen"
+          component={EditActivitySetScreen}
+          options={{
+            headerShown: true,
+            title: "Chỉnh sửa set",
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
         <Stack.Screen
           name="TrainingActivityScreen"
           component={TrainingActivityScreen}

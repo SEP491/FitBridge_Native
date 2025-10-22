@@ -52,7 +52,7 @@ const ACTIVITY_TYPES = [
   { id: "Rehab", name: "Rehab", color: "#FEF2F2", iconColor: "#DC2626" },
 ];
 
-const ACTIVITY_SET_TYPES = ["Reps", "Time"];
+const ACTIVITY_SET_TYPES = ["Reps", "Time", "Distance"];
 
 const MUSCLE_GROUPS = [
   { id: "Chest", name: "Ngực", image: bodyPartImages.chest },
@@ -87,7 +87,12 @@ export default function BookingDetailScreen({ route, navigation }) {
   const [activityName, setActivityName] = useState("");
   const [selectedMuscles, setSelectedMuscles] = useState([]);
   const [activitySets, setActivitySets] = useState([
-    { plannedNumOfReps: "", weightLifted: "", plannedPracticeTime: "" },
+    {
+      plannedNumOfReps: "",
+      weightLifted: "",
+      plannedPracticeTime: "",
+      plannedDistance: "",
+    },
   ]);
 
   useEffect(() => {
@@ -158,7 +163,12 @@ export default function BookingDetailScreen({ route, navigation }) {
   const addSet = () => {
     setActivitySets([
       ...activitySets,
-      { plannedNumOfReps: "", weightLifted: "", plannedPracticeTime: "" },
+      {
+        plannedNumOfReps: "",
+        weightLifted: "",
+        plannedPracticeTime: "",
+        plannedDistance: "",
+      },
     ]);
   };
 
@@ -180,7 +190,12 @@ export default function BookingDetailScreen({ route, navigation }) {
     setActivityName("");
     setSelectedMuscles([]);
     setActivitySets([
-      { plannedNumOfReps: "", weightLifted: "", plannedPracticeTime: "" },
+      {
+        plannedNumOfReps: "",
+        weightLifted: "",
+        plannedPracticeTime: "",
+        plannedDistance: "",
+      },
     ]);
   };
 
@@ -199,9 +214,12 @@ export default function BookingDetailScreen({ route, navigation }) {
     const validSets = activitySets.filter((set) => {
       if (activitySetType === "Reps") {
         return set.plannedNumOfReps && set.plannedNumOfReps > 0;
-      } else {
+      }
+      if (activitySetType === "Time") {
         return set.plannedPracticeTime && set.plannedPracticeTime > 0;
       }
+      // Distance
+      return set.plannedDistance && set.plannedDistance > 0;
     });
 
     if (validSets.length === 0) {
@@ -222,10 +240,15 @@ export default function BookingDetailScreen({ route, navigation }) {
             activitySetType === "Reps"
               ? parseInt(set.plannedNumOfReps) || 0
               : 0,
-          weightLifted: parseFloat(set.weightLifted) || 0,
+          weightLifted:
+            activitySetType === "Reps" ? parseFloat(set.weightLifted) || 0 : 0,
           plannedPracticeTime:
             activitySetType === "Time"
               ? parseInt(set.plannedPracticeTime) || 0
+              : 0,
+          plannedDistance:
+            activitySetType === "Distance"
+              ? parseInt(set.plannedDistance) || 0
               : 0,
         })),
       };
@@ -407,19 +430,19 @@ export default function BookingDetailScreen({ route, navigation }) {
                 </View>
               </View>
 
-              {/* Activity Set Type */}
+              {/* Activity Set Type - vertical list */}
               <View style={styles.formSection}>
                 <Text style={styles.formLabel}>
                   {t("bookingDetail.exerciseType")}
                 </Text>
-                <View style={styles.typeButtonsContainer}>
+                <View style={{ gap: 10 }}>
                   {ACTIVITY_SET_TYPES.map((type) => (
                     <TouchableOpacity
                       key={type}
                       style={[
                         styles.typeButton,
-                        styles.halfButton,
                         activitySetType === type && styles.typeButtonActive,
+                        { width: "100%" },
                       ]}
                       onPress={() => setActivitySetType(type)}
                     >
@@ -446,7 +469,9 @@ export default function BookingDetailScreen({ route, navigation }) {
                       >
                         {type === "Reps"
                           ? t("bookingDetail.reps")
-                          : t("bookingDetail.time")}
+                          : type === "Time"
+                          ? t("bookingDetail.time")
+                          : t("bookingDetail.distance")}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -546,7 +571,7 @@ export default function BookingDetailScreen({ route, navigation }) {
                           />
                         </View>
                       </View>
-                    ) : (
+                    ) : activitySetType === "Time" ? (
                       <View style={styles.setInputRow}>
                         <View style={styles.inputWrapper}>
                           <Text style={styles.inputLabel}>
@@ -559,6 +584,23 @@ export default function BookingDetailScreen({ route, navigation }) {
                             value={set.plannedPracticeTime}
                             onChangeText={(val) =>
                               updateSet(index, "plannedPracticeTime", val)
+                            }
+                          />
+                        </View>
+                      </View>
+                    ) : (
+                      <View style={styles.setInputRow}>
+                        <View style={styles.inputWrapper}>
+                          <Text style={styles.inputLabel}>
+                            {t("bookingDetail.distance")}
+                          </Text>
+                          <TextInput
+                            style={styles.smallInput}
+                            placeholder="1000"
+                            keyboardType="numeric"
+                            value={set.plannedDistance}
+                            onChangeText={(val) =>
+                              updateSet(index, "plannedDistance", val)
                             }
                           />
                         </View>

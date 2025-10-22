@@ -48,7 +48,7 @@ const ACTIVITY_TYPES = [
   { id: "Rehab", name: "Rehab", color: "#FEF2F2", iconColor: "#DC2626" },
 ];
 
-const ACTIVITY_SET_TYPES = ["Reps", "Time"];
+const ACTIVITY_SET_TYPES = ["Reps", "Time", "Distance"];
 
 const MUSCLE_GROUPS = [
   { id: "Chest", name: "Ngực", image: bodyPartImages.chest },
@@ -72,6 +72,11 @@ export default function EditSessionActivityScreen({ route, navigation }) {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  // Activity sets state
+  const [activitySets, setActivitySets] = useState([]);
+  const [setsLoading, setSetsLoading] = useState(false);
+  const [savingSetId, setSavingSetId] = useState(null);
 
   // Form states
   const [activityType, setActivityType] = useState(
@@ -98,14 +103,13 @@ export default function EditSessionActivityScreen({ route, navigation }) {
   const fetchUser = async () => {
     try {
       const user = await fetchUserFromStorage();
-      console.log("Current user:", user.role);
       setUserRole(user.role);
-
       // Only allow FreelancePT to edit
       if (user.role !== "FreelancePT") {
         Alert.alert(
-          "Access Denied",
-          "Only FreelancePT can edit session activities"
+          t("bookingDetail.accessDeniedTitle") || "Access Denied",
+          t("bookingDetail.accessDeniedMessage") ||
+            "Only FreelancePT can edit session activities"
         );
         navigation.goBack();
         return;
@@ -115,14 +119,94 @@ export default function EditSessionActivityScreen({ route, navigation }) {
     }
   };
 
+  const loadSets = async () => {
+    setSetsLoading(true);
+    try {
+      const res = await bookingService.getSetsOfActivity(sessionActivity.id);
+      setActivitySets(res.data || []);
+    } catch (error) {
+      console.error("Error loading activity sets:", error);
+      Alert.alert(
+        t("common.error") || "Lỗi",
+        t("bookingDetail.errorLoadingSets") || "Không thể tải danh sách set"
+      );
+    } finally {
+      setSetsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (sessionActivity?.id) {
+      loadSets();
+    }
+  }, [sessionActivity?.id]);
+
+  // Refresh sets when returning to this screen
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("focus", () => {
+      if (sessionActivity?.id) {
+        loadSets();
+      }
+    });
+    return unsubscribe;
+  }, [navigation, sessionActivity?.id]);
+
+  const updateSetField = (setId, field, value) => {
+    setActivitySets((prev) =>
+      prev.map((s) => (s.id === setId ? { ...s, [field]: value } : s))
+    );
+  };
+
+  const handleSaveSet = async (setObj) => {
+    try {
+      setSavingSetId(setObj.id);
+      const payload = {
+        activitySetId: setObj.id,
+        weightLifted: Number(setObj.weightLifted) || 0,
+        plannedNumOfReps:
+          activitySetType === "Reps" ? Number(setObj.plannedNumOfReps) || 0 : 0,
+        plannedPracticeTime:
+          activitySetType === "Time"
+            ? Number(setObj.plannedPracticeTime) || 0
+            : 0,
+        plannedDistance:
+          activitySetType === "Distance"
+            ? Number(setObj.plannedDistance) || 0
+            : 0,
+      };
+
+      await bookingService.updateActivitySetPlan(payload);
+      Alert.alert(
+        t("common.success") || "Thành công",
+        t("bookingDetail.updateSetSuccess") || "Đã cập nhật set thành công"
+      );
+    } catch (error) {
+      console.error("Error updating set plan:", error);
+      Alert.alert(
+        t("common.error") || "Lỗi",
+        error.response?.data?.message ||
+          t("bookingDetail.updateSetError") ||
+          "Không thể cập nhật set"
+      );
+    } finally {
+      setSavingSetId(null);
+    }
+  };
+
   const handleSave = async () => {
     // Validation
     if (!activityName.trim()) {
-      Alert.alert("Lỗi", "Vui lòng nhập tên hoạt động");
+      Alert.alert(
+        t("common.error") || "Lỗi",
+        t("bookingDetail.enterExerciseName") || "Vui lòng nhập tên hoạt động"
+      );
       return;
     }
     if (!muscleGroup) {
-      Alert.alert("Lỗi", "Vui lòng chọn nhóm cơ");
+      Alert.alert(
+        t("common.error") || "Lỗi",
+        t("bookingDetail.selectMuscleGroup") || "Vui lòng chọn nhóm cơ"
+      );
       return;
     }
 
@@ -138,20 +222,27 @@ export default function EditSessionActivityScreen({ route, navigation }) {
         muscleGroup: muscleGroup,
       };
 
-      console.log("Updating session activity:", payload);
       await bookingService.updateSessionActivity(payload);
 
-      Alert.alert("Thành công", "Đã cập nhật hoạt động thành công", [
-        {
-          text: "OK",
-          onPress: () => navigation.goBack(),
-        },
-      ]);
+      Alert.alert(
+        t("common.success") || "Thành công",
+        t("bookingDetail.updateActivitySuccess") ||
+          "Đã cập nhật hoạt động thành công",
+        [
+          {
+            text: t("common.ok") || "OK",
+            onPress: () =>
+              navigation.navigate("BookingDetailScreen", { refresh: true }),
+          },
+        ]
+      );
     } catch (error) {
       console.error("Error updating session activity:", error);
       Alert.alert(
-        "Lỗi",
-        error.response?.data?.message || "Không thể cập nhật hoạt động"
+        t("common.error") || "Lỗi",
+        error.response?.data?.message ||
+          t("bookingDetail.updateActivityError") ||
+          "Không thể cập nhật hoạt động"
       );
     } finally {
       setSaving(false);
@@ -160,15 +251,16 @@ export default function EditSessionActivityScreen({ route, navigation }) {
 
   const handleDelete = () => {
     Alert.alert(
-      "Xác nhận xóa",
-      "Bạn có chắc chắn muốn xóa hoạt động này? Hành động này không thể hoàn tác.",
+      t("bookingDetail.confirmDeleteTitle") || "Xác nhận xóa",
+      t("bookingDetail.confirmDeleteMessage") ||
+        "Bạn có chắc chắn muốn xóa hoạt động này? Hành động này không thể hoàn tác.",
       [
         {
-          text: "Hủy",
+          text: t("common.cancel") || "Hủy",
           style: "cancel",
         },
         {
-          text: "Xóa",
+          text: t("common.delete") || "Xóa",
           style: "destructive",
           onPress: confirmDelete,
         },
@@ -181,17 +273,25 @@ export default function EditSessionActivityScreen({ route, navigation }) {
     try {
       await bookingService.deleteSessionActivity(sessionActivity.id);
 
-      Alert.alert("Thành công", "Đã xóa hoạt động thành công", [
-        {
-          text: "OK",
-          onPress: () => navigation.goBack(),
-        },
-      ]);
+      Alert.alert(
+        t("common.success") || "Thành công",
+        t("bookingDetail.deleteActivitySuccess") ||
+          "Đã xóa hoạt động thành công",
+        [
+          {
+            text: t("common.ok") || "OK",
+            onPress: () =>
+              navigation.navigate("BookingDetailScreen", { refresh: true }),
+          },
+        ]
+      );
     } catch (error) {
       console.error("Error deleting session activity:", error);
       Alert.alert(
-        "Lỗi",
-        error.response?.data?.message || "Không thể xóa hoạt động"
+        t("common.error") || "Lỗi",
+        error.response?.data?.message ||
+          t("bookingDetail.deleteActivityError") ||
+          "Không thể xóa hoạt động"
       );
     } finally {
       setDeleting(false);
@@ -217,15 +317,18 @@ export default function EditSessionActivityScreen({ route, navigation }) {
       >
         {/* Header */}
 
-        {/* Activity Type Selection */}
+        {/* Activity Type Selection (horizontal) */}
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Loại hoạt động</Text>
+          <Text style={styles.sectionLabel}>
+            {t("bookingDetail.activityType") || "Loại hoạt động"}
+          </Text>
           <View style={styles.typeButtonsContainer}>
             {ACTIVITY_TYPES.map((type) => (
               <TouchableOpacity
                 key={type.id}
                 style={[
                   styles.typeButton,
+                  styles.halfButton,
                   activityType === type.id && styles.typeButtonActive,
                 ]}
                 onPress={() => setActivityType(type.id)}
@@ -248,17 +351,19 @@ export default function EditSessionActivityScreen({ route, navigation }) {
           </View>
         </View>
 
-        {/* Activity Set Type */}
+        {/* Exercise Type Selection (vertical) */}
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Loại bài tập</Text>
-          <View style={styles.typeButtonsContainer}>
+          <Text style={styles.sectionLabel}>
+            {t("bookingDetail.exerciseType") || "Loại bài tập"}
+          </Text>
+          <View style={styles.verticalListContainer}>
             {ACTIVITY_SET_TYPES.map((type) => (
               <TouchableOpacity
                 key={type}
                 style={[
                   styles.typeButton,
-                  styles.halfButton,
                   activitySetType === type && styles.setTypeButtonActive,
+                  { width: "100%" },
                 ]}
                 onPress={() => setActivitySetType(type)}
               >
@@ -275,7 +380,11 @@ export default function EditSessionActivityScreen({ route, navigation }) {
                     activitySetType === type && styles.setTypeButtonTextActive,
                   ]}
                 >
-                  {type === "Reps" ? "Số lần lặp" : "Thời gian"}
+                  {type === "Reps"
+                    ? t("bookingDetail.reps") || "Số lần lặp"
+                    : type === "Time"
+                    ? t("bookingDetail.time") || "Thời gian"
+                    : t("bookingDetail.distance") || "Quãng đường"}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -284,7 +393,9 @@ export default function EditSessionActivityScreen({ route, navigation }) {
 
         {/* Muscle Group Selection */}
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Nhóm cơ</Text>
+          <Text style={styles.sectionLabel}>
+            {t("bookingDetail.mainMuscleGroups") || "Nhóm cơ"}
+          </Text>
           <View style={styles.muscleGrid}>
             {MUSCLE_GROUPS.map((muscle) => (
               <TouchableOpacity
@@ -314,10 +425,14 @@ export default function EditSessionActivityScreen({ route, navigation }) {
 
         {/* Activity Name */}
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Tên hoạt động</Text>
+          <Text style={styles.sectionLabel}>
+            {t("bookingDetail.exerciseName") || "Tên hoạt động"}
+          </Text>
           <TextInput
             style={styles.input}
-            placeholder="Nhập tên hoạt động"
+            placeholder={
+              t("bookingDetail.enterExerciseName") || "Nhập tên hoạt động"
+            }
             value={activityName}
             onChangeText={setActivityName}
           />
@@ -325,10 +440,14 @@ export default function EditSessionActivityScreen({ route, navigation }) {
 
         {/* Note */}
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Ghi chú</Text>
+          <Text style={styles.sectionLabel}>
+            {t("bookingDetail.notes") || "Ghi chú"}
+          </Text>
           <TextInput
             style={[styles.input, styles.textArea]}
-            placeholder="Nhập ghi chú"
+            placeholder={
+              t("bookingDetail.addNotesPlaceholder") || "Nhập ghi chú"
+            }
             value={note}
             onChangeText={setNote}
             multiline
@@ -338,15 +457,87 @@ export default function EditSessionActivityScreen({ route, navigation }) {
 
         {/* Nutrition Tip */}
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Lời khuyên dinh dưỡng</Text>
+          <Text style={styles.sectionLabel}>
+            {t("bookingDetail.nutritionTip") || "Lời khuyên dinh dưỡng"}
+          </Text>
           <TextInput
             style={[styles.input, styles.textArea]}
-            placeholder="Nhập lời khuyên dinh dưỡng"
+            placeholder={
+              t("bookingDetail.enterNutritionTip") ||
+              "Nhập lời khuyên dinh dưỡng"
+            }
             value={nutritionTip}
             onChangeText={setNutritionTip}
             multiline
             numberOfLines={4}
           />
+        </View>
+
+        {/* Activity Sets (view-only with edit icon) */}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>
+            {t("bookingDetail.exerciseSets") || "Các Set"}
+          </Text>
+
+          {setsLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color={colors.orange} />
+            </View>
+          ) : activitySets.length === 0 ? (
+            <Text style={styles.emptySetsText}>
+              {t("bookingDetail.noSets") || "Chưa có set nào"}
+            </Text>
+          ) : (
+            activitySets.map((setItem, idx) => {
+              const isReps = activitySetType === "Reps";
+              const isTime = activitySetType === "Time";
+              const isDistance = activitySetType === "Distance";
+
+              return (
+                <View key={setItem.id} style={styles.setRow}>
+                  <View style={styles.setHeaderRow}>
+                    <Text style={styles.setIndex}>Set {idx + 1}</Text>
+                    <TouchableOpacity
+                      onPress={() =>
+                        navigation.navigate("EditActivitySetScreen", {
+                          set: setItem,
+                          activitySetType,
+                        })
+                      }
+                    >
+                      <Ionicons
+                        name="create-outline"
+                        size={22}
+                        color={colors.orange}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                  <View style={styles.setSummaryRow}>
+                    {!isDistance && (
+                      <Text style={styles.setSummaryText}>
+                        {setItem.weightLifted || 0} kg
+                      </Text>
+                    )}
+                    {isReps && (
+                      <Text style={styles.setSummaryText}>
+                        {setItem.plannedNumOfReps || 0} reps
+                      </Text>
+                    )}
+                    {isTime && (
+                      <Text style={styles.setSummaryText}>
+                        {setItem.plannedPracticeTime || 0}s
+                      </Text>
+                    )}
+                    {isDistance && (
+                      <Text style={styles.setSummaryText}>
+                        {setItem.plannedDistance || 0} m
+                      </Text>
+                    )}
+                  </View>
+                </View>
+              );
+            })
+          )}
         </View>
 
         {/* Action Buttons */}
@@ -361,7 +552,9 @@ export default function EditSessionActivityScreen({ route, navigation }) {
             ) : (
               <>
                 <Ionicons name="trash-outline" size={20} color="#FFFFFF" />
-                <Text style={styles.deleteButtonText}>Xóa</Text>
+                <Text style={styles.deleteButtonText}>
+                  {t("common.delete") || "Xóa"}
+                </Text>
               </>
             )}
           </TouchableOpacity>
@@ -376,7 +569,9 @@ export default function EditSessionActivityScreen({ route, navigation }) {
             ) : (
               <>
                 <Ionicons name="save-outline" size={20} color="#FFFFFF" />
-                <Text style={styles.saveButtonText}>Lưu</Text>
+                <Text style={styles.saveButtonText}>
+                  {t("common.save") || "Lưu"}
+                </Text>
               </>
             )}
           </TouchableOpacity>
@@ -418,6 +613,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 12,
+  },
+  verticalListContainer: {
+    flexDirection: "column",
+    gap: 10,
   },
   typeButton: {
     flex: 1,
@@ -598,5 +797,64 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "700",
+  },
+  // Sets editing styles
+  emptySetsText: {
+    color: "#64748B",
+    fontSize: 14,
+    fontWeight: "600",
+    paddingHorizontal: 4,
+  },
+  setRow: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: "#E2E8F0",
+    padding: 12,
+    marginBottom: 12,
+    shadowColor: "#64748B",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  setHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
+  setIndex: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#1E293B",
+  },
+  setFieldsRow: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  fieldGroup: {
+    flex: 1,
+  },
+  fieldLabel: {
+    fontSize: 12,
+    color: "#64748B",
+    marginBottom: 6,
+    fontWeight: "600",
+  },
+  saveSetButton: {
+    backgroundColor: colors.orange,
+    marginTop: 12,
+    gap: 8,
+  },
+  setSummaryRow: {
+    flexDirection: "row",
+    gap: 12,
+    alignItems: "center",
+  },
+  setSummaryText: {
+    fontSize: 14,
+    color: "#64748B",
+    fontWeight: "600",
   },
 });
