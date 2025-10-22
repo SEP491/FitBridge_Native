@@ -269,34 +269,6 @@ export default function BookingDetailScreen({ route, navigation }) {
     );
   }
 
-  // Get unique activity types from sessionActivities
-  const getUniqueActivityTypes = () => {
-    if (
-      !bookingDetail?.sessionActivities ||
-      bookingDetail.sessionActivities.length === 0
-    ) {
-      return [];
-    }
-    const types = bookingDetail.sessionActivities.map(
-      (activity) => activity.activityType
-    );
-    return [...new Set(types)];
-  };
-
-  // Get unique muscle groups from sessionActivities
-  const getUniqueMuscleGroups = () => {
-    if (
-      !bookingDetail?.sessionActivities ||
-      bookingDetail.sessionActivities.length === 0
-    ) {
-      return [];
-    }
-    const muscleGroups = bookingDetail.sessionActivities.flatMap(
-      (activity) => activity.muscleGroups || []
-    );
-    return [...new Set(muscleGroups)];
-  };
-
   const renderTabContent = () => {
     if (activeTab === "details") {
       return (
