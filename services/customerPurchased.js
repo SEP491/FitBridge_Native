@@ -11,5 +11,7 @@ const customerPurchasedService = {
   getCustomerPurchasedPackageResult: (customerPurchasedId) =>
     request("GET", `v1/customer-purchased/result/${customerPurchasedId}`),
 
+  getCustomerPurchasedMuscleReport: (customerPurchasedId) =>
+    request("GET", `v1/customer-purchased/result/${customerPurchasedId}/detail`),
 };
 export default customerPurchasedService;

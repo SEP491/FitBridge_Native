@@ -1435,7 +1435,14 @@
     "totalPracticeTime": "Total Practice Time",
     "averageRestTime": "Average Rest Time",
     "activityTypeBreakdown": "Activity Type Breakdown",
-    "muscleGroupBreakdown": "Muscle Group Breakdown"
+    "muscleGroupBreakdown": "Muscle Group Breakdown",
+    "userGoals": "User Goals Progress",
+    "startValue": "Start",
+    "progress": "Progress",
+    "remaining": "Remaining",
+    "start": "Start",
+    "current": "Current",
+    "target": "Target"
   },
 
   "bookingRequest": {

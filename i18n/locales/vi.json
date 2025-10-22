@@ -1420,7 +1420,14 @@
     "totalPracticeTime": "Tổng Thời Gian Tập",
     "averageRestTime": "Thời Gian Nghỉ TB",
     "activityTypeBreakdown": "Phân Loại Hoạt Động",
-    "muscleGroupBreakdown": "Phân Tích Nhóm Cơ"
+    "muscleGroupBreakdown": "Phân Tích Nhóm Cơ",
+    "userGoals": "Tiến Độ Mục Tiêu",
+    "startValue": "Khởi Đầu",
+    "progress": "Tiến Độ",
+    "remaining": "Còn Lại",
+    "start": "Bắt Đầu",
+    "current": "Hiện Tại",
+    "target": "Mục Tiêu"
   },
   "bookingRequest": {
     "title": "Yêu Cầu Đặt Lịch",

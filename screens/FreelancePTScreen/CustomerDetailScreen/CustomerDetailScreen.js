@@ -35,6 +35,7 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
   const { customer } = route.params;
   const [expandedPackages, setExpandedPackages] = useState({});
   const [packageStatistics, setPackageStatistics] = useState({});
+  const [packageMuscleReports, setPackageMuscleReports] = useState({});
   const [loadingStats, setLoadingStats] = useState({});
 
   const fetchPackageStatistics = async (pkgId, index) => {
@@ -57,6 +58,25 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
       console.error('Failed to fetch package statistics:', error);
     } finally {
       setLoadingStats(prev => ({ ...prev, [index]: false }));
+    }
+  }
+
+  const fetchPackageMuscleReport = async (pkgId, index) => {
+    if (packageMuscleReports[pkgId]) {
+      return; // Already fetched
+    }
+
+    try {
+      const response = await customerPurchasedService.getCustomerPurchasedMuscleReport(pkgId);
+      console.log('Package Muscle Report Response:', response);
+      if (response?.status === "200" && response?.data) {
+        setPackageMuscleReports(prev => ({
+          ...prev,
+          [pkgId]: response.data
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to fetch package muscle report:', error);
     }
   }
 
@@ -95,16 +115,19 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
       [index]: !prev[index]
     }));
 
-    // Fetch statistics when expanding
+    // Fetch statistics and muscle report when expanding
     if (isExpanding && pkg.id) {
       await fetchPackageStatistics(pkg.id, index);
+      await fetchPackageMuscleReport(pkg.id, index);
     }
   };
 
   const handleViewDetails = (pkg, stats) => {
+    const muscleReport = packageMuscleReports[pkg.id];
     navigation.navigate('TrainingResultScreen', {
       package: pkg,
       statistics: stats,
+      muscleReport: muscleReport,
       customer: customer
     });
   };
