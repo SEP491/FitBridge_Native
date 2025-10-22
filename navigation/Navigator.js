@@ -77,8 +77,9 @@ import ScheduleFreelanceScreen from "../screens/CustomerScreen/ScheduleFreelance
 import FreelanceChoosingCourseScreen from "../screens/FreelancePTScreen/FreelanceChoosingCourseScreen/FreelanceChoosingCourseScreen";
 import FreelancePTRequestScreen from "../screens/FreelancePTScreen/FreelancePTRequestScreen/FreelancePTRequestScreen";
 import BookingDetailScreen from "../screens/CustomerScreen/BookingDetailScreen/BookingDetailScreen";
-import SessionActivityDetailScreen from "../screens/CustomerScreen/SessionActivityDetailScreen/SessionActivityDetailScreen";
 import TrainingActivityScreen from "../screens/CustomerScreen/TrainingActivityScreen/TrainingActivityScreen";
+import EditSessionActivityScreen from "../screens/CustomerScreen/EditSessionActivityScreen/EditSessionActivityScreen";
+import EditActivitySetScreen from "../screens/CustomerScreen/EditActivitySetScreen/EditActivitySetScreen";
 import ApplyVoucherScreen from "../screens/CommonScreen/ApplyVoucherScreen/ApplyVoucherScreen";
 
 export default function Navigator({
@@ -432,6 +433,7 @@ export default function Navigator({
             },
           }}
         />
+
         <Stack.Screen
           name="TrainingActivityScreen"
           component={TrainingActivityScreen}
@@ -722,6 +724,7 @@ export default function Navigator({
             },
           }}
         />
+
         <Stack.Screen
           name="VideoCallPrep"
           component={VideoCallPrepScreen}
@@ -786,11 +789,25 @@ export default function Navigator({
           }}
         />
         <Stack.Screen
-          name="SessionActivityDetailScreen"
-          component={SessionActivityDetailScreen}
+          name="EditSessionActivityScreen"
+          component={EditSessionActivityScreen}
           options={{
             headerShown: true,
-            title: t("screenTitles.activityDetail") || "Chi tiết bài tập",
+            title: "Chỉnh sửa bài tập",
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="EditActivitySetScreen"
+          component={EditActivitySetScreen}
+          options={{
+            headerShown: true,
+            title: "Chỉnh sửa set",
             headerTitleAlign: "center",
             headerTitleStyle: {
               fontWeight: "bold",

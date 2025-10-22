@@ -45,12 +45,12 @@ export default function TrainingActivityScreen({ route, navigation }) {
         );
         console.log("Activity Detail Response:", response);
         setActivityDetail(response.data);
-        
+
         // Find the first uncompleted set and set it as current
         const firstUncompletedIndex = response.data.activitySets.findIndex(
           (set) => !set.isCompleted
         );
-        
+
         // If found, set it as current index, otherwise keep at 0
         if (firstUncompletedIndex !== -1) {
           setCurrentSetIndex(firstUncompletedIndex);
@@ -74,7 +74,7 @@ export default function TrainingActivityScreen({ route, navigation }) {
 
   // Handle back button press
   useEffect(() => {
-    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+    const unsubscribe = navigation.addListener("beforeRemove", (e) => {
       // If no unsaved changes or not resting, allow navigation
       if (!hasUnsavedChanges && !isResting) {
         return;
@@ -86,7 +86,8 @@ export default function TrainingActivityScreen({ route, navigation }) {
       // Show alert about unsaved changes
       Alert.alert(
         t("trainingActivity.warning"),
-        t("trainingActivity.unsavedChangesWarning") || "You have unsaved changes. Your workout result will not be saved if you leave now.",
+        t("trainingActivity.unsavedChangesWarning") ||
+          "You have unsaved changes. Your workout result will not be saved if you leave now.",
         [
           {
             text: t("common.cancel") || "Cancel",
@@ -111,7 +112,7 @@ export default function TrainingActivityScreen({ route, navigation }) {
     });
 
     return unsubscribe;
-  }, [navigation, hasUnsavedChanges, isResting]);  // Timer for Time-based exercises (countdown)
+  }, [navigation, hasUnsavedChanges, isResting]); // Timer for Time-based exercises (countdown)
   useEffect(() => {
     if (isTimerRunning && activityDetail?.activitySetType === "Time") {
       timerRef.current = setInterval(() => {
@@ -272,40 +273,6 @@ export default function TrainingActivityScreen({ route, navigation }) {
     }
   };
 
-  const goToNextSet = () => {
-    if (hasUnsavedChanges) {
-      Alert.alert(
-        t("trainingActivity.warning"),
-        t("trainingActivity.saveBeforeSwitch"),
-        [{ text: "OK" }]
-      );
-      return;
-    }
-
-    if (currentSetIndex < (activityDetail?.activitySets.length || 0) - 1) {
-      setCurrentSetIndex(currentSetIndex + 1);
-      setCurrentReps(0);
-      setCurrentTime(0);
-    }
-  };
-
-  const goToPreviousSet = () => {
-    if (hasUnsavedChanges) {
-      Alert.alert(
-        t("trainingActivity.warning"),
-        t("trainingActivity.saveBeforeSwitch"),
-        [{ text: "OK" }]
-      );
-      return;
-    }
-
-    if (currentSetIndex > 0) {
-      setCurrentSetIndex(currentSetIndex - 1);
-      setCurrentReps(0);
-      setCurrentTime(0);
-    }
-  };
-
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -354,14 +321,12 @@ export default function TrainingActivityScreen({ route, navigation }) {
             <>
               {isRepsMode && (
                 <View style={styles.repsContainer}>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={styles.controlReps}
                     onPress={decrementReps}
                     activeOpacity={0.8}
                   >
-                    <Text style={styles.controlRepsText}>
-                      -
-                    </Text>
+                    <Text style={styles.controlRepsText}>-</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.mainTimerTouchable}
@@ -375,13 +340,11 @@ export default function TrainingActivityScreen({ route, navigation }) {
                       / {currentSet.plannedNumOfReps} reps
                     </Text>
                   </TouchableOpacity>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={styles.controlReps}
                     onPress={incrementReps}
                   >
-                    <Text style={styles.controlRepsText}>
-                      +
-                    </Text>
+                    <Text style={styles.controlRepsText}>+</Text>
                   </TouchableOpacity>
                 </View>
               )}

@@ -19,6 +19,15 @@ const bookingService = {
 
   getBookingResult: (bookingId) =>
     request("GET", `v1/bookings/result/${bookingId}`),
+
+  updateActivitySetPlan: (data) => request("PUT", `v1/activity-sets`, data),
+  deleteActivitySet: (activitySetId) =>
+    request("DELETE", `v1/activity-sets/${activitySetId}`),
+  updateSessionActivity: (data) =>
+    request("PUT", `v1/session-activities`, data),
+
+  deleteSessionActivity: (sessionActivityId) =>
+    request("DELETE", `v1/session-activities/${sessionActivityId}`),
 };
 
 export default bookingService;
