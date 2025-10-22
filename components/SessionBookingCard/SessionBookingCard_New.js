@@ -184,15 +184,22 @@ const SessionBookingCard = ({
 
         {/* Meeting Button Section */}
           <TouchableOpacity
-            style={styles.meetingButton}
+            style={[
+              styles.meetingButton,
+              (isBookingInPast || isActionDisabled) && styles.disabledMeetingButton
+            ]}
             onPress={handleJoinMeeting}
+            disabled={isBookingInPast || isActionDisabled}
           >
             <Ionicons
-              name="videocam-outline"
+              name={(isBookingInPast || isActionDisabled) ? "ban-outline" : "videocam-outline"}
               size={18}
-              color={colors.white}
+              color={(isBookingInPast || isActionDisabled) ? "#999" : colors.white}
             />
-            <Text style={styles.meetingButtonText}>
+            <Text style={[
+              styles.meetingButtonText,
+              (isBookingInPast || isActionDisabled) && styles.disabledMeetingButtonText
+            ]}>
               {t ? t("calendar.meetingOnline") : "Join Meeting Online"}
             </Text>
           </TouchableOpacity>
@@ -433,6 +440,15 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.white,
     fontWeight: "700",
+  },
+  disabledMeetingButton: {
+    backgroundColor: "#F8F9FA",
+    borderColor: "#E9ECEF",
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  disabledMeetingButtonText: {
+    color: "#999",
   },
 
   editButton: {

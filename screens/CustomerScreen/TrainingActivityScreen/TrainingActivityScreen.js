@@ -45,6 +45,16 @@ export default function TrainingActivityScreen({ route, navigation }) {
         );
         console.log("Activity Detail Response:", response);
         setActivityDetail(response.data);
+        
+        // Find the first uncompleted set and set it as current
+        const firstUncompletedIndex = response.data.activitySets.findIndex(
+          (set) => !set.isCompleted
+        );
+        
+        // If found, set it as current index, otherwise keep at 0
+        if (firstUncompletedIndex !== -1) {
+          setCurrentSetIndex(firstUncompletedIndex);
+        }
       } catch (error) {
         console.error("Error fetching activity detail:", error);
         Alert.alert(
@@ -62,7 +72,46 @@ export default function TrainingActivityScreen({ route, navigation }) {
     };
   }, [activityId]);
 
-  // Timer for Time-based exercises (countdown)
+  // Handle back button press
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+      // If no unsaved changes or not resting, allow navigation
+      if (!hasUnsavedChanges && !isResting) {
+        return;
+      }
+
+      // Prevent default behavior of leaving the screen
+      e.preventDefault();
+
+      // Show alert about unsaved changes
+      Alert.alert(
+        t("trainingActivity.warning"),
+        t("trainingActivity.unsavedChangesWarning") || "You have unsaved changes. Your workout result will not be saved if you leave now.",
+        [
+          {
+            text: t("common.cancel") || "Cancel",
+            style: "cancel",
+            onPress: () => {},
+          },
+          {
+            text: t("trainingActivity.leaveAnyway") || "Leave Anyway",
+            style: "destructive",
+            onPress: () => {
+              // Reset states before leaving
+              setHasUnsavedChanges(false);
+              setIsResting(false);
+              setIsWorkoutActive(false);
+              setIsTimerRunning(false);
+              // Navigate back
+              navigation.dispatch(e.data.action);
+            },
+          },
+        ]
+      );
+    });
+
+    return unsubscribe;
+  }, [navigation, hasUnsavedChanges, isResting]);  // Timer for Time-based exercises (countdown)
   useEffect(() => {
     if (isTimerRunning && activityDetail?.activitySetType === "Time") {
       timerRef.current = setInterval(() => {
@@ -134,6 +183,12 @@ export default function TrainingActivityScreen({ route, navigation }) {
     }
   };
 
+  const decrementReps = () => {
+    if (isWorkoutActive && activityDetail?.activitySetType === "Reps") {
+      setCurrentReps((prev) => (prev > 0 ? prev - 1 : 0));
+    }
+  };
+
   const toggleTimer = () => {
     setIsTimerRunning((prev) => !prev);
   };
@@ -197,6 +252,18 @@ export default function TrainingActivityScreen({ route, navigation }) {
       setHasUnsavedChanges(false);
       setIsResting(false);
       setActualRestTime(0);
+
+      // Find the next uncompleted set
+      const nextUncompletedIndex = updatedSets.findIndex(
+        (set, index) => index > currentSetIndex && !set.isCompleted
+      );
+
+      // Move to next uncompleted set if found
+      if (nextUncompletedIndex !== -1) {
+        setCurrentSetIndex(nextUncompletedIndex);
+        setCurrentReps(0);
+        setCurrentTime(0);
+      }
 
       Alert.alert(t("common.success"), t("trainingActivity.resultSaved"));
     } catch (error) {
@@ -286,18 +353,37 @@ export default function TrainingActivityScreen({ route, navigation }) {
           ) : (
             <>
               {isRepsMode && (
-                <TouchableOpacity
-                  style={styles.mainTimerTouchable}
-                  onPress={incrementReps}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.mainTimerText}>
-                    {currentReps.toString().padStart(2, "0")}
-                  </Text>
-                  <Text style={styles.repsSubtext}>
-                    / {currentSet.plannedNumOfReps} reps
-                  </Text>
-                </TouchableOpacity>
+                <View style={styles.repsContainer}>
+                  <TouchableOpacity 
+                    style={styles.controlReps}
+                    onPress={decrementReps}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.controlRepsText}>
+                      -
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.mainTimerTouchable}
+                    onPress={incrementReps}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.mainTimerText}>
+                      {currentReps.toString().padStart(2, "0")}
+                    </Text>
+                    <Text style={styles.repsSubtext}>
+                      / {currentSet.plannedNumOfReps} reps
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={styles.controlReps}
+                    onPress={incrementReps}
+                  >
+                    <Text style={styles.controlRepsText}>
+                      +
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               )}
               {isTimeMode && (
                 <View style={styles.mainTimerTouchable}>
@@ -519,6 +605,32 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F8FAFC",
   },
+  repsContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    display: "flex",
+    width: "100%",
+  },
+  controlReps: {
+    backgroundColor: "rgba(226, 232, 240, 0.22)",
+    borderWidth: 1,
+    borderColor: "rgba(226, 232, 240, 0.5)",
+    backdropFilter: "blur(10px)",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 3,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+  },
+  controlRepsText: {
+    fontSize: 24,
+    fontWeight: "600",
+    color: "#1E293B",
+  },
 
   // Main Timer Display
   timerDisplayContainer: {
@@ -546,6 +658,10 @@ const styles = StyleSheet.create({
     fontVariant: ["tabular-nums"],
   },
   mainTimerTouchable: {
+    paddingVertical: 20,
+    paddingHorizontal: 40,
+    borderRadius: 16,
+    justifyContent: "center",
     alignItems: "center",
   },
   repsSubtext: {

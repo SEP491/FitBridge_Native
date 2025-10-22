@@ -199,6 +199,7 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
               const packageStatus = getPackageStatus(pkg);
               const isExpanded = expandedPackages[index];
               const stats = packageStatistics[pkg.id];
+              
               const isLoadingStats = loadingStats[index];
               
               return (
@@ -219,7 +220,7 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
                           <Text style={styles.packageStatusText}>{packageStatus.status}</Text>
                         </View>
                         <Text style={styles.sessionsPreview}>
-                          {pkg.availableSessions} / {pkg.totalSessions || pkg.availableSessions} sessions
+                          {pkg.availableSessions} sessions left
                         </Text>
                       </View>
                     </View>
@@ -295,13 +296,34 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
                               </View>
                               <Text style={styles.statLabel}>Activity Rate</Text>
                             </View>
-                            
+
                             <View style={styles.statItem}>
-                              <View style={styles.sessionsBadge}>
-                                <Text style={styles.sessionsValue}>{stats.completedSessions}/{stats.totalSessions}</Text>
+                              <ProgressChart
+                                data={{
+                                  data: [(stats.totalSessions || 1) / ((stats?.totalSessions || 0) + (stats?.availableSessions || 0))]
+                                }}
+                                width={80}
+                                height={80}
+                                strokeWidth={8}
+                                radius={32}
+                                chartConfig={{
+                                  backgroundColor: '#f8f9fa',
+                                  backgroundGradientFrom: '#f8f9fa',
+                                  backgroundGradientTo: '#f8f9fa',
+                                  color: (opacity = 1) => `rgba(255, 152, 0, ${opacity})`,
+                                }}
+                                hideLegend={true}
+                                style={{ marginVertical: 0 }}
+                              />
+                              <View style={styles.progressChartLabel}>
+                                <Text style={[styles.progressChartValue, { color: '#FF9800' }]}>
+                                  {((stats.totalSessions || 1) / ((stats?.totalSessions || 0) + (stats?.availableSessions || 0))).toFixed(2)}%
+                                </Text>
                               </View>
-                              <Text style={styles.statLabel}>Sessions</Text>
+                              <Text style={styles.statLabel}>Sessions Used</Text>
                             </View>
+                            
+                            
                           </View>
 
                           {/* Most Trained Muscle Group Preview */}
@@ -355,7 +377,7 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
                             <Text style={styles.packageDetailLabel}>Sessions</Text>
                           </View>
                           <Text style={styles.packageDetailValue}>
-                            {pkg.availableSessions} / {pkg.totalSessions || pkg.availableSessions}
+                            {stats?.totalSessions} / {stats?.totalSessions + stats?.availableSessions}
                           </Text>
                         </View>
 
@@ -396,12 +418,12 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
                       </View>
 
                       {/* Progress Bar */}
-                      {pkg.totalSessions && (
+                      {pkg?.totalSessions && (
                         <View style={styles.progressSection}>
                           <View style={styles.progressHeader}>
                             <Text style={styles.progressLabel}>Progress</Text>
                             <Text style={styles.progressPercentage}>
-                              {Math.round(((pkg.totalSessions - pkg.availableSessions) / pkg.totalSessions) * 100)}%
+                              {Math.round(((pkg?.totalSessions - pkg?.availableSessions) / pkg?.totalSessions) * 100)}%
                             </Text>
                           </View>
                           <View style={styles.progressBarBackground}>
@@ -409,14 +431,14 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
                               style={[
                                 styles.progressBarFill,
                                 { 
-                                  width: `${((pkg.totalSessions - pkg.availableSessions) / pkg.totalSessions) * 100}%`,
+                                  width: `${((pkg?.totalSessions - pkg?.availableSessions) / pkg?.totalSessions) * 100}%`,
                                   backgroundColor: packageStatus.color
                                 }
                               ]}
                             />
                           </View>
                           <Text style={styles.progressText}>
-                            {pkg.totalSessions - pkg.availableSessions} completed • {pkg.availableSessions} remaining
+                            {pkg?.totalSessions - pkg?.availableSessions} completed • {pkg?.availableSessions} remaining
                           </Text>
                         </View>
                       )}

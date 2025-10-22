@@ -77,11 +77,11 @@ export const TrainingResultScreen = ({ route, navigation }) => {
         <StatCard title={t('trainingResults.overview')} icon="stats-chart">
           <View style={styles.overviewGrid}>
             <View style={styles.overviewItem}>
-              <Text style={styles.overviewValue}>{stats.completionRate?.toFixed(1)}%</Text>
+              <Text style={styles.overviewValue}>{stats.completionRate?.toFixed(2)}%</Text>
               <Text style={styles.overviewLabel}>{t('trainingResults.completionRate')}</Text>
             </View>
             <View style={styles.overviewItem}>
-              <Text style={styles.overviewValue}>{stats.activityCompletionRate?.toFixed(1)}%</Text>
+              <Text style={styles.overviewValue}>{stats.activityCompletionRate?.toFixed(2)}%</Text>
               <Text style={styles.overviewLabel}>{t('trainingResults.activityRate')}</Text>
             </View>
           </View>
