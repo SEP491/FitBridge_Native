@@ -20,6 +20,7 @@ import DeleteAccountBottomSheet from "../../../components/DeleteAccountBottomShe
 import { useTranslation } from "../../../hooks/useTranslation";
 import { ConnectionStates } from "../../../services/signalR/ConnectionStates";
 import signalR_webrtcService from "../../../services/signalR/signalR-webrtcService";
+import Purchases from "react-native-purchases";
 
 export default function UserMenuScreen() {
   const [user, setUser] = useState(null);
@@ -165,6 +166,9 @@ export default function UserMenuScreen() {
                       console.log("SignalR: Connection stopped on logout");
                     }
                     // Navigation will be handled automatically by the Navigator
+                    const { customerInfo } = await Purchases.logOut();
+
+                    console.log("✅ RevenueCat logged out (anonymous now)");
                   } else {
                     Alert.alert(t("common.error"), t("errors.logoutError"));
                   }

@@ -1,6 +1,6 @@
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Navigator from "./navigation/Navigator";
-import { View } from "react-native";
+import { Platform, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { CartProvider } from "./context/CartContext";
 import { LocationProvider } from "./context/LocationContext";
@@ -16,7 +16,10 @@ import { registerGlobals } from "react-native-webrtc";
 import "./i18n";
 import { MeetingStateProvider } from "./context/meetingStateContext";
 import { SignalR_WebRTCProvider } from "./context/signalrContext_webrtc";
-
+import Purchases, {
+  LOG_LEVEL,
+  PurchasesOffering,
+} from "react-native-purchases";
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
 
@@ -68,6 +71,21 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    let isRevenueCatInitialized = false;
+
+    if (!isRevenueCatInitialized) {
+      isRevenueCatInitialized = true;
+
+      Purchases.configure({
+        apiKey: process.env.EXPO_PUBLIC_REVENUE_CAT_APPLE,
+      });
+      console.log("✅ RevenueCat configured");
+    } else {
+      console.log("⏭️ Already configured, skipping");
+    }
+  }, []);
+
+  useEffect(() => {
     const hideSplashScreen = async () => {
       if (appIsReady) {
         await SplashScreen.hideAsync();
@@ -85,20 +103,23 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <SignalRProvider>
-        <SignalR_WebRTCProvider>
-          <WebRTCProvider>
-            <MeetingStateProvider>
-              <NotificationProvider>
-              <LocationProvider>
-                <FitnessProvider>
-                  <CartProvider>
-                    <Navigator isAuthenticated={isAuthenticated} user={user} />
-                  </CartProvider>
-                </FitnessProvider>
-              </LocationProvider>
-              </NotificationProvider>
-            </MeetingStateProvider>
-          </WebRTCProvider>
+          <SignalR_WebRTCProvider>
+            <WebRTCProvider>
+              <MeetingStateProvider>
+                <NotificationProvider>
+                  <LocationProvider>
+                    <FitnessProvider>
+                      <CartProvider>
+                        <Navigator
+                          isAuthenticated={isAuthenticated}
+                          user={user}
+                        />
+                      </CartProvider>
+                    </FitnessProvider>
+                  </LocationProvider>
+                </NotificationProvider>
+              </MeetingStateProvider>
+            </WebRTCProvider>
           </SignalR_WebRTCProvider>
         </SignalRProvider>
       </SafeAreaProvider>

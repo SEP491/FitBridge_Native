@@ -20,6 +20,7 @@ import { useNavigation } from "@react-navigation/native";
 import authService from "../../../services/authService";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTranslation } from "../../../hooks/useTranslation";
+import Purchases from "react-native-purchases";
 
 import { jwtDecode } from "jwt-decode";
 export default function LoginScreen() {
@@ -63,6 +64,18 @@ export default function LoginScreen() {
           role: userData.role,
           email: userData.email,
         };
+        const { customerInfo, created } = await Purchases.logIn(userData.sub);
+        if (created) {
+          console.log("✅ RevenueCat new user created:", userData.sub);
+        } else {
+          console.log("✅ RevenueCat existing user logged in:", userData.sub);
+        }
+        console.log("RevenueCat login successful for user:", userData.sub);
+        await Purchases.setAttributes({
+          email: userData.email,
+          displayName: userData.name,
+        });
+        console.log("RevenueCat attributes set for user:", userData.sub);
         await AsyncStorage.setItem("user", JSON.stringify(user));
         // Handle avatar - only store if it's not null/undefined
         if (userData.senderAvatar) {
