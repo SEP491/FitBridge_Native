@@ -427,7 +427,20 @@
     "personalTrainer": "Personal Trainer",
     "clear": "Clear",
     "loading": "Loading...",
-    "goBack": "Go Back"
+    "goBack": "Go Back",
+    "gym": "Gyms",
+    "freelancePT": "Freelance PT",
+    "priceRange": "Price Range",
+    "min": "Min",
+    "max": "Max",
+    "experienceYears": "Experience (Years)",
+    "minRating": "Minimum Rating",
+    "sortBy": "Sort By",
+    "relevance": "Relevance",
+    "priceAsc": "Price: Low to High",
+    "priceDesc": "Price: High to Low",
+    "rating": "Rating",
+    "experience": "Experience"
   },
 
   "freelancePT": {

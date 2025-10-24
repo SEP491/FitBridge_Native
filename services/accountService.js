@@ -47,6 +47,9 @@ const accountService = {
 
   getKeywords: (params) =>
     request("GET", "v1/accounts/hot-research", null, {}, params),
+
+  searchAllAccounts: (params) => 
+    request("GET", "v1/accounts/search", null, {}, params)
 };
 
 export default accountService;

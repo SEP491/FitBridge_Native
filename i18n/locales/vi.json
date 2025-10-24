@@ -428,7 +428,20 @@
     "personalTrainer": "Huấn Luyện Viên",
     "clear": "Xóa tất cả",
     "delete": "Xóa",
-    "loading": "Đang tải..."
+    "loading": "Đang tải...",
+    "gym": "Phòng tập",
+    "freelancePT": "PT Tự do",
+    "priceRange": "Khoảng giá",
+    "min": "Tối thiểu",
+    "max": "Tối đa",
+    "experienceYears": "Kinh nghiệm (Năm)",
+    "minRating": "Đánh giá tối thiểu",
+    "sortBy": "Sắp xếp theo",
+    "relevance": "Liên quan",
+    "priceAsc": "Giá: Thấp đến Cao",
+    "priceDesc": "Giá: Cao đến Thấp",
+    "rating": "Đánh giá",
+    "experience": "Kinh nghiệm"
   },
 
   "account": {
