@@ -1171,6 +1171,8 @@
 
   "payment": {
     "payment": "Thanh toán",
+    "apply": "Áp dụng",
+    "enterVoucherCode": "Nhập mã voucher",
     "total": "Tổng",
     "subtotal": "Tạm tính",
     "discount": "Giảm giá",

@@ -80,7 +80,6 @@ import BookingDetailScreen from "../screens/CustomerScreen/BookingDetailScreen/B
 import TrainingActivityScreen from "../screens/CustomerScreen/TrainingActivityScreen/TrainingActivityScreen";
 import EditSessionActivityScreen from "../screens/CustomerScreen/EditSessionActivityScreen/EditSessionActivityScreen";
 import EditActivitySetScreen from "../screens/CustomerScreen/EditActivitySetScreen/EditActivitySetScreen";
-import ApplyVoucherScreen from "../screens/CommonScreen/ApplyVoucherScreen/ApplyVoucherScreen";
 
 export default function Navigator({
   isAuthenticated: propIsAuthenticated,
@@ -281,15 +280,7 @@ export default function Navigator({
             title: t("screenTitles.payment"),
           }}
         />
-        <Stack.Screen
-          name="ApplyVoucherScreen"
-          component={ApplyVoucherScreen}
-          options={{
-            headerTitleAlign: "center",
-            headerShown: true,
-            title: t("screenTitles.applyVoucher"),
-          }}
-        />
+
         <Stack.Screen
           name="OrderSuccessScreen"
           component={OrderSuccessScreen}

@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   Linking,
   Alert,
+  TextInput,
+  ActivityIndicator,
 } from "react-native";
 import React, { useState } from "react";
 import { useCart } from "../../../context/CartContext";
@@ -42,6 +44,48 @@ export default function PaymentScreen({ navigation, route }) {
   const finalTotal = Math.max(0, totalPrice - voucherDiscount);
 
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("bank");
+  const [voucherCode, setVoucherCode] = useState("");
+  const [isApplyingVoucher, setIsApplyingVoucher] = useState(false);
+
+  // Function to apply voucher code
+  const handleApplyVoucher = async () => {
+    if (!voucherCode.trim()) {
+      showErrorAlert(t("voucher.enterCode"));
+      return;
+    }
+
+    setIsApplyingVoucher(true);
+    try {
+      // Determine if this is a freelance PT package
+      const isFreelancePt = displayItems.some(
+        (item) => item.type === "FreelancePT"
+      );
+
+      // Call your voucher validation API here
+      // Replace this with your actual API call
+      const requestData = {
+        couponCode: voucherCode.trim(),
+        totalPrice: totalPrice,
+        isFreelancePtCoupon: isFreelancePt,
+        itemsId: displayItems.map((item) => item.id),
+      };
+      console.log("Applying voucher with data:", requestData);
+      const response = await cartService.applyVoucher(requestData);
+      console.log("Voucher applied successfully:", response);
+
+      if (response && response.data && response.data.data) {
+        setSelectedVoucher(response.data.data);
+        showSuccessAlert(t("voucher.applied"));
+        setVoucherCode("");
+      }
+    } catch (error) {
+      console.error("Error applying voucher:", error);
+      showErrorAlert(error.response?.data?.message || t("voucher.invalidCode"));
+    } finally {
+      setIsApplyingVoucher(false);
+    }
+  };
+
   const handleCheckout = async () => {
     // Use displayItems (either direct purchase or cart items)
     console.log("Processing payment for:", displayItems);
@@ -247,7 +291,7 @@ export default function PaymentScreen({ navigation, route }) {
           </View>
         </View>
 
-        {/* Voucher Section */}
+        {/* Voucher Section - Modified to inline input */}
         <View style={styles.paymentMethod}>
           <View style={styles.cartUpper}>
             <Text style={{ fontSize: 15, color: "#ED2A46" }}>
@@ -255,21 +299,7 @@ export default function PaymentScreen({ navigation, route }) {
             </Text>
           </View>
 
-          <TouchableOpacity
-            style={styles.voucherSection}
-            onPress={() => {
-              // Determine if this is a freelance PT package
-              const isFreelancePt = displayItems.some(
-                (item) => item.type === "FreelancePT"
-              );
-
-              navigation.navigate("ApplyVoucherScreen", {
-                items: displayItems,
-                totalPrice: totalPrice,
-                isFreelancePt: isFreelancePt,
-              });
-            }}
-          >
+          <View style={styles.voucherSection}>
             {selectedVoucher ? (
               <View style={styles.voucherApplied}>
                 <View style={styles.voucherInfo}>
@@ -284,8 +314,7 @@ export default function PaymentScreen({ navigation, route }) {
                   </View>
                 </View>
                 <TouchableOpacity
-                  onPress={(e) => {
-                    e.stopPropagation();
+                  onPress={() => {
                     setSelectedVoucher(null);
                   }}
                 >
@@ -293,15 +322,34 @@ export default function PaymentScreen({ navigation, route }) {
                 </TouchableOpacity>
               </View>
             ) : (
-              <View style={styles.voucherEmpty}>
-                <MaterialIcons name="card-giftcard" size={24} color="#ED2A46" />
-                <Text style={styles.voucherEmptyText}>
-                  {t("payment.applyVoucher")}
-                </Text>
-                <MaterialIcons name="chevron-right" size={24} color="#666" />
+              <View style={styles.voucherInputContainer}>
+                <TextInput
+                  style={styles.voucherInput}
+                  placeholder={t("payment.enterVoucherCode")}
+                  value={voucherCode}
+                  onChangeText={setVoucherCode}
+                  autoCapitalize="characters"
+                  editable={!isApplyingVoucher}
+                />
+                <TouchableOpacity
+                  style={[
+                    styles.applyButton,
+                    isApplyingVoucher && styles.applyButtonDisabled,
+                  ]}
+                  onPress={handleApplyVoucher}
+                  disabled={isApplyingVoucher || !voucherCode.trim()}
+                >
+                  {isApplyingVoucher ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Text style={styles.applyButtonText}>
+                      {t("payment.apply")}
+                    </Text>
+                  )}
+                </TouchableOpacity>
               </View>
             )}
-          </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.paymentMethod}>
@@ -492,17 +540,37 @@ const styles = StyleSheet.create({
     borderTopColor: "#DDD9D9",
     paddingTop: 10,
   },
-  voucherEmpty: {
+  voucherInputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 8,
+    gap: 10,
   },
-  voucherEmptyText: {
+  voucherInput: {
     flex: 1,
-    marginLeft: 12,
+    borderWidth: 1,
+    borderColor: "#DDD9D9",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     fontSize: 14,
-    color: "#666",
+    backgroundColor: "#F9F9F9",
+  },
+  applyButton: {
+    backgroundColor: "#ED2A46",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+    minWidth: 80,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  applyButtonDisabled: {
+    backgroundColor: "#CCCCCC",
+  },
+  applyButtonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "600",
   },
   voucherApplied: {
     flexDirection: "row",

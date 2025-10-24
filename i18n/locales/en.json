@@ -1080,7 +1080,9 @@
     "applyVoucher": "Apply Voucher",
     "voucherDiscount": "Voucher Discount",
     "change": "Change",
-    "voucherApplied": "Voucher Applied"
+    "voucherApplied": "Voucher Applied",
+    "apply": "Apply",
+    "enterVoucherCode": "Enter voucher code"
   },
 
   "faq": {
