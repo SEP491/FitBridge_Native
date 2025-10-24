@@ -9,19 +9,20 @@ import {
   Linking,
 } from "react-native";
 import React, { useState } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { StyleSheet } from "react-native";
 import { TextInput } from "react-native";
 import { TouchableOpacity } from "react-native";
-import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
+import { FontAwesome } from "@expo/vector-icons";
 import { Image } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import authService from "../../../services/authService";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTranslation } from "../../../hooks/useTranslation";
+import Purchases from "react-native-purchases";
 
 import { jwtDecode } from "jwt-decode";
+import { useRevenueCat } from "../../../context/RevenueCatContext";
 export default function LoginScreen() {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -29,7 +30,7 @@ export default function LoginScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const navigation = useNavigation();
   const { t } = useTranslation();
-
+  const { loginRevenueCatUser } = useRevenueCat();
   const handleLogin = async () => {
     if (!identifier || !password) {
       Alert.alert(t("auth.notification"), t("auth.pleaseEnterPhonePassword"), [
@@ -63,6 +64,7 @@ export default function LoginScreen() {
           role: userData.role,
           email: userData.email,
         };
+        await loginRevenueCatUser(userData.sub, userData.name, userData.email);
         await AsyncStorage.setItem("user", JSON.stringify(user));
         // Handle avatar - only store if it's not null/undefined
         if (userData.senderAvatar) {

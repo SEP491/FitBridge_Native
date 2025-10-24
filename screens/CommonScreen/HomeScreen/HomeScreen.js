@@ -81,7 +81,7 @@ export default function HomeScreen() {
         size: pageSize,
       });
       const { items, total, page: currentPage } = response.data;
-      console.log("Fetched freelance PT:", items);
+      // console.log("Fetched freelance PT:", items);
       setAllFreelancePT(items);
     } catch (error) {
       console.error("Error fetching freelance PT:", error);
@@ -95,7 +95,7 @@ export default function HomeScreen() {
         size: pageSize,
       });
       const { items, total, page: currentPage } = response.data;
-      console.log("Fetched gyms:", items);
+      // console.log("Fetched gyms:", items);
       setAllGyms(items);
     } catch (error) {
       console.error("Error fetching hot research gym:", error);
@@ -150,7 +150,7 @@ export default function HomeScreen() {
     loadData();
   }, []);
 
-  console.log("All freelance PT:", allFreelancePT);
+  // console.log("All freelance PT:", allFreelancePT);
 
   useEffect(() => {
     if (coordinates && allGyms.length > 0) {

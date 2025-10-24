@@ -55,6 +55,8 @@
     "react-native-modal-datetime-picker": "^18.0.0",
     "react-native-pager-view": "6.9.1",
     "react-native-paper": "^5.14.1",
+    "react-native-purchases": "^9.6.0",
+    "react-native-purchases-ui": "^9.6.0",
     "react-native-qrcode-svg": "^6.3.15",
     "react-native-reanimated": "~4.1.0",
     "react-native-reanimated-carousel": "^4.0.2",
