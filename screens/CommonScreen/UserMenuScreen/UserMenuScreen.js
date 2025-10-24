@@ -21,6 +21,7 @@ import { useTranslation } from "../../../hooks/useTranslation";
 import { ConnectionStates } from "../../../services/signalR/ConnectionStates";
 import signalR_webrtcService from "../../../services/signalR/signalR-webrtcService";
 import Purchases from "react-native-purchases";
+import { useRevenueCat } from "../../../context/RevenueCatContext";
 
 export default function UserMenuScreen() {
   const [user, setUser] = useState(null);
@@ -28,7 +29,7 @@ export default function UserMenuScreen() {
   const [avatarUrl, setAvatarUrl] = useState("");
   const { clearCart } = useCart(); // Assuming useCart is defined in your context or service
   const { t } = useTranslation();
-
+  const { logoutRevenueCatUser } = useRevenueCat();
   useEffect(() => {
     const fetchUser = async () => {
       const userData = await AsyncStorage.getItem("user");
@@ -165,13 +166,10 @@ export default function UserMenuScreen() {
                       signalR_webrtcService.stopConnection();
                       console.log("SignalR: Connection stopped on logout");
                     }
-                    // Navigation will be handled automatically by the Navigator
-                    const { customerInfo } = await Purchases.logOut();
-
-                    console.log("✅ RevenueCat logged out (anonymous now)");
                   } else {
                     Alert.alert(t("common.error"), t("errors.logoutError"));
                   }
+                  logoutRevenueCatUser();
                 } catch (error) {
                   console.error("Error during logout:", error);
                   Alert.alert(t("common.error"), t("errors.logoutError"));
