@@ -28,6 +28,24 @@ const WithdrawalTab = ({
 }) => {
   const availableBalance = totalRevenue;
 
+  // Format amount input with thousand separators
+  const formatAmountInput = (value) => {
+    // Remove all non-digit characters
+    const numericValue = value.replace(/\D/g, '');
+    
+    // Format with thousand separators
+    if (numericValue === '') return '';
+    
+    return new Intl.NumberFormat('vi-VN').format(parseInt(numericValue));
+  };
+
+  // Handle amount change with formatting
+  const handleAmountChange = (text) => {
+    // Remove all non-digit characters
+    const numericValue = text.replace(/\D/g, '');
+    setWithdrawalAmount(numericValue);
+  };
+
   return (
     <View style={styles.withdrawalContainer}>
       {/* Available Balance Card */}
@@ -59,8 +77,8 @@ const WithdrawalTab = ({
             <TextInput
               style={styles.input}
               placeholder={t('withdrawal.enterAmount', 'Enter amount')}
-              value={withdrawalAmount}
-              onChangeText={setWithdrawalAmount}
+              value={formatAmountInput(withdrawalAmount)}
+              onChangeText={handleAmountChange}
               keyboardType="numeric"
               placeholderTextColor="#999"
             />
@@ -148,12 +166,18 @@ const WithdrawalTab = ({
           withdrawalHistory.map((item) => (
             <View key={item.id} style={styles.withdrawalCard}>
               <View style={styles.withdrawalCardHeader}>
-                <View>
+                <View style={styles.withdrawalInfo}>
                   <Text style={styles.withdrawalAmount}>
                     {formatAmount(item.amount)}
                   </Text>
-                  <Text style={styles.withdrawalMethod}>{item.method}</Text>
+                  <Text style={styles.withdrawalMethod}>{item.bankName}</Text>
+                  <Text style={styles.withdrawalAccountName}>{item.accountName}</Text>
                   <Text style={styles.withdrawalAccount}>{item.accountNumber}</Text>
+                  {item.reason && (
+                    <Text style={styles.withdrawalReason}>
+                      {t('withdrawal.reason', 'Reason')}: {item.reason}
+                    </Text>
+                  )}
                 </View>
                 <View style={[
                   styles.withdrawalStatusBadge,
@@ -171,11 +195,11 @@ const WithdrawalTab = ({
                     {formatDate(item.createdAt)}
                   </Text>
                 </View>
-                {item.completedAt && (
+                {item.imageUrl && (
                   <View style={styles.withdrawalDate}>
-                    <Ionicons name="checkmark-circle-outline" size={14} color="#4CAF50" />
+                    <Ionicons name="image-outline" size={14} color="#2196F3" />
                     <Text style={styles.withdrawalDateText}>
-                      {formatDate(item.completedAt)}
+                      {t('withdrawal.hasProof', 'Proof attached')}
                     </Text>
                   </View>
                 )}
@@ -322,6 +346,10 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     marginBottom: 12,
   },
+  withdrawalInfo: {
+    flex: 1,
+    marginRight: 12,
+  },
   withdrawalAmount: {
     fontSize: 18,
     fontWeight: 'bold',
@@ -332,10 +360,23 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#666',
     marginBottom: 2,
+    fontWeight: '600',
+  },
+  withdrawalAccountName: {
+    fontSize: 13,
+    color: '#666',
+    marginBottom: 2,
   },
   withdrawalAccount: {
     fontSize: 12,
     color: '#999',
+    marginBottom: 2,
+  },
+  withdrawalReason: {
+    fontSize: 11,
+    color: '#FF9800',
+    fontStyle: 'italic',
+    marginTop: 4,
   },
   withdrawalStatusBadge: {
     paddingHorizontal: 10,

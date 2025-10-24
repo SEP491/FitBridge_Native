@@ -11,6 +11,7 @@ import {
 import { useTranslation } from '../../../hooks/useTranslation';
 import { Ionicons } from "@expo/vector-icons";
 import transactionService from '../../../services/transactionService';
+import paymentService from '../../../services/paymentService';
 import DashboardTab from './DashboardTab';
 import TransactionListTab from './TransactionListTab';
 import WithdrawalTab from './WithdrawalTab';
@@ -137,28 +138,17 @@ const ManageTransactionScreen = ({ navigation }) => {
 
   const loadWithdrawalHistory = async () => {
     try {
-      // Mock withdrawal history - replace with actual API call
-      setWithdrawalHistory([
-        {
-          id: 1,
-          amount: 500000,
-          status: 'COMPLETED',
-          method: 'Bank Transfer',
-          accountNumber: '**** **** 1234',
-          createdAt: '2024-10-18T14:30:00',
-          completedAt: '2024-10-19T10:00:00',
-        },
-        {
-          id: 2,
-          amount: 300000,
-          status: 'PENDING',
-          method: 'Bank Transfer',
-          accountNumber: '**** **** 1234',
-          createdAt: '2024-10-22T16:00:00',
-        },
-      ]);
+      const response = await paymentService.getRequestWithdrawal();
+      console.log('Withdrawal history response:', response);
+      
+      if (response.data && response.data.items) {
+        setWithdrawalHistory(response.data.items);
+      } else {
+        setWithdrawalHistory([]);
+      }
     } catch (error) {
       console.error('Error loading withdrawal history:', error);
+      setWithdrawalHistory([]);
     }
   };
 
@@ -173,12 +163,27 @@ const ManageTransactionScreen = ({ navigation }) => {
     }
 
     try {
-      // Mock withdrawal request - replace with actual API call
+      const withdrawalData = {
+        amount: parseFloat(withdrawalAmount),
+        note: '',
+        bankName: bankName,
+        accountName: accountName,
+        accountNumber: bankAccount,
+      };
+
+      console.log('Submitting withdrawal request:', withdrawalData);
+      const response = await paymentService.sendRequestWithdrawal(withdrawalData);
+      console.log('Withdrawal response:', response);
+
       alert(t('withdrawal.requestSuccess', 'Withdrawal request submitted successfully'));
+      
+      // Clear form
       setWithdrawalAmount('');
       setBankAccount('');
       setBankName('');
       setAccountName('');
+      
+      // Reload withdrawal history
       loadWithdrawalHistory();
     } catch (error) {
       console.error('Error submitting withdrawal:', error);

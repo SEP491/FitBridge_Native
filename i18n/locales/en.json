@@ -770,7 +770,9 @@
     "invalidAmount": "Please enter a valid amount",
     "fillAllFields": "Please fill all fields",
     "requestSuccess": "Withdrawal request submitted successfully",
-    "requestFailed": "Failed to submit withdrawal request"
+    "requestFailed": "Failed to submit withdrawal request",
+    "reason": "Reason",
+    "hasProof": "Proof attached"
   },
 
   "voucher": {
