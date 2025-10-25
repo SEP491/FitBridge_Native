@@ -51,7 +51,8 @@ export default function PaymentScreen({ navigation, route }) {
 
   // Calculate discount
   const voucherDiscount = selectedVoucher?.discountAmount || 0;
-  const subTotal = isExtending ? orderToExtend.totalAmount : totalPrice;
+  const [subTotal, setSubTotal] = useState(totalPrice);
+
   const finalTotal = Math.max(0, subTotal - voucherDiscount);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("bank");
   const [voucherCode, setVoucherCode] = useState("");
@@ -69,6 +70,7 @@ export default function PaymentScreen({ navigation, route }) {
           console.log("Fetched order items to extend:", response);
           if (response && response.data) {
             setOrderToExtend(response.data);
+            setSubTotal(response.data.totalAmount);
             console.log("Order items to extend set:", response.data);
           }
         } else {
@@ -95,6 +97,9 @@ export default function PaymentScreen({ navigation, route }) {
       const isFreelancePt = displayItems.some(
         (item) => item.type === "FreelancePT"
       );
+      const isExtendingFreelancePT = displayItems.some(
+        (item) => item.toExtend === true && item.packageType === "Freelance PT"
+      );
 
       // Call your voucher validation API here
       // Replace this with your actual API call
@@ -102,8 +107,8 @@ export default function PaymentScreen({ navigation, route }) {
         couponCode: voucherCode.trim(),
         totalPrice: isExtending ? orderToExtend.totalAmount : totalPrice,
         productType: "FreelancePTPackage",
-        itemsId: isExtending
-          ? [itemToExtend.gymCourseId]
+        itemsId: isExtendingFreelancePT
+          ? [itemToExtend.freelancePTPackageId]
           : displayItems.map((item) => item.id),
       };
       console.log("Applying voucher with data:", requestData);
