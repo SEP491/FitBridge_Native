@@ -19,9 +19,16 @@ export const RevenueCatProvider = ({ children }) => {
   const [currentOffering, setCurrentOffering] = useState(null);
   const [debugInfo, setDebugInfo] = useState([]);
   const [isPremiumUser, setIsPremiumUser] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
+
   useEffect(() => {
-    initializeRevenueCat();
-  }, []);
+    if (!hasInitialized) {
+      setHasInitialized(true);
+      initializeRevenueCat();
+      fetchOfferings();
+      fetchCustomerInfo();
+    }
+  }, [hasInitialized]);
 
   const addDebugLog = (message, isError = false) => {
     const timestamp = new Date().toLocaleTimeString();

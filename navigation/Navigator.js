@@ -80,6 +80,7 @@ import BookingDetailScreen from "../screens/CustomerScreen/BookingDetailScreen/B
 import TrainingActivityScreen from "../screens/CustomerScreen/TrainingActivityScreen/TrainingActivityScreen";
 import EditSessionActivityScreen from "../screens/CustomerScreen/EditSessionActivityScreen/EditSessionActivityScreen";
 import EditActivitySetScreen from "../screens/CustomerScreen/EditActivitySetScreen/EditActivitySetScreen";
+import { useRevenueCat } from "../context/RevenueCatContext";
 
 export default function Navigator({
   isAuthenticated: propIsAuthenticated,
@@ -93,7 +94,7 @@ export default function Navigator({
   const [user, setUser] = useState(propUser);
   const [isAuthenticated, setIsAuthenticated] = useState(propIsAuthenticated);
   const [isLoading, setIsLoading] = useState(false);
-
+  const { fetchOfferings, fetchCustomerInfo } = useRevenueCat();
   // Update local state when props change
   useEffect(() => {
     setUser(propUser);
@@ -115,7 +116,6 @@ export default function Navigator({
                 OrderSuccessScreen: "orderprocess",
                 GymDetailScreen: "gym/:gymId",
                 SearchGymScreen: "search",
-                VoucherDetailScreen: "voucherDetails/:voucherId",
               },
             },
             [t("navigation.map")]: {
@@ -125,12 +125,10 @@ export default function Navigator({
             },
           },
         },
-        // PaymentScreen: "payment",
-        // OrderSuccessScreen: "orderprocess",
+
         Login: "login",
         Register: "register",
         Splash: "splash",
-        VoucherDetailScreen: "voucherDetails/:voucherId",
 
         // Thêm các màn khác nếu cần
       },
@@ -1246,7 +1244,7 @@ export default function Navigator({
     };
     useEffect(() => {
       registerPushToken();
-      signalrService.startConnection();
+      // signalrService.startConnection();
     }, []);
 
     return (

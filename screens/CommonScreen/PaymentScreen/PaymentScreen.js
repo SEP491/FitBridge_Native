@@ -9,7 +9,7 @@ import {
   TextInput,
   ActivityIndicator,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useCart } from "../../../context/CartContext";
 import CartCard from "../../../components/CartCard/CartCard";
 import Cart_FreelancePTCard from "../../../components/CartCard/Cart_FreelancePTCard";
@@ -17,6 +17,7 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import cartService from "../../../services/cartService";
 import { formatPrice, showErrorAlert, showSuccessAlert } from "../../../lib";
 import { useTranslation } from "../../../hooks/useTranslation";
+import CartCard_Extend from "../../../components/CartCard_Extend/CartCard_Extend";
 
 export default function PaymentScreen({ navigation, route }) {
   const {
@@ -33,9 +34,18 @@ export default function PaymentScreen({ navigation, route }) {
   const directPurchaseItems = route?.params?.items || null;
   const directPurchaseAmount = route?.params?.totalAmount || 0;
   const isDirectPurchase = route?.params?.fromDirectPurchase || false;
-
+  const customerPurchasedIdToExtend =
+    route?.params?.customerPurchasedIdToExtend || null;
+  const itemToExtend = route?.params?.itemToExtend || null;
+  console.log("Items to Extend:", [itemToExtend]);
   // Use direct purchase items if available, otherwise use cart
-  const displayItems = isDirectPurchase ? directPurchaseItems : cart;
+  const displayItems =
+    isDirectPurchase && customerPurchasedIdToExtend
+      ? [itemToExtend]
+      : isDirectPurchase
+      ? directPurchaseItems
+      : cart;
+
   console.log("displayItems:", displayItems);
   const totalPrice = isDirectPurchase ? directPurchaseAmount : getTotalPrice();
 
@@ -46,7 +56,32 @@ export default function PaymentScreen({ navigation, route }) {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("bank");
   const [voucherCode, setVoucherCode] = useState("");
   const [isApplyingVoucher, setIsApplyingVoucher] = useState(false);
+  const [orderToExtend, setOrderToExtend] = useState([]);
+  const isExtending = displayItems.some((item) => item.toExtend === true);
 
+  useEffect(() => {
+    const fetchOrderItemsToExtend = async () => {
+      try {
+        if (customerPurchasedIdToExtend) {
+          const response = await cartService.getOrderItemsToExtend(
+            customerPurchasedIdToExtend
+          );
+          console.log("Fetched order items to extend:", response);
+          if (response && response.data) {
+            setOrderToExtend(response.data);
+            console.log("Order items to extend set:", response.data);
+          }
+        } else {
+          setOrderToExtend([]);
+          return;
+        }
+      } catch (error) {
+        console.error("Error fetching order items to extend:", error);
+        showErrorAlert(error.response?.data?.message || "Error fetching data");
+      }
+    };
+    fetchOrderItemsToExtend();
+  }, [customerPurchasedIdToExtend]);
   // Function to apply voucher code
   const handleApplyVoucher = async () => {
     if (!voucherCode.trim()) {
@@ -65,16 +100,19 @@ export default function PaymentScreen({ navigation, route }) {
       // Replace this with your actual API call
       const requestData = {
         couponCode: voucherCode.trim(),
-        totalPrice: totalPrice,
-        isFreelancePtCoupon: isFreelancePt,
-        itemsId: displayItems.map((item) => item.id),
+        totalPrice: isExtending ? orderToExtend.totalAmount : totalPrice,
+        productType: "FreelancePTPackage",
+        itemsId: isExtending
+          ? [itemToExtend.gymCourseId]
+          : displayItems.map((item) => item.id),
       };
       console.log("Applying voucher with data:", requestData);
       const response = await cartService.applyVoucher(requestData);
       console.log("Voucher applied successfully:", response);
 
-      if (response && response.data && response.data.data) {
-        setSelectedVoucher(response.data.data);
+      if (response && response.data && response.data) {
+        setSelectedVoucher(response.data);
+        console.log("Selected voucher set:", response.data);
         showSuccessAlert(t("voucher.applied"));
         setVoucherCode("");
       }
@@ -90,14 +128,14 @@ export default function PaymentScreen({ navigation, route }) {
     // Use displayItems (either direct purchase or cart items)
     console.log("Processing payment for:", displayItems);
     console.log("Is direct purchase:", isDirectPurchase);
-
     let requestData = {};
-
     requestData = {
       request: {
         couponId: selectedVoucher?.id || null,
-        customerPurchasedIdToExtend: null,
-        shippingFee: 0,
+        customerPurchasedIdToExtend: isExtending
+          ? customerPurchasedIdToExtend
+          : null,
+        shippingFee: isExtending ? orderToExtend.shippingFee : 0,
         addressId: null,
         paymentMethodId:
           selectedPaymentMethod === "bank"
@@ -105,36 +143,38 @@ export default function PaymentScreen({ navigation, route }) {
             : "01997597-d188-7f12-95f4-43ef8d412633",
         // voucherId: null,
 
-        orderItems: displayItems.map((item) =>
-          item.type === "FreelancePT"
-            ? {
-                quantity: 1,
-                productDetailId: null,
-                gymCourseId: null,
-                gymPtId: null,
-                serviceInformationId: null,
-                freelancePTPackageId: item.id, // Use actual item ID
-              }
-            : item.type === "WithPt"
-            ? {
-                quantity: item.quantity,
-                productDetailId: null,
-                gymCourseId: item.id,
-                gymPtId: item.pt ? item.pt.id : null,
-                serviceInformationId: null,
-                freelancePTPackageId: null,
-              }
-            : item.type === "Normal"
-            ? {
-                quantity: item.quantity,
-                productDetailId: null,
-                gymCourseId: item.id,
-                gymPtId: null,
-                serviceInformationId: null,
-                freelancePTPackageId: null,
-              }
-            : {}
-        ),
+        orderItems: isExtending
+          ? orderToExtend.orderItems
+          : displayItems.map((item) =>
+              item.type === "FreelancePT"
+                ? {
+                    quantity: 1,
+                    productDetailId: null,
+                    gymCourseId: null,
+                    gymPtId: null,
+                    serviceInformationId: null,
+                    freelancePTPackageId: item.id, // Use actual item ID
+                  }
+                : item.type === "WithPt"
+                ? {
+                    quantity: item.quantity,
+                    productDetailId: null,
+                    gymCourseId: item.id,
+                    gymPtId: item.pt ? item.pt.id : null,
+                    serviceInformationId: null,
+                    freelancePTPackageId: null,
+                  }
+                : item.type === "Normal"
+                ? {
+                    quantity: item.quantity,
+                    productDetailId: null,
+                    gymCourseId: item.id,
+                    gymPtId: null,
+                    serviceInformationId: null,
+                    freelancePTPackageId: null,
+                  }
+                : {}
+            ),
       },
     };
     console.log("Checkout request:", requestData);
@@ -211,6 +251,10 @@ export default function PaymentScreen({ navigation, route }) {
                     onRemove={() => handleRemoveItem(item.cartItemId)}
                   />
                 );
+              }
+              if (item.toExtend === true) {
+                // Use regular CartCard for items to extend
+                return <CartCard_Extend key={item.id} itemToExtend={item} />;
               }
 
               // Use regular CartCard for other types (GymCourse, etc.)
@@ -362,7 +406,12 @@ export default function PaymentScreen({ navigation, route }) {
           <View style={styles.cardUnder}>
             <View style={styles.row}>
               <Text>{t("payment.totalServiceAmount")}</Text>
-              <Text>{formatPrice(totalPrice)}</Text>
+              <Text>
+                {" "}
+                {isExtending
+                  ? formatPrice(orderToExtend.totalAmount)
+                  : formatPrice(finalTotal)}
+              </Text>
             </View>
             {selectedVoucher && voucherDiscount > 0 && (
               <View style={[styles.row, styles.discountRow]}>
@@ -380,7 +429,11 @@ export default function PaymentScreen({ navigation, route }) {
             </View>
             <View style={styles.row}>
               <Text style={styles.totalText}>{t("payment.total")}</Text>
-              <Text style={styles.totalAmount}>{formatPrice(finalTotal)}</Text>
+              <Text style={styles.totalAmount}>
+                {isExtending
+                  ? formatPrice(orderToExtend.totalAmount)
+                  : formatPrice(finalTotal)}
+              </Text>
             </View>
           </View>
         </View>
@@ -398,7 +451,9 @@ export default function PaymentScreen({ navigation, route }) {
             <Text
               style={{ fontSize: 20, fontWeight: "bold", color: "#ED2A46" }}
             >
-              {formatPrice(finalTotal)}
+              {isExtending
+                ? formatPrice(orderToExtend.totalAmount)
+                : formatPrice(finalTotal)}
             </Text>
           </View>
           <TouchableOpacity

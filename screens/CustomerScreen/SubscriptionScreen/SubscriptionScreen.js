@@ -44,14 +44,6 @@ export default function SubscriptionScreen() {
   const [subscriptionDetails, setSubscriptionDetails] = useState(null);
 
   useEffect(() => {
-    const setup = async () => {
-      const offering = await fetchOfferings();
-      await fetchCustomerInfo();
-    };
-    setup();
-  }, []);
-
-  useEffect(() => {
     if (customerInfo && checkUserPremiumStatus()) {
       const details = getSubscriptionDetails();
       setSubscriptionDetails(details);

@@ -311,7 +311,12 @@
     "success": "Thành công",
     "packageAddedToCart": "Đã thêm gói tập vào giỏ hàng thành công",
     "continueShopping": "Tiếp tục mua sắm",
-    "viewCart": "Xem giỏ hàng"
+    "viewCart": "Xem giỏ hàng",
+    "extendPackage": "Gia hạn gói",
+    "ptAssignmentFee": "Phí giao PT:",
+    "available": "Còn lại:",
+    "expires": "Hết hạn:",
+    "unknownType": "Loại không xác định"
   },
 
   "profile": {

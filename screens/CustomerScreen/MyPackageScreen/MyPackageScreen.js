@@ -37,12 +37,20 @@ export default function MyPackageScreen() {
           const mappedGymCourses = gymCourseItems.map((item) => {
             // Check if this package has PT assigned by looking at ptList
             const hasPTAssigned =
-              item.ptList && item.ptList.length > 0 && item.canAssignPT;
-
+              item.ptId !== null ||
+              item.ptName !== null ||
+              item.ptImageUrl !== null;
+            console.log(
+              "Mapping Gym Course Item:",
+              item,
+              "Has PT:",
+              hasPTAssigned
+            );
             return {
               ...item,
               type: hasPTAssigned ? "gymCourseWithPT" : "gymCourseNormal",
               packageType: hasPTAssigned ? "Gym + PT" : "Gym Membership",
+              toExtend: true,
             };
           });
 
@@ -51,6 +59,7 @@ export default function MyPackageScreen() {
             ...item,
             type: "freelancePT",
             packageType: "Freelance PT",
+            toExtend: true,
           }));
 
           // Combine both arrays
@@ -108,30 +117,14 @@ export default function MyPackageScreen() {
         {
           text: t("common.ok") || "OK",
           onPress: async () => {
-            try {
-              const payload = {
+            navigation.navigate(t("navigation.home"), {
+              screen: "PaymentScreen",
+              params: {
+                fromDirectPurchase: true,
                 customerPurchasedIdToExtend: item.id,
-                paymentMethodId: "ea6876d3-7a25-4b5a-b08e-8bb797cd1a2a",
-                quantity: 1,
-              };
-
-              const response = await packageService.extendPackage(payload);
-              console.log("Extend Package Response:", response.data);
-
-              if (
-                response.data &&
-                response.data.data &&
-                response.data.data.checkoutUrl
-              ) {
-                Linking.openURL(response.data.data.checkoutUrl);
-              }
-            } catch (error) {
-              console.error(
-                "Error extending package:",
-                error?.response?.data || error
-              );
-              Alert.alert(t("common.error"), t("errors.cannotLoadPaymentLink"));
-            }
+                itemToExtend: item,
+              },
+            });
           },
         },
       ],
@@ -191,7 +184,7 @@ export default function MyPackageScreen() {
             source={{
               uri:
                 item.courseImageUrl ||
-                "https://cdn.prod.website-files.com/66aa8fe9dc4db68f448a978f/67d23ab405a87450847e4872_RT_240717_ANYTIME_FITNESS_3489-BATCH_rgb.jpg",
+                "https://fitness-nation.net/wp-content/uploads/2019/04/5-Things-to-Consider-When-Buying-a-Gym-Membership.jpg",
             }}
             style={styles.courseImage}
             resizeMode="cover"
@@ -269,7 +262,7 @@ export default function MyPackageScreen() {
             )}
 
             {/* Gym Course with PT Info Card */}
-            {isGymWithPT && item.ptList && item.ptList.length > 0 && (
+            {isGymWithPT && (
               <View
                 style={[
                   styles.ptInfoCard,
@@ -286,7 +279,7 @@ export default function MyPackageScreen() {
                   <Text style={styles.ptLabel}>
                     {t("myPackage.labels.assignedTrainer")}
                   </Text>
-                  <Text style={styles.ptName}>{item.ptList[0].ptName}</Text>
+                  <Text style={styles.ptName}>{item.ptName}</Text>
                 </View>
               </View>
             )}
@@ -536,15 +529,14 @@ const styles = StyleSheet.create({
   courseImage: {
     width: "100%",
     height: "100%",
-    backgroundColor: "#f0f0f0",
+    backgroundColor: "rgba(0,0,0,0.3)",
   },
   imageOverlay: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 60,
-    backgroundColor: "rgba(0,0,0,0.3)",
+    // position: "absolute",
+    // bottom: 0,
+    // left: 0,
+    // right: 0,
+    // height: 60,
   },
   typeImageBadge: {
     position: "absolute",

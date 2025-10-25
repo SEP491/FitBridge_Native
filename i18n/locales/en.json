@@ -309,7 +309,12 @@
     "success": "Success",
     "packageAddedToCart": "Package added to cart successfully",
     "continueShopping": "Continue Shopping",
-    "viewCart": "View Cart"
+    "viewCart": "View Cart",
+    "extendPackage": "Extend Package",
+    "ptAssignmentFee": "PT Assignment Fee:",
+    "available": "Available:",
+    "expires": "Expires:",
+    "unknownType": "Unknown Type"
   },
 
   "profile": {
