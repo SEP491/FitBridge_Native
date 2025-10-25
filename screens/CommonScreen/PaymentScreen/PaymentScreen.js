@@ -51,8 +51,8 @@ export default function PaymentScreen({ navigation, route }) {
 
   // Calculate discount
   const voucherDiscount = selectedVoucher?.discountAmount || 0;
-  const finalTotal = Math.max(0, totalPrice - voucherDiscount);
-
+  const subTotal = isExtending ? orderToExtend.totalAmount : totalPrice;
+  const finalTotal = Math.max(0, subTotal - voucherDiscount);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("bank");
   const [voucherCode, setVoucherCode] = useState("");
   const [isApplyingVoucher, setIsApplyingVoucher] = useState(false);
@@ -114,7 +114,7 @@ export default function PaymentScreen({ navigation, route }) {
         setSelectedVoucher(response.data);
         console.log("Selected voucher set:", response.data);
         showSuccessAlert(t("voucher.applied"));
-        setVoucherCode("");
+        // setVoucherCode("");
       }
     } catch (error) {
       console.error("Error applying voucher:", error);
@@ -350,7 +350,7 @@ export default function PaymentScreen({ navigation, route }) {
                   <MaterialIcons name="local-offer" size={24} color="#4CAF50" />
                   <View style={styles.voucherTextContainer}>
                     <Text style={styles.voucherCodeText}>
-                      {selectedVoucher.couponCode}
+                      {selectedVoucher.couponCode || voucherCode}
                     </Text>
                     <Text style={styles.voucherDiscountText}>
                       -{formatPrice(voucherDiscount)}
@@ -359,6 +359,7 @@ export default function PaymentScreen({ navigation, route }) {
                 </View>
                 <TouchableOpacity
                   onPress={() => {
+                    setVoucherCode("");
                     setSelectedVoucher(null);
                   }}
                 >
@@ -410,11 +411,11 @@ export default function PaymentScreen({ navigation, route }) {
                 {" "}
                 {isExtending
                   ? formatPrice(orderToExtend.totalAmount)
-                  : formatPrice(finalTotal)}
+                  : formatPrice(subTotal)}
               </Text>
             </View>
             {selectedVoucher && voucherDiscount > 0 && (
-              <View style={[styles.row, styles.discountRow]}>
+              <View style={[styles.row]}>
                 <Text style={styles.discountText}>
                   {t("payment.voucherDiscount")}
                 </Text>
@@ -429,11 +430,7 @@ export default function PaymentScreen({ navigation, route }) {
             </View>
             <View style={styles.row}>
               <Text style={styles.totalText}>{t("payment.total")}</Text>
-              <Text style={styles.totalAmount}>
-                {isExtending
-                  ? formatPrice(orderToExtend.totalAmount)
-                  : formatPrice(finalTotal)}
-              </Text>
+              <Text style={styles.totalAmount}>{formatPrice(finalTotal)}</Text>
             </View>
           </View>
         </View>
@@ -451,9 +448,7 @@ export default function PaymentScreen({ navigation, route }) {
             <Text
               style={{ fontSize: 20, fontWeight: "bold", color: "#ED2A46" }}
             >
-              {isExtending
-                ? formatPrice(orderToExtend.totalAmount)
-                : formatPrice(finalTotal)}
+              {formatPrice(finalTotal)}
             </Text>
           </View>
           <TouchableOpacity
@@ -632,7 +627,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingVertical: 8,
-    backgroundColor: "#F1F8F4",
+    // backgroundColor: "#F1F8F4",
     paddingHorizontal: 12,
     borderRadius: 8,
   },
@@ -656,12 +651,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginTop: 2,
   },
-  discountRow: {
-    backgroundColor: "#FFF9F0",
-    paddingHorizontal: 8,
-    borderRadius: 4,
-    marginVertical: 4,
-  },
+
   discountText: {
     color: "#4CAF50",
     fontWeight: "600",
