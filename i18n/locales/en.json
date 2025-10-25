@@ -106,7 +106,19 @@
       "expiredSubtitle": "All your packages are active"
     },
     "withdrawal": "Withdrawal",
-    "freelancePTSchedule": "Freelance PT Schedule"
+    "freelancePTSchedule": "Freelance PT Schedule",
+    "packageTypes": {
+      "freelancePT": "Freelance PT",
+      "gymWithPT": "Gym + PT",
+      "gymMembership": "Gym Membership",
+      "package": "Package"
+    },
+    "labels": {
+      "personalTrainer": "Personal Trainer",
+      "assignedTrainer": "Assigned Trainer",
+      "fullGymAccess": "Gym Access Membership",
+      "ptAssignment": "PT Assignment:"
+    }
   },
 
   "home": {

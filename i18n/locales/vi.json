@@ -106,7 +106,19 @@
       "expiredSubtitle": "Tất cả gói tập đều còn hiệu lực"
     },
     "withdrawal": "Rút Tiền",
-    "freelancePTSchedule": "Lịch Tập FreelancePT"
+    "freelancePTSchedule": "Lịch Tập FreelancePT",
+    "packageTypes": {
+      "freelancePT": "PT Tự Do",
+      "gymWithPT": "Gym + PT",
+      "gymMembership": "Thành Viên Gym",
+      "package": "Gói Tập"
+    },
+    "labels": {
+      "personalTrainer": "Huấn Luyện Viên",
+      "assignedTrainer": "Huấn Luyện Viên",
+      "fullGymAccess": "Truy Cập Gym Đầy Đủ",
+      "ptAssignment": "Phân Công PT:"
+    }
   },
 
   "home": {
