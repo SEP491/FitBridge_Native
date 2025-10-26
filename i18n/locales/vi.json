@@ -641,10 +641,27 @@
     "noDateInformation": "Không có thông tin",
     "showCharts": "Hiển thị biểu đồ",
     "hideCharts": "Ẩn biểu đồ",
-    "revenueTrend": "Xu hướng doanh thu (7 ngày qua)",
+    "revenueTrend": "Xu hướng doanh thu",
     "statusDistribution": "Phân bổ trạng thái giao dịch",
     "monthlyRevenue": "Doanh thu theo tháng và trạng thái",
-    "amountInThousands": "Số tiền tính bằng nghìn (VND)"
+    "amountInThousands": "Số tiền tính bằng nghìn (VND)",
+    "filterByType": "Lọc theo loại"
+  },
+
+  "transactionType": {
+    "all": "Tất cả loại",
+    "freelancePTPackage": "Gói PT",
+    "extendFreelancePTPackage": "Gia hạn gói PT",
+    "distributeProfit": "Phân phối lợi nhuận",
+    "withdraw": "Rút tiền",
+    "other": "Khác",
+    "ptPackage": "Gói PT",
+    "extendPT": "Gia hạn PT",
+    "profit": "Lợi nhuận",
+    "FreelancePTPackage": "Gói PT",
+    "ExtendFreelancePTPackage": "Gia hạn gói PT",
+    "DistributeProfit": "Phân phối lợi nhuận",
+    "Withdraw": "Rút tiền"
   },
 
   "tabs": {

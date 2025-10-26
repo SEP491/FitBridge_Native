@@ -5,6 +5,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   TextInput,
+  ScrollView,
+  FlatList,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -16,10 +19,17 @@ const TransactionListTab = ({
   setSearchQuery,
   getStatusColor,
   getStatusText,
+  getTransactionTypeLabel,
+  getTransactionTypeColor,
+  getTransactionTypeIcon,
   formatAmount,
   formatDate,
+  refreshing,
+  onRefresh,
   t,
 }) => {
+  const [selectedTypeFilter, setSelectedTypeFilter] = React.useState('all');
+
   const filterButtons = [
     { key: 'all', label: t('transaction.all', 'All') },
     { key: 'COMPLETED', label: t('transaction.completed', 'Completed') },
@@ -27,21 +37,48 @@ const TransactionListTab = ({
     { key: 'FAILED', label: t('transaction.failed', 'Failed') }
   ];
 
+  const typeFilterButtons = [
+    { key: 'all', label: t('transactionType.all', 'All Types'), icon: 'apps-outline' },
+    { key: 'FreelancePTPackage', label: t('transactionType.ptPackage', 'PT Package'), icon: 'fitness-outline' },
+    { key: 'ExtendFreelancePTPackage', label: t('transactionType.extendPT', 'Extend PT'), icon: 'refresh-outline' },
+    { key: 'DistributeProfit', label: t('transactionType.profit', 'Profit'), icon: 'trending-up-outline' },
+    { key: 'Withdraw', label: t('transactionType.withdraw', 'Withdraw'), icon: 'wallet-outline' },
+  ];
+
   const filteredTransactions = transactions.filter(transaction => {
     const statusMatch = selectedFilter === 'all' || transaction.status?.toUpperCase() === selectedFilter;
+    const typeMatch = selectedTypeFilter === 'all' || transaction.transactionType === selectedTypeFilter;
     const searchMatch = searchQuery === '' || 
-      transaction.orderCode?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      transaction.orderCode?.toString().toLowerCase().includes(searchQuery.toLowerCase()) ||
       transaction.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      transaction.transactionType?.toLowerCase().includes(searchQuery.toLowerCase());
-    return statusMatch && searchMatch;
+      getTransactionTypeLabel(transaction.transactionType)?.toLowerCase().includes(searchQuery.toLowerCase());
+    return statusMatch && typeMatch && searchMatch;
   });
+
 
   const TransactionCard = ({ transaction }) => (
     <View style={styles.transactionCard}>
       <View style={styles.transactionHeader}>
         <View style={styles.transactionInfo}>
-          <Text style={styles.orderCode}>{transaction.orderCode}</Text>
-          <Text style={styles.transactionType}>{transaction.transactionType}</Text>
+          <View style={styles.orderCodeRow}>
+            <Ionicons 
+              name={getTransactionTypeIcon(transaction.transactionType)} 
+              size={20} 
+              color={getTransactionTypeColor(transaction.transactionType)} 
+            />
+            <Text style={styles.orderCode}>{transaction.orderCode}</Text>
+          </View>
+          <View style={[
+            styles.transactionTypeBadge, 
+            { backgroundColor: `${getTransactionTypeColor(transaction.transactionType)}15` }
+          ]}>
+            <Text style={[
+              styles.transactionTypeText,
+              { color: getTransactionTypeColor(transaction.transactionType) }
+            ]}>
+              {getTransactionTypeLabel(transaction.transactionType)}
+            </Text>
+          </View>
           {transaction.description && (
             <Text style={styles.description} numberOfLines={1}>
               {transaction.description}
@@ -111,6 +148,42 @@ const TransactionListTab = ({
         ))}
       </View>
 
+      {/* Transaction Type Filter */}
+      <View style={styles.typeFilterSection}>
+        <Text style={styles.filterSectionTitle}>
+          {t('transaction.filterByType', 'Filter by Type')}
+        </Text>
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          style={styles.typeFilterScrollView}
+          contentContainerStyle={styles.typeFilterContainer}
+        >
+          {typeFilterButtons.map((filter) => (
+            <TouchableOpacity
+              key={filter.key}
+              style={[
+                styles.typeFilterButton,
+                selectedTypeFilter === filter.key && styles.typeFilterButtonActive
+              ]}
+              onPress={() => setSelectedTypeFilter(filter.key)}
+            >
+              <Ionicons 
+                name={filter.icon} 
+                size={18} 
+                color={selectedTypeFilter === filter.key ? '#fff' : '#666'} 
+              />
+              <Text style={[
+                styles.typeFilterButtonText,
+                selectedTypeFilter === filter.key && styles.typeFilterButtonTextActive
+              ]}>
+                {filter.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+
       {/* Transactions List */}
       {filteredTransactions.length === 0 ? (
         <View style={styles.emptyContainer}>
@@ -126,15 +199,20 @@ const TransactionListTab = ({
           </Text>
         </View>
       ) : (
-        <View style={styles.transactionsList}>
-          {filteredTransactions.map((transaction) => (
-            <TransactionCard key={transaction.id} transaction={transaction} />
-          ))}
-        </View>
+        <FlatList
+          data={filteredTransactions}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => <TransactionCard transaction={item} />}
+          contentContainerStyle={styles.transactionsList}
+          showsVerticalScrollIndicator={false}
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+        />
       )}
     </>
   );
 };
+const { height } = Dimensions.get("window");
 
 const styles = StyleSheet.create({
   searchContainer: {
@@ -170,7 +248,7 @@ const styles = StyleSheet.create({
   filterButton: {
     flex: 1,
     paddingVertical: 10,
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
     borderRadius: 20,
     backgroundColor: '#fff',
     alignItems: 'center',
@@ -191,9 +269,57 @@ const styles = StyleSheet.create({
   filterButtonTextActive: {
     color: '#fff',
   },
+  typeFilterSection: {
+    marginHorizontal: 16,
+    marginBottom: 16,
+  },
+  filterSectionTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#666',
+    marginBottom: 8,
+  },
+  typeFilterScrollView: {
+    marginHorizontal: -16,
+    paddingHorizontal: 16,
+  },
+  typeFilterContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingRight: 16,
+  },
+  typeFilterButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    backgroundColor: '#fff',
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  typeFilterButtonActive: {
+    backgroundColor: '#ED2A46',
+    borderColor: '#ED2A46',
+  },
+  typeFilterButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#666',
+  },
+  typeFilterButtonTextActive: {
+    color: '#fff',
+  },
   transactionsList: {
     paddingHorizontal: 16,
     paddingBottom: 20,
+    minHeight: height * 0.6,
   },
   transactionCard: {
     backgroundColor: '#fff',
@@ -216,11 +342,27 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 12,
   },
+  orderCodeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 6,
+  },
   orderCode: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
+  },
+  transactionTypeBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
     marginBottom: 4,
+  },
+  transactionTypeText: {
+    fontSize: 11,
+    fontWeight: '600',
   },
   transactionType: {
     fontSize: 13,
@@ -267,11 +409,11 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   emptyContainer: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 60,
     paddingHorizontal: 40,
+    minHeight: height * 0.6,
   },
   emptyTitle: {
     fontSize: 18,

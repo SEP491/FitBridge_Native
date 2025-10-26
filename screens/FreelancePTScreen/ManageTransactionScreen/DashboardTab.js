@@ -9,7 +9,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LineChart, BarChart, PieChart } from 'react-native-chart-kit';
+import { LineChart, BarChart, ProgressChart } from 'react-native-chart-kit';
 
 const { width } = Dimensions.get('window');
 const CHART_WIDTH = width - 32;
@@ -28,7 +28,7 @@ const DashboardTab = ({
 }) => {
   const [selectedYears, setSelectedYears] = useState([]);
   const [showYearModal, setShowYearModal] = useState(false);
-  const [displayMode, setDisplayMode] = useState('month'); // 'year', 'month'
+  const [displayMode, setDisplayMode] = useState('year'); // 'year', 'month'
   const [showDisplayModeModal, setShowDisplayModeModal] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth()); // 0-11
   const [showMonthModal, setShowMonthModal] = useState(false);
@@ -78,6 +78,11 @@ const DashboardTab = ({
     return colors[index] || colors[0];
   };
   const prepareLineChartData = () => {
+    console.log('=== prepareLineChartData ===');
+    console.log('Display mode:', displayMode);
+    console.log('Selected years:', selectedYears);
+    console.log('Total transactions:', transactions.length);
+    
     let labels = [];
     let groupingFunction;
     
@@ -117,6 +122,12 @@ const DashboardTab = ({
         return includeTransaction;
       });
 
+      console.log(`Year ${year}: Found ${yearTransactions.length} transactions`);
+      yearTransactions.forEach(t => {
+        const txDate = new Date(t.createdAt);
+        console.log(`  - ${t.orderCode}: ${txDate.toISOString()}, Month: ${txDate.getMonth()}, Amount: ${t.amount}`);
+      });
+
       // Initialize revenue data structure
       const revenueData = {};
       for (let i = 0; i < labels.length; i++) {
@@ -130,6 +141,8 @@ const DashboardTab = ({
           revenueData[key] += (t.amount || 0);
         }
       });
+
+      console.log(`Year ${year} revenue data:`, revenueData);
 
       const color = getYearColor(index);
       
@@ -156,30 +169,23 @@ const DashboardTab = ({
     };
   };
 
-  const preparePieChartData = () => {
-    return [
-      {
-        name: t('transaction.completed', 'Completed'),
-        population: completedCount,
-        color: '#4CAF50',
-        legendFontColor: '#333',
-        legendFontSize: 12,
-      },
-      {
-        name: t('transaction.pending', 'Pending'),
-        population: pendingCount,
-        color: '#FF9800',
-        legendFontColor: '#333',
-        legendFontSize: 12,
-      },
-      {
-        name: t('transaction.failed', 'Failed'),
-        population: failedCount,
-        color: '#F44336',
-        legendFontColor: '#333',
-        legendFontSize: 12,
-      },
-    ].filter(item => item.population > 0);
+  const prepareProgressRingsData = () => {
+    const total = completedCount + pendingCount + failedCount;
+    return {
+      labels: [
+        t('transaction.failed', 'Failed'),
+        t('transaction.pending', 'Pending'),
+        t('transaction.completed', 'Completed'),
+      ],
+      data: [
+        total > 0 ? failedCount / total : 0,
+        total > 0 ? pendingCount / total : 0,
+        total > 0 ? completedCount / total : 0,
+      ],
+      colors: ['#F44336', '#FF9800', '#4CAF50'],
+      counts: [failedCount, pendingCount, completedCount],
+      icons: ['close-circle', 'time', 'checkmark-circle'],
+    };
   };
 
   const prepareBarChartData = () => {
@@ -234,7 +240,7 @@ const DashboardTab = ({
     strokeWidth: 2,
     barPercentage: 0.5,
     useShadowColorFromDataset: false,
-    decimalPlaces: 0,
+    decimalPlaces: 2,
     propsForLabels: {
       fontSize: 10,
     },
@@ -388,23 +394,71 @@ const DashboardTab = ({
             )}
           </View>
 
-          {/* Status Distribution Pie Chart */}
-          {(completedCount + pendingCount + failedCount) > 0 && (
+          {/* Status Distribution Progress Rings */}
+          {(completedCount + pendingCount + failedCount) >= 0 && (
             <View style={styles.chartCard}>
               <Text style={styles.chartTitle}>
                 {t('transaction.statusDistribution', 'Transaction Status Distribution')}
               </Text>
-              <PieChart
-                data={preparePieChartData()}
-                width={CHART_WIDTH - 32}
-                height={200}
-                chartConfig={chartConfig}
-                accessor="population"
-                backgroundColor="transparent"
-                paddingLeft="15"
-                absolute
-                style={styles.chart}
-              />
+              <View style={styles.progressRingsWrapper}>
+
+                <ProgressChart
+                  data={{
+                    labels: prepareProgressRingsData().labels,
+                    data: prepareProgressRingsData().data,
+                  }}
+                  width={CHART_WIDTH - 32}
+                  height={200}
+                  strokeWidth={16}
+                  radius={28}
+                  chartConfig={{
+                    backgroundGradientFrom: '#fff',
+                    backgroundGradientTo: '#fff',
+                    color: (opacity = 1, index) => {
+                      const colors = ['#F44336', '#FF9800', '#11ed18ff'];
+                      const hexColor = colors[index] || colors[0];
+                      
+                      // Convert hex to rgba with opacity
+                      const r = parseInt(hexColor.slice(1, 3), 16);
+                      const g = parseInt(hexColor.slice(3, 5), 16);
+                      const b = parseInt(hexColor.slice(5, 7), 16);
+                      
+                      return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+                    },
+                    propsForLabels: {
+                      fontSize: 11,
+                    },
+                  }}
+                  hideLegend={true}
+                  style={styles.chart}
+                  hasLegend={false}
+                />
+                {/* Custom Legend with Icons and Stats */}
+                <View style={styles.progressRingsLegend}>
+                  {prepareProgressRingsData().labels.map((label, index) => {
+                    const ringData = prepareProgressRingsData();
+                    const percentage = (ringData.data[index] * 100).toFixed(1);
+                    return (
+                      <View key={index} style={styles.progressRingLegendItem}>
+                        <View style={styles.progressRingLegendHeader}>
+                          <Ionicons 
+                            name={ringData.icons[index]} 
+                            size={20} 
+                            color={ringData.colors[index]} 
+                          />
+                          <Text style={[styles.progressRingLabel, { color: ringData.colors[index] }]}>
+                            {label}
+                          </Text>
+                        </View>
+                        <View style={styles.progressRingStats}>
+                          <Text style={styles.progressRingCount}>{ringData.counts[index]}</Text>
+                          <Text style={styles.progressRingPercentage}>({percentage}%)</Text>
+                        </View>
+                      </View>
+                    );
+                  })}
+                </View>
+              </View>
             </View>
           )}
 
@@ -481,7 +535,7 @@ const DashboardTab = ({
                 : t('dashboard.selectUpTo3Years', 'Select up to 3 years to compare')
               }
             </Text>
-            
+
             <ScrollView style={styles.yearList}>
               {availableYears.map((year) => {
                 const isSelected = selectedYears.includes(year);
@@ -927,6 +981,48 @@ const styles = StyleSheet.create({
     color: '#999',
     marginTop: 12,
     textAlign: 'center',
+  },
+  // Progress Rings Styles
+  progressRingsWrapper: {
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  progressRingsLegend: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+    marginTop: 16,
+    paddingHorizontal: 8,
+  },
+  progressRingLegendItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  progressRingLegendHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 6,
+  },
+  progressRingLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  progressRingStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  progressRingCount: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  progressRingPercentage: {
+    fontSize: 12,
+    color: '#666',
+    fontWeight: '500',
   },
   // Modal Styles
   modalOverlay: {

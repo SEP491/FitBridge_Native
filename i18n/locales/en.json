@@ -723,7 +723,24 @@
     "revenueTrend": "Revenue Trend (Last 7 Days)",
     "statusDistribution": "Transaction Status Distribution",
     "monthlyRevenue": "Monthly Revenue by Status",
-    "amountInThousands": "Amount in thousands (VND)"
+    "amountInThousands": "Amount in thousands (VND)",
+    "filterByType": "Filter by Type"
+  },
+
+  "transactionType": {
+    "all": "All Types",
+    "freelancePTPackage": "PT Package",
+    "extendFreelancePTPackage": "Extend PT Package",
+    "distributeProfit": "Profit Distribution",
+    "withdraw": "Withdrawal",
+    "other": "Other",
+    "ptPackage": "PT Package",
+    "extendPT": "Extend PT",
+    "profit": "Profit",
+    "FreelancePTPackage": "PT Package",
+    "ExtendFreelancePTPackage": "Extend PT Package",
+    "DistributeProfit": "Profit Distribution",
+    "Withdraw": "Withdrawal"
   },
 
   "tabs": {

@@ -47,84 +47,15 @@ const ManageTransactionScreen = ({ navigation }) => {
         size: 100,
       });
       console.log('Transactions response:', response.data);
-      setTransactions(response.data.items || []);
+      
+      if (response.data && response.data.items) {
+        setTransactions(response.data.items);
+      } else {
+        setTransactions([]);
+      }
     } catch (error) {
       console.error('Error loading transactions:', error);
-      // Keep mock data if API fails
-      setTransactions([
-        {
-          id: 1,
-          status: 'COMPLETED',
-          amount: 150000,
-          orderCode: 'ORD123456',
-          transactionType: 'Freelance PT Package',
-          createdAt: '2024-10-01T10:00:00',
-          description: 'Basic PT Package - John Doe',
-        },
-        {
-          id: 2,
-          status: 'COMPLETED',
-          amount: 200000,
-          orderCode: 'ORD123457',
-          transactionType: 'Freelance PT Package',
-          createdAt: '2024-11-15T11:30:00',
-          description: 'Premium PT Package - Jane Smith',
-        },
-        {
-          id: 3,
-          status: 'COMPLETED',
-          amount: 100000,
-          orderCode: 'ORD123458',
-          transactionType: 'Freelance PT Package',
-          createdAt: '2024-12-20T09:15:00',
-          description: 'Standard PT Package - Bob Wilson',
-        },
-        {
-          id: 4,
-          status: 'COMPLETED',
-          amount: 180000,
-          orderCode: 'ORD123459',
-          transactionType: 'Freelance PT Package',
-          createdAt: '2025-10-05T14:00:00',
-          description: 'Advanced PT Package - Alice Brown',
-        },
-        {
-          id: 5,
-          status: 'COMPLETED',
-          amount: 220000,
-          orderCode: 'ORD123460',
-          transactionType: 'Freelance PT Package',
-          createdAt: '2025-11-12T16:30:00',
-          description: 'Elite PT Package - Charlie Davis',
-        },
-        {
-          id: 6,
-          status: 'COMPLETED',
-          amount: 100000,
-          orderCode: 'ORD123461',
-          transactionType: 'Freelance PT Package',
-          createdAt: '2025-12-15T14:00:00',
-          description: 'Basic PT Package - David Johnson',
-        }, 
-        {
-          id: 7,
-          status: 'COMPLETED',
-          amount: 120000,
-          orderCode: 'ORD123462',
-          transactionType: 'Freelance PT Package',
-          createdAt: '2026-01-20T14:00:00',
-          description: 'Standard PT Package - Emily White',
-        }, 
-        {
-          id: 8,
-          status: 'COMPLETED',
-          amount: 250000,
-          orderCode: 'ORD123463',
-          transactionType: 'Freelance PT Package',
-          createdAt: '2026-11-25T14:00:00',
-          description: 'Premium PT Package - Frank Harris',
-        },
-      ]);
+      setTransactions([]);
     } finally {
       setLoading(false);
     }
@@ -188,6 +119,51 @@ const ManageTransactionScreen = ({ navigation }) => {
     } catch (error) {
       console.error('Error submitting withdrawal:', error);
       alert(t('withdrawal.requestFailed', 'Failed to submit withdrawal request'));
+    }
+  };
+
+  const getTransactionTypeLabel = (type) => {
+    switch (type) {
+      case 'FreelancePTPackage':
+        return t('transactionType.freelancePTPackage', 'PT Package');
+      case 'ExtendFreelancePTPackage':
+        return t('transactionType.extendFreelancePTPackage', 'Extend PT Package');
+      case 'DistributeProfit':
+        return t('transactionType.distributeProfit', 'Profit Distribution');
+      case 'Withdraw':
+        return t('transactionType.withdraw', 'Withdrawal');
+      default:
+        return type || t('transactionType.other', 'Other');
+    }
+  };
+
+  const getTransactionTypeColor = (type) => {
+    switch (type) {
+      case 'FreelancePTPackage':
+        return '#ED2A46'; // Red for PT packages
+      case 'ExtendFreelancePTPackage':
+        return '#9C27B0'; // Purple for PT package extension
+      case 'DistributeProfit':
+        return '#4CAF50'; // Green for profit
+      case 'Withdraw':
+        return '#FF9800'; // Orange for withdrawal
+      default:
+        return '#666'; // Gray for others
+    }
+  };
+
+  const getTransactionTypeIcon = (type) => {
+    switch (type) {
+      case 'FreelancePTPackage':
+        return 'fitness-outline';
+      case 'ExtendFreelancePTPackage':
+        return 'refresh-outline';
+      case 'DistributeProfit':
+        return 'trending-up-outline';
+      case 'Withdraw':
+        return 'wallet-outline';
+      default:
+        return 'receipt-outline';
     }
   };
 
@@ -356,20 +332,7 @@ const ManageTransactionScreen = ({ navigation }) => {
             t={t}
           />
         )}
-        {activeTab === 'transactions' && (
-          <TransactionListTab
-            transactions={transactions}
-            selectedFilter={selectedFilter}
-            setSelectedFilter={setSelectedFilter}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            getStatusColor={getStatusColor}
-            getStatusText={getStatusText}
-            formatAmount={formatAmount}
-            formatDate={formatDate}
-            t={t}
-          />
-        )}
+       
         {activeTab === 'withdrawal' && (
           <WithdrawalTab
             totalRevenue={totalRevenue}
@@ -391,6 +354,26 @@ const ManageTransactionScreen = ({ navigation }) => {
           />
         )}
       </ScrollView>
+
+       {activeTab === 'transactions' && (
+          <TransactionListTab
+            transactions={transactions}
+            selectedFilter={selectedFilter}
+            setSelectedFilter={setSelectedFilter}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            getStatusColor={getStatusColor}
+            getStatusText={getStatusText}
+            getTransactionTypeLabel={getTransactionTypeLabel}
+            getTransactionTypeColor={getTransactionTypeColor}
+            getTransactionTypeIcon={getTransactionTypeIcon}
+            formatAmount={formatAmount}
+            formatDate={formatDate}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            t={t}
+          />
+        )}
     </View>
   );
 };
