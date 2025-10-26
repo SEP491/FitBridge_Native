@@ -27,8 +27,13 @@ export default function FullScreenSearch({
   initialSearchText = "",
   onSearch,
   showBackButton = true,
+  searchText: controlledSearchText,
+  onSearchTextChange,
 }) {
-  const [searchText, setSearchText] = useState(initialSearchText);
+  const [internalSearchText, setInternalSearchText] = useState(initialSearchText);
+  const searchText = controlledSearchText !== undefined ? controlledSearchText : internalSearchText;
+  const setSearchText = onSearchTextChange || setInternalSearchText;
+  
   const { t } = useTranslation();
   const searchInputRef = useRef(null);
   const [keywords, setKeywords] = useState([]);
