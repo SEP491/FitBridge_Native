@@ -74,11 +74,41 @@ export default function SearchGymScreen() {
         setHasSearched(true);
       }
 
-      const response = await accountService.searchAllAccounts({
+      // Build filter parameters
+      const params = {
         searchTerm: query.trim(),
-        page: activeTab === 'gyms' ? gymPage : freelancePTPage,
         size: 10,
-      });
+      };
+
+      // Add filter parameters only for Freelance PT tab
+      if (activeTab === 'freelancePts') {
+        params.searchType = 'FreelancePT';
+        
+        if (filters.priceRange.min) {
+          params.fromPrice = parseFloat(filters.priceRange.min);
+        }
+        if (filters.priceRange.max) {
+          params.toPrice = parseFloat(filters.priceRange.max);
+        }
+        if (filters.rating > 0) {
+          params.rating = filters.rating;
+        }
+        if (filters.experienceYears.min) {
+          params.experienceYears = parseInt(filters.experienceYears.min);
+        }
+        if (filters.sortBy && filters.sortBy !== 'relevance') {
+          params.sortBy = filters.sortBy;
+        }
+        // sortOrder is determined by sortBy (e.g., priceAsc uses 'asc', priceDesc uses 'desc')
+        if (filters.sortBy === 'priceAsc' || filters.sortBy === 'priceDesc') {
+          params.sortOrder = filters.sortBy === 'priceAsc' ? 'asc' : 'desc';
+          params.sortBy = 'price';
+        }
+      } else {
+        params.searchType = 'Gym';
+      }
+
+      const response = await accountService.searchAllAccounts(params);
 
       console.log("Search results response:", response.data);
 
@@ -119,6 +149,13 @@ export default function SearchGymScreen() {
         setTotalFreelancePTResults(freelancePts.total);
         setGymResults(gyms.items);
         setFreelancePTResults(freelancePts.items);
+
+        // Auto-navigate to other tab if current tab has no results
+        if (activeTab === 'gyms' && gyms.total === 0 && freelancePts.total > 0) {
+          setActiveTab('freelancePts');
+        } else if (activeTab === 'freelancePts' && freelancePts.total === 0 && gyms.total > 0) {
+          setActiveTab('gyms');
+        }
       }
 
     } catch (error) {
@@ -172,10 +209,6 @@ export default function SearchGymScreen() {
 
   const handleSearchInputFocus = () => {
     setShowFullScreenSearch(true);
-    // Blur the input to prevent keyboard from showing
-    if (searchInputRef.current) {
-      searchInputRef.current.blur();
-    }
   };
 
   const handleFullScreenSearchClose = () => {
@@ -185,21 +218,34 @@ export default function SearchGymScreen() {
   const handleKeywordSelect = (keyword) => {
     setSearchText(keyword);
     setShowFullScreenSearch(false);
+    setCurrentGymPage(1);
+    setCurrentFreelancePTPage(1);
+    setGymResults([]);
+    setFreelancePTResults([]);
+    setHasSearched(false);
     // Perform search with selected keyword
-    performSearch(keyword, 1);
+    performSearch(keyword, 1, 1);
   };
 
   const handleFullScreenSearch = (searchQuery) => {
     setSearchText(searchQuery);
     setShowFullScreenSearch(false);
+    setCurrentGymPage(1);
+    setCurrentFreelancePTPage(1);
+    setGymResults([]);
+    setFreelancePTResults([]);
+    setHasSearched(false);
     // Perform search with entered query
     performSearch(searchQuery, 1, 1);
   };
 
   const applyFilters = () => {
     setShowFilterModal(false);
-    // Apply filters to current results
-    // You can implement actual filtering logic here based on your requirements
+    // Reset pagination and perform fresh search with filters
+    setCurrentGymPage(1);
+    setCurrentFreelancePTPage(1);
+    setGymResults([]);
+    setFreelancePTResults([]);
     performSearch(searchText, 1, 1);
   };
 
@@ -210,6 +256,15 @@ export default function SearchGymScreen() {
       rating: 0,
       sortBy: 'relevance',
     });
+    // Automatically apply reset filters
+    setShowFilterModal(false);
+    setCurrentGymPage(1);
+    setCurrentFreelancePTPage(1);
+    setGymResults([]);
+    setFreelancePTResults([]);
+    if (searchText.trim()) {
+      performSearch(searchText, 1, 1);
+    }
   };
 
   const getCurrentResults = () => {
@@ -240,52 +295,55 @@ export default function SearchGymScreen() {
     <View style={styles.container}>
       {/* Header */}
 
-      {/* Search Bar */}
-      <View style={styles.searchHeader}>
-        <View style={styles.searchContainer}>
-          <Ionicons
-            name="search"
-            size={20}
-            color="#999"
-            style={styles.searchIcon}
-          />
-          <TextInput
-            ref={searchInputRef}
-            value={searchText}
-            onChangeText={setSearchText}
-            placeholder={t("searchGymScreen.searchPlaceholder")}
-            placeholderTextColor="#A39F9F"
-            style={styles.searchInput}
-            onSubmitEditing={handleSearch}
-            onFocus={handleSearchInputFocus}
-            returnKeyType="search"
-          />
-          {searchText?.length > 0 && (
-            <TouchableOpacity onPress={clearSearch} style={styles.clearButton}>
-              <Ionicons name="close-circle" size={20} color="#999" />
-            </TouchableOpacity>
-          )}
+      {/* Search Bar - Only show when FullScreenSearch is not visible */}
+      {!showFullScreenSearch && (
+        <View style={styles.searchHeader}>
+          <View style={styles.searchContainer}>
+            <Ionicons
+              name="search"
+              size={20}
+              color="#999"
+              style={styles.searchIcon}
+            />
+            <TextInput
+              ref={searchInputRef}
+              value={searchText}
+              onChangeText={setSearchText}
+              placeholder={t("searchGymScreen.searchPlaceholder")}
+              placeholderTextColor="#A39F9F"
+              style={styles.searchInput}
+              onSubmitEditing={handleSearch}
+              onFocus={handleSearchInputFocus}
+              returnKeyType="search"
+            />
+            {searchText?.length > 0 && (
+              <TouchableOpacity onPress={clearSearch} style={styles.clearButton}>
+                <Ionicons name="close-circle" size={20} color="#999" />
+              </TouchableOpacity>
+            )}
+          </View>
+
+          <TouchableOpacity
+            onPress={handleSearch}
+            style={styles.searchButton}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator size="small" color="#ED2A46" />
+            ) : (
+              <Text style={styles.searchButtonText}>
+                {t("searchGymScreen.searchButton")}
+              </Text>
+            )}
+          </TouchableOpacity>
         </View>
+      )}
 
-        <TouchableOpacity
-          onPress={handleSearch}
-          style={styles.searchButton}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator size="small" color="#ED2A46" />
-          ) : (
-            <Text style={styles.searchButtonText}>
-              {t("searchGymScreen.searchButton")}
-            </Text>
-          )}
-        </TouchableOpacity>
-      </View>
-
-      {/* Results */}
-      <ScrollView
-        style={styles.resultsContainer}
-        refreshControl={
+      {/* Results - Only show when FullScreenSearch is not visible */}
+      {!showFullScreenSearch && (
+        <ScrollView
+          style={styles.resultsContainer}
+          refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
@@ -346,10 +404,20 @@ export default function SearchGymScreen() {
 
             {/* Filter Button */}
             <TouchableOpacity
-              style={styles.filterButton}
+              style={[
+                styles.filterButton,
+                (filters.priceRange.min || filters.priceRange.max || 
+                 filters.experienceYears.min || filters.rating > 0 || 
+                 filters.sortBy !== 'relevance') && styles.filterButtonActive
+              ]}
               onPress={() => setShowFilterModal(true)}
             >
               <Ionicons name="filter" size={20} color="#ED2A46" />
+              {(filters.priceRange.min || filters.priceRange.max || 
+                filters.experienceYears.min || filters.rating > 0 || 
+                filters.sortBy !== 'relevance') && (
+                <View style={styles.filterBadge} />
+              )}
             </TouchableOpacity>
           </View>
         )}
@@ -417,7 +485,8 @@ export default function SearchGymScreen() {
             </Text>
           </View>
         )}
-      </ScrollView>
+        </ScrollView>
+      )}
 
       {/* Full Screen Search */}
       <FullScreenSearch
@@ -426,7 +495,9 @@ export default function SearchGymScreen() {
         onClose={handleFullScreenSearchClose}
         initialSearchText={searchText}
         onSearch={handleFullScreenSearch}
-        showBackButton={false}
+        showBackButton={true}
+        searchText={searchText}
+        onSearchTextChange={setSearchText}
       />
 
       {/* Filter Modal */}
@@ -448,41 +519,39 @@ export default function SearchGymScreen() {
             </View>
 
             <ScrollView style={styles.filterContent} showsVerticalScrollIndicator={false}>
-              {/* Price Range Filter (for Freelance PT) */}
-              {activeTab === 'freelancePts' && (
-                <View style={styles.filterSection}>
-                  <Text style={styles.filterSectionTitle}>
-                    {t('common.priceRange', 'Price Range')}
-                  </Text>
-                  <View style={styles.rangeInputs}>
-                    <TextInput
-                      style={styles.rangeInput}
-                      placeholder={t('common.min', 'Min')}
-                      value={filters.priceRange.min}
-                      onChangeText={(text) => setFilters({
-                        ...filters,
-                        priceRange: { ...filters.priceRange, min: text }
-                      })}
-                      keyboardType="numeric"
-                      placeholderTextColor="#999"
-                    />
-                    <Text style={styles.rangeSeparator}>-</Text>
-                    <TextInput
-                      style={styles.rangeInput}
-                      placeholder={t('common.max', 'Max')}
-                      value={filters.priceRange.max}
-                      onChangeText={(text) => setFilters({
-                        ...filters,
-                        priceRange: { ...filters.priceRange, max: text }
-                      })}
-                      keyboardType="numeric"
-                      placeholderTextColor="#999"
-                    />
-                  </View>
+              {/* Price Range Filter */}
+              <View style={styles.filterSection}>
+                <Text style={styles.filterSectionTitle}>
+                  {t('common.priceRange', 'Price Range')}
+                </Text>
+                <View style={styles.rangeInputs}>
+                  <TextInput
+                    style={styles.rangeInput}
+                    placeholder={t('common.min', 'Min')}
+                    value={filters.priceRange.min}
+                    onChangeText={(text) => setFilters({
+                      ...filters,
+                      priceRange: { ...filters.priceRange, min: text }
+                    })}
+                    keyboardType="numeric"
+                    placeholderTextColor="#999"
+                  />
+                  <Text style={styles.rangeSeparator}>-</Text>
+                  <TextInput
+                    style={styles.rangeInput}
+                    placeholder={t('common.max', 'Max')}
+                    value={filters.priceRange.max}
+                    onChangeText={(text) => setFilters({
+                      ...filters,
+                      priceRange: { ...filters.priceRange, max: text }
+                    })}
+                    keyboardType="numeric"
+                    placeholderTextColor="#999"
+                  />
                 </View>
-              )}
+              </View>
 
-              {/* Experience Years Filter (for Freelance PT) */}
+              {/* Experience Years Filter (for Freelance PT only) */}
               {activeTab === 'freelancePts' && (
                 <View style={styles.filterSection}>
                   <Text style={styles.filterSectionTitle}>
@@ -517,37 +586,35 @@ export default function SearchGymScreen() {
               )}
 
               {/* Rating Filter */}
-              {activeTab === 'freelancePts' && (
-                <View style={styles.filterSection}>
-                  <Text style={styles.filterSectionTitle}>
-                    {t('common.minRating', 'Minimum Rating')}
-                  </Text>
-                  <View style={styles.ratingButtons}>
-                    {[0, 1, 2, 3, 4, 5].map((rating) => (
-                      <TouchableOpacity
-                        key={rating}
-                        style={[
-                          styles.ratingButton,
-                          filters.rating === rating && styles.activeRatingButton
-                        ]}
-                        onPress={() => setFilters({ ...filters, rating })}
-                      >
-                        <Ionicons 
-                          name="star" 
-                          size={16} 
-                          color={filters.rating === rating ? '#fff' : '#FFD700'} 
-                        />
-                        <Text style={[
-                          styles.ratingButtonText,
-                          filters.rating === rating && styles.activeRatingButtonText
-                        ]}>
-                          {rating}+
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
+              <View style={styles.filterSection}>
+                <Text style={styles.filterSectionTitle}>
+                  {t('common.minRating', 'Minimum Rating')}
+                </Text>
+                <View style={styles.ratingButtons}>
+                  {[0, 1, 2, 3, 4, 5].map((rating) => (
+                    <TouchableOpacity
+                      key={rating}
+                      style={[
+                        styles.ratingButton,
+                        filters.rating === rating && styles.activeRatingButton
+                      ]}
+                      onPress={() => setFilters({ ...filters, rating })}
+                    >
+                      <Ionicons 
+                        name="star" 
+                        size={16} 
+                        color={filters.rating === rating ? '#fff' : '#FFD700'} 
+                      />
+                      <Text style={[
+                        styles.ratingButtonText,
+                        filters.rating === rating && styles.activeRatingButtonText
+                      ]}>
+                        {rating}+
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
                 </View>
-              )}
+              </View>
 
               {/* Sort By Filter */}
               <View style={styles.filterSection}>
@@ -560,8 +627,8 @@ export default function SearchGymScreen() {
                     ...(activeTab === 'freelancePts' ? [
                       { value: 'priceAsc', label: t('common.priceAsc', 'Price: Low to High') },
                       { value: 'priceDesc', label: t('common.priceDesc', 'Price: High to Low') },
-                      { value: 'rating', label: t('common.rating', 'Rating') },
-                      { value: 'experience', label: t('common.experience', 'Experience') },
+                      { value: 'rating', label: t('common.rating', 'Highest Rating') },
+                      { value: 'experienceYears', label: t('common.experience', 'Most Experience') },
                     ] : [])
                   ].map((option) => (
                     <TouchableOpacity
@@ -732,6 +799,20 @@ const styles = StyleSheet.create({
   },
   filterButton: {
     padding: 12,
+    position: 'relative',
+  },
+  filterButtonActive: {
+    backgroundColor: '#FFF5F6',
+    borderRadius: 8,
+  },
+  filterBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#ED2A46',
   },
   loadingContainer: {
     flex: 1,
