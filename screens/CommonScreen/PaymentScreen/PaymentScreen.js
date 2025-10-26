@@ -6,8 +6,10 @@ import {
   TouchableOpacity,
   Linking,
   Alert,
+  TextInput,
+  ActivityIndicator,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useCart } from "../../../context/CartContext";
 import CartCard from "../../../components/CartCard/CartCard";
 import Cart_FreelancePTCard from "../../../components/CartCard/Cart_FreelancePTCard";
@@ -15,6 +17,7 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import cartService from "../../../services/cartService";
 import { formatPrice, showErrorAlert, showSuccessAlert } from "../../../lib";
 import { useTranslation } from "../../../hooks/useTranslation";
+import CartCard_Extend from "../../../components/CartCard_Extend/CartCard_Extend";
 
 export default function PaymentScreen({ navigation, route }) {
   const {
@@ -31,29 +34,113 @@ export default function PaymentScreen({ navigation, route }) {
   const directPurchaseItems = route?.params?.items || null;
   const directPurchaseAmount = route?.params?.totalAmount || 0;
   const isDirectPurchase = route?.params?.fromDirectPurchase || false;
-
+  const customerPurchasedIdToExtend =
+    route?.params?.customerPurchasedIdToExtend || null;
+  const itemToExtend = route?.params?.itemToExtend || null;
+  console.log("Items to Extend:", [itemToExtend]);
   // Use direct purchase items if available, otherwise use cart
-  const displayItems = isDirectPurchase ? directPurchaseItems : cart;
+  const displayItems =
+    isDirectPurchase && customerPurchasedIdToExtend
+      ? [itemToExtend]
+      : isDirectPurchase
+      ? directPurchaseItems
+      : cart;
+
   console.log("displayItems:", displayItems);
   const totalPrice = isDirectPurchase ? directPurchaseAmount : getTotalPrice();
 
   // Calculate discount
   const voucherDiscount = selectedVoucher?.discountAmount || 0;
-  const finalTotal = Math.max(0, totalPrice - voucherDiscount);
+  const [subTotal, setSubTotal] = useState(totalPrice);
 
+  const finalTotal = Math.max(0, subTotal - voucherDiscount);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("bank");
+  const [voucherCode, setVoucherCode] = useState("");
+  const [isApplyingVoucher, setIsApplyingVoucher] = useState(false);
+  const [orderToExtend, setOrderToExtend] = useState([]);
+  const isExtending = displayItems.some((item) => item.toExtend === true);
+
+  useEffect(() => {
+    const fetchOrderItemsToExtend = async () => {
+      try {
+        if (customerPurchasedIdToExtend) {
+          const response = await cartService.getOrderItemsToExtend(
+            customerPurchasedIdToExtend
+          );
+          console.log("Fetched order items to extend:", response);
+          if (response && response.data) {
+            setOrderToExtend(response.data);
+            setSubTotal(response.data.totalAmount);
+            console.log("Order items to extend set:", response.data);
+          }
+        } else {
+          setOrderToExtend([]);
+          return;
+        }
+      } catch (error) {
+        console.error("Error fetching order items to extend:", error);
+        showErrorAlert(error.response?.data?.message || "Error fetching data");
+      }
+    };
+    fetchOrderItemsToExtend();
+  }, [customerPurchasedIdToExtend]);
+  // Function to apply voucher code
+  const handleApplyVoucher = async () => {
+    if (!voucherCode.trim()) {
+      showErrorAlert(t("voucher.enterCode"));
+      return;
+    }
+
+    setIsApplyingVoucher(true);
+    try {
+      // Determine if this is a freelance PT package
+      const isFreelancePt = displayItems.some(
+        (item) => item.type === "FreelancePT"
+      );
+      const isExtendingFreelancePT = displayItems.some(
+        (item) => item.toExtend === true && item.packageType === "Freelance PT"
+      );
+
+      // Call your voucher validation API here
+      // Replace this with your actual API call
+      const requestData = {
+        couponCode: voucherCode.trim(),
+        totalPrice: isExtending ? orderToExtend.totalAmount : totalPrice,
+        productType: "FreelancePTPackage",
+        itemsId: isExtendingFreelancePT
+          ? [itemToExtend.freelancePTPackageId]
+          : displayItems.map((item) => item.id),
+      };
+      console.log("Applying voucher with data:", requestData);
+      const response = await cartService.applyVoucher(requestData);
+      console.log("Voucher applied successfully:", response);
+
+      if (response && response.data && response.data) {
+        setSelectedVoucher(response.data);
+        console.log("Selected voucher set:", response.data);
+        showSuccessAlert(t("voucher.applied"));
+        // setVoucherCode("");
+      }
+    } catch (error) {
+      console.error("Error applying voucher:", error);
+      showErrorAlert(error.response?.data?.message || t("voucher.invalidCode"));
+    } finally {
+      setIsApplyingVoucher(false);
+    }
+  };
+
   const handleCheckout = async () => {
     // Use displayItems (either direct purchase or cart items)
     console.log("Processing payment for:", displayItems);
     console.log("Is direct purchase:", isDirectPurchase);
-
     let requestData = {};
-
     requestData = {
       request: {
         couponId: selectedVoucher?.id || null,
-        customerPurchasedIdToExtend: null,
-        shippingFee: 0,
+        customerPurchasedIdToExtend: isExtending
+          ? customerPurchasedIdToExtend
+          : null,
+        shippingFee: isExtending ? orderToExtend.shippingFee : 0,
         addressId: null,
         paymentMethodId:
           selectedPaymentMethod === "bank"
@@ -61,36 +148,38 @@ export default function PaymentScreen({ navigation, route }) {
             : "01997597-d188-7f12-95f4-43ef8d412633",
         // voucherId: null,
 
-        orderItems: displayItems.map((item) =>
-          item.type === "FreelancePT"
-            ? {
-                quantity: 1,
-                productDetailId: null,
-                gymCourseId: null,
-                gymPtId: null,
-                serviceInformationId: null,
-                freelancePTPackageId: item.id, // Use actual item ID
-              }
-            : item.type === "WithPt"
-            ? {
-                quantity: item.quantity,
-                productDetailId: null,
-                gymCourseId: item.id,
-                gymPtId: item.pt ? item.pt.id : null,
-                serviceInformationId: null,
-                freelancePTPackageId: null,
-              }
-            : item.type === "Normal"
-            ? {
-                quantity: item.quantity,
-                productDetailId: null,
-                gymCourseId: item.id,
-                gymPtId: null,
-                serviceInformationId: null,
-                freelancePTPackageId: null,
-              }
-            : {}
-        ),
+        orderItems: isExtending
+          ? orderToExtend.orderItems
+          : displayItems.map((item) =>
+              item.type === "FreelancePT"
+                ? {
+                    quantity: 1,
+                    productDetailId: null,
+                    gymCourseId: null,
+                    gymPtId: null,
+                    serviceInformationId: null,
+                    freelancePTPackageId: item.id, // Use actual item ID
+                  }
+                : item.type === "WithPt"
+                ? {
+                    quantity: item.quantity,
+                    productDetailId: null,
+                    gymCourseId: item.id,
+                    gymPtId: item.pt ? item.pt.id : null,
+                    serviceInformationId: null,
+                    freelancePTPackageId: null,
+                  }
+                : item.type === "Normal"
+                ? {
+                    quantity: item.quantity,
+                    productDetailId: null,
+                    gymCourseId: item.id,
+                    gymPtId: null,
+                    serviceInformationId: null,
+                    freelancePTPackageId: null,
+                  }
+                : {}
+            ),
       },
     };
     console.log("Checkout request:", requestData);
@@ -167,6 +256,10 @@ export default function PaymentScreen({ navigation, route }) {
                     onRemove={() => handleRemoveItem(item.cartItemId)}
                   />
                 );
+              }
+              if (item.toExtend === true) {
+                // Use regular CartCard for items to extend
+                return <CartCard_Extend key={item.id} itemToExtend={item} />;
               }
 
               // Use regular CartCard for other types (GymCourse, etc.)
@@ -247,7 +340,7 @@ export default function PaymentScreen({ navigation, route }) {
           </View>
         </View>
 
-        {/* Voucher Section */}
+        {/* Voucher Section - Modified to inline input */}
         <View style={styles.paymentMethod}>
           <View style={styles.cartUpper}>
             <Text style={{ fontSize: 15, color: "#ED2A46" }}>
@@ -255,28 +348,14 @@ export default function PaymentScreen({ navigation, route }) {
             </Text>
           </View>
 
-          <TouchableOpacity
-            style={styles.voucherSection}
-            onPress={() => {
-              // Determine if this is a freelance PT package
-              const isFreelancePt = displayItems.some(
-                (item) => item.type === "FreelancePT"
-              );
-
-              navigation.navigate("ApplyVoucherScreen", {
-                items: displayItems,
-                totalPrice: totalPrice,
-                isFreelancePt: isFreelancePt,
-              });
-            }}
-          >
+          <View style={styles.voucherSection}>
             {selectedVoucher ? (
               <View style={styles.voucherApplied}>
                 <View style={styles.voucherInfo}>
                   <MaterialIcons name="local-offer" size={24} color="#4CAF50" />
                   <View style={styles.voucherTextContainer}>
                     <Text style={styles.voucherCodeText}>
-                      {selectedVoucher.couponCode}
+                      {selectedVoucher.couponCode || voucherCode}
                     </Text>
                     <Text style={styles.voucherDiscountText}>
                       -{formatPrice(voucherDiscount)}
@@ -284,8 +363,8 @@ export default function PaymentScreen({ navigation, route }) {
                   </View>
                 </View>
                 <TouchableOpacity
-                  onPress={(e) => {
-                    e.stopPropagation();
+                  onPress={() => {
+                    setVoucherCode("");
                     setSelectedVoucher(null);
                   }}
                 >
@@ -293,15 +372,34 @@ export default function PaymentScreen({ navigation, route }) {
                 </TouchableOpacity>
               </View>
             ) : (
-              <View style={styles.voucherEmpty}>
-                <MaterialIcons name="card-giftcard" size={24} color="#ED2A46" />
-                <Text style={styles.voucherEmptyText}>
-                  {t("payment.applyVoucher")}
-                </Text>
-                <MaterialIcons name="chevron-right" size={24} color="#666" />
+              <View style={styles.voucherInputContainer}>
+                <TextInput
+                  style={styles.voucherInput}
+                  placeholder={t("payment.enterVoucherCode")}
+                  value={voucherCode}
+                  onChangeText={setVoucherCode}
+                  autoCapitalize="characters"
+                  editable={!isApplyingVoucher}
+                />
+                <TouchableOpacity
+                  style={[
+                    styles.applyButton,
+                    isApplyingVoucher && styles.applyButtonDisabled,
+                  ]}
+                  onPress={handleApplyVoucher}
+                  disabled={isApplyingVoucher || !voucherCode.trim()}
+                >
+                  {isApplyingVoucher ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Text style={styles.applyButtonText}>
+                      {t("payment.apply")}
+                    </Text>
+                  )}
+                </TouchableOpacity>
               </View>
             )}
-          </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.paymentMethod}>
@@ -314,10 +412,15 @@ export default function PaymentScreen({ navigation, route }) {
           <View style={styles.cardUnder}>
             <View style={styles.row}>
               <Text>{t("payment.totalServiceAmount")}</Text>
-              <Text>{formatPrice(totalPrice)}</Text>
+              <Text>
+                {" "}
+                {isExtending
+                  ? formatPrice(orderToExtend.totalAmount)
+                  : formatPrice(subTotal)}
+              </Text>
             </View>
             {selectedVoucher && voucherDiscount > 0 && (
-              <View style={[styles.row, styles.discountRow]}>
+              <View style={[styles.row]}>
                 <Text style={styles.discountText}>
                   {t("payment.voucherDiscount")}
                 </Text>
@@ -492,24 +595,44 @@ const styles = StyleSheet.create({
     borderTopColor: "#DDD9D9",
     paddingTop: 10,
   },
-  voucherEmpty: {
+  voucherInputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 8,
+    gap: 10,
   },
-  voucherEmptyText: {
+  voucherInput: {
     flex: 1,
-    marginLeft: 12,
+    borderWidth: 1,
+    borderColor: "#DDD9D9",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     fontSize: 14,
-    color: "#666",
+    backgroundColor: "#F9F9F9",
+  },
+  applyButton: {
+    backgroundColor: "#ED2A46",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+    minWidth: 80,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  applyButtonDisabled: {
+    backgroundColor: "#CCCCCC",
+  },
+  applyButtonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "600",
   },
   voucherApplied: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingVertical: 8,
-    backgroundColor: "#F1F8F4",
+    // backgroundColor: "#F1F8F4",
     paddingHorizontal: 12,
     borderRadius: 8,
   },
@@ -533,12 +656,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginTop: 2,
   },
-  discountRow: {
-    backgroundColor: "#FFF9F0",
-    paddingHorizontal: 8,
-    borderRadius: 4,
-    marginVertical: 4,
-  },
+
   discountText: {
     color: "#4CAF50",
     fontWeight: "600",

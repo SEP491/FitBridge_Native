@@ -145,11 +145,11 @@ export const LocationProvider = ({ children }) => {
         timeout,
       });
 
-      console.log("✅ Current location obtained:", {
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
-        accuracy: location.coords.accuracy,
-      });
+      // console.log("✅ Current location obtained:", {
+      //   latitude: location.coords.latitude,
+      //   longitude: location.coords.longitude,
+      //   accuracy: location.coords.accuracy,
+      // });
 
       setLocation(location);
       return location;

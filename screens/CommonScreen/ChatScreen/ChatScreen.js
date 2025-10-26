@@ -28,6 +28,7 @@ import {
   GymCardsList,
   TrainerCardsList,
 } from "../../../components/ChatComponents";
+import { useRevenueCat } from "../../../context/RevenueCatContext";
 
 const { width } = Dimensions.get("window");
 const MarkdownText = ({ text, style }) => {
@@ -293,7 +294,7 @@ export default function ChatScreen({ navigation }) {
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const flatListRef = useRef(null);
   const textInputRef = useRef(null);
-
+  const { isPremiumUser, presentPaywall } = useRevenueCat();
   // Load avatar
   useEffect(() => {
     const loadAvatar = async () => {
@@ -650,9 +651,14 @@ export default function ChatScreen({ navigation }) {
   };
 
   const handleSendMessage = () => {
-    sendMessage();
-    if (textInputRef.current) {
-      textInputRef.current.focus();
+    console.log("isPremiumUser:", isPremiumUser);
+    if (isPremiumUser) {
+      sendMessage();
+      if (textInputRef.current) {
+        textInputRef.current.focus();
+      }
+    } else {
+      presentPaywall();
     }
   };
 

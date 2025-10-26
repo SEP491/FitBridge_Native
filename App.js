@@ -1,6 +1,5 @@
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Navigator from "./navigation/Navigator";
-import { View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { CartProvider } from "./context/CartContext";
 import { LocationProvider } from "./context/LocationContext";
@@ -12,11 +11,10 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 import authService from "./services/authService";
 import { registerGlobals } from "react-native-webrtc";
-// Import i18n configuration
 import "./i18n";
 import { MeetingStateProvider } from "./context/meetingStateContext";
 import { SignalR_WebRTCProvider } from "./context/signalrContext_webrtc";
-
+import { RevenueCatProvider } from "./context/RevenueCatContext";
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
 
@@ -85,20 +83,25 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <SignalRProvider>
-        <SignalR_WebRTCProvider>
-          <WebRTCProvider>
-            <MeetingStateProvider>
-              <NotificationProvider>
-              <LocationProvider>
-                <FitnessProvider>
-                  <CartProvider>
-                    <Navigator isAuthenticated={isAuthenticated} user={user} />
-                  </CartProvider>
-                </FitnessProvider>
-              </LocationProvider>
-              </NotificationProvider>
-            </MeetingStateProvider>
-          </WebRTCProvider>
+          <SignalR_WebRTCProvider>
+            <WebRTCProvider>
+              <MeetingStateProvider>
+                <NotificationProvider>
+                  <RevenueCatProvider>
+                    <LocationProvider>
+                      <FitnessProvider>
+                        <CartProvider>
+                          <Navigator
+                            isAuthenticated={isAuthenticated}
+                            user={user}
+                          />
+                        </CartProvider>
+                      </FitnessProvider>
+                    </LocationProvider>
+                  </RevenueCatProvider>
+                </NotificationProvider>
+              </MeetingStateProvider>
+            </WebRTCProvider>
           </SignalR_WebRTCProvider>
         </SignalRProvider>
       </SafeAreaProvider>

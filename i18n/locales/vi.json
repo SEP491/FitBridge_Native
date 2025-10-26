@@ -106,7 +106,19 @@
       "expiredSubtitle": "Tất cả gói tập đều còn hiệu lực"
     },
     "withdrawal": "Rút Tiền",
-    "freelancePTSchedule": "Lịch Tập FreelancePT"
+    "freelancePTSchedule": "Lịch Tập FreelancePT",
+    "packageTypes": {
+      "freelancePT": "PT Tự Do",
+      "gymWithPT": "Gym + PT",
+      "gymMembership": "Thành Viên Gym",
+      "package": "Gói Tập"
+    },
+    "labels": {
+      "personalTrainer": "Huấn Luyện Viên",
+      "assignedTrainer": "Huấn Luyện Viên",
+      "fullGymAccess": "Truy Cập Gym Đầy Đủ",
+      "ptAssignment": "Phân Công PT:"
+    }
   },
 
   "home": {
@@ -266,7 +278,7 @@
     "completed": "hoàn thành",
     "training": "Đang Tập",
     "set": "Hiệp",
-    "kg": "Kg",
+    "no_limit": "Không giới hạn",
     "reps": "Lượt",
     "seconds": "Giây",
     "rest": "Nghỉ",
@@ -299,7 +311,12 @@
     "success": "Thành công",
     "packageAddedToCart": "Đã thêm gói tập vào giỏ hàng thành công",
     "continueShopping": "Tiếp tục mua sắm",
-    "viewCart": "Xem giỏ hàng"
+    "viewCart": "Xem giỏ hàng",
+    "extendPackage": "Gia hạn gói",
+    "ptAssignmentFee": "Phí giao PT:",
+    "available": "Còn lại:",
+    "expires": "Hết hạn:",
+    "unknownType": "Loại không xác định"
   },
 
   "profile": {
@@ -411,6 +428,7 @@
     "cancel": "Hủy",
     "confirm": "Xác nhận",
     "ok": "OK",
+    "yes": "Có",
     "edit": "Sửa",
     "close": "Đóng",
     "next": "Tiếp theo",
@@ -858,46 +876,6 @@
     "vietnameseDescription": "Chọn Tiếng Việt làm ngôn ngữ ưa thích"
   },
 
-  "subscription": {
-    "close": "Đóng",
-    "upgradeNow": "NÂNG CẤP NGAY",
-    "processing": "ĐANG XỬ LÝ...",
-    "upgradeAccount": "Nâng cấp tài khoản",
-    "choosePackage": "Chọn gói phù hợp với nhu cầu của bạn",
-    "perMonth": "/tháng",
-    "hot": "HOT",
-    "error": "Lỗi",
-    "cannotLoadPackages": "Không thể tải danh sách gói dịch vụ",
-    "notification": "Thông báo",
-    "pleaseSelectPackage": "Vui lòng chọn gói dịch vụ",
-    "cannotUpgrade": "Không thể nâng cấp gói dịch vụ. Vui lòng thử lại.",
-    "paymentCancelled": "Thanh toán đã bị hủy hoặc không thành công",
-    "pageLoadError": "Lỗi tải trang",
-    "cannotLoadPaymentPage": "Không thể tải trang thanh toán. Vui lòng thử lại.",
-    "tryAgain": "Thử lại",
-    "payment": "Thanh toán",
-    "loading": "Đang tải...",
-    "comparePackages": "So sánh gói dịch vụ",
-    "feature": "Tính năng",
-    "free": "Free",
-    "premium": "Premium",
-    "aiMessages": "Tin nhắn với AI",
-    "dailyLimit": "10/ngày",
-    "unlimited": "Không giới hạn",
-    "customerSupport": "Hỗ trợ khách hàng",
-    "email": "Email",
-    "support247": "24/7",
-    "advancedFeatures": "Tính năng nâng cao",
-    "cancelAnytime": "Bạn có thể hủy đăng ký bất cứ lúc nào trong cài đặt tài khoản",
-    "defaultFeatures": {
-      "unlimitedAiChat": "Chat với PT AI: Không giới hạn",
-      "allFeatures": "Truy cập tất cả tính năng",
-      "priority247Support": "Hỗ trợ ưu tiên 24/7",
-      "advancedFeatures": "Tính năng nâng cao",
-      "noAds": "Không quảng cáo"
-    }
-  },
-
   "schedule": {
     "bookSlot": "Đặt lịch",
     "booking": "Đang đặt...",
@@ -1282,6 +1260,8 @@
 
   "payment": {
     "payment": "Thanh toán",
+    "apply": "Áp dụng",
+    "enterVoucherCode": "Nhập mã voucher",
     "total": "Tổng",
     "subtotal": "Tạm tính",
     "discount": "Giảm giá",
@@ -1623,5 +1603,44 @@
     "editRequestSuccess": "Gửi yêu cầu thay đổi thành công",
     "editRequestError": "Gửi yêu cầu thay đổi thất bại",
     "notePlaceholder": "Nhập ghi chú thêm (không bắt buộc)"
+  },
+  "subscription": {
+    "no_limit": "Không giới hạn",
+    "unlimited_access": "Truy cập không giới hạn",
+    "use_all_premium_features": "Sử dụng tất cả tính năng cao cấp",
+    "priority_support": "Ưu tiên hỗ trợ",
+    "support_24_7": "Được hỗ trợ nhanh chóng 24/7",
+    "advanced_analytics": "Phân tích nâng cao",
+    "track_workout_progress": "Theo dõi chi tiết tiến độ tập luyện",
+    "no_ads": "Không quảng cáo",
+    "smooth_experience": "Trải nghiệm mượt mà không gián đoạn",
+    "loading": "Đang tải...",
+    "premium": "PREMIUM",
+    "activated": "Đã kích hoạt",
+    "welcome_back_premium": "Gói Premium",
+    "enjoying_premium_experience": "Bạn đang tận hưởng trải nghiệm cao cấp",
+    "upgrade_to_premium": "Nâng cấp lên Premium",
+    "unlock_all_features": "Mở khóa tất cả tính năng và trải nghiệm không giới hạn",
+    "from": "Chỉ từ",
+    "per_month": "/ tháng",
+    "current_plan": "Gói hiện tại",
+    "premium_monthly": "Premium hàng tháng",
+    "expiry_date": "Ngày hết hạn",
+    "auto_renew": "Tự động gia hạn",
+    "product_id": "Product ID",
+    "premium_features": "Tính năng Premium",
+    "upgrade_premium": "Nâng cấp Premium",
+    "restore_purchase": "Khôi phục mua hàng",
+    "manage_subscription": "Quản lý Subscription",
+    "manage_subscription_in_settings": "Bạn có thể quản lý subscription trong Settings của thiết bị",
+    "open_settings": "Mở Settings",
+    "important_note": "Lưu ý quan trọng",
+    "important_note_content": "• Subscription sẽ tự động gia hạn trừ khi bạn hủy ít nhất 24 giờ trước khi hết hạn\n• Bạn có thể hủy bất cứ lúc nào trong Settings\n• Giá có thể thay đổi tùy thuộc vào khu vực",
+    "offering_not_configured": "Chưa cấu hình Offering",
+    "check_revenuecat_dashboard": "Vui lòng kiểm tra cấu hình trên RevenueCat Dashboard",
+    "no_packages": "Chưa có Packages",
+    "offering_has_no_packages": "Offering đã có nhưng chưa có packages",
+    "debug_logs": "Debug Logs",
+    "current_offering": "Current Offering"
   }
 }

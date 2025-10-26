@@ -106,7 +106,19 @@
       "expiredSubtitle": "All your packages are active"
     },
     "withdrawal": "Withdrawal",
-    "freelancePTSchedule": "Freelance PT Schedule"
+    "freelancePTSchedule": "Freelance PT Schedule",
+    "packageTypes": {
+      "freelancePT": "Freelance PT",
+      "gymWithPT": "Gym + PT",
+      "gymMembership": "Gym Membership",
+      "package": "Package"
+    },
+    "labels": {
+      "personalTrainer": "Personal Trainer",
+      "assignedTrainer": "Assigned Trainer",
+      "fullGymAccess": "Gym Access Membership",
+      "ptAssignment": "PT Assignment:"
+    }
   },
 
   "home": {
@@ -297,7 +309,12 @@
     "success": "Success",
     "packageAddedToCart": "Package added to cart successfully",
     "continueShopping": "Continue Shopping",
-    "viewCart": "View Cart"
+    "viewCart": "View Cart",
+    "extendPackage": "Extend Package",
+    "ptAssignmentFee": "PT Assignment Fee:",
+    "available": "Available:",
+    "expires": "Expires:",
+    "unknownType": "Unknown Type"
   },
 
   "profile": {
@@ -406,6 +423,7 @@
 
   "common": {
     "ok": "OK",
+    "yes": "Yes",
     "save": "Save",
     "cancel": "Cancel",
     "confirm": "Confirm",
@@ -933,46 +951,6 @@
     "vietnameseDescription": "Choose Vietnamese as your preferred language"
   },
 
-  "subscription": {
-    "close": "Close",
-    "upgradeNow": "UPGRADE NOW",
-    "processing": "PROCESSING...",
-    "upgradeAccount": "Upgrade Account",
-    "choosePackage": "Choose a package that fits your needs",
-    "perMonth": "/month",
-    "hot": "HOT",
-    "error": "Error",
-    "cannotLoadPackages": "Cannot load service packages",
-    "notification": "Notification",
-    "pleaseSelectPackage": "Please select a service package",
-    "cannotUpgrade": "Cannot upgrade service package. Please try again.",
-    "paymentCancelled": "Payment has been cancelled or unsuccessful",
-    "pageLoadError": "Page Load Error",
-    "cannotLoadPaymentPage": "Cannot load payment page. Please try again.",
-    "tryAgain": "Try Again",
-    "payment": "Payment",
-    "loading": "Loading...",
-    "comparePackages": "Compare Packages",
-    "feature": "Feature",
-    "free": "Free",
-    "premium": "Premium",
-    "aiMessages": "AI Messages",
-    "dailyLimit": "10/day",
-    "unlimited": "Unlimited",
-    "customerSupport": "Customer Support",
-    "email": "Email",
-    "support247": "24/7",
-    "advancedFeatures": "Advanced Features",
-    "cancelAnytime": "You can cancel your subscription anytime in account settings",
-    "defaultFeatures": {
-      "unlimitedAiChat": "Chat with AI PT: Unlimited",
-      "allFeatures": "Access all features",
-      "priority247Support": "Priority 24/7 support",
-      "advancedFeatures": "Advanced features",
-      "noAds": "No ads"
-    }
-  },
-
   "schedule": {
     "bookSlot": "Book Slot",
     "booking": "Booking...",
@@ -1190,7 +1168,9 @@
     "applyVoucher": "Apply Voucher",
     "voucherDiscount": "Voucher Discount",
     "change": "Change",
-    "voucherApplied": "Voucher Applied"
+    "voucherApplied": "Voucher Applied",
+    "apply": "Apply",
+    "enterVoucherCode": "Enter voucher code"
   },
 
   "faq": {
@@ -1638,5 +1618,79 @@
     "editRequestSuccess": "Edit request sent successfully",
     "editRequestError": "Failed to send edit request",
     "notePlaceholder": "Enter additional notes (optional)"
+  },
+  "subscription": {
+    "close": "Close",
+    "upgradeNow": "UPGRADE NOW",
+    "processing": "PROCESSING...",
+    "upgradeAccount": "Upgrade Account",
+    "choosePackage": "Choose a package that fits your needs",
+    "perMonth": "/month",
+    "hot": "HOT",
+    "error": "Error",
+    "cannotLoadPackages": "Cannot load service packages",
+    "notification": "Notification",
+    "pleaseSelectPackage": "Please select a service package",
+    "cannotUpgrade": "Cannot upgrade service package. Please try again.",
+    "paymentCancelled": "Payment has been cancelled or unsuccessful",
+    "pageLoadError": "Page Load Error",
+    "cannotLoadPaymentPage": "Cannot load payment page. Please try again.",
+    "tryAgain": "Try Again",
+    "payment": "Payment",
+    "loading": "Loading...",
+    "comparePackages": "Compare Packages",
+    "feature": "Feature",
+    "free": "Free",
+    "premium": "PREMIUM",
+    "aiMessages": "AI Messages",
+    "dailyLimit": "10/day",
+    "unlimited": "Unlimited",
+    "customerSupport": "Customer Support",
+    "email": "Email",
+    "support247": "24/7",
+    "advancedFeatures": "Advanced Features",
+    "cancelAnytime": "You can cancel your subscription anytime in account settings",
+    "defaultFeatures": {
+      "unlimitedAiChat": "Chat with AI PT: Unlimited",
+      "allFeatures": "Access all features",
+      "priority247Support": "Priority 24/7 support",
+      "advancedFeatures": "Advanced features",
+      "noAds": "No ads"
+    },
+    "no_limit": "No limit",
+    "unlimited_access": "Unlimited access",
+    "use_all_premium_features": "Use all premium features",
+    "priority_support": "Priority support",
+    "support_24_7": "24/7 fast support",
+    "advanced_analytics": "Advanced analytics",
+    "track_workout_progress": "Track workout progress in detail",
+    "no_ads": "No ads",
+    "smooth_experience": "Smooth uninterrupted experience",
+    "activated": "Activated",
+    "welcome_back_premium": "Subscription",
+    "enjoying_premium_experience": "You are enjoying the premium experience",
+    "upgrade_to_premium": "Upgrade to Premium",
+    "unlock_all_features": "Unlock all features and unlimited experience",
+    "from": "From",
+    "per_month": "/ month",
+    "current_plan": "Current plan",
+    "premium_monthly": "Premium Monthly",
+    "expiry_date": "Expiry date",
+    "auto_renew": "Auto renew",
+    "product_id": "Product ID",
+    "premium_features": "Premium Features",
+    "upgrade_premium": "Upgrade Premium",
+    "restore_purchase": "Restore purchase",
+    "manage_subscription": "Manage Subscription",
+    "manage_subscription_in_settings": "You can manage your subscription in device Settings",
+    "open_settings": "Open Settings",
+    "important_note": "Important Note",
+    "important_note_content": "• Subscription will auto-renew unless you cancel at least 24 hours before expiry\n• You can cancel anytime in Settings\n• Price may vary by region",
+    "offering_not_configured": "Offering not configured",
+    "check_revenuecat_dashboard": "Please check configuration on RevenueCat Dashboard",
+    "no_packages": "No Packages",
+    "offering_has_no_packages": "Offering exists but has no packages",
+    "debug_logs": "Debug Logs",
+    "current_offering": "Current Offering"
   }
 }
