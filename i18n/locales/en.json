@@ -669,7 +669,7 @@
     "cancel": "Cancel",
     "user": "User",
     "pleaseLogin": "Please login",
-    "version": "Version 1.2025.03",
+    "version": "Version 1.0",
     "account": "Account",
     "services": "Services",
     "support": "Support",
@@ -684,6 +684,8 @@
   },
 
   "updatePassword": {
+    "title": "Update Password",
+    "subtitle": "Enter your new password",
     "oldPassword": "Old Password",
     "newPassword": "New Password",
     "confirmNewPassword": "Confirm New Password",

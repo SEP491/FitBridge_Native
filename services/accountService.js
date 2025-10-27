@@ -3,12 +3,14 @@ import { request } from "./request";
 
 const accountService = {
   getProfile: () => request("GET", "v1/accounts/profile"),
-  updateProfileUser: (data) => request("PUT", "v1/user", data),
+  updateProfileUser: (data) =>
+    request("PUT", "v1/accounts/update-profile", data),
   uploadAvatar: (formData) =>
-    request("POST", "v1/account/avatar", formData, {
+    request("PUT", "v1/accounts/update-avatar", formData, {
       "Content-Type": "multipart/form-data",
     }),
-
+  changePassword: (data) =>
+    request("PUT", "v1/identities/update-password", data),
   getCourseForUser: () =>
     request("GET", "v1/customer-purchased/customer-schedule"),
   getPTSlotforUser: (params) =>
@@ -48,8 +50,8 @@ const accountService = {
   getKeywords: (params) =>
     request("GET", "v1/accounts/hot-research", null, {}, params),
 
-  searchAllAccounts: (params) => 
-    request("GET", "v1/accounts/search", null, {}, params)
+  searchAllAccounts: (params) =>
+    request("GET", "v1/accounts/search", null, {}, params),
 };
 
 export default accountService;

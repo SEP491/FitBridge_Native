@@ -20,7 +20,11 @@ import {
 import Icon from "react-native-vector-icons/FontAwesome";
 import * as ImagePicker from "expo-image-picker";
 import * as Device from "expo-device";
-import { updateAvatar, getAvatarUrl, syncAvatarFromUserData } from "../../../lib";
+import {
+  updateAvatar,
+  getAvatarUrl,
+  syncAvatarFromUserData,
+} from "../../../lib";
 import accountService from "../../../services/accountService";
 import { useTranslation } from "../../../hooks/useTranslation";
 
@@ -290,7 +294,7 @@ const AccountScreen = () => {
         return;
       }
 
-      formData.append("file", {
+      formData.append("avatar", {
         uri: imageAsset.uri,
         name: `avatar.${fileType}`,
         type: `image/${fileType}`,
@@ -552,7 +556,7 @@ const AccountScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8F9FA"
+    backgroundColor: "#F8F9FA",
   },
   loadingContainer: {
     flex: 1,
@@ -635,7 +639,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 20,
     marginBottom: 20,
-    shadowColor: "#000",shadowOpacity: 0.1,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
   },
@@ -649,7 +654,8 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     color: "#000",
-  },formSection: {
+  },
+  formSection: {
     gap: 20,
   },
   inputGroup: {
@@ -690,7 +696,8 @@ const styles = StyleSheet.create({
     padding: 16,
     flexDirection: "row",
     alignItems: "center",
-    shadowColor: "#000",shadowOpacity: 0.05,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
   },
