@@ -1,13 +1,15 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import PairedSwiper from "../../../components/PairSwiper/PairSwiper";
 import GymCard from "../../../components/GymCard/GymCard";
 import { useTranslation } from "../../../hooks/useTranslation";
+import FullScreenSearch from "../../../components/FullScreenSearch/FullScreenSearch";
 
 export default function FeaturedGymsSection({ gyms, loading }) {
   const navigation = useNavigation();
   const { t } = useTranslation();
+  const [showSearch, setShowSearch] = useState(false);
 
   const renderGymCard = (item) => {
     return <GymCard gym={item} />;
@@ -17,39 +19,47 @@ export default function FeaturedGymsSection({ gyms, loading }) {
   const hotResearchGym = gyms.filter((gym) => gym.hotResearch === true);
 
   return (
-    <View style={styles.section}>
-      <View style={styles.titleContainer}>
-        <View style={styles.titleWithIcon}>
-          <Text style={styles.sectionTitle}>{t("home.featuredGyms")}</Text>
-          <View style={styles.titleUnderline} />
+    <>
+      <View style={styles.section}>
+        <View style={styles.titleContainer}>
+          <View style={styles.titleWithIcon}>
+            <Text style={styles.sectionTitle}>{t("home.featuredGyms")}</Text>
+            <View style={styles.titleUnderline} />
+          </View>
+          <TouchableOpacity
+            style={styles.viewMoreButton}
+            onPress={() => setShowSearch(true)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.viewMoreText}>{t("common.search")}</Text>
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity
-          style={styles.viewMoreButton}
-          onPress={() => navigation.navigate("SearchGymScreen")}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.viewMoreText}>{t("common.search")}</Text>
-        </TouchableOpacity>
+
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#ED2A46" />
+          </View>
+        ) : hotResearchGym && hotResearchGym.length > 0 ? (
+          <PairedSwiper
+            data={hotResearchGym}
+            renderItem={renderGymCard}
+            showsPagination={true}
+            itemsPerSlide={2}
+            height={280}
+            loop={hotResearchGym.length > 2}
+            dotStyle={styles.paginationDot}
+            activeDotStyle={styles.activePaginationDot}
+            containerStyle={styles.swiperContainer}
+          />
+        ) : null}
       </View>
 
-      {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#ED2A46" />
-        </View>
-      ) : hotResearchGym && hotResearchGym.length > 0 ? (
-        <PairedSwiper
-          data={hotResearchGym}
-          renderItem={renderGymCard}
-          showsPagination={true}
-          itemsPerSlide={2}
-          height={280}
-          loop={hotResearchGym.length > 2}
-          dotStyle={styles.paginationDot}
-          activeDotStyle={styles.activePaginationDot}
-          containerStyle={styles.swiperContainer}
-        />
-      ) : null}
-    </View>
+      <FullScreenSearch
+        visible={showSearch}
+        onClose={() => setShowSearch(false)}
+        onKeywordSelect={() => setShowSearch(false)}
+      />
+    </>
   );
 }
 
