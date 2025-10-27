@@ -7,10 +7,18 @@ import {
   StyleSheet,
   SafeAreaView,
   Modal,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  StatusBar,
+  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/Feather";
+import { FontAwesome } from "@expo/vector-icons";
 import { useTranslation } from "../../../hooks/useTranslation";
+import accountService from "../../../services/accountService";
+import { useNavigation } from "@react-navigation/native";
 
 const UpdatePasswordScreen = () => {
   const { t } = useTranslation();
@@ -18,165 +26,269 @@ const UpdatePasswordScreen = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  const [modalVisible, setModalVisible] = useState(false);
-
+  const navigation = useNavigation();
   const handleToggleConfirmPassword = () => {
     setShowConfirmPassword(!showConfirmPassword);
   };
 
-  const handleChangePassword = () => {
-    // Xử lý đổi mật khẩu xong hiện modal thành công
-    setModalVisible(true);
-  };
-
-  const handleBackToLogin = () => {
-    setModalVisible(false);
-    // Có thể navigate về màn hình login nếu có navigation
+  const handleChangePassword = async () => {
+    try {
+      if (newPassword !== confirmPassword) {
+        Alert.alert("Error", "New password and confirmation do not match.");
+        return;
+      }
+      const response = await accountService.changePassword({
+        currentPassword: oldPassword,
+        newPassword: newPassword,
+      });
+      console.log("Password changed successfully:", response);
+      Alert.alert("Success", "Your password has been updated successfully.");
+      navigation.goBack();
+    } catch (error) {
+      console.error("Error changing password:", error.response.data.message);
+      Alert.alert(
+        "Error",
+        error.response.data.message || "Failed to change password."
+      );
+    }
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
-      <LinearGradient
-        colors={["#FF914D", "#ED2A46"]}
-        style={styles.linearGradient}
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#FF914D" />
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
       >
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>{t("updatePassword.oldPassword")}</Text>
-          <TextInput
-            style={styles.input}
-            placeholder={t("updatePassword.oldPassword")}
-            secureTextEntry={true}
-            value={oldPassword}
-            onChangeText={setOldPassword}
-            placeholderTextColor="#000"
-          />
-        </View>
-
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>{t("updatePassword.newPassword")}</Text>
-          <TextInput
-            style={styles.input}
-            placeholder={t("updatePassword.newPassword")}
-            secureTextEntry={true}
-            value={newPassword}
-            onChangeText={setNewPassword}
-            placeholderTextColor="#000"
-          />
-        </View>
-
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>
-            {t("updatePassword.confirmNewPassword")}
-          </Text>
-          <View style={styles.confirmInputWrapper}>
-            <TextInput
-              style={[styles.input, { flex: 1 }]}
-              placeholder={t("updatePassword.confirmNewPassword")}
-              secureTextEntry={!showConfirmPassword}
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              placeholderTextColor="#000"
-            />
-            <TouchableOpacity
-              onPress={handleToggleConfirmPassword}
-              style={{ paddingHorizontal: 8 }}
-            >
-              <Icon
-                name={showConfirmPassword ? "eye" : "eye-off"}
-                size={20}
-                color="#000"
-              />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </LinearGradient>
-      <TouchableOpacity style={styles.button} onPress={handleChangePassword}>
-        <Text style={styles.buttonText}>
-          {t("updatePassword.changePassword")}
-        </Text>
-      </TouchableOpacity>
-
-      {/* Modal thông báo thành công */}
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalBackground}>
-          <View style={styles.modalContainer}>
-            <View style={styles.iconCircle}>
-              <Icon name="check" size={50} color="#fff" />
-            </View>
-            <Text style={styles.modalText}>
-              {t("updatePassword.resetPasswordSuccess")}
+        <ScrollView
+          contentContainerStyle={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Header Section */}
+          <View style={styles.headerSection}>
+            <Text style={styles.welcomeTitle}>{t("updatePassword.title")}</Text>
+            <Text style={styles.welcomeSubtitle}>
+              {t("updatePassword.subtitle")}
             </Text>
-            <TouchableOpacity
-              style={styles.modalButton}
-              onPress={handleBackToLogin}
-            >
-              <Text style={styles.modalButtonText}>
-                {t("updatePassword.backToLogin")}
-              </Text>
-            </TouchableOpacity>
           </View>
-        </View>
-      </Modal>
-    </SafeAreaView>
+
+          {/* Form Section */}
+          <View style={styles.formSection}>
+            <LinearGradient
+              colors={["#FF914D", "#ED2A46"]}
+              style={styles.formContainer}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <View style={styles.formContent}>
+                {/* Old Password Input */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>
+                    {t("updatePassword.oldPassword")}
+                  </Text>
+                  <View style={styles.inputContainer}>
+                    <FontAwesome
+                      name="lock"
+                      size={18}
+                      color="#A39F9F"
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      value={oldPassword}
+                      onChangeText={setOldPassword}
+                      placeholder={t("updatePassword.oldPassword")}
+                      secureTextEntry={true}
+                      placeholderTextColor="#A39F9F"
+                      style={styles.input}
+                    />
+                  </View>
+                </View>
+
+                {/* New Password Input */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>
+                    {t("updatePassword.newPassword")}
+                  </Text>
+                  <View style={styles.inputContainer}>
+                    <FontAwesome
+                      name="lock"
+                      size={18}
+                      color="#A39F9F"
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      value={newPassword}
+                      onChangeText={setNewPassword}
+                      placeholder={t("updatePassword.newPassword")}
+                      secureTextEntry={true}
+                      placeholderTextColor="#A39F9F"
+                      style={styles.input}
+                    />
+                  </View>
+                </View>
+
+                {/* Confirm Password Input */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>
+                    {t("updatePassword.confirmNewPassword")}
+                  </Text>
+                  <View style={styles.inputContainer}>
+                    <FontAwesome
+                      name="lock"
+                      size={18}
+                      color="#A39F9F"
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      value={confirmPassword}
+                      onChangeText={setConfirmPassword}
+                      placeholder={t("updatePassword.confirmNewPassword")}
+                      secureTextEntry={!showConfirmPassword}
+                      placeholderTextColor="#A39F9F"
+                      style={styles.passwordInput}
+                    />
+                    <TouchableOpacity
+                      style={styles.eyeIcon}
+                      onPress={handleToggleConfirmPassword}
+                      activeOpacity={0.7}
+                    >
+                      <FontAwesome
+                        name={showConfirmPassword ? "eye-slash" : "eye"}
+                        size={18}
+                        color="#A39F9F"
+                      />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+            </LinearGradient>
+          </View>
+          <TouchableOpacity
+            style={styles.loginButton}
+            onPress={handleChangePassword}
+            activeOpacity={0.8}
+          >
+            <LinearGradient
+              colors={["#FF914D", "#ED2A46"]}
+              style={styles.loginButtonGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+            >
+              <Text style={styles.loginButtonText}>
+                {t("updatePassword.changePassword")}
+              </Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  linearGradient: {
-    flex: 0.5,
-    paddingHorizontal: 20,
-    paddingTop: 30,
-    height: 500,
-    marginTop: 70,
-    marginBottom: 20
+  container: {
+    flex: 1,
+    backgroundColor: "#F8F9FA",
   },
-  inputContainer: {
-    marginBottom: 25,
+  scrollContainer: {
+    flexGrow: 1,
+    paddingHorizontal: 24,
+  },
+  headerSection: {
+    alignItems: "center",
+    paddingTop: 20,
+    paddingBottom: 30,
+  },
+  welcomeTitle: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#1A191A",
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  welcomeSubtitle: {
+    fontSize: 16,
+    color: "#6B7280",
+    textAlign: "center",
+  },
+  formSection: {
+    marginBottom: 24,
+  },
+  formContainer: {
+    borderRadius: 24,
+    padding: 2,
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  formContent: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 22,
+    padding: 24,
+  },
+  inputGroup: {
+    marginBottom: 20,
   },
   label: {
-    color: "#fff",
-    marginBottom: 8,
+    fontSize: 16,
     fontWeight: "600",
-  },
-  input: {
-    backgroundColor: "white",
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    paddingVertical: 10,
     color: "#1A191A",
+    marginBottom: 8,
   },
-  confirmInputWrapper: {
+  inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "white",
-    borderRadius: 10,
-    paddingHorizontal: 10,
+    backgroundColor: "#F8F9FA",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    paddingHorizontal: 16,
+    height: 56,
   },
-  button: {
-    backgroundColor: "#FF914D",
-    paddingVertical: 12,
-    borderRadius: 25,
-    marginTop: 10,
-    alignItems: "center",
-    shadowColor: "#ED2A46",shadowOpacity: 0.5,
-    shadowRadius: 5,
-    width: 250,
-    alignSelf: "center",
+  inputIcon: {
+    marginRight: 12,
   },
-  buttonText: {
-    color: "#fff",
-    fontWeight: "bold",
+  input: {
+    flex: 1,
     fontSize: 16,
+    color: "#1A191A",
+    paddingVertical: 0,
+  },
+  passwordInput: {
+    flex: 1,
+    fontSize: 16,
+    color: "#1A191A",
+    paddingVertical: 0,
+  },
+  eyeIcon: {
+    padding: 8,
+    marginLeft: 8,
+  },
+  loginButton: {
+    borderRadius: 16,
+    marginBottom: 32,
+    shadowColor: "#FF914D",
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  loginButtonGradient: {
+    height: 56,
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loginButtonText: {
+    color: "#FFFFFF",
+    fontSize: 18,
+    fontWeight: "bold",
   },
   modalBackground: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.2)",
+    backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -187,8 +299,10 @@ const styles = StyleSheet.create({
     paddingVertical: 30,
     paddingHorizontal: 20,
     alignItems: "center",
-    shadowColor: "#ED2A46",shadowOpacity: 0.7,
+    shadowColor: "#ED2A46",
+    shadowOpacity: 0.7,
     shadowRadius: 10,
+    elevation: 10,
   },
   iconCircle: {
     backgroundColor: "#ED2A46",
@@ -200,9 +314,11 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   modalText: {
-    color: "#ED2A46",
+    color: "#1A191A",
     fontSize: 16,
+    fontWeight: "600",
     marginBottom: 25,
+    textAlign: "center",
   },
   modalButton: {
     backgroundColor: "#FF914D",

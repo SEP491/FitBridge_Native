@@ -192,6 +192,7 @@ const ProfileScreen = () => {
   const fetchProfileData = async () => {
     try {
       const response = await accountService.getProfile();
+      console.log("Hồ sơ người dùng phản hồi:", response);
       setUserProfile(response.data);
     } catch (error) {
       console.error("Lỗi khi lấy thông tin hồ sơ:", error);
@@ -209,14 +210,16 @@ const ProfileScreen = () => {
       const updateData = {
         fullName: userProfile.fullName,
         dob: userProfile.dob,
-        weight: parseFloat(userProfile.weight) || 0,
-        height: parseFloat(userProfile.height) || 0,
-        gender: userProfile.gender,
+        userDetail: {
+          weight: parseFloat(userProfile.weight) || 0,
+          height: parseFloat(userProfile.height) || 0,
+        },
+        isMale: userProfile.gender === "Female" ? false : true,
         address: userProfile.address,
       };
 
       const response = await accountService.updateProfileUser(updateData);
-
+      console.log("Cập nhật hồ sơ phản hồi:", response);
       if (global.updateNavigationUser) {
         global.updateNavigationUser();
       }

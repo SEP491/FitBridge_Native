@@ -590,7 +590,7 @@
     "cancel": "Hủy",
     "user": "Người dùng",
     "pleaseLogin": "Vui lòng đăng nhập",
-    "version": "Phiên bản 1.2025.03",
+    "version": "Phiên bản 1.0",
     "account": "Tài khoản",
     "services": "Dịch vụ",
     "support": "Hỗ trợ",
@@ -605,6 +605,8 @@
   },
 
   "updatePassword": {
+    "title": "Cập Nhật Mật Khẩu",
+    "subtitle": "Nhập mật khẩu mới của bạn",
     "oldPassword": "Mật khẩu cũ",
     "newPassword": "Mật khẩu mới",
     "confirmNewPassword": "Xác nhận mật khẩu mới",
