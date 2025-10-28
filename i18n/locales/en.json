@@ -1085,7 +1085,8 @@
     "requestEdit": "Edit",
     "viewDetail": "View Detail",
     "requestEditBooking": "Request Edit Booking",
-    "sendEditRequest": "Send Edit Request"
+    "sendEditRequest": "Send Edit Request",
+    "meetingOnline": "Meeting Online"
   },
 
   "pt": {
