@@ -18,23 +18,26 @@ import { capitalizeFirst } from "../../lib";
 import { useTranslation } from "../../hooks/useTranslation";
 import axios from "axios";
 import FullScreenSearch from "../FullScreenSearch/FullScreenSearch";
-import { useUser } from "../../context/UserContext";
 
 export default function HeaderHome({ user }) {
   const [searchText, setSearchText] = useState("");
   const [loading, setLoading] = useState(true);
   const [showFullScreenSearch, setShowFullScreenSearch] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState("");
 
   const navigation = useNavigation();
   const { t } = useTranslation();
   const { cart, getCartCount } = useCart();
   const { location, coordinates, hasLocation } = useLocationContext();
-  const { avatarUrl } = useUser();
   const [weather, setWeather] = useState({});
   const [coords, setCoords] = useState(null);
 
   useEffect(() => {
-    // Avatar is now handled by UserContext
+    const loadAvatar = async () => {
+      const url = await getAvatarUrl();
+      setAvatarUrl(url);
+    };
+    loadAvatar();
   }, []);
 
   const fetchWeather = async () => {

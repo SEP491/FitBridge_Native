@@ -20,25 +20,23 @@ import {
 import Icon from "react-native-vector-icons/FontAwesome";
 import * as ImagePicker from "expo-image-picker";
 import * as Device from "expo-device";
-import { updateAvatar, getAvatarUrl } from "../../../lib";
+import {
+  updateAvatar,
+  getAvatarUrl,
+  syncAvatarFromUserData,
+} from "../../../lib";
 import accountService from "../../../services/accountService";
 import { useTranslation } from "../../../hooks/useTranslation";
-import { useUser } from "../../../context/UserContext";
 
 const { width } = Dimensions.get("window");
 
 const AccountScreen = () => {
   const navigation = useNavigation();
   const { t } = useTranslation();
-  const {
-    user,
-    avatarUrl,
-    updateAvatar: updateAvatarContext,
-    loading: userLoading,
-  } = useUser();
   const [loading, setLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState("");
 
   // Original profile from API
   const [userProfile, setUserProfile] = useState({});
@@ -52,7 +50,13 @@ const AccountScreen = () => {
 
   useEffect(() => {
     fetchUserData();
+    loadAvatar();
   }, []);
+
+  const loadAvatar = async () => {
+    const url = await getAvatarUrl();
+    setAvatarUrl(url);
+  };
 
   const fetchUserData = async () => {
     setLoading(true);
@@ -60,7 +64,11 @@ const AccountScreen = () => {
       const response = await accountService.getProfile();
       setUserProfile(response.data);
       console.log("Fetched user profile:", response.data);
+      // Sync avatar with utilities
+      await syncAvatarFromUserData(response.data);
+      await loadAvatar(); // Reload avatar after sync
 
+      // Initialize form data with user profile
       setFormData({
         fullName: response.data.fullName || "",
         email: response.data.email || "",
@@ -296,9 +304,9 @@ const AccountScreen = () => {
       try {
         // Try primary upload endpoint
         response = await accountService.uploadAvatar(formData);
-        console.log("Avatar upload response:", response.data);
+
         // Get the new avatar URL from response
-        const newAvatarUrl = response.data;
+        const newAvatarUrl = response.data?.avatar || response.avatar;
 
         if (newAvatarUrl) {
           console.log(
@@ -306,8 +314,9 @@ const AccountScreen = () => {
             newAvatarUrl
           );
 
-          // Update avatar using context - this will update all components
-          await updateAvatarContext(newAvatarUrl);
+          // Update avatar using utilities
+          await updateAvatar(newAvatarUrl);
+          await loadAvatar(); // Reload local avatar state
 
           // Update local user profile state
           setUserProfile((prev) => ({
@@ -324,8 +333,9 @@ const AccountScreen = () => {
         const newAvatarUrl = response.data?.avatar || response.avatar;
 
         if (newAvatarUrl) {
-          // Update avatar using context
-          await updateAvatarContext(newAvatarUrl);
+          // Update avatar using utilities
+          await updateAvatar(newAvatarUrl);
+          await loadAvatar(); // Reload local avatar state
 
           // Update local user profile state
           setUserProfile((prev) => ({
@@ -362,7 +372,7 @@ const AccountScreen = () => {
     }
   };
 
-  if (loading || userLoading) {
+  if (loading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#ED2A46" />
@@ -550,7 +560,7 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: "center",
+    justifyCenter: "center",
     alignItems: "center",
     backgroundColor: "#F8F9FA",
   },

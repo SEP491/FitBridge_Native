@@ -22,12 +22,11 @@ import { ConnectionStates } from "../../../services/signalR/ConnectionStates";
 import signalR_webrtcService from "../../../services/signalR/signalR-webrtcService";
 import Purchases from "react-native-purchases";
 import { useRevenueCat } from "../../../context/RevenueCatContext";
-import { useUser } from "../../../context/UserContext";
 
 export default function UserMenuScreen() {
   const [user, setUser] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const { user: contextUser, avatarUrl, logout } = useUser();
+  const [avatarUrl, setAvatarUrl] = useState("");
   const { clearCart } = useCart(); // Assuming useCart is defined in your context or service
   const { t } = useTranslation();
   const { logoutRevenueCatUser } = useRevenueCat();
@@ -38,7 +37,9 @@ export default function UserMenuScreen() {
         setUser(JSON.parse(userData));
       }
 
-      // Avatar is now handled by UserContext
+      // Load avatar
+      const url = await getAvatarUrl();
+      setAvatarUrl(url);
     };
     fetchUser();
 

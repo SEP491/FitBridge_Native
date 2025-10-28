@@ -29,7 +29,6 @@ import {
   TrainerCardsList,
 } from "../../../components/ChatComponents";
 import { useRevenueCat } from "../../../context/RevenueCatContext";
-import { useUser } from "../../../context/UserContext";
 
 const { width } = Dimensions.get("window");
 const MarkdownText = ({ text, style }) => {
@@ -286,8 +285,8 @@ const FloatingClearButton = ({ onPress, isVisible }) => {
 export default function ChatScreen({ navigation }) {
   const { location, hasLocation, coordinates } = useLocationContext();
   const { t } = useTranslation();
-  const { avatarUrl } = useUser();
   const [coords, setCoords] = useState({});
+  const [avatarUrl, setAvatarUrl] = useState("");
   // Add navigation prop
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState("");
@@ -296,8 +295,14 @@ export default function ChatScreen({ navigation }) {
   const flatListRef = useRef(null);
   const textInputRef = useRef(null);
   const { isPremiumUser, presentPaywall } = useRevenueCat();
-  // Avatar is now handled by UserContext
-  useEffect(() => {}, []);
+  // Load avatar
+  useEffect(() => {
+    const loadAvatar = async () => {
+      const url = await getAvatarUrl();
+      setAvatarUrl(url);
+    };
+    loadAvatar();
+  }, []);
 
   // Initialize greeting message
   useEffect(() => {

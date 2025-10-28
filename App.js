@@ -15,7 +15,6 @@ import "./i18n";
 import { MeetingStateProvider } from "./context/meetingStateContext";
 import { SignalR_WebRTCProvider } from "./context/signalrContext_webrtc";
 import { RevenueCatProvider } from "./context/RevenueCatContext";
-import { UserProvider } from "./context/UserContext";
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
 
@@ -92,12 +91,10 @@ export default function App() {
                     <LocationProvider>
                       <FitnessProvider>
                         <CartProvider>
-                          <UserProvider>
-                            <Navigator
-                              isAuthenticated={isAuthenticated}
-                              user={user}
-                            />
-                          </UserProvider>
+                          <Navigator
+                            isAuthenticated={isAuthenticated}
+                            user={user}
+                          />
                         </CartProvider>
                       </FitnessProvider>
                     </LocationProvider>
