@@ -32,7 +32,6 @@ const ProfileScreen = () => {
     weight: 0,
     height: 0,
     gender: "",
-    address: "",
   });
 
   const [isEditMode, setIsEditMode] = useState(false);
@@ -209,7 +208,6 @@ const ProfileScreen = () => {
           height: parseFloat(userProfile.height) || 0,
         },
         isMale: userProfile.gender === "Female" ? false : true,
-        address: userProfile.address,
       };
 
       const response = await accountService.updateProfileUser(updateData);
@@ -586,28 +584,6 @@ const ProfileScreen = () => {
                   />
                 </View>
               </TouchableOpacity>
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>
-                <MaterialCommunityIcons
-                  name="map-marker"
-                  size={16}
-                  color="#FF914D"
-                />{" "}
-                {t("profile.address")}
-              </Text>
-              <TextInput
-                style={[styles.textInput, !isEditMode && styles.disabledInput]}
-                value={userProfile.address}
-                onChangeText={(text) =>
-                  setUserProfile({ ...userProfile, address: text })
-                }
-                placeholder={t("profile.enterAddress")}
-                editable={isEditMode}
-                multiline={true}
-                numberOfLines={2}
-              />
             </View>
           </View>
         </View>
