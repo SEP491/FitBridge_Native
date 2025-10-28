@@ -121,8 +121,6 @@ export default function FullScreenSearch({
 
       // Add filter parameters only for Freelance PT tab
       if (activeTab === 'freelancePts') {
-        params.searchType = 'FreelancePT';
-        
         if (filters.priceRange.min) {
           params.fromPrice = parseFloat(filters.priceRange.min);
         }
@@ -142,8 +140,6 @@ export default function FullScreenSearch({
           params.sortOrder = filters.sortBy === 'priceAsc' ? 'asc' : 'desc';
           params.sortBy = 'price';
         }
-      } else {
-        params.searchType = 'Gym';
       }
 
       const response = await accountService.searchAllAccounts(params);
