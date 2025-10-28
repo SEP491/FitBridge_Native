@@ -22,7 +22,6 @@ import GymDetailScreen from "../screens/CommonScreen/GymDetailScreen/GymDetailSc
 import PTInGymScreen from "../screens/CommonScreen/PTInGymScreen/PTInGymScreen";
 import BlogScreen from "../screens/CommonScreen/BlogScreen/BlogScreen";
 import BlogDetailScreen from "../screens/CommonScreen/BlogDetailScreen/BlogDetailScreen";
-import SearchGymScreen from "../screens/CommonScreen/SearchGymScreen/SearchGymScreen";
 import PTProfileScreen from "../screens/CommonScreen/PTProfileScreen/PTProfileScreen";
 import CartScreen from "../screens/CommonScreen/CartScreen/CartScreen";
 import FreelancePTPackageDetailScreen from "../screens/CommonScreen/FreelancePTPackageDetailScreen/FreelancePTPackageDetailScreen";
@@ -115,7 +114,6 @@ export default function Navigator({
                 PaymentScreen: "payment",
                 OrderSuccessScreen: "orderprocess",
                 GymDetailScreen: "gym/:gymId",
-                SearchGymScreen: "search",
               },
             },
             [t("navigation.map")]: {
@@ -222,15 +220,6 @@ export default function Navigator({
             headerTitleAlign: "center",
             headerShown: true,
             title: t("screenTitles.blog"),
-          }}
-        />
-        <Stack.Screen
-          name="SearchGymScreen"
-          component={SearchGymScreen}
-          options={{
-            headerTitleAlign: "center",
-            headerShown: true,
-            title: t("screenTitles.searchGym"),
           }}
         />
         <Stack.Screen

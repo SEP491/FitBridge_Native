@@ -118,11 +118,6 @@ export default function HeaderHome({ user }) {
     setSearchText(keyword);
     setShowFullScreenSearch(false);
     Keyboard.dismiss();
-
-    // Navigate to search screen with the selected keyword
-    navigation.navigate("SearchGymScreen", {
-      searchQuery: keyword,
-    });
   };
 
   // Handle close full screen search
@@ -131,22 +126,10 @@ export default function HeaderHome({ user }) {
     Keyboard.dismiss();
   };
 
-  // Handle search submission from full screen
-  const handleFullScreenSearch = (query) => {
-    // Navigate to search screen
-    navigation.navigate("SearchGymScreen", {
-      searchQuery: query,
-    });
-  };
-
   // Handle search submission from header (fallback)
   const handleSearchSubmit = () => {
     if (searchText.trim()) {
       setShowFullScreenSearch(false);
-
-      navigation.navigate("SearchGymScreen", {
-        searchQuery: searchText.trim(),
-      });
     }
   };
   return (
@@ -251,7 +234,6 @@ export default function HeaderHome({ user }) {
         visible={showFullScreenSearch}
         onKeywordSelect={handleKeywordSelect}
         onClose={handleCloseFullScreenSearch}
-        onSearch={handleFullScreenSearch}
         initialSearchText={searchText}
       />
     </>
