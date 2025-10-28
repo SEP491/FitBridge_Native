@@ -1233,7 +1233,7 @@ export default function Navigator({
     };
     useEffect(() => {
       registerPushToken();
-      // signalrService.startConnection();
+      signalrService.startConnection();
     }, []);
 
     return (
