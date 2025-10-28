@@ -258,6 +258,7 @@ export const TrainingResultScreen = ({ route, navigation }) => {
               chartConfig={chartConfig}
               t={t}
               StatCard={StatCard}
+              stats={stats}
             />
           </>
         )}

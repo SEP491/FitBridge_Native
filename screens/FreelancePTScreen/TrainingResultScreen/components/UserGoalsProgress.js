@@ -1,74 +1,92 @@
 import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { StackedBarChart } from 'react-native-chart-kit';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-export const UserGoalsProgress = ({ mockedUserGoals, prepareGoalsChartData, chartConfig, t, StatCard }) => {
-  if (!mockedUserGoals || mockedUserGoals.length === 0) {
+export const UserGoalsProgress = ({ mockedUserGoals, prepareGoalsChartData, chartConfig, t, StatCard, stats }) => {
+  const userGoals = stats?.userGoals;
+  console.log("Rendering UserGoalsProgress with userGoals:", userGoals);
+  
+  if (!userGoals) {
     return null;
   }
 
+  // Define muscle groups to display
+  const muscleGroups = [
+    { key: 'Biceps', label: t('muscleGroups.biceps', 'Biceps') },
+    { key: 'ForeArm', label: t('muscleGroups.foreArm', 'Forearm') },
+    { key: 'Thigh', label: t('muscleGroups.thigh', 'Thigh') },
+    { key: 'Calf', label: t('muscleGroups.calf', 'Calf') },
+    { key: 'Chest', label: t('muscleGroups.chest', 'Chest') },
+    { key: 'Waist', label: t('muscleGroups.waist', 'Waist') },
+    { key: 'Hip', label: t('muscleGroups.hip', 'Hip') },
+    { key: 'Shoulder', label: t('muscleGroups.shoulder', 'Shoulder') },
+    { key: 'Weight', label: t('muscleGroups.weight', 'Weight') },
+  ];
+
   return (
-    <StatCard title={t('trainingResults.userGoals') || 'User Goals Progress'} icon="trending-up">
-      <View style={styles.chartContainer}>
-        <StackedBarChart
-          data={prepareGoalsChartData()}
-          width={SCREEN_WIDTH - 64}
-          height={280}
-          chartConfig={chartConfig}
-          style={styles.chart}
-          fromZero
-          showBarTops={false}
-          withInnerLines={true}
-          segments={5}
-        />
-        <View style={styles.legendContainer}>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: '#94A3B8' }]} />
-            <Text style={styles.legendText}>{t('trainingResults.start') || 'Start'}</Text>
-          </View>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: '#4CAF50' }]} />
-            <Text style={styles.legendText}>{t('trainingResults.current') || 'Current'}</Text>
-          </View>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: '#ED2A46' }]} />
-            <Text style={styles.legendText}>{t('trainingResults.target') || 'Target'}</Text>
-          </View>
-        </View>
-      </View>
-      
+    <StatCard title={t('trainingResults.userGoalsProgress', 'User Goals Progress')} icon="trending-up">
       {/* Detailed Goals Info */}
       <View style={styles.goalsDetailContainer}>
-        {mockedUserGoals.map((goal, index) => {
-          const start = goal[`start${goal.muscleGroup}`] || 0;
-          const current = goal[`current${goal.muscleGroup}`] || 0;
-          const target = goal[`target${goal.muscleGroup}`] || 0;
-          const progressPercent = ((current - start) / (target - start) * 100)?.toFixed(1);
+        {muscleGroups.map((group, index) => {
+          const start = userGoals[`start${group.key}`];
+          const current = userGoals[`current${group.key}`];
+          const target = userGoals[`target${group.key}`];
+          
+          // Skip if no target is set or start is missing
+          if (!target || start === null || start === undefined) return null;
+          
+          // Use start value if current is null
+          const currentValue = current !== null ? current : start;
+          
+          // Calculate progress percentage based on goal direction
+          let progressPercent = 0;
+          
+          if (target === start) {
+            // If target equals start, progress is 100%
+            progressPercent = 100;
+          } else if (target > start) {
+            // Goal is to increase (e.g., muscle gain)
+            const totalChange = target - start;
+            const currentChange = currentValue - start;
+            progressPercent = (currentChange / totalChange) * 100;
+          } else {
+            // Goal is to decrease (e.g., weight loss, waist reduction)
+            const totalChange = start - target;
+            const currentChange = start - currentValue;
+            progressPercent = (currentChange / totalChange) * 100;
+          }
+          
+          // Clamp progress between 0 and 200 (allow showing over-achievement)
+          progressPercent = Math.max(0, Math.min(progressPercent, 200));
           
           return (
             <View key={index} style={styles.goalDetailItem}>
               <View style={styles.goalHeader}>
-                <Text style={styles.goalMuscleGroup}>{goal.muscleGroup}</Text>
+                <Text style={styles.goalMuscleGroup}>{group.label}</Text>
                 <Text style={[
                   styles.goalProgress,
-                  { color: progressPercent >= 100 ? '#4CAF50' : '#FF6B35' }
+                  { color: progressPercent >= 100 ? '#4CAF50' : progressPercent >= 50 ? '#FF9800' : '#FF6B35' }
                 ]}>
-                  {progressPercent}%
+                  {progressPercent.toFixed(1)}%
                 </Text>
               </View>
               <View style={styles.goalValues}>
                 <View style={styles.goalValue}>
-                  <Text style={styles.goalValueLabel}>{t('trainingResults.start') || 'Start'}</Text>
-                  <Text style={styles.goalValueNumber}>{start}</Text>
+                  <Text style={styles.goalValueLabel}>{t('userGoals.start', 'Start')}</Text>
+                  <Text style={styles.goalValueNumber}>{start || 0}</Text>
                 </View>
                 <View style={styles.goalValue}>
-                  <Text style={styles.goalValueLabel}>{t('trainingResults.current') || 'Current'}</Text>
-                  <Text style={[styles.goalValueNumber, { color: '#4CAF50' }]}>{current}</Text>
+                  <Text style={styles.goalValueLabel}>{t('userGoals.current', 'Current')}</Text>
+                  <Text style={[styles.goalValueNumber, { color: '#4CAF50' }]}>
+                    {currentValue || start || 0}
+                  </Text>
                 </View>
                 <View style={styles.goalValue}>
-                  <Text style={styles.goalValueLabel}>{t('trainingResults.target') || 'Target'}</Text>
+                  <Text style={styles.goalValueLabel}>{t('userGoals.target', 'Target')}</Text>
                   <Text style={[styles.goalValueNumber, { color: '#ED2A46' }]}>{target}</Text>
                 </View>
               </View>
@@ -76,7 +94,7 @@ export const UserGoalsProgress = ({ mockedUserGoals, prepareGoalsChartData, char
                 <View 
                   style={[
                     styles.progressBarFill, 
-                    { width: `${Math.min(progressPercent, 100)}%` }
+                    { width: `${Math.min(Math.max(progressPercent, 0), 100)}%` }
                   ]} 
                 />
               </View>

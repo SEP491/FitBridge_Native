@@ -10,7 +10,8 @@ import {
   ActivityIndicator,
   Modal,
   ScrollView,
-  TouchableHighlight
+  TouchableHighlight,
+  Image
 } from 'react-native';
 import { useTranslation } from '../../../hooks/useTranslation';
 import { Ionicons } from "@expo/vector-icons";
@@ -106,7 +107,6 @@ const MyCustomerScreen = ({ navigation }) => {
 
   const tabs = [
     { key: 'all', label: 'All Customers' },
-    { key: 'overallResult', label: 'Overall Training Result' },
     { key: 'active', label: 'Active' },
     { key: 'inactive', label: 'Inactive' }
   ];
@@ -155,9 +155,16 @@ const MyCustomerScreen = ({ navigation }) => {
 
       <View style={styles.customerHeader}>
         <View style={styles.customerAvatar}>
-          <Text style={styles.customerAvatarText}>
-            {customer.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
-          </Text>
+        {customer.avatarUrl ? (
+            <Image 
+              source={{ uri: customer.avatarUrl }}
+              style={styles.customerAvatarImage}
+            />
+          ) : (
+            <Text style={styles.customerAvatarText}>
+              {customer.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
+            </Text>
+          )}
         </View>
         <View style={styles.customerInfo}>
           <Text style={styles.customerName}>{customer.name}</Text>
@@ -191,12 +198,12 @@ const MyCustomerScreen = ({ navigation }) => {
         </View>
         <View style={styles.detailRow}>
           <Ionicons name="cube-outline" size={16} color="#666" />
-          <Text style={styles.detailText}>Packages: {customer.packages.map(p => p.packageName).join(', ') || 'None'}</Text>
+          <Text ellipsizeMode='tail' numberOfLines={2} style={styles.detailText}>Packages: {customer.packages.map(p => p.packageName).join(', ') || 'None'}</Text>
         </View>
       </View>
       </TouchableOpacity>
 
-      <View style={styles.customerActions}>
+      {/* <View style={styles.customerActions}>
         <TouchableOpacity 
           style={styles.messageButton}
           onPress={() => Alert.alert('Info', `Message ${customer.name}`)}
@@ -218,7 +225,7 @@ const MyCustomerScreen = ({ navigation }) => {
           <Ionicons name="eye-outline" size={16} color="#fff" />
           <Text style={styles.actionButtonText}>View</Text>
         </TouchableOpacity>
-      </View>
+      </View> */}
     </View>
   );
 
@@ -513,6 +520,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
     paddingHorizontal: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
   },
   tabButton: {
     paddingVertical: 10,
@@ -566,6 +576,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
+  },
+  customerAvatarImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
   },
   customerAvatarText: {
     color: '#fff',

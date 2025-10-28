@@ -139,9 +139,16 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
         {/* Customer Detail Section */}
         <View style={styles.customerDetailCard}>
           <View style={styles.customerAvatarLarge}>
-            <Text style={styles.customerAvatarLargeText}>
-              {customer.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
-            </Text>
+            {customer.avatarUrl ? (
+              <Image 
+                source={{ uri: customer.avatarUrl }}
+                style={styles.customerAvatarLargeImage}
+              />
+            ) : (
+              <Text style={styles.customerAvatarLargeText}>
+                {customer.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
+              </Text>
+            )}
           </View>
           
           <Text style={styles.customerNameLarge}>{customer.name}</Text>
@@ -281,7 +288,7 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
                                   backgroundColor: '#f8f9fa',
                                   backgroundGradientFrom: '#f8f9fa',
                                   backgroundGradientTo: '#f8f9fa',
-                                  color: (opacity = 1) => `rgba(76, 175, 80, ${opacity})`,
+                                  color: (opacity = 1) => `rgba(20, 200, 72, ${opacity})`,
                                 }}
                                 hideLegend={true}
                                 style={{ marginVertical: 0 }}
@@ -531,6 +538,11 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
+  },
+  customerAvatarLargeImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
   },
   customerAvatarLargeText: {
     color: '#fff',

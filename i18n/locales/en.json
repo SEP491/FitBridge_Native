@@ -1548,9 +1548,28 @@
     "activityTypeBreakdown": "Activity Type Breakdown",
     "muscleGroupBreakdown": "Muscle Group Breakdown",
     "userGoals": "User Goals Progress",
+    "userGoalsProgress": "User Goals Progress",
     "startValue": "Start",
     "progress": "Progress",
     "remaining": "Remaining",
+    "start": "Start",
+    "current": "Current",
+    "target": "Target"
+  },
+
+  "muscleGroups": {
+    "biceps": "Biceps",
+    "foreArm": "Forearm",
+    "thigh": "Thigh",
+    "calf": "Calf",
+    "chest": "Chest",
+    "waist": "Waist",
+    "hip": "Hip",
+    "shoulder": "Shoulder",
+    "weight": "Weight"
+  },
+
+  "userGoals": {
     "start": "Start",
     "current": "Current",
     "target": "Target"

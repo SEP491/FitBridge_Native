@@ -1534,6 +1534,7 @@
     "activityTypeBreakdown": "Phân Loại Hoạt Động",
     "muscleGroupBreakdown": "Phân Tích Nhóm Cơ",
     "userGoals": "Tiến Độ Mục Tiêu",
+    "userGoalsProgress": "Tiến Độ Mục Tiêu Người Dùng",
     "startValue": "Khởi Đầu",
     "progress": "Tiến Độ",
     "remaining": "Còn Lại",
@@ -1541,6 +1542,25 @@
     "current": "Hiện Tại",
     "target": "Mục Tiêu"
   },
+
+  "muscleGroups": {
+    "biceps": "Cơ Nhị Đầu",
+    "foreArm": "Cẳng Tay",
+    "thigh": "Đùi",
+    "calf": "Bắp Chân",
+    "chest": "Ngực",
+    "waist": "Eo",
+    "hip": "Hông",
+    "shoulder": "Vai",
+    "weight": "Cân Nặng"
+  },
+
+  "userGoals": {
+    "start": "Bắt Đầu",
+    "current": "Hiện Tại",
+    "target": "Mục Tiêu"
+  },
+
   "bookingRequest": {
     "title": "Yêu Cầu Đặt Lịch",
     "createRequest": "Tạo Yêu Cầu Đặt Lịch",
