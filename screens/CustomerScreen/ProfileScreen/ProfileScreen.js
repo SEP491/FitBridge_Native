@@ -19,10 +19,11 @@ import { getAvatarUrl } from "../../../lib";
 import accountService from "../../../services/accountService";
 import { useTranslation } from "../../../hooks/useTranslation";
 import { formatNumber, formatDate, formatDateForAPI } from "../../../lib";
+import { useUser } from "../../../context/UserContext";
 
 const ProfileScreen = () => {
   const { t } = useTranslation();
-  const [avatarUrl, setAvatarUrl] = useState("");
+  const { avatarUrl } = useUser();
   const [userProfile, setUserProfile] = useState({
     fullName: "",
     email: "",
@@ -103,13 +104,7 @@ const ProfileScreen = () => {
 
   useEffect(() => {
     fetchProfileData();
-    loadAvatar();
   }, []);
-
-  const loadAvatar = async () => {
-    const url = await getAvatarUrl();
-    setAvatarUrl(url);
-  };
 
   useEffect(() => {
     if (userProfile.dob) {

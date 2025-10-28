@@ -684,7 +684,7 @@
   },
 
   "updatePassword": {
-    "title": "Update Password",
+    "title": "Change Password",
     "subtitle": "Enter your new password",
     "oldPassword": "Old Password",
     "newPassword": "New Password",
