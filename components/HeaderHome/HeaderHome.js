@@ -12,33 +12,23 @@ import { LinearGradient } from "expo-linear-gradient";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
 import { useCart } from "../../context/CartContext";
-import { getAvatarUrl } from "../../lib";
 import { useLocationContext } from "../../context/LocationContext";
-import { capitalizeFirst } from "../../lib";
 import { useTranslation } from "../../hooks/useTranslation";
 import axios from "axios";
 import FullScreenSearch from "../FullScreenSearch/FullScreenSearch";
+import { useUser } from "../../context/UserContext";
 
 export default function HeaderHome({ user }) {
   const [searchText, setSearchText] = useState("");
   const [loading, setLoading] = useState(true);
   const [showFullScreenSearch, setShowFullScreenSearch] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState("");
-
+  const { avatarUrl } = useUser();
   const navigation = useNavigation();
   const { t } = useTranslation();
   const { cart, getCartCount } = useCart();
   const { location, coordinates, hasLocation } = useLocationContext();
   const [weather, setWeather] = useState({});
   const [coords, setCoords] = useState(null);
-
-  useEffect(() => {
-    const loadAvatar = async () => {
-      const url = await getAvatarUrl();
-      setAvatarUrl(url);
-    };
-    loadAvatar();
-  }, []);
 
   const fetchWeather = async () => {
     setLoading(true);

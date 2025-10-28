@@ -80,6 +80,7 @@ import TrainingActivityScreen from "../screens/CustomerScreen/TrainingActivitySc
 import EditSessionActivityScreen from "../screens/CustomerScreen/EditSessionActivityScreen/EditSessionActivityScreen";
 import EditActivitySetScreen from "../screens/CustomerScreen/EditActivitySetScreen/EditActivitySetScreen";
 import { useRevenueCat } from "../context/RevenueCatContext";
+import { useUser } from "../context/UserContext";
 
 export default function Navigator({
   isAuthenticated: propIsAuthenticated,
@@ -1200,6 +1201,7 @@ export default function Navigator({
 
   const MainTab = () => {
     const { service: signalrService } = useSignalR();
+    const { getAvatarUser } = useUser();
     const registerPushToken = async () => {
       try {
         // Check current permission status
@@ -1233,6 +1235,7 @@ export default function Navigator({
     };
     useEffect(() => {
       registerPushToken();
+      getAvatarUser();
       signalrService.startConnection();
     }, []);
 

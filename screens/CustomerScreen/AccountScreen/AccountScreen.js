@@ -20,13 +20,10 @@ import {
 import Icon from "react-native-vector-icons/FontAwesome";
 import * as ImagePicker from "expo-image-picker";
 import * as Device from "expo-device";
-import {
-  updateAvatar,
-  getAvatarUrl,
-  syncAvatarFromUserData,
-} from "../../../lib";
+
 import accountService from "../../../services/accountService";
 import { useTranslation } from "../../../hooks/useTranslation";
+import { useUser } from "../../../context/UserContext";
 
 const { width } = Dimensions.get("window");
 
@@ -36,8 +33,7 @@ const AccountScreen = () => {
   const [loading, setLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState("");
-
+  const { avatarUrl, updateAvatarUrl } = useUser();
   // Original profile from API
   const [userProfile, setUserProfile] = useState({});
 
@@ -50,13 +46,7 @@ const AccountScreen = () => {
 
   useEffect(() => {
     fetchUserData();
-    loadAvatar();
   }, []);
-
-  const loadAvatar = async () => {
-    const url = await getAvatarUrl();
-    setAvatarUrl(url);
-  };
 
   const fetchUserData = async () => {
     setLoading(true);
@@ -65,8 +55,6 @@ const AccountScreen = () => {
       setUserProfile(response.data);
       console.log("Fetched user profile:", response.data);
       // Sync avatar with utilities
-      await syncAvatarFromUserData(response.data);
-      await loadAvatar(); // Reload avatar after sync
 
       // Initialize form data with user profile
       setFormData({
@@ -306,22 +294,14 @@ const AccountScreen = () => {
         response = await accountService.uploadAvatar(formData);
 
         // Get the new avatar URL from response
-        const newAvatarUrl = response.data?.avatar || response.avatar;
+        const newAvatarUrl = response.data;
 
         if (newAvatarUrl) {
-          console.log(
-            "📸 Avatar upload successful, updating across app:",
-            newAvatarUrl
-          );
+          await updateAvatarUrl(newAvatarUrl);
 
-          // Update avatar using utilities
-          await updateAvatar(newAvatarUrl);
-          await loadAvatar(); // Reload local avatar state
-
-          // Update local user profile state
           setUserProfile((prev) => ({
             ...prev,
-            avatar: newAvatarUrl,
+            avatarUrl: newAvatarUrl,
           }));
         }
       } catch (primaryError) {
@@ -330,17 +310,16 @@ const AccountScreen = () => {
         response = await accountService.uploadAvatar(formData);
 
         // Get the new avatar URL from alternative response
-        const newAvatarUrl = response.data?.avatar || response.avatar;
+        const newAvatarUrl = response.data;
 
         if (newAvatarUrl) {
           // Update avatar using utilities
-          await updateAvatar(newAvatarUrl);
-          await loadAvatar(); // Reload local avatar state
+          await updateAvatarUrl(newAvatarUrl);
 
           // Update local user profile state
           setUserProfile((prev) => ({
             ...prev,
-            avatar: newAvatarUrl,
+            avatarUrl: newAvatarUrl,
           }));
         }
       }

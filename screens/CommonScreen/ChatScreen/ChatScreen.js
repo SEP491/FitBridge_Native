@@ -21,7 +21,6 @@ import {
 import Ionicons from "@expo/vector-icons/Ionicons";
 import chatbotService from "../../../services/chatbotService";
 import { useLocationContext } from "../../../context/LocationContext";
-import { getAvatarUrl } from "../../../lib";
 import { useTranslation } from "../../../hooks/useTranslation";
 import { t } from "../../../i18n";
 import {
@@ -29,6 +28,7 @@ import {
   TrainerCardsList,
 } from "../../../components/ChatComponents";
 import { useRevenueCat } from "../../../context/RevenueCatContext";
+import { useUser } from "../../../context/UserContext";
 
 const { width } = Dimensions.get("window");
 const MarkdownText = ({ text, style }) => {
@@ -286,7 +286,6 @@ export default function ChatScreen({ navigation }) {
   const { location, hasLocation, coordinates } = useLocationContext();
   const { t } = useTranslation();
   const [coords, setCoords] = useState({});
-  const [avatarUrl, setAvatarUrl] = useState("");
   // Add navigation prop
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState("");
@@ -295,15 +294,7 @@ export default function ChatScreen({ navigation }) {
   const flatListRef = useRef(null);
   const textInputRef = useRef(null);
   const { isPremiumUser, presentPaywall } = useRevenueCat();
-  // Load avatar
-  useEffect(() => {
-    const loadAvatar = async () => {
-      const url = await getAvatarUrl();
-      setAvatarUrl(url);
-    };
-    loadAvatar();
-  }, []);
-
+  const { avatarUrl } = useUser();
   // Initialize greeting message
   useEffect(() => {
     if (messages.length === 0) {
