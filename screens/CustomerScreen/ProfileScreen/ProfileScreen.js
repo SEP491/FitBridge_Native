@@ -15,14 +15,14 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-import { getAvatarUrl } from "../../../lib";
 import accountService from "../../../services/accountService";
 import { useTranslation } from "../../../hooks/useTranslation";
 import { formatNumber, formatDate, formatDateForAPI } from "../../../lib";
+import { useUser } from "../../../context/UserContext";
 
 const ProfileScreen = () => {
   const { t } = useTranslation();
-  const [avatarUrl, setAvatarUrl] = useState("");
+  const { avatarUrl } = useUser();
   const [userProfile, setUserProfile] = useState({
     fullName: "",
     email: "",
@@ -32,7 +32,6 @@ const ProfileScreen = () => {
     weight: 0,
     height: 0,
     gender: "",
-    address: "",
   });
 
   const [isEditMode, setIsEditMode] = useState(false);
@@ -103,13 +102,7 @@ const ProfileScreen = () => {
 
   useEffect(() => {
     fetchProfileData();
-    loadAvatar();
   }, []);
-
-  const loadAvatar = async () => {
-    const url = await getAvatarUrl();
-    setAvatarUrl(url);
-  };
 
   useEffect(() => {
     if (userProfile.dob) {
@@ -215,7 +208,6 @@ const ProfileScreen = () => {
           height: parseFloat(userProfile.height) || 0,
         },
         isMale: userProfile.gender === "Female" ? false : true,
-        address: userProfile.address,
       };
 
       const response = await accountService.updateProfileUser(updateData);
@@ -592,28 +584,6 @@ const ProfileScreen = () => {
                   />
                 </View>
               </TouchableOpacity>
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>
-                <MaterialCommunityIcons
-                  name="map-marker"
-                  size={16}
-                  color="#FF914D"
-                />{" "}
-                {t("profile.address")}
-              </Text>
-              <TextInput
-                style={[styles.textInput, !isEditMode && styles.disabledInput]}
-                value={userProfile.address}
-                onChangeText={(text) =>
-                  setUserProfile({ ...userProfile, address: text })
-                }
-                placeholder={t("profile.enterAddress")}
-                editable={isEditMode}
-                multiline={true}
-                numberOfLines={2}
-              />
             </View>
           </View>
         </View>

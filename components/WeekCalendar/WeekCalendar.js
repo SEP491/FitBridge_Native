@@ -161,20 +161,19 @@ const WeekCalendar = ({
     let weekCount = 0;
     let currentWeekStart = new Date(firstMonday);
 
-    while (
-      currentWeekStart.getMonth() <= month &&
-      currentWeekStart.getFullYear() <= year
-    ) {
+    while (currentWeekStart <= lastDay) {
       const currentWeekEnd = new Date(currentWeekStart);
       currentWeekEnd.setDate(currentWeekStart.getDate() + 6);
 
       // Check if this week contains any days from the selected month
       if (
-        (currentWeekStart.getMonth() === month &&
-          currentWeekStart.getFullYear() === year) ||
-        (currentWeekEnd.getMonth() === month &&
-          currentWeekEnd.getFullYear() === year) ||
-        (currentWeekStart.getMonth() < month &&
+        (currentWeekStart.getFullYear() === year &&
+          currentWeekStart.getMonth() === month) ||
+        (currentWeekEnd.getFullYear() === year &&
+          currentWeekEnd.getMonth() === month) ||
+        (currentWeekStart.getFullYear() === year &&
+          currentWeekStart.getMonth() < month &&
+          currentWeekEnd.getFullYear() === year &&
           currentWeekEnd.getMonth() > month)
       ) {
         weekCount++;

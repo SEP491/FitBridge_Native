@@ -14,7 +14,6 @@ import {
 import { TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useCart } from "../../../context/CartContext";
-import { getAvatarUrl, clearAvatar } from "../../../lib";
 import authService from "../../../services/authService";
 import DeleteAccountBottomSheet from "../../../components/DeleteAccountBottomSheet/DeleteAccountBottomSheet";
 import { useTranslation } from "../../../hooks/useTranslation";
@@ -22,33 +21,27 @@ import { ConnectionStates } from "../../../services/signalR/ConnectionStates";
 import signalR_webrtcService from "../../../services/signalR/signalR-webrtcService";
 import Purchases from "react-native-purchases";
 import { useRevenueCat } from "../../../context/RevenueCatContext";
+import { useUser } from "../../../context/UserContext";
 
 export default function UserMenuScreen() {
   const [user, setUser] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState("");
   const { clearCart } = useCart(); // Assuming useCart is defined in your context or service
   const { t } = useTranslation();
   const { logoutRevenueCatUser } = useRevenueCat();
+  const { avatarUrl, clearAvatarUrl } = useUser();
   useEffect(() => {
     const fetchUser = async () => {
       const userData = await AsyncStorage.getItem("user");
       if (userData) {
         setUser(JSON.parse(userData));
       }
-
-      // Load avatar
-      const url = await getAvatarUrl();
-      setAvatarUrl(url);
     };
     fetchUser();
-
-    // Animate on mount
   }, []);
 
   const navigation = useNavigation();
 
-  // Define menu items with improved icons and organization
   let menuItems = [
     {
       icon: <Ionicons name="person-outline" size={28} color="#ED2A46" />,
@@ -154,8 +147,7 @@ export default function UserMenuScreen() {
 
                   if (logoutSuccess) {
                     clearCart(); // Clear cart data
-                    await clearAvatar(); // Clear avatar data
-                    setAvatarUrl(""); // Clear local avatar state
+                    await clearAvatarUrl(); // Clear avatar data
                     if (global.updateNavigationUser) {
                       global.updateNavigationUser();
                     }
