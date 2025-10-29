@@ -1586,7 +1586,30 @@
   "userGoals": {
     "start": "Start",
     "current": "Current",
-    "target": "Target"
+    "target": "Target",
+    "height": "Height (cm)",
+    "weight": "Weight (kg)",
+    "noGoalsFound": "No Goals Set",
+    "noGoalsDescription": "No user goals have been created yet. Create goals to track progress and stay motivated!",
+    "noGoalsSet": "No Goals Set",
+    "createGoalToTrack": "Create goals to track your fitness progress",
+    "createGoal": "Create Goal",
+    "currentMeasurements": "Current Measurements",
+    "targetMeasurements": "Target Measurements",
+    "photo": "Photo",
+    "enterCurrentValues": "Enter your current body measurements",
+    "enterTargetValues": "Enter your target body measurements",
+    "bodyPhoto": "Body Photo",
+    "photoDescription": "Take or upload a photo of your body for comparison",
+    "noPhotoSelected": "No photo selected",
+    "takePhoto": "Take Photo",
+    "pickPhoto": "Pick Photo",
+    "imagePicKError": "Failed to pick image",
+    "cameraError": "Failed to take photo",
+    "fillRequiredFields": "Please fill in all required fields",
+    "fillTargetFields": "Please fill in all target fields",
+    "goalCreatedSuccessfully": "User goal created successfully!",
+    "failedToCreateGoal": "Failed to create user goal. Please try again."
   },
 
   "bookingRequest": {

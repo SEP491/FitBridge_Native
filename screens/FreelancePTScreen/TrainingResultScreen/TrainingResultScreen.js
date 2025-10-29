@@ -7,10 +7,12 @@ import {
   TouchableOpacity,
   Dimensions,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from '../../../hooks/useTranslation';
 import customerPurchasedService from '../../../services/customerPurchased';
+import UserGoalService from '../../../services/user-goalService';
 import { OverviewStatistics } from './components/OverviewStatistics';
 import { DailyProgressChart } from './components/DailyProgressChart';
 import { MuscleGroupPerformance } from './components/MuscleGroupPerformance';
@@ -18,6 +20,9 @@ import { UserGoalsProgress } from './components/UserGoalsProgress';
 import { SessionStatistics } from './components/SessionStatistics';
 import { MuscleGroupBreakdown } from './components/MuscleGroupBreakdown';
 import { MuscleGroupDropdownModal } from './components/MuscleGroupDropdownModal';
+import { CreateUserGoalModal } from './components/CreateUserGoalModal';
+import { CreateUserGoalForm } from './components/CreateUserGoalForm';
+import { createUserGoalWithImage } from '../../../lib/userGoalHelper';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -37,9 +42,20 @@ export const TrainingResultScreen = ({ route, navigation }) => {
   const [showMuscleDropdown, setShowMuscleDropdown] = useState(false);
   const [activeTab, setActiveTab] = useState(initialActiveTab || 'overview'); // 'overview', 'details', or 'userGoal'
 
+  // State for user goals
+  const [userGoalExists, setUserGoalExists] = useState(null);
+  const [showCreateGoalModal, setShowCreateGoalModal] = useState(false);
+  const [showCreateGoalForm, setShowCreateGoalForm] = useState(false);
+  const [creatingGoal, setCreatingGoal] = useState(false);
+
   // Fetch data on component mount
   React.useEffect(() => {
     fetchTrainingData();
+  }, [customerPurchasedId]);
+
+  // Check if user goal exists on component mount
+  React.useEffect(() => {
+    checkUserGoalExists();
   }, [customerPurchasedId]);
 
   // Fetch statistics and muscle report
@@ -70,6 +86,57 @@ export const TrainingResultScreen = ({ route, navigation }) => {
       setError('Failed to load training data. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Check if user goal exists
+  const checkUserGoalExists = async () => {
+    try {
+      const response = await UserGoalService.checkExistUserGoals(customerPurchasedId);
+      console.log('User Goal Check Response:', response);
+      
+      if (response?.status === '200' || response?.status === 200) {
+        const exists = response?.data?.isExist || response?.data?.exists || false;
+        setUserGoalExists(exists);
+        
+        // Show modal if user goal doesn't exist
+        if (!exists) {
+          setShowCreateGoalModal(true);
+        }
+      }
+    } catch (err) {
+      console.error('Error checking user goals:', err);
+      // Assume goal doesn't exist if check fails
+      setUserGoalExists(false);
+      setShowCreateGoalModal(true);
+    }
+  };
+
+  // Handle create user goal submission
+  const handleCreateUserGoal = async (goalData) => {
+    try {
+      setCreatingGoal(true);
+
+      const createdGoal = await createUserGoalWithImage(goalData);
+      
+      Alert.alert(
+        t('common.success', 'Success'),
+        t('userGoals.goalCreatedSuccessfully', 'User goal created successfully!')
+      );
+
+      setShowCreateGoalForm(false);
+      setUserGoalExists(true);
+      
+      // Refresh stats to show new goals
+      fetchTrainingData();
+    } catch (err) {
+      console.error('Error creating user goal:', err);
+      Alert.alert(
+        t('common.error', 'Error'),
+        t('userGoals.failedToCreateGoal', 'Failed to create user goal. Please try again.')
+      );
+    } finally {
+      setCreatingGoal(false);
     }
   };
 
@@ -391,6 +458,10 @@ export const TrainingResultScreen = ({ route, navigation }) => {
               t={t}
               StatCard={StatCard}
               stats={stats}
+              customerPurchasedId={customerPurchasedId}
+              onCreateGoal={() => {
+                setShowCreateGoalForm(true);
+              }}
             />
           </>
         )}
@@ -403,8 +474,38 @@ export const TrainingResultScreen = ({ route, navigation }) => {
           selectedMuscleGroup={selectedMuscleGroup}
           onSelectMuscle={setSelectedMuscleGroup}
         />
+
+      
         </ScrollView>
       )}
+        {/* Create User Goal Modal */}
+        <CreateUserGoalModal
+          visible={showCreateGoalModal && !showCreateGoalForm}
+          onClose={() => {
+            setShowCreateGoalModal(false);
+            // If goal doesn't exist and user closes modal, keep showing modal on next tab change
+            if (!userGoalExists && activeTab === 'userGoal') {
+              setShowCreateGoalModal(true);
+            }
+          }}
+          onCreateGoal={() => {
+            setShowCreateGoalModal(false);
+            setShowCreateGoalForm(true);
+          }}
+          t={t}
+        />
+
+        {/* Create User Goal Form */}
+        {showCreateGoalForm && (
+          <CreateUserGoalForm
+            visible={showCreateGoalForm}
+            onClose={() => setShowCreateGoalForm(false)}
+            onSubmit={handleCreateUserGoal}
+            customerPurchasedId={customerPurchasedId}
+            t={t}
+            loading={creatingGoal}
+          />
+        )}
     </View>
   );
 };

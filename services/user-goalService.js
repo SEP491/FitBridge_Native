@@ -7,8 +7,8 @@ const UserGoalService = {
         request("POST", "v1/user-goals", data),
     updateUserGoals: (id, data) =>
         request("PUT", `v1/user-goals/${id}`, data),
-    checkExistUserGoals: (id) =>
-        request("GET", `v1/user-goals/check/${id}`),
+    checkExistUserGoals: (customerPurchasedId) =>
+        request("GET", `v1/user-goals/check/${customerPurchasedId}`),
 };
 
 export default UserGoalService;

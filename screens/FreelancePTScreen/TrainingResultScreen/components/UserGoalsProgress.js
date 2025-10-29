@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions, Image } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, Image, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 // Muscle group images mapping
@@ -19,12 +20,37 @@ const muscleGroupImages = {
   Other: require('../../../../assets/images/bodyparts/other.png'),
 };
 
-export const UserGoalsProgress = ({ mockedUserGoals, prepareGoalsChartData, chartConfig, t, StatCard, stats }) => {
-  const userGoals = stats?.userGoals;
+export const UserGoalsProgress = ({ t, StatCard, stats, customerPurchasedId, onCreateGoal }) => {
+  const userGoals = stats?.customerPurchasedId;
   console.log("Rendering UserGoalsProgress with userGoals:", userGoals);
   
   if (!userGoals) {
-    return null;
+    return (
+      <>
+        <StatCard title={t('trainingResults.userGoalsProgress', 'User Goals Progress')} icon="trending-up">
+          <View style={styles.emptyStateContainer}>
+            <Ionicons name="flag-outline" size={48} color="#ED2A46" />
+            <Text style={styles.emptyStateTitle}>
+              {t('userGoals.noGoalsSet', 'No Goals Set')}
+            </Text>
+            <Text style={styles.emptyStateDescription}>
+              {t('userGoals.createGoalToTrack', 'Create goals to track your fitness progress')}
+            </Text>
+            {onCreateGoal && (
+              <TouchableOpacity
+                style={styles.emptyStateButton}
+                onPress={onCreateGoal}
+              >
+                <Ionicons name="add" size={20} color="#fff" />
+                <Text style={styles.emptyStateButtonText}>
+                  {t('userGoals.createGoal', 'Create Goal')}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </StatCard>
+      </>
+    );
   }
 
   // Define muscle groups to display
@@ -351,5 +377,41 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#ED2A46',
+  },
+  emptyStateContainer: {
+    paddingVertical: 40,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderTopWidth: 2,
+    borderTopColor: '#f0f0f0',
+  },
+  emptyStateTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptyStateDescription: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 20,
+  },
+  emptyStateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    backgroundColor: '#ED2A46',
+    borderRadius: 8,
+  },
+  emptyStateButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 14,
   },
 });

@@ -473,7 +473,8 @@
     "priceAsc": "Giá: Thấp đến Cao",
     "priceDesc": "Giá: Cao đến Thấp",
     "rating": "Đánh giá",
-    "experience": "Kinh nghiệm"
+    "experience": "Kinh nghiệm",
+    "later": "Để sau"
   },
 
   "account": {
@@ -1581,7 +1582,28 @@
     "current": "Hiện Tại",
     "target": "Mục Tiêu",
     "height": "Chiều Cao (cm)",
-    "weight": "Cân Nặng (kg)"
+    "weight": "Cân Nặng (kg)",
+    "noGoalsFound": "Chưa Tạo Mục Tiêu",
+    "noGoalsDescription": "Chưa tạo mục tiêu sức khỏe nào. Tạo mục tiêu để theo dõi tiến độ và giữ động lực!",
+    "noGoalsSet": "Chưa Đặt Mục Tiêu",
+    "createGoalToTrack": "Tạo mục tiêu để theo dõi tiến độ tập luyện của bạn",
+    "createGoal": "Tạo Mục Tiêu",
+    "currentMeasurements": "Số Đo Hiện Tại",
+    "targetMeasurements": "Số Đo Mục Tiêu",
+    "photo": "Hình Ảnh",
+    "enterCurrentValues": "Nhập các số đo cơ thể hiện tại của bạn",
+    "enterTargetValues": "Nhập các số đo cơ thể mục tiêu của bạn",
+    "bodyPhoto": "Ảnh Cơ Thể",
+    "photoDescription": "Chụp hoặc tải ảnh cơ thể của bạn để so sánh",
+    "noPhotoSelected": "Chưa chọn ảnh",
+    "takePhoto": "Chụp Ảnh",
+    "pickPhoto": "Chọn Ảnh",
+    "imagePicKError": "Không thể chọn ảnh",
+    "cameraError": "Không thể chụp ảnh",
+    "fillRequiredFields": "Vui lòng điền tất cả các trường bắt buộc",
+    "fillTargetFields": "Vui lòng điền tất cả các trường mục tiêu",
+    "goalCreatedSuccessfully": "Mục tiêu đã được tạo thành công!",
+    "failedToCreateGoal": "Không thể tạo mục tiêu. Vui lòng thử lại."
   },
 
   "bookingRequest": {
