@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -12,6 +12,8 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import colors from "../../constants/color";
+import customerPurchasedService from "../../services/customerPurchased";
+import accountService from "../../services/accountService";
 
 const bodyPartImages = {
   chest: require("../../assets/images/bodyparts/chest.png"),
@@ -60,6 +62,7 @@ const MUSCLE_GROUPS = [
 
 export default function BookingDetailContent({
   bookingDetail,
+  Booking,
   userRole,
   navigation,
   t,
@@ -68,7 +71,9 @@ export default function BookingDetailContent({
   // Get unique activity types from sessionActivities
   const scrollViewRef = React.useRef(null);
 
-  console.log("Booking Detail:", bookingDetail);
+  console.log("Booking Detail:", Booking.customerName);
+
+  const [customer, setCustomer] = useState(null);
   const getUniqueActivityTypes = () => {
     if (
       !bookingDetail?.sessionActivities ||
@@ -102,6 +107,91 @@ export default function BookingDetailContent({
     }, 100);
   };
 
+  const handleCustomerDetail = () => {
+    fetchCustomerAndPackages(Booking);
+  };
+
+  const fetchCustomerAndPackages = async (booking) => {
+    try {
+      if (!booking?.customerId) {
+        console.log("No customer ID provided");
+        return;
+      }
+
+      // Fetch customer information
+      const searchTerm = booking.customerName;
+      const customerResponse = await accountService.getFreelancePTCustomers({
+        searchTerm: searchTerm,
+      });
+      const customerData = customerResponse.data?.items[0];
+      console.log("Customer Data:", customerData);
+
+      // Fetch customer packages
+      const packagesResponse =
+        await customerPurchasedService.getAllCustomerPurchasedPackageById(
+          booking.customerId
+        );
+      const packages = packagesResponse.data?.items || [];
+
+      // Calculate join date from earliest package purchase
+      const joinDate =
+        packages.length > 0
+          ? new Date(
+              Math.min(...packages.map((p) => new Date(p.purchaseDate)))
+            ).toLocaleDateString('vi-VN')
+          : "N/A";
+
+      // Filter active packages (not expired and have sessions left)
+      const activePackagesList = packages.filter((pkg) => {
+        const expDate = new Date(pkg.expirationDate);
+        const today = new Date();
+        return expDate > today && pkg.availableSessions > 0;
+      });
+
+      const totalActiveSessions = activePackagesList.reduce((sum, pkg) => sum + pkg.availableSessions, 0);
+      const activePackages = activePackagesList.length;
+
+      // Construct complete customer object with packages
+      const completeCustomer = {
+        id: customerData.id,
+        name: customerData.fullName,
+        email: customerData.email,
+        phone: "(+84)" + (customerData.phoneNumber || "N/A"),
+        avatarUrl: customerData.avatarUrl,
+        status: activePackages > 0 ? 'active' : 'inactive',
+        joinDate: joinDate,
+        packages: packages,
+        totalPackages: packages.length,
+        activePackages: activePackages,
+        totalSessions: totalActiveSessions,
+        lastSession: 'N/A',
+      };
+
+      console.log("Complete Customer Data:", completeCustomer);
+
+      // Navigate to CustomerDetailScreen with complete data after all data is fetched
+      if (customerData && packages) {
+        navigation.navigate("CustomerDetailScreen", {
+          customer: completeCustomer,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching customer and packages:", error);
+    }
+  };
+
+  // useEffect removed - no longer needed as fetchCustomerAndPackages is called on demand
+
+  //   // Fetch customer purchased information using the customerId
+  //   // This is a placeholder for the actual API call
+  //   const response = customerPurchasedService.getAllCustomerPurchasedPackageById(customerId);
+  //   setCustomer(response.data.items);
+  // };
+
+  // useEffect(() => {
+  //   getCustomerPurchasedInformation(Booking.customerId);
+  // }, [Booking]);
+
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
@@ -113,20 +203,112 @@ export default function BookingDetailContent({
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
-        {/* Booking Header */}
+        {/* Booking Detail Card */}
         {bookingDetail?.bookingName && (
-          <View style={styles.headerCard}>
-            <View style={styles.headerIconContainer}>
-              <Ionicons name="barbell" size={28} color={colors.orange} />
-            </View>
-            <View style={styles.headerContent}>
-              <Text style={styles.headerTitle}>
-                {bookingDetail.bookingName}
+          <View style={styles.bookingCard}>
+            <View style={styles.bookingHeader}>
+              <Text style={styles.bookingHeaderTitle}>
+                {t("bookingDetail.bookingInfo", "Booking Information")}
               </Text>
-              <Text style={styles.headerSubtitle}>
-                {t("bookingDetail.sessionDetails")}
+              {Booking.sessionStatus && (
+                <Text style={styles.sessionStatusBadge}>
+                  {Booking.sessionStatus}
+                </Text>
+              )}
+            </View>
+
+            <View style={styles.bookingInfoRow}>
+              <View style={styles.bookingAvatar}>
+                <Ionicons
+                  name="barbell-sharp"
+                  size={32}
+                  color={colors.orange}
+                />
+              </View>
+
+              <View style={styles.bookingDetails}>
+                <Text style={styles.bookingName}>
+                  {bookingDetail.bookingName || "N/A"}
+                </Text>
+                <Text style={styles.bookingDetailText}>
+                  {t("bookingDetail.bookingDate")}:{" "}
+                  {(() => {
+                    if (!Booking.bookingDate) return "N/A";
+                    const dateParts = Booking.bookingDate.split("-");
+                    return `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+                  })()}
+                </Text>
+                {Booking.packageName && (
+                  <Text style={styles.bookingDetailText}>
+                    {t("bookingDetail.packageName")}: {Booking.packageName}
+                  </Text>
+                )}
+                {bookingDetail.sessionStartTime && (
+                  <Text style={styles.bookingDetailText}>
+                    {t("bookingDetail.bookingTime")}:{" "}
+                    {new Date(
+                      bookingDetail.sessionStartTime
+                    ).toLocaleTimeString("vi-VN", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}{" "}
+                    -{" "}
+                    {new Date(bookingDetail.sessionEndTime).toLocaleTimeString(
+                      "vi-VN",
+                      {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      }
+                    )}
+                  </Text>
+                )}
+              </View>
+            </View>
+          </View>
+        )}
+
+        {/* Customer Detail Card */}
+        {Booking?.customerName && (
+          <View style={styles.customerCard}>
+            <View style={styles.customerHeader}>
+              <Ionicons name="person-circle" size={20} color={colors.orange} />
+              <Text style={styles.customerHeaderTitle}>
+                {t("bookingDetail.customerInfo", "Customer Information")}
               </Text>
             </View>
+
+            <TouchableOpacity onPress={handleCustomerDetail}>
+              <View style={styles.customerInfoRow}>
+                <View style={styles.customerAvatar}>
+                  {Booking.customerAvatarUrl ? (
+                    <Image
+                      source={{ uri: Booking.customerAvatarUrl }}
+                      style={styles.customerAvatarImage}
+                    />
+                  ) : (
+                    <Ionicons name="person" size={32} color={colors.orange} />
+                  )}
+                </View>
+
+                <View style={styles.customerDetails}>
+                  <Text style={styles.customerSubtitle}>
+                    {t("bookingDetail.customerName")}
+                  </Text>
+                  <Text style={styles.customerName}>
+                    {Booking.customerName || "N/A"}
+                  </Text>
+                </View>
+                <View style={styles.customerViewMore}>
+                  <Text style={styles.customerViewMoreText}>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={25}
+                      color={colors.orange}
+                    />
+                  </Text>
+                </View>
+              </View>
+            </TouchableOpacity>
           </View>
         )}
 
@@ -283,7 +465,9 @@ export default function BookingDetailContent({
                   </View>
                   {activity.isCompleted && (
                     <View style={styles.completedBadge}>
-                      <Text style={styles.completedBadgeText}>Completed</Text>
+                      <Text style={styles.completedBadgeText}>
+                        {t("bookingDetail.completed", "Completed")}
+                      </Text>
                     </View>
                   )}
                 </View>
@@ -307,18 +491,28 @@ export default function BookingDetailContent({
                   <View style={styles.setDetailRow}>
                     <Ionicons name="layers-outline" size={16} color="#666" />
                     <Text style={styles.setDetailText}>
-                      {activity.totalSets || 0} sets
+                      {activity.totalSets || 0}{" "}
+                      {t("bookingDetail.sets", "sets")}
                     </Text>
                   </View>
                   <View style={styles.setDetailRow}>
                     <Ionicons name="analytics-outline" size={16} color="#666" />
                     <Text style={styles.setDetailText}>
                       {activity.activitySetType === "Reps"
-                        ? `${activity.totalPlannedNumOfReps || 0} reps`
+                        ? `${activity.totalPlannedNumOfReps || 0} ${t(
+                            "bookingDetail.reps",
+                            "reps"
+                          )}`
                         : activity.activitySetType === "Time"
-                        ? `${activity.totalPlannedPracticeTime || 0}s`
+                        ? `${activity.totalPlannedPracticeTime || 0}${t(
+                            "bookingDetail.seconds",
+                            "s"
+                          )}`
                         : activity.activitySetType === "Distance"
-                        ? `${activity.totalPlannedDistance || 0}m`
+                        ? `${activity.totalPlannedDistance || 0}${t(
+                            "bookingDetail.meters",
+                            "m"
+                          )}`
                         : ""}
                     </Text>
                   </View>
@@ -423,6 +617,179 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#64748B",
     fontWeight: "500",
+  },
+  customerCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 20,
+    marginHorizontal: 16,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  bookingCard: {
+    marginTop: 16,
+    backgroundColor: "#FFF8F0",
+    borderRadius: 20,
+    padding: 24,
+    marginHorizontal: 16,
+    marginBottom: 16,
+    shadowColor: colors.orange,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 5,
+    borderWidth: 2,
+    borderColor: "#FFE5CC",
+  },
+  bookingHeader: {
+    justifyContent: "space-between",
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 2,
+    borderBottomColor: "#FFE5CC",
+  },
+  bookingHeaderTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: colors.orange,
+    marginLeft: 8,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  sessionStatusBadge: {
+    backgroundColor: colors.orange,
+    color: "#FFFFFF",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    fontSize: 12,
+    fontWeight: "700",
+    textAlign: "center",
+    overflow: "hidden",
+  },
+  bookingInfoRow: {
+    flexDirection: "row",
+  },
+  bookingAvatar: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: "#FFE5CC",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 20,
+    borderWidth: 3,
+    borderColor: colors.orange,
+    overflow: "hidden",
+  },
+  bookingDetails: {
+    flex: 1,
+    justifyContent: "center",
+    gap: 8,
+  },
+  bookingName: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#1E293B",
+    marginBottom: 6,
+    textTransform: "capitalize",
+  },
+  bookingDetailText: {
+    fontSize: 14,
+    color: "#4A5568",
+    fontWeight: "600",
+    lineHeight: 20,
+  },
+  customerHeader: {
+    justifyContent: "flex-start",
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F1F5F9",
+  },
+  customerHeaderTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#1E293B",
+    marginLeft: 8,
+  },
+  customerInfoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  customerAvatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#FFF7ED",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 16,
+    overflow: "hidden",
+  },
+  customerAvatarImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+  },
+  customerDetails: {
+    flex: 1,
+    justifyContent: "center",
+    gap: 6,
+  },
+  customerSubtitle: {
+    fontSize: 14,
+    color: "#64748B",
+    fontWeight: "500",
+  },
+  customerName: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1E293B",
+  },
+  customerDetailRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  customerDetailText: {
+    fontSize: 13,
+    color: "#64748B",
+    fontWeight: "500",
+  },
+  customerStatsRow: {
+    flexDirection: "row",
+    gap: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: "#F1F5F9",
+  },
+  customerStatItem: {
+    flex: 1,
+    backgroundColor: "#F8FAFC",
+    borderRadius: 12,
+    padding: 12,
+    alignItems: "center",
+    gap: 4,
+  },
+  customerStatLabel: {
+    fontSize: 11,
+    color: "#64748B",
+    fontWeight: "600",
+    textTransform: "uppercase",
+  },
+  customerStatValue: {
+    fontSize: 16,
+    color: "#1E293B",
+    fontWeight: "700",
   },
   section: {
     marginHorizontal: 16,

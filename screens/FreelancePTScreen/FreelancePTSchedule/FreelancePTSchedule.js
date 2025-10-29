@@ -428,7 +428,7 @@ export default function FreelancePTSchedule() {
                         viewDetailAction={() => {
                           // Navigate to BookingDetailScreen in Schedule stack
                           navigation.navigate("BookingDetailScreen", {
-                            bookingId: session.bookingId,
+                            Booking: session,
                           });
                         }}
                         ptName={session.customerName}

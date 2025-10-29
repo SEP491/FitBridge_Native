@@ -261,7 +261,21 @@
     "selectMuscleGroup": "Vui lòng chọn nhóm cơ",
     "nutritionTip": "Mẹo Dinh Dưỡng",
     "enterNutritionTip": "Thêm mẹo dinh dưỡng cho buổi tập này...",
-    "exerciseSets": "Set Bài Tập"
+    "exerciseSets": "Set Bài Tập",
+    "packageName": "Tên Gói",
+    "startTime": "Giờ Bắt Đầu",
+    "endTime": "Giờ Kết Thúc",
+    "sessionStatus": "Trạng Thái Buổi Tập",
+    "bookingInfo": "Thông Tin Đặt Lịch",
+    "customerInfo": "Thông Tin Khách Hàng",
+    "sets": "sets",
+    "seconds": "giây",
+    "meters": "m",
+    "kg": "kg",
+    "completed": "Hoàn Thành",
+    "bookingDate": "Ngày Đặt Lịch",
+    "bookingTime": "Thời Gian Đặt Lịch",
+    "customerName": "Tên Khách Hàng"
   },
 
   "trainingActivity": {

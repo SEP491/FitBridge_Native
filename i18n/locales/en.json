@@ -259,7 +259,20 @@
     "selectMuscleGroup": "Please select a muscle group",
     "nutritionTip": " Nutrition Tip",
     "enterNutritionTip": "Add nutrition tip for this session...",
-    "exerciseSets": "Exercise Sets"
+    "exerciseSets": "Exercise Sets",
+    "packageName": "Package Name",
+    "startTime": "Start Time",
+    "endTime": "End Time",
+    "sessionStatus": "Session Status",
+    "bookingInfo": "Booking Information",
+    "customerInfo": "Customer Information",
+    "sets": "sets",
+    "seconds": "s",
+    "meters": "m",
+    "kg": "kg",
+    "completed": "Completed",
+    "bookingDate": "Booking Date",
+    "customerName": "Customer Name"
   },
 
   "trainingActivity": {

@@ -71,7 +71,9 @@ const MUSCLE_GROUPS = [
 
 export default function BookingDetailScreen({ route, navigation }) {
   const { t } = useTranslation();
-  const { bookingId } = route.params;
+  const { Booking } = route.params;
+
+  console.log("Booking passed to BookingDetailScreen:", Booking);
   const [bookingDetail, setBookingDetail] = useState(null);
   const [bookingResult, setBookingResult] = useState(null);
   const [userRole, setUserRole] = useState(null);
@@ -98,7 +100,7 @@ export default function BookingDetailScreen({ route, navigation }) {
   useEffect(() => {
     fetchUser();
     fetchBookingDetail();
-  }, [bookingId]);
+  }, [Booking]);
 
   useEffect(() => {
     if (activeTab === "results" && !bookingResult) {
@@ -119,7 +121,7 @@ export default function BookingDetailScreen({ route, navigation }) {
   const fetchBookingDetail = async () => {
     try {
       setLoading(true);
-      const response = await bookingService.getBookingDetail(bookingId);
+      const response = await bookingService.getBookingDetail(Booking.bookingId);
       console.log("Booking Detail:", response.data);
       setBookingDetail(response.data);
     } catch (error) {
@@ -132,7 +134,7 @@ export default function BookingDetailScreen({ route, navigation }) {
   const fetchBookingResult = async () => {
     try {
       setLoadingResult(true);
-      const response = await bookingService.getBookingResult(bookingId);
+      const response = await bookingService.getBookingResult(Booking.bookingId);
       console.log("Booking Result:", response.data);
       setBookingResult(response.data);
     } catch (error) {
@@ -230,7 +232,7 @@ export default function BookingDetailScreen({ route, navigation }) {
     setCreating(true);
     try {
       const payload = {
-        bookingId: bookingId,
+        bookingId: Booking.bookingId,
         activityType: activityType,
         activitySetType: activitySetType,
         activityName: activityName.trim(),
@@ -297,6 +299,7 @@ export default function BookingDetailScreen({ route, navigation }) {
       return (
         <BookingDetailContent
           bookingDetail={bookingDetail}
+          Booking={Booking}
           userRole={userRole}
           navigation={navigation}
           t={t}

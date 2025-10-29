@@ -33,6 +33,7 @@ const getMuscleGroupImage = (muscleGroup) => {
 
 export const CustomerDetailScreen = ({ route, navigation }) => {
   const { customer } = route.params;
+  console.log('Customer Data:', customer);  
   const [expandedPackages, setExpandedPackages] = useState({});
   const [packageStatistics, setPackageStatistics] = useState({});
   const [packageMuscleReports, setPackageMuscleReports] = useState({});
@@ -94,15 +95,18 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
   };
 
   const handleCall = () => {
+    if (!customer.phone) return;
     const phoneNumber = customer.phone.replace(/[^\d+]/g, '');
     Linking.openURL(`tel:${phoneNumber}`);
   };
 
   const handleEmail = () => {
+    if (!customer.email) return;
     Linking.openURL(`mailto:${customer.email}`);
   };
 
   const handleMessage = () => {
+    if (!customer.phone) return;
     const phoneNumber = customer.phone.replace(/[^\d+]/g, '');
     Linking.openURL(`sms:${phoneNumber}`);
   };
@@ -146,15 +150,15 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
               />
             ) : (
               <Text style={styles.customerAvatarLargeText}>
-                {customer.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
+                {customer.name ? customer.name.split(' ').map(n => n[0]).join('').substring(0, 2) : 'N/A'}
               </Text>
             )}
           </View>
           
-          <Text style={styles.customerNameLarge}>{customer.name}</Text>
+          <Text style={styles.customerNameLarge}>{customer.name || 'N/A'}</Text>
           
-          <View style={[styles.statusBadgeLarge, { backgroundColor: customer.status === 'active' ? '#4CAF50' : '#F44336' }]}>
-            <Text style={styles.statusTextLarge}>{customer.status.toUpperCase()}</Text>
+          <View style={[styles.statusBadgeLarge, { backgroundColor: (customer.status === 'active' || customer.status === 'Active') ? '#4CAF50' : '#F44336' }]}>
+            <Text style={styles.statusTextLarge}>{(customer.status || 'UNKNOWN').toUpperCase()}</Text>
           </View>
 
           {/* Contact Information */}
@@ -163,17 +167,17 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
             
             <View style={styles.contactRow}>
               <Ionicons name="mail-outline" size={20} color="#ED2A46" />
-              <Text style={styles.contactText}>{customer.email}</Text>
+              <Text style={styles.contactText}>{customer.email || 'N/A'}</Text>
             </View>
             
             <View style={styles.contactRow}>
               <Ionicons name="call-outline" size={20} color="#ED2A46" />
-              <Text style={styles.contactText}>{customer.phone}</Text>
+              <Text style={styles.contactText}>{customer.phone || 'N/A'}</Text>
             </View>
             
             <View style={styles.contactRow}>
               <Ionicons name="calendar-outline" size={20} color="#ED2A46" />
-              <Text style={styles.contactText}>Joined: {customer.joinDate}</Text>
+              <Text style={styles.contactText}>Joined: {customer.joinDate || 'N/A'}</Text>
             </View>
           </View>
 
@@ -182,15 +186,15 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
             <Text style={styles.sectionTitle}>Quick Statistics</Text>
             <View style={styles.statsGrid}>
               <View style={styles.statBox}>
-                <Text style={styles.statNumber}>{customer.totalPackages}</Text>
+                <Text style={styles.statNumber}>{customer.totalPackages || 0}</Text>
                 <Text style={styles.statLabel}>Total Packages</Text>
               </View>
               <View style={styles.statBox}>
-                <Text style={styles.statNumber}>{customer.activePackages}</Text>
+                <Text style={styles.statNumber}>{customer.activePackages || 0}</Text>
                 <Text style={styles.statLabel}>Active Packages</Text>
               </View>
               <View style={styles.statBox}>
-                <Text style={styles.statNumber}>{customer.totalSessions}</Text>
+                <Text style={styles.statNumber}>{customer.totalSessions || 0}</Text>
                 <Text style={styles.statLabel}>Sessions Left</Text>
               </View>
             </View>

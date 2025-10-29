@@ -448,6 +448,20 @@ export default function Navigator({
             orientation: "portrait",
           }}
         />
+        <Stack.Screen
+          name="CustomerDetailScreen"
+          component={CustomerDetailScreen}
+          options={{
+            headerShown: true,
+            title: t("userMenu.customerDetail"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
       </Stack.Navigator>
     );
   };
@@ -509,6 +523,20 @@ export default function Navigator({
           options={{
             headerShown: true,
             title: t("screenTitles.ptBookingHistory"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="CustomerDetailScreen"
+          component={CustomerDetailScreen}
+          options={{
+            headerShown: true,
+            title: t("userMenu.customerDetail"),
             headerTitleAlign: "center",
             headerTitleStyle: {
               fontWeight: "bold",
@@ -828,6 +856,20 @@ export default function Navigator({
           options={{
             headerShown: false,
             orientation: "portrait",
+          }}
+        />
+        <Stack.Screen
+          name="CustomerDetailScreen"
+          component={CustomerDetailScreen}
+          options={{
+            headerShown: true,
+            title: t("userMenu.customerDetail"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
           }}
         />
       </Stack.Navigator>

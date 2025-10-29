@@ -1,28 +1,10 @@
 import React from "react";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { View, Text, StyleSheet, ScrollView, Dimensions } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { ProgressChart } from "react-native-chart-kit";
 import colors from "../../constants/color";
 
-const ProgressCircle = ({
-  percentage,
-  label,
-  value,
-  color = colors.orange,
-}) => {
-  return (
-    <View style={styles.progressCircleContainer}>
-      <View style={styles.circleWrapper}>
-        <View style={styles.circleBackground}>
-          <View style={[styles.circleProgress, { borderColor: color }]}>
-            <Text style={styles.percentageText}>{Math.round(percentage)}%</Text>
-          </View>
-        </View>
-      </View>
-      <Text style={styles.progressLabel}>{label}</Text>
-      <Text style={styles.progressValue}>{value}</Text>
-    </View>
-  );
-};
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 const ActivityTypeTag = ({ type }) => {
   const activityConfig = {
@@ -195,41 +177,125 @@ export default function BookingResultCard({ result }) {
           <Ionicons name="stats-chart" size={20} color={colors.orange} />
           <Text style={styles.cardTitle}>Tiến độ hoàn thành</Text>
         </View>
-        <View style={styles.progressGrid}>
-          <ProgressCircle
-            percentage={sessionTotalSummary?.completionPercentage || 0}
-            label="Tổng thể"
-            value={`${sessionTotalSummary?.completionPercentage || 0}%`}
-            color={colors.orange}
-          />
-          {sessionTotalSummary?.plannedReps > 0 && (
-            <ProgressCircle
-              percentage={Math.round(
-                ((sessionTotalSummary?.totalCompletedReps || 0) /
-                  sessionTotalSummary.plannedReps) *
-                  100
-              )}
-              label="Reps"
-              value={`${sessionTotalSummary?.totalCompletedReps || 0}/${
-                sessionTotalSummary?.plannedReps || 0
-              }`}
-              color="#EC4899"
-            />
-          )}
-          {sessionTotalSummary?.plannedSets > 0 && (
-            <ProgressCircle
-              percentage={Math.round(
-                ((sessionTotalSummary?.totalCompletedSets || 0) /
-                  sessionTotalSummary.plannedSets) *
-                  100
-              )}
-              label="Sets"
-              value={`${sessionTotalSummary?.totalCompletedSets || 0}/${
-                sessionTotalSummary?.plannedSets || 0
-              }`}
-              color="#8B5CF6"
-            />
-          )}
+        
+        {/* 3 Separate Progress Charts */}
+        <View style={styles.progressChartsRow}>
+          {/* Overall Progress */}
+          <View style={styles.singleChartContainer}>
+            <View style={styles.chartWrapper}>
+              <ProgressChart
+                data={{
+                  data: [(sessionTotalSummary?.completionPercentage || 0) / 100],
+                }}
+                width={110}
+                height={110}
+                strokeWidth={12}
+                radius={40}
+                chartConfig={{
+                  backgroundColor: "#FFFFFF",
+                  backgroundGradientFrom: "#FFFFFF",
+                  backgroundGradientTo: "#FFFFFF",
+                  color: (opacity = 1) => `rgba(237, 42, 70, ${opacity})`,
+                }}
+                hideLegend={true}
+                style={styles.singleChart}
+              />
+              <View style={styles.chartCenterText}>
+                <Text style={[styles.chartPercentage, { color: colors.orange }]}>
+                  {sessionTotalSummary?.completionPercentage || 0}%
+                </Text>
+              </View>
+            </View>
+            <Text style={styles.chartLabel}>Tổng thể</Text>
+          </View>
+
+          {/* Sets Progress */}
+          <View style={styles.singleChartContainer}>
+            <View style={styles.chartWrapper}>
+              <ProgressChart
+                data={{
+                  data: [
+                    sessionTotalSummary?.plannedSets > 0
+                      ? ((sessionTotalSummary?.totalCompletedSets || 0) /
+                          sessionTotalSummary.plannedSets)
+                      : 0,
+                  ],
+                }}
+                width={110}
+                height={110}
+                strokeWidth={12}
+                radius={40}
+                chartConfig={{
+                  backgroundColor: "#FFFFFF",
+                  backgroundGradientFrom: "#FFFFFF",
+                  backgroundGradientTo: "#FFFFFF",
+                  color: (opacity = 1) => `rgba(139, 92, 246, ${opacity})`,
+                }}
+                hideLegend={true}
+                style={styles.singleChart}
+              />
+              <View style={styles.chartCenterText}>
+                <Text style={[styles.chartPercentage, { color: "#8B5CF6" }]}>
+                  {sessionTotalSummary?.plannedSets > 0
+                    ? Math.round(
+                        ((sessionTotalSummary?.totalCompletedSets || 0) /
+                          sessionTotalSummary.plannedSets) *
+                          100
+                      )
+                    : 0}
+                  %
+                </Text>
+              </View>
+            </View>
+            <Text style={styles.chartLabel}>Sets</Text>
+            <Text style={styles.chartSubLabel}>
+              {sessionTotalSummary?.totalCompletedSets || 0}/{sessionTotalSummary?.plannedSets || 0}
+            </Text>
+          </View>
+
+          {/* Reps Progress */}
+          <View style={styles.singleChartContainer}>
+            <View style={styles.chartWrapper}>
+              <ProgressChart
+                data={{
+                  data: [
+                    sessionTotalSummary?.plannedReps > 0
+                      ? ((sessionTotalSummary?.totalCompletedReps || 0) /
+                          sessionTotalSummary.plannedReps)
+                      : 0,
+                  ],
+                }}
+                width={110}
+                height={110}
+                strokeWidth={12}
+                radius={40}
+                chartConfig={{
+                  backgroundColor: "#FFFFFF",
+                  backgroundGradientFrom: "#FFFFFF",
+                  backgroundGradientTo: "#FFFFFF",
+                  color: (opacity = 1) => `rgba(236, 72, 153, ${opacity})`,
+                }}
+                hideLegend={true}
+                style={styles.singleChart}
+              />
+              <View style={styles.chartCenterText}>
+                <Text style={[styles.chartPercentage, { color: "#EC4899" }]}>
+                  {sessionTotalSummary?.plannedReps > 0
+                    ? Math.round(
+                        ((sessionTotalSummary?.totalCompletedReps || 0) /
+                          sessionTotalSummary.plannedReps) *
+                          100
+                      )
+                    : 0}
+                  %
+                </Text>
+              </View>
+            </View>
+            <Text style={styles.chartLabel}>Reps</Text>
+            <Text style={styles.chartSubLabel}>
+              {sessionTotalSummary?.totalCompletedReps || 0}/{sessionTotalSummary?.plannedReps || 0}
+            </Text>
+          </View>
         </View>
       </View>
 
@@ -577,54 +643,98 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     textTransform: "uppercase",
   },
+  chartContainer: {
+    alignItems: "center",
+    marginVertical: 10,
+  },
+  chart: {
+    marginVertical: 8,
+    borderRadius: 16,
+  },
+  progressChartsRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    marginVertical: 16,
+    gap: 12,
+  },
+  singleChartContainer: {
+    alignItems: "center",
+    flex: 1,
+  },
+  chartWrapper: {
+    position: "relative",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
+  },
+  singleChart: {
+    borderRadius: 16,
+  },
+  chartCenterText: {
+    position: "absolute",
+    alignItems: "center",
+    justifyContent: "center",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  chartPercentage: {
+    fontSize: 20,
+    fontWeight: "700",
+  },
+  chartLabel: {
+    fontSize: 13,
+    color: "#1E293B",
+    fontWeight: "700",
+    marginBottom: 4,
+    textAlign: "center",
+  },
+  chartSubLabel: {
+    fontSize: 11,
+    color: "#64748B",
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  progressDetailsGrid: {
+    marginTop: 16,
+    gap: 12,
+  },
+  progressDetailItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F8FAFC",
+    padding: 12,
+    borderRadius: 10,
+  },
+  progressDetailDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 12,
+  },
+  progressDetailContent: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  progressDetailLabel: {
+    fontSize: 13,
+    color: "#64748B",
+    fontWeight: "600",
+  },
+  progressDetailValue: {
+    fontSize: 15,
+    color: "#1E293B",
+    fontWeight: "700",
+  },
   progressGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
     gap: 16,
-  },
-  progressCircleContainer: {
-    alignItems: "center",
-    width: "30%",
-    minWidth: 100,
-  },
-  circleWrapper: {
-    marginBottom: 12,
-  },
-  circleBackground: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: "#F8FAFC",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  circleProgress: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    borderWidth: 4,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#FFFFFF",
-  },
-  percentageText: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#1E293B",
-  },
-  progressLabel: {
-    fontSize: 12,
-    color: "#64748B",
-    textAlign: "center",
-    marginBottom: 4,
-    fontWeight: "600",
-  },
-  progressValue: {
-    fontSize: 13,
-    color: "#1E293B",
-    textAlign: "center",
-    fontWeight: "700",
   },
   muscleGroupItem: {
     backgroundColor: "#F8FAFC",
