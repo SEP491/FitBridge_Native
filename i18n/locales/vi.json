@@ -1554,7 +1554,10 @@
     "remaining": "Còn Lại",
     "start": "Bắt Đầu",
     "current": "Hiện Tại",
-    "target": "Mục Tiêu"
+    "target": "Mục Tiêu",
+    "userGoal": "Mục Tiêu Người Dùng",
+    "currentUserStats": "Số Liệu Hiện Tại"
+
   },
 
   "muscleGroups": {
@@ -1566,13 +1569,19 @@
     "waist": "Eo",
     "hip": "Hông",
     "shoulder": "Vai",
-    "weight": "Cân Nặng"
+    "weight": "Cân Nặng",
+    "triceps": "Cơ Tam Đầu",
+    "back": "Lưng",
+    "glutes": "Cơ Mông",
+    "fullBody": "Toàn Thân"
   },
 
   "userGoals": {
     "start": "Bắt Đầu",
     "current": "Hiện Tại",
-    "target": "Mục Tiêu"
+    "target": "Mục Tiêu",
+    "height": "Chiều Cao (cm)",
+    "weight": "Cân Nặng (kg)"
   },
 
   "bookingRequest": {

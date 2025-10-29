@@ -6,9 +6,11 @@ import {
   ScrollView,
   TouchableOpacity,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from '../../../hooks/useTranslation';
+import customerPurchasedService from '../../../services/customerPurchased';
 import { OverviewStatistics } from './components/OverviewStatistics';
 import { DailyProgressChart } from './components/DailyProgressChart';
 import { MuscleGroupPerformance } from './components/MuscleGroupPerformance';
@@ -20,16 +22,56 @@ import { MuscleGroupDropdownModal } from './components/MuscleGroupDropdownModal'
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export const TrainingResultScreen = ({ route, navigation }) => {
-  const { package: pkg, statistics: stats, muscleReport, customer } = route.params;
+  const { customerPurchasedId, customer, pkg, activeTab: initialActiveTab } = route.params;
   const { t } = useTranslation();
+
+  // State for data
+  const [stats, setStats] = useState(null);
+  const [muscleReport, setMuscleReport] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // State for muscle group chart
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState(null);
   const [selectedMetric, setSelectedMetric] = useState('Weight'); // 'Weight', 'Reps', 'Time'
   const [showMuscleDropdown, setShowMuscleDropdown] = useState(false);
-  const [activeTab, setActiveTab] = useState('overview'); // 'overview' or 'details'
+  const [activeTab, setActiveTab] = useState(initialActiveTab || 'overview'); // 'overview', 'details', or 'userGoal'
 
-  console.log('Muscle Report:', muscleReport);
+  // Fetch data on component mount
+  React.useEffect(() => {
+    fetchTrainingData();
+  }, [customerPurchasedId]);
+
+  // Fetch statistics and muscle report
+  const fetchTrainingData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Fetch statistics
+      const statsResponse = await customerPurchasedService.getCustomerPurchasedPackageResult(customerPurchasedId);
+      console.log('Statistics Response:', statsResponse);
+      
+      // Fetch muscle report
+      const muscleReportResponse = await customerPurchasedService.getCustomerPurchasedMuscleReport(customerPurchasedId);
+      console.log('Muscle Report Response:', muscleReportResponse);
+
+      if (statsResponse?.status === "200" && statsResponse?.data) {
+        setStats(statsResponse.data);
+      }
+
+      if (muscleReportResponse?.status === "200" && muscleReportResponse?.data) {
+        setMuscleReport(muscleReportResponse.data);
+      }
+
+
+    } catch (err) {
+      console.error('Error fetching training data:', err);
+      setError('Failed to load training data. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Initialize selected muscle group
   React.useEffect(() => {
@@ -91,52 +133,6 @@ export const TrainingResultScreen = ({ route, navigation }) => {
     };
   };
 
-  // Mocked user goals data - should come from API in future
-  const mockedUserGoals = [
-    {
-      muscleGroup: 'Chest',
-      targetChest: 80,
-      startChest: 50,
-      currentChest: 60,
-    },
-    {
-      muscleGroup: 'Back',
-      targetBack: 90,
-      startBack: 70,
-      currentBack: 80,
-    },
-    {
-      muscleGroup: 'Biceps',
-      targetBiceps: 40,
-      startBiceps: 30,
-      currentBiceps: 35,
-    },
-    {
-      muscleGroup: 'Hips',
-      targetHips: 50,
-      startHips: 80,
-      currentHips: 60,
-    }
-  ];
-
-  // Prepare data for stacked bar chart
-  const prepareGoalsChartData = () => {
-    const labels = mockedUserGoals.map(goal => goal.muscleGroup);
-    
-    const data = [];
-    mockedUserGoals.forEach(goal => {
-      const start = goal[`start${goal.muscleGroup}`] || 0;
-      const current = goal[`current${goal.muscleGroup}`] || 0;
-      const target = goal[`target${goal.muscleGroup}`] || 0;
-      data.push([start, current, target]);
-    });
-
-    return {
-      labels,
-      data,
-      barColors: ['#94A3B8', '#4CAF50', '#ED2A46'],
-    };
-  };
 
   const chartConfig = {
     backgroundColor: '#ffffff',
@@ -183,52 +179,90 @@ export const TrainingResultScreen = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Customer & Package Info */}
-        <View style={styles.infoCard}>
-          <Text style={styles.customerName}>{customer.name}</Text>
-          <Text style={styles.packageName}>{pkg.packageName}</Text>
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#ED2A46" />
+          <Text style={styles.loadingText}>Loading training data...</Text>
         </View>
+      ) : error ? (
+        <View style={styles.errorContainer}>
+          <Ionicons name="alert-circle-outline" size={48} color="#ED2A46" />
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={fetchTrainingData}>
+            <Text style={styles.retryButtonText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <ScrollView showsVerticalScrollIndicator={false}>
+          {/* Customer & Package Info */}
+          <View style={styles.infoCard}>
+            <Text style={styles.customerName}>{customer?.name || 'Customer'}</Text>
+            <Text style={styles.packageName}>{pkg?.packageName || 'Package'}</Text>
+          </View>
 
         {/* Tab Navigation */}
         <View style={styles.tabContainer}>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'overview' && styles.activeTab]}
-            onPress={() => setActiveTab('overview')}
-          >
-            <Ionicons
-              name="stats-chart"
-              size={20}
-              color={activeTab === 'overview' ? '#ED2A46' : '#64748B'}
-            />
-            <Text
-              style={[
-                styles.tabText,
-                activeTab === 'overview' && styles.activeTabText,
-              ]}
+          {/* First Row - Overview Tab */}
+          <View style={styles.firstRow}>
+            <TouchableOpacity
+              style={[styles.tab, styles.fullWidthTab, activeTab === 'overview' && styles.activeTab]}
+              onPress={() => setActiveTab('overview')}
             >
-              {t('trainingResults.overviewAndProgress') || 'Overview & Progress'}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'details' && styles.activeTab]}
-            onPress={() => setActiveTab('details')}
-          >
-            <Ionicons
-              name="analytics"
-              size={20}
-              color={activeTab === 'details' ? '#ED2A46' : '#64748B'}
-            />
-            <Text
-              style={[
-                styles.tabText,
-                activeTab === 'details' && styles.activeTabText,
-              ]}
+              <Ionicons
+                name="stats-chart"
+                size={20}
+                color={activeTab === 'overview' ? '#ED2A46' : '#64748B'}
+              />
+              <Text
+                style={[
+                  styles.tabText,
+                  activeTab === 'overview' && styles.activeTabText,
+                ]}
+              >
+                {t('trainingResults.overviewAndProgress') || 'Overview & Progress'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Second Row - Details and User Goal Tabs */}
+          <View style={styles.secondRow}>
+            <TouchableOpacity
+              style={[styles.tab, styles.halfWidthTab, activeTab === 'details' && styles.activeTab]}
+              onPress={() => setActiveTab('details')}
             >
-              {t('trainingResults.detailedStatistics') || 'Detailed Statistics'}
-            </Text>
-          </TouchableOpacity>
+              <Ionicons
+                name="analytics"
+                size={20}
+                color={activeTab === 'details' ? '#ED2A46' : '#64748B'}
+              />
+              <Text
+                style={[
+                  styles.tabText,
+                  activeTab === 'details' && styles.activeTabText,
+                ]}
+              >
+                {t('trainingResults.detailedStatistics') || 'Details'}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.tab, styles.halfWidthTab, activeTab === 'userGoal' && styles.activeTab]}
+              onPress={() => setActiveTab('userGoal')}
+            >
+              <Ionicons
+                name="medal-sharp"
+                size={20}
+                color={activeTab === 'userGoal' ? '#ED2A46' : '#64748B'}
+              />
+              <Text
+                style={[
+                  styles.tabText,
+                  activeTab === 'userGoal' && styles.activeTabText,
+                ]}
+              >
+                {t('trainingResults.userGoal') || 'User Goal'}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Overview & Progress Tab */}
@@ -253,8 +287,6 @@ export const TrainingResultScreen = ({ route, navigation }) => {
 
             {/* User Goals Progress */}
             <UserGoalsProgress
-              mockedUserGoals={mockedUserGoals}
-              prepareGoalsChartData={prepareGoalsChartData}
               chartConfig={chartConfig}
               t={t}
               StatCard={StatCard}
@@ -350,6 +382,19 @@ export const TrainingResultScreen = ({ route, navigation }) => {
           </>
         )}
 
+        {/* User Goal Tab */}
+        {activeTab === 'userGoal' && (
+          <>
+            {/* User Goals Progress */}
+            <UserGoalsProgress
+              chartConfig={chartConfig}
+              t={t}
+              StatCard={StatCard}
+              stats={stats}
+            />
+          </>
+        )}
+
         {/* Muscle Group Dropdown Modal */}
         <MuscleGroupDropdownModal
           visible={showMuscleDropdown}
@@ -358,7 +403,8 @@ export const TrainingResultScreen = ({ route, navigation }) => {
           selectedMuscleGroup={selectedMuscleGroup}
           onSelectMuscle={setSelectedMuscleGroup}
         />
-      </ScrollView>
+        </ScrollView>
+      )}
     </View>
   );
 };
@@ -367,6 +413,43 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f9fa',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#666',
+    fontWeight: '600',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+    paddingHorizontal: 24,
+  },
+  errorText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#ED2A46',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  retryButton: {
+    backgroundColor: '#ED2A46',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   infoCard: {
     backgroundColor: '#fff',
@@ -393,7 +476,6 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   tabContainer: {
-    flexDirection: 'row',
     backgroundColor: '#FFFFFF',
     marginHorizontal: 16,
     marginTop: 8,
@@ -406,8 +488,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
+  firstRow: {
+    flexDirection: 'row',
+    marginBottom: 4,
+  },
+  secondRow: {
+    flexDirection: 'row',
+    gap: 4,
+  },
   tab: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -415,6 +504,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 10,
     gap: 6,
+    borderColor: '#E5E7EB',
+    borderWidth: 1,
+  },
+  fullWidthTab: {
+    flex: 1,
+  },
+  halfWidthTab: {
+    flex: 1,
   },
   activeTab: {
     backgroundColor: '#FFF0F2',

@@ -1567,7 +1567,8 @@
     "remaining": "Remaining",
     "start": "Start",
     "current": "Current",
-    "target": "Target"
+    "target": "Target",
+    "userGoal": "User Goal"
   },
 
   "muscleGroups": {

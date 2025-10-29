@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet, ScrollView, Dimensions } from "react-native";
+import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { ProgressChart } from "react-native-chart-kit";
 import colors from "../../constants/color";
@@ -32,7 +32,7 @@ const ActivityTypeTag = ({ type }) => {
   );
 };
 
-export default function BookingResultCard({ result }) {
+export default function BookingResultCard({ result, navigation, Booking }) {
   if (!result) {
     return (
       <View style={styles.emptyContainer}>
@@ -41,7 +41,8 @@ export default function BookingResultCard({ result }) {
       </View>
     );
   }
-
+  const customerInfo = { name: Booking.customerName };
+  const pkgInfo = { packageName: Booking.packageName };
   const {
     sessionName,
     dateTraining,
@@ -73,6 +74,23 @@ export default function BookingResultCard({ result }) {
           <Text style={styles.headerSubtitle}>{sessionName}</Text>
         </View>
       </View>
+
+      <TouchableOpacity 
+        onPress={() => {
+          if (navigation && Booking.customerPurchasedId) {
+            navigation.navigate('TrainingResultScreen', {
+              customerPurchasedId: Booking.customerPurchasedId,
+              customer: customerInfo,
+              pkg: pkgInfo,
+              activeTab: 'userGoal'
+            });
+          }
+        }}
+        style={styles.viewDetailsButton}
+      >
+        <Ionicons name="bar-chart" size={20} color={colors.white} />
+        <Text style={styles.viewDetailsButtonText}>View Training Analytics</Text>
+      </TouchableOpacity>
 
       {/* Time Info */}
       <View style={styles.card}>
@@ -1013,5 +1031,27 @@ const styles = StyleSheet.create({
     color: "#166534",
     lineHeight: 22,
     fontWeight: "500",
+  },
+  viewDetailsButton: {
+    backgroundColor: colors.orange,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    marginHorizontal: 16,
+    marginVertical: 8,
+    gap: 8,
+    shadowColor: colors.orange,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  viewDetailsButtonText: {
+    color: colors.white,
+    fontSize: 14,
+    fontWeight: '700',
   },
 });

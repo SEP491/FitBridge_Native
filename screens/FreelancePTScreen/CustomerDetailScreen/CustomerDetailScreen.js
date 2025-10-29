@@ -129,10 +129,9 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
   const handleViewDetails = (pkg, stats) => {
     const muscleReport = packageMuscleReports[pkg.id];
     navigation.navigate('TrainingResultScreen', {
-      package: pkg,
-      statistics: stats,
-      muscleReport: muscleReport,
-      customer: customer
+      customerPurchasedId: pkg.id,
+      customer: customer,
+      pkg: pkg,
     });
   };
 

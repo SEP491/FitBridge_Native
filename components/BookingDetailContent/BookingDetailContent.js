@@ -70,10 +70,6 @@ export default function BookingDetailContent({
 }) {
   // Get unique activity types from sessionActivities
   const scrollViewRef = React.useRef(null);
-
-  console.log("Booking Detail:", Booking.customerName);
-
-  const [customer, setCustomer] = useState(null);
   const getUniqueActivityTypes = () => {
     if (
       !bookingDetail?.sessionActivities ||
@@ -125,7 +121,7 @@ export default function BookingDetailContent({
       });
       const customerData = customerResponse.data?.items[0];
       console.log("Customer Data:", customerData);
-
+      
       // Fetch customer packages
       const packagesResponse =
         await customerPurchasedService.getAllCustomerPurchasedPackageById(

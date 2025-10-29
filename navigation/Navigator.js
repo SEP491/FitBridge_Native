@@ -872,6 +872,20 @@ export default function Navigator({
             },
           }}
         />
+        <Stack.Screen
+          name="TrainingResultScreen"
+          component={TrainingResultScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.trainingResult"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
       </Stack.Navigator>
     );
   };

@@ -1,10 +1,23 @@
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
-import { StackedBarChart } from 'react-native-chart-kit';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
-
+import { View, Text, StyleSheet, Dimensions, Image } from 'react-native';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+// Muscle group images mapping
+const muscleGroupImages = {
+  Biceps: require('../../../../assets/images/bodyparts/biceps.png'),
+  Calf: require('../../../../assets/images/bodyparts/calf.png'),
+  Chest: require('../../../../assets/images/bodyparts/chest.png'),
+  ForeArm: require('../../../../assets/images/bodyparts/foreArm.png'),
+  Hip: require('../../../../assets/images/bodyparts/hip.png'),
+  Shoulder: require('../../../../assets/images/bodyparts/shoulder.png'),
+  Thigh: require('../../../../assets/images/bodyparts/thigh.png'),
+  Waist: require('../../../../assets/images/bodyparts/waist.png'),
+  Back: require('../../../../assets/images/bodyparts/back.png'),
+  Triceps: require('../../../../assets/images/bodyparts/triceps.png'),
+  Glutes: require('../../../../assets/images/bodyparts/glutes.png'),
+  FullBody: require('../../../../assets/images/bodyparts/fullbody.png'),
+  Other: require('../../../../assets/images/bodyparts/other.png'),
+};
 
 export const UserGoalsProgress = ({ mockedUserGoals, prepareGoalsChartData, chartConfig, t, StatCard, stats }) => {
   const userGoals = stats?.userGoals;
@@ -16,19 +29,78 @@ export const UserGoalsProgress = ({ mockedUserGoals, prepareGoalsChartData, char
 
   // Define muscle groups to display
   const muscleGroups = [
+    { key: 'Triceps', label: t('muscleGroups.triceps', 'Triceps') },
     { key: 'Biceps', label: t('muscleGroups.biceps', 'Biceps') },
     { key: 'ForeArm', label: t('muscleGroups.foreArm', 'Forearm') },
-    { key: 'Thigh', label: t('muscleGroups.thigh', 'Thigh') },
-    { key: 'Calf', label: t('muscleGroups.calf', 'Calf') },
     { key: 'Chest', label: t('muscleGroups.chest', 'Chest') },
+    { key: 'FullBody', label: t('muscleGroups.fullBody', 'Full Body') },
+    { key: 'Back', label: t('muscleGroups.back', 'Back') },
+    { key: 'Shoulder', label: t('muscleGroups.shoulder', 'Shoulder') },
     { key: 'Waist', label: t('muscleGroups.waist', 'Waist') },
     { key: 'Hip', label: t('muscleGroups.hip', 'Hip') },
-    { key: 'Shoulder', label: t('muscleGroups.shoulder', 'Shoulder') },
+    { key: 'Thigh', label: t('muscleGroups.thigh', 'Thigh') },
+    { key: 'Calf', label: t('muscleGroups.calf', 'Calf') },
+    { key: 'Glutes', label: t('muscleGroups.glutes', 'Glutes') },
     { key: 'Weight', label: t('muscleGroups.weight', 'Weight') },
   ];
 
   return (
-    <StatCard title={t('trainingResults.userGoalsProgress', 'User Goals Progress')} icon="trending-up">
+    <>
+      <StatCard title={t('trainingResults.currentUserStats', 'Current User Stats')} icon="body">
+      <View style={styles.currentStatsContainer}>        
+        {/* Main Stats Row - Height and Weight */}
+        <View style={styles.mainStatsRow}>
+          <View style={styles.mainStatCard}>
+            <Text style={styles.mainStatLabel}>{t('userGoals.height', 'Height')}</Text>
+            <Text style={styles.mainStatValue}>
+              {userGoals?.currentHeight || userGoals?.startHeight || '-'}
+            </Text>
+            <Text style={styles.mainStatUnit}>cm</Text>
+          </View>
+          <View style={styles.mainStatDivider} />
+          <View style={styles.mainStatCard}>
+            <Text style={styles.mainStatLabel}>{t('userGoals.weight', 'Weight')}</Text>
+            <Text style={styles.mainStatValue}>
+              {userGoals?.currentWeight || userGoals?.startWeight || '-'}
+            </Text>
+            <Text style={styles.mainStatUnit}>kg</Text>
+          </View>
+        </View>
+        
+        {/* Muscle Stats Grid */}
+        <View style={styles.muscleStatsGrid}>
+          {muscleGroups.map((group, index) => {
+            // Skip Height and Weight as they are displayed in the main stats row
+            if (group.key === 'Weight') return null;
+            
+            const current = userGoals[`current${group.key}`];
+            const start = userGoals[`start${group.key}`];
+            
+            // Skip if no current value
+            if (current === null && start === null) return null;
+            
+            const displayValue = current !== null ? current : start;
+            const muscleImage = muscleGroupImages[group.key];
+            
+            return (
+              <View key={index} style={styles.muscleStatCard}>
+                {muscleImage && (
+                  <Image 
+                    source={muscleImage}
+                    style={styles.muscleStatImage}
+                    resizeMode="contain"
+                  />
+                )}
+                <Text style={styles.muscleStatLabel}>{group.label}</Text>
+                <Text style={styles.muscleStatValue}>{displayValue || 0}</Text>
+              </View>
+            );
+          })}
+        </View>
+      </View>
+      </StatCard>
+
+      <StatCard title={t('trainingResults.userGoalsProgress', 'User Goals Progress')} icon="trending-up">
       {/* Detailed Goals Info */}
       <View style={styles.goalsDetailContainer}>
         {muscleGroups.map((group, index) => {
@@ -103,6 +175,8 @@ export const UserGoalsProgress = ({ mockedUserGoals, prepareGoalsChartData, char
         })}
       </View>
     </StatCard>
+    </>
+    
   );
 };
 
@@ -137,7 +211,9 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   goalsDetailContainer: {
-    marginTop: 16,
+    paddingTop: 20,
+    borderTopWidth: 2,
+    borderTopColor: '#f0f0f0',
     gap: 12,
   },
   goalDetailItem: {
@@ -193,5 +269,87 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: '#4CAF50',
     borderRadius: 4,
+  },
+  currentStatsContainer: {
+    paddingTop: 20,
+    borderTopWidth: 2,
+    borderTopColor: '#f0f0f0',
+  },
+  currentStatsTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 16,
+  },
+  mainStatsRow: {
+    flexDirection: 'row',
+    backgroundColor: '#FFF0F2',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#ED2A46',
+  },
+  mainStatCard: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mainStatDivider: {
+    width: 2,
+    height: 60,
+    backgroundColor: '#ED2A46',
+    marginHorizontal: 16,
+  },
+  mainStatLabel: {
+    fontSize: 12,
+    color: '#666',
+    fontWeight: '600',
+    marginBottom: 6,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  mainStatValue: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#ED2A46',
+    marginBottom: 4,
+  },
+  mainStatUnit: {
+    fontSize: 12,
+    color: '#999',
+    fontWeight: '600',
+  },
+  muscleStatsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  muscleStatCard: {
+    width: '31%',
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
+    padding: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  muscleStatImage: {
+    width: 50,
+    height: 50,
+    marginBottom: 8,
+  },
+  muscleStatLabel: {
+    fontSize: 11,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 4,
+    fontWeight: '600',
+  },
+  muscleStatValue: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#ED2A46',
   },
 });
