@@ -102,14 +102,6 @@ export const LocationProvider = ({ children }) => {
           } else {
             setPermissionStatus("denied");
             setError("Location permission denied");
-
-            if (showAlert) {
-              Alert.alert(
-                "Location Access Needed",
-                "FitBridge needs location access to show you nearby gyms. Please enable location permissions in your device settings.",
-                [{ text: "OK" }]
-              );
-            }
           }
 
           return granted;
