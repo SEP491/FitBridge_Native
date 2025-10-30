@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Dimensions, Image, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import UserGoalService from '../../../../services/user-goalService';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 // Muscle group images mapping
@@ -21,8 +22,26 @@ const muscleGroupImages = {
 };
 
 export const UserGoalsProgress = ({ t, StatCard, stats, customerPurchasedId, onCreateGoal }) => {
-  const userGoals = stats?.customerPurchasedId;
-  console.log("Rendering UserGoalsProgress with userGoals:", userGoals);
+   const [userGoals, setUserGoals] = React.useState(null);
+
+
+
+  const fetchUserGoals = async () => {
+    try {
+      if (!customerPurchasedId) return;
+      const response = await UserGoalService.getUserGoals(customerPurchasedId);
+      if (response?.status === '200' || response?.status === 200) {
+        setUserGoals(response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching user goals:", error);
+    }
+  };
+
+    
+   React.useEffect(() => {
+    fetchUserGoals();
+   }, [customerPurchasedId]);
   
   if (!userGoals) {
     return (

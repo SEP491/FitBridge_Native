@@ -96,7 +96,7 @@ export const TrainingResultScreen = ({ route, navigation }) => {
       console.log('User Goal Check Response:', response);
       
       if (response?.status === '200' || response?.status === 200) {
-        const exists = response?.data?.isExist || response?.data?.exists || false;
+        const exists = response?.data;
         setUserGoalExists(exists);
         
         // Show modal if user goal doesn't exist
