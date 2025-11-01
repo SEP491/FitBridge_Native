@@ -91,7 +91,7 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/icon.png",
+          "icon": "./assets/LogoColor.png",
           "color": "#ED2A46",
           "mode": "production"
         }
@@ -102,7 +102,7 @@
       "expo-splash-screen"
     ],
     "notification": {
-      "icon": "./assets/icon.png",
+      "icon": "./assets/LogoColor.png",
       "color": "#ED2A46",
       "androidMode": "default",
       "androidCollapsedTitle": "#{unread_notifications} new notifications"
