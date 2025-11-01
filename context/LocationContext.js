@@ -1,43 +1,17 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Alert, AppState } from "react-native";
 import * as Location from "expo-location";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
-// Create Location Context
 const LocationContext = createContext();
-
-// Constants
-const FIRST_TIME_KEY = "isFirstTimeLaunch";
-const LOCATION_PERMISSION_KEY = "locationPermissionGranted";
 
 export const LocationProvider = ({ children }) => {
   const [location, setLocation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [permissionStatus, setPermissionStatus] = useState(null);
-  const [isFirstTime, setIsFirstTime] = useState(null);
-
-  // Check if this is the first time opening the app
-  const checkFirstTime = async () => {
-    try {
-      const firstTime = await AsyncStorage.getItem(FIRST_TIME_KEY);
-      const isFirst = firstTime === null;
-      setIsFirstTime(isFirst);
-
-      if (isFirst) {
-        console.log("🆕 First time opening the app");
-        await AsyncStorage.setItem(FIRST_TIME_KEY, "false");
-      }
-
-      return isFirst;
-    } catch (error) {
-      console.error("Error checking first time:", error);
-      return false;
-    }
-  };
 
   // Request location permission
-  const requestLocationPermission = async (showAlert = true) => {
+  const requestLocationPermission = async () => {
     try {
       console.log("🔍 Checking location permissions...");
 
@@ -45,72 +19,32 @@ export const LocationProvider = ({ children }) => {
         await Location.getForegroundPermissionsAsync();
       console.log("📱 Current permission status:", existingStatus);
 
-      if (existingStatus !== "granted") {
-        console.log("🔒 Requesting location permissions...");
-
-        // Show custom alert for first time users
-        if (showAlert && isFirstTime) {
-          return new Promise((resolve) => {
-            Alert.alert(
-              "Welcome to FitBridge! 🏋️‍♂️",
-              "To help you find the best gyms nearby, we'd like to access your location. This helps us show you relevant gyms and provide personalized recommendations.",
-              [
-                {
-                  text: "Not Now",
-                  style: "cancel",
-                  onPress: () => {
-                    console.log("User declined location permission");
-                    setPermissionStatus("denied");
-                    setError("Location access denied");
-                    resolve(false);
-                  },
-                },
-                {
-                  text: "Allow Location",
-                  onPress: async () => {
-                    const { status } =
-                      await Location.requestForegroundPermissionsAsync();
-                    const granted = status === "granted";
-
-                    if (granted) {
-                      setPermissionStatus("granted");
-                      await AsyncStorage.setItem(
-                        LOCATION_PERMISSION_KEY,
-                        "granted"
-                      );
-                      console.log("✅ Location permission granted");
-                    } else {
-                      setPermissionStatus("denied");
-                      setError("Location permission denied");
-                      console.log("❌ Location permission denied");
-                    }
-
-                    resolve(granted);
-                  },
-                },
-              ]
-            );
-          });
-        } else {
-          // Regular permission request for returning users
-          const { status } = await Location.requestForegroundPermissionsAsync();
-          const granted = status === "granted";
-
-          if (granted) {
-            setPermissionStatus("granted");
-            await AsyncStorage.setItem(LOCATION_PERMISSION_KEY, "granted");
-          } else {
-            setPermissionStatus("denied");
-            setError("Location permission denied");
-          }
-
-          return granted;
-        }
-      } else {
+      if (existingStatus === "granted") {
         setPermissionStatus("granted");
-        await AsyncStorage.setItem(LOCATION_PERMISSION_KEY, "granted");
         return true;
       }
+
+      if (existingStatus === "denied") {
+        setPermissionStatus("denied");
+        setError("Location permission denied");
+        return false;
+      }
+
+      // Status is undetermined, request permission
+      console.log("🔒 Requesting location permissions...");
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      const granted = status === "granted";
+
+      if (granted) {
+        setPermissionStatus("granted");
+        console.log("✅ Location permission granted");
+      } else {
+        setPermissionStatus("denied");
+        setError("Location permission denied");
+        console.log("❌ Location permission denied");
+      }
+
+      return granted;
     } catch (error) {
       console.error("❌ Error requesting location permission:", error);
       setError(error.message);
@@ -124,7 +58,7 @@ export const LocationProvider = ({ children }) => {
     const {
       accuracy = Location.Accuracy.Balanced,
       timeout = 15000,
-      showErrorAlert = true,
+      showErrorAlert = false,
     } = options;
 
     try {
@@ -137,35 +71,10 @@ export const LocationProvider = ({ children }) => {
         timeout,
       });
 
-      // console.log("✅ Current location obtained:", {
-      //   latitude: location.coords.latitude,
-      //   longitude: location.coords.longitude,
-      //   accuracy: location.coords.accuracy,
-      // });
-
       setLocation(location);
       return location;
     } catch (error) {
       console.error("❌ Error getting current location:", error);
-
-      // Try to get last known location as fallback
-      try {
-        console.log("🔄 Trying to get last known location...");
-        const lastKnownLocation = await Location.getLastKnownPositionAsync({
-          maxAge: 600000, // 10 minutes
-        });
-
-        if (lastKnownLocation) {
-          console.log(
-            "📍 Using last known location:",
-            lastKnownLocation.coords
-          );
-          setLocation(lastKnownLocation);
-          return lastKnownLocation;
-        }
-      } catch (fallbackError) {
-        console.error("❌ Error getting last known location:", fallbackError);
-      }
 
       setError(error.message);
 
@@ -189,14 +98,10 @@ export const LocationProvider = ({ children }) => {
       console.log("🚀 Initializing location service...");
       setLoading(true);
 
-      // Check if this is first time
-      const isFirst = await checkFirstTime();
-
       // Request permission
-      const hasPermission = await requestLocationPermission(isFirst);
+      const hasPermission = await requestLocationPermission();
 
       if (hasPermission) {
-        // Get current location
         await getCurrentLocation({ showErrorAlert: false });
       } else {
         console.log(
@@ -213,14 +118,9 @@ export const LocationProvider = ({ children }) => {
 
   // Refresh location manually
   const refreshLocation = async () => {
-    if (permissionStatus !== "granted") {
-      const hasPermission = await requestLocationPermission();
-      if (!hasPermission) return null;
-    }
-
     return await getCurrentLocation({
       accuracy: Location.Accuracy.High,
-      showErrorAlert: true,
+      showErrorAlert: false,
     });
   };
 
@@ -255,7 +155,6 @@ export const LocationProvider = ({ children }) => {
     loading,
     error,
     permissionStatus,
-    isFirstTime,
 
     // Actions
     requestLocationPermission,
