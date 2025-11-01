@@ -83,7 +83,8 @@
     "packageDetail": "Chi Tiết Gói Tập",
     "bookingDetail": "Chi Tiết Đặt Lịch",
     "activityDetail": "Chi Tiết Bài Tập",
-    "trainingResult": "Thống Kê Tập Luyện"
+    "trainingResult": "Thống Kê Tập Luyện",
+    "myReports": "Báo Cáo Của Tôi"
   },
 
   "myPackage": {
@@ -616,7 +617,8 @@
     "managePackage": "Quản lý Gói tập",
     "manageTransaction": "Quản lý Giao dịch",
     "myCustomer": "Khách hàng của tôi",
-    "customerDetail": "Chi tiết khách hàng"
+    "customerDetail": "Chi tiết khách hàng",
+    "myReports": "Báo cáo của tôi"
   },
 
   "updatePassword": {

@@ -105,6 +105,12 @@ export default function UserMenuScreen() {
   menuItems = [
     ...menuItems,
     {
+      icon: <Ionicons name="flag-outline" size={28} color="#ED2A46" />,
+      label: t("userMenu.myReports") || "My Reports",
+      navigation: "MyReportsScreen",
+      category: "services",
+    },
+    {
       icon: <Ionicons name="help-circle-outline" size={28} color="#ED2A46" />,
       label: t("userMenu.faq"),
       navigation: "FAQScreen",
