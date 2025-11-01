@@ -115,9 +115,9 @@ export default function BookingDetailContent({
       }
 
       // Fetch customer information
-      const searchTerm = booking.customerName;
+      const customerId = booking.customerId;
       const customerResponse = await accountService.getFreelancePTCustomers({
-        searchTerm: searchTerm,
+        customerId: customerId,
       });
       const customerData = customerResponse.data?.items[0];
       console.log("Customer Data:", customerData);
