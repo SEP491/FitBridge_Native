@@ -258,6 +258,9 @@
     "confirmDeleteMessage": "Bạn có chắc chắn muốn xóa hoạt động này? Hành động này không thể hoàn tác.",
     "updateSetSuccess": "Đã cập nhật set thành công",
     "updateSetError": "Không thể cập nhật set",
+    "startSession": "Bắt Đầu Buổi Tập",
+    "endSession": "Kết Thúc Buổi Tập",
+    "sessionCompleted": "Đã Hoàn Thành",
     "selectMuscleGroup": "Vui lòng chọn nhóm cơ",
     "nutritionTip": "Mẹo Dinh Dưỡng",
     "enterNutritionTip": "Thêm mẹo dinh dưỡng cho buổi tập này...",
@@ -1558,7 +1561,6 @@
     "target": "Mục Tiêu",
     "userGoal": "Mục Tiêu Người Dùng",
     "currentUserStats": "Số Liệu Hiện Tại"
-
   },
 
   "muscleGroups": {

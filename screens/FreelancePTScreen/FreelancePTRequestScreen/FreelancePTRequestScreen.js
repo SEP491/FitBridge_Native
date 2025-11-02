@@ -271,7 +271,10 @@ export default function FreelancePTRequestScreen({ route }) {
 
               loadAllRequestsForPT();
             } catch (error) {
-              Alert.alert(t("common.error"), t("bookingRequest.approveError"));
+              Alert.alert(
+                t("common.error"),
+                error.response.data.message || t("bookingRequest.approveError")
+              );
             }
           },
         },

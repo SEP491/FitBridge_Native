@@ -314,7 +314,13 @@ export default function BookingDetailScreen({ route, navigation }) {
           </View>
         );
       }
-      return <BookingResultCard result={bookingResult} navigation={navigation} Booking={Booking}  />;
+      return (
+        <BookingResultCard
+          result={bookingResult}
+          navigation={navigation}
+          Booking={Booking}
+        />
+      );
     }
   };
 

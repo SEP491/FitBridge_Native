@@ -434,7 +434,7 @@ export default function CalendarScheduleScreen() {
                         viewDetailAction={() => {
                           // Navigate to detail screen or show modal
                           navigation.navigate("BookingDetailScreen", {
-                            bookingId: session.bookingId,
+                            Booking: session,
                           });
                         }}
                         ptName={session.ptName}
