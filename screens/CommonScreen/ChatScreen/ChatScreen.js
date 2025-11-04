@@ -723,9 +723,9 @@ export default function ChatScreen({ navigation }) {
                 },
             ]}
           >
-            <TouchableOpacity style={styles.addButton}>
+            {/* <TouchableOpacity style={styles.addButton}>
               <Ionicons name="add" size={24} color="#fff" />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
 
             <TextInput
               ref={textInputRef}

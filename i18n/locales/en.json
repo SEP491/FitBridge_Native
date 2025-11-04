@@ -701,7 +701,8 @@
     "managePackage": "Manage Package",
     "manageTransaction": "Manage Transaction",
     "myCustomer": "My Customer",
-    "customerDetail": "Customer Detail"
+    "customerDetail": "Customer Detail",
+    "myReports": "My Feedback"
   },
 
   "updatePassword": {
