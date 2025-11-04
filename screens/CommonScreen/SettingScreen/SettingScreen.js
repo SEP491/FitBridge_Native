@@ -63,7 +63,7 @@ export default function SettingScreen() {
           {renderItem("settings.supportCenter")}
           {renderItem("settings.terms")}
           {renderItem("settings.rateApp")}
-          {renderItem("settings.deleteAccountRequest")}
+          {/* {renderItem("settings.deleteAccountRequest")} */}
         </ScrollView>
       </View>
     </View>
