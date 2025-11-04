@@ -43,6 +43,9 @@ const TabBarIcon = ({ routeName, focused, color, size = 24 }) => {
 
       "Yêu cầu": focused ? "clipboard" : "clipboard-outline",
       Requests: focused ? "clipboard" : "clipboard-outline",
+
+      "Register Slot": focused ? "time" : "time-outline",
+      "Đăng Ký Lịch": focused ? "time" : "time-outline",
     };
 
     return iconMap[routeName] || (focused ? "ellipse" : "ellipse-outline");

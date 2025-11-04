@@ -61,23 +61,40 @@ const ProfileScreen = () => {
 
   const getBMICategory = (bmi) => {
     if (!bmi) return "";
-    if (bmi < 18.5) return t("profile.bmiCategories.underweight");
-    if (bmi < 25) return t("profile.bmiCategories.normal");
-    if (bmi < 30) return t("profile.bmiCategories.overweight");
+    // Convert to number in case bmi is a formatted string
+    const numBmi =
+      typeof bmi === "string"
+        ? parseFloat(bmi.replace(",", "."))
+        : parseFloat(bmi);
+    if (isNaN(numBmi)) return "";
+    if (numBmi < 18.5) return t("profile.bmiCategories.underweight");
+    if (numBmi < 25) return t("profile.bmiCategories.normal");
+    if (numBmi < 30) return t("profile.bmiCategories.overweight");
     return t("profile.bmiCategories.obese");
   };
 
   const getBMIColor = (bmi) => {
     if (!bmi) return "#666";
-    if (bmi < 18.5) return "#2196F3";
-    if (bmi < 25) return "#4CAF50";
-    if (bmi < 30) return "#FF9800";
+    // Convert to number in case bmi is a formatted string
+    const numBmi =
+      typeof bmi === "string"
+        ? parseFloat(bmi.replace(",", "."))
+        : parseFloat(bmi);
+    if (isNaN(numBmi)) return "#666";
+    if (numBmi < 18.5) return "#2196F3";
+    if (numBmi < 25) return "#4CAF50";
+    if (numBmi < 30) return "#FF9800";
     return "#F44336";
   };
 
   const getBMIPosition = (bmi) => {
     if (!bmi) return 0;
-    const numBmi = parseFloat(bmi);
+    // Convert to number in case bmi is a formatted string
+    const numBmi =
+      typeof bmi === "string"
+        ? parseFloat(bmi.replace(",", "."))
+        : parseFloat(bmi);
+    if (isNaN(numBmi)) return 0;
 
     // BMI scale: 15 --- 18.5 --- 25 --- 30 --- 40
     // Positions: 0%    25%      50%    75%   100%

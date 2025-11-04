@@ -34,7 +34,9 @@
     "schedule": "Schedule",
     "aiChatbox": "AI Chatbox",
     "me": "Me",
-    "ptSchedule": "PT Schedule",
+    "ptSchedule": "Schedule",
+
+    "registerSlot": "Register Slot",
     "withdrawal": "Withdrawal",
     "freelancePTSchedule": "Schedule",
     "freelancePTHome": "Home",
@@ -83,7 +85,8 @@
     "notification": "Notifications",
     "packageDetail": "Package Details",
     "bookingDetail": "Booking Detail",
-    "activityDetail": "Activity Detail"
+    "activityDetail": "Activity Detail",
+    "schedulePT": "Schedule"
   },
 
   "myPackage": {
@@ -460,6 +463,7 @@
     "info": "Information",
     "optional": "Optional",
     "personalTrainer": "Personal Trainer",
+    "customer": "Customer",
     "clear": "Clear",
     "loading": "Loading...",
     "goBack": "Go Back",
@@ -988,6 +992,8 @@
     "minute": "minute",
     "am": "AM",
     "pm": "PM",
+    "session": "Session",
+    "ptSession": "PT Training Session",
     "errorLoadingSlots": "Cannot load PT time slots.",
     "error": "Error",
     "notificationTitle": "Notification",
@@ -1028,7 +1034,6 @@
     "toggleSlotError": "Cannot toggle time slot. Please try again.",
     "slotActivatedSuccessfully": "Time slot activated successfully!",
     "slotDeactivatedSuccessfully": "Time slot deactivated successfully!",
-    "ptSession": "PT Training Session",
     "bookingConfirmation": "Booking Confirmation",
     "confirmBookSlot": "Are you sure you want to book a session with {{ptName}} from {{time}} on {{date}}?",
     "slotBookedSuccessfully": "Slot booked successfully!",
@@ -1096,6 +1101,7 @@
     "statusCompleted": "Completed",
     "statusCancelled": "Cancelled",
     "statusPending": "Pending",
+    "statusWaitingForEdit": "Waiting for Edit",
     "confirmCancelSession": "Are you sure you want to cancel this session?",
     "yes": "Yes",
     "no": "No",
@@ -1103,7 +1109,12 @@
     "viewDetail": "View Detail",
     "requestEditBooking": "Request Edit Booking",
     "sendEditRequest": "Send Edit Request",
-    "meetingOnline": "Meeting Online"
+    "meetingOnline": "Meeting Online",
+    "customer": "Customer",
+    "course": "Course",
+    "gymSlot": "Gym Slot",
+    "startTime": "Start",
+    "endTime": "End"
   },
 
   "pt": {

@@ -30,6 +30,8 @@ const accountService = {
 
   getBookingForPT: (params) =>
     request("GET", "v1/bookings/freelance-pt-schedule", null, {}, params),
+  getBookingForGymPT: (params) =>
+    request("GET", "v1/bookings/gym-pt-schedule", null, {}, params),
   getAllRequestForUser: (params) =>
     request("GET", "v1/bookings/booking-request", null, {}, params),
   createBookingRequest: (data) =>

@@ -44,6 +44,24 @@ export default function ScheduleFreelanceScreen({ route }) {
   const [showEndTimePicker, setShowEndTimePicker] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userRole, setUserRole] = useState(null);
+
+  // Helper function to get default start time (current time + 5 minutes)
+  const getDefaultStartTime = () => {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() + 5);
+    return now;
+  };
+
+  // Helper function to get default end time (start time + 1 hour)
+  const getDefaultEndTime = () => {
+    if (!startTime) return new Date();
+
+    const [hours, minutes] = startTime.split(":").map(Number);
+    const endDate = new Date();
+    endDate.setHours(hours, minutes, 0, 0);
+    endDate.setHours(endDate.getHours() + 1); // Add 1 hour
+    return endDate;
+  };
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -490,6 +508,7 @@ export default function ScheduleFreelanceScreen({ route }) {
         onConfirm={handleStartTimeConfirm}
         onCancel={() => setShowStartTimePicker(false)}
         is24Hour={true}
+        date={getDefaultStartTime()}
       />
 
       {/* End Time Picker Modal */}
@@ -499,6 +518,7 @@ export default function ScheduleFreelanceScreen({ route }) {
         onConfirm={handleEndTimeConfirm}
         onCancel={() => setShowEndTimePicker(false)}
         is24Hour={true}
+        date={getDefaultEndTime()}
       />
     </Modal>
   );

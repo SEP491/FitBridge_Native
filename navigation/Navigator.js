@@ -82,6 +82,7 @@ import EditSessionActivityScreen from "../screens/CustomerScreen/EditSessionActi
 import EditActivitySetScreen from "../screens/CustomerScreen/EditActivitySetScreen/EditActivitySetScreen";
 import { useRevenueCat } from "../context/RevenueCatContext";
 import { useUser } from "../context/UserContext";
+import CalendarPTScreen from "../screens/GymPTScreen/CalendarPTScreen/CalendarPTScreen";
 
 export default function Navigator({
   isAuthenticated: propIsAuthenticated,
@@ -413,7 +414,20 @@ export default function Navigator({
             },
           }}
         />
-
+        <Stack.Screen
+          name="TrainingResultScreen"
+          component={TrainingResultScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.trainingResult"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
         <Stack.Screen
           name="TrainingActivityScreen"
           component={TrainingActivityScreen}
@@ -468,6 +482,38 @@ export default function Navigator({
     );
   };
 
+  const CalendarPTStack = () => {
+    return (
+      <Stack.Navigator
+        screenOptions={({ navigation, route }) => ({
+          headerTitleAlign: "center",
+          headerShown: false,
+          headerTintColor: "#ED2A46",
+          headerLeft: (props) =>
+            navigation.canGoBack() ? (
+              <TouchableOpacity onPress={() => navigation.goBack()}>
+                <Ionicons name="caret-back" size={30} color="#ED2A46" />
+              </TouchableOpacity>
+            ) : null,
+        })}
+      >
+        <Stack.Screen
+          name="CalendarPTScreen"
+          component={CalendarPTScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.schedulePT"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+      </Stack.Navigator>
+    );
+  };
   const SchedulePTStack = () => {
     return (
       <Stack.Navigator
@@ -1393,10 +1439,18 @@ export default function Navigator({
             }}
           />
         )}
-
         {user?.role === "GymPT" && (
           <Tab.Screen
             name={t("navigation.ptSchedule")}
+            component={CalendarPTStack}
+            options={{
+              headerShown: false,
+            }}
+          />
+        )}
+        {user?.role === "GymPT" && (
+          <Tab.Screen
+            name={t("navigation.registerSlot")}
             component={SchedulePTStack}
             options={{
               headerShown: false,

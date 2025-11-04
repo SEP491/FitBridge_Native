@@ -33,7 +33,9 @@
     "schedule": "Lịch Tập",
     "aiChatbox": "AI Chatbox",
     "me": "Tôi",
-    "ptSchedule": "Đăng Ký Lịch PT",
+    "ptSchedule": "Lịch Dạy",
+    "registerSlot": "Đăng Ký Lịch",
+
     "withdrawal": "Rút Tiền",
     "freelancePTSchedule": "Lịch Dạy",
     "freelancePTHome": "Trang chủ",
@@ -84,7 +86,8 @@
     "bookingDetail": "Chi Tiết Đặt Lịch",
     "activityDetail": "Chi Tiết Bài Tập",
     "trainingResult": "Thống Kê Tập Luyện",
-    "myReports": "Báo Cáo Của Tôi"
+    "myReports": "Báo Cáo Của Tôi",
+    "schedulePT": "Lịch Dạy"
   },
 
   "myPackage": {
@@ -462,6 +465,7 @@
     "info": "Thông tin",
     "optional": "Tùy chọn",
     "personalTrainer": "Huấn Luyện Viên",
+    "customer": "Khách Hàng",
     "clear": "Xóa tất cả",
     "delete": "Xóa",
     "loading": "Đang tải...",
@@ -916,6 +920,8 @@
     "minute": "phút",
     "am": "SA",
     "pm": "CH",
+    "session": "Buổi Tập",
+    "ptSession": "Buổi Tập PT",
     "errorLoadingSlots": "Không thể tải danh sách slot thời gian PT.",
     "error": "Lỗi",
     "notificationTitle": "Thông báo",
@@ -956,7 +962,6 @@
     "toggleSlotError": "Không thể thay đổi trạng thái khung giờ. Vui lòng thử lại.",
     "slotActivatedSuccessfully": "Kích hoạt khung giờ thành công!",
     "slotDeactivatedSuccessfully": "Hủy kích hoạt khung giờ thành công!",
-    "ptSession": "Buổi Tập PT",
     "bookingConfirmation": "Xác Nhận Đặt Lịch",
     "confirmBookSlot": "Bạn có chắc chắn muốn đặt lịch với {{ptName}} từ {{time}} vào {{date}}?",
     "slotBookedSuccessfully": "Đặt lịch thành công!",
@@ -1025,6 +1030,7 @@
     "statusCompleted": "Hoàn Thành",
     "statusCancelled": "Đã Hủy",
     "statusPending": "Chờ Xử Lý",
+    "statusWaitingForEdit": "Chờ Chỉnh Sửa",
     "confirmCancelSession": "Bạn có chắc chắn muốn hủy buổi tập này?",
     "yes": "Có",
     "no": "Không",
@@ -1032,7 +1038,12 @@
     "viewDetail": "Chi Tiết",
     "requestEditBooking": "Yêu Cầu Thay Đổi Lịch",
     "sendEditRequest": "Gửi Yêu Cầu Thay Đổi",
-    "meetingOnline": "Tham Gia Online"
+    "meetingOnline": "Tham Gia Online",
+    "customer": "Khách Hàng",
+    "course": "Khóa Học",
+    "gymSlot": "Khung Giờ Tập",
+    "startTime": "Bắt Đầu",
+    "endTime": "Kết Thúc"
   },
 
   "pt": {
