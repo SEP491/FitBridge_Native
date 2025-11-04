@@ -1605,7 +1605,10 @@
     "fillRequiredFields": "Vui lòng điền tất cả các trường bắt buộc",
     "fillTargetFields": "Vui lòng điền tất cả các trường mục tiêu",
     "goalCreatedSuccessfully": "Mục tiêu đã được tạo thành công!",
-    "failedToCreateGoal": "Không thể tạo mục tiêu. Vui lòng thử lại."
+    "failedToCreateGoal": "Không thể tạo mục tiêu. Vui lòng thử lại.",
+    "latest": "Mới Nhất",
+    "measurements": "Số Đo",
+    "progress": "Tiến Độ"
   },
 
   "bookingRequest": {
