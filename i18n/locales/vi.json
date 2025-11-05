@@ -282,7 +282,17 @@
     "completed": "Hoàn Thành",
     "bookingDate": "Ngày Đặt Lịch",
     "bookingTime": "Thời Gian Đặt Lịch",
-    "customerName": "Tên Khách Hàng"
+    "customerName": "Tên Khách Hàng",
+    "sessionDetailsTab": "Chi Tiết Buổi Tập",
+    "trainingResultsTab": "Kết Quả Tập Luyện",
+    "error": "Lỗi",
+    "enterActivityName": "Vui lòng nhập tên hoạt động",
+    "selectAtLeastOneMuscleGroup": "Vui lòng chọn ít nhất một nhóm cơ",
+    "enterExerciseInfo": "Vui lòng nhập thông tin bài tập",
+    "success": "Thành Công",
+    "activityCreatedSuccessfully": "Đã tạo hoạt động thành công",
+    "cannotCreateActivity": "Không thể tạo hoạt động",
+    "set": "Hiệp"
   },
 
   "trainingActivity": {
@@ -386,7 +396,12 @@
     "fetchProfileError": "Không thể lấy thông tin hồ sơ. Vui lòng thử lại sau.",
     "updateProfileError": "Không thể cập nhật hồ sơ. Vui lòng thử lại sau.",
     "updateSuccess": "Thành công",
-    "updateProfileSuccess": "Cập nhật hồ sơ thành công"
+    "updateProfileSuccess": "Cập nhật hồ sơ thành công",
+    "units": {
+      "kg": "kg",
+      "cm": "cm",
+      "bmi": "BMI"
+    }
   },
 
   "ptProfile": {
@@ -1573,6 +1588,13 @@
     "current": "Hiện Tại",
     "target": "Mục Tiêu",
     "userGoal": "Mục Tiêu Người Dùng",
+    "loadingText": "Đang tải dữ liệu tập luyện...",
+    "errorText": "Không thể tải dữ liệu tập luyện. Vui lòng thử lại.",
+    "retry": "Thử Lại",
+    "customer": "Khách Hàng",
+    "package": "Gói Tập",
+    "dailyProgressTracking": "Theo Dõi Tiến Độ Hàng Ngày",
+    "selectMuscleGroup": "Chọn Nhóm Cơ",
     "currentUserStats": "Số Liệu Hiện Tại"
   },
 
@@ -1621,7 +1643,13 @@
     "failedToCreateGoal": "Không thể tạo mục tiêu. Vui lòng thử lại.",
     "latest": "Mới Nhất",
     "measurements": "Số Đo",
-    "progress": "Tiến Độ"
+    "progress": "Tiến Độ",
+    "currentUserStats": "Số Liệu Hiện Tại",
+    "noMeasurements": "Chưa Có Số Đo Nào",
+    "addMeasurements": "Thêm số đo cơ thể để theo dõi tiến độ của bạn",
+    "noDataAvailable": "Không Có Dữ Liệu",
+    "addMeasurementsToSeeChart": "Thêm số đo cơ thể để xem biểu đồ tiến độ",
+    "recorded": "đã ghi"
   },
 
   "bookingRequest": {
@@ -1727,5 +1755,29 @@
     "offering_has_no_packages": "Offering đã có nhưng chưa có packages",
     "debug_logs": "Debug Logs",
     "current_offering": "Current Offering"
+  },
+
+  "bookingResultCard": {
+    "noTrainingResults": "Chưa có kết quả tập luyện",
+    "trainingResults": "Kết quả tập luyện",
+    "viewTrainingAnalytics": "Xem phân tích tập luyện",
+    "time": "Thời gian",
+    "trainingDate": "Ngày tập",
+    "planned": "Dự kiến",
+    "actual": "Thực tế",
+    "activityTypesPerformed": "Loại hoạt động đã thực hiện",
+    "sessionOverview": "Tổng quan buổi tập",
+    "exercises": "Bài tập",
+    "sets": "Sets",
+    "reps": "Reps",
+    "restMinutes": "Phút nghỉ",
+    "completionProgress": "Tiến độ hoàn thành",
+    "overall": "Tổng thể",
+    "sessionAnalysis": "Phân tích buổi tập",
+    "exercisesCount": "bài tập",
+    "volume": "Khối lượng",
+    "exerciseDetails": "Chi tiết bài tập",
+    "notes": "Ghi chú",
+    "nutritionAdvice": "Lời khuyên dinh dưỡng"
   }
 }

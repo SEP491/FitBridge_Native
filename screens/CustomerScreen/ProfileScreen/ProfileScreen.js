@@ -336,7 +336,7 @@ const ProfileScreen = () => {
               color="#FF914D"
             />
             <Text style={styles.statValue}>{userProfile.weight}</Text>
-            <Text style={styles.statLabel}>kg</Text>
+            <Text style={styles.statLabel}>{t("profile.units.kg")}</Text>
           </View>
 
           <View style={styles.statCard}>
@@ -346,7 +346,7 @@ const ProfileScreen = () => {
               color="#FF914D"
             />
             <Text style={styles.statValue}>{userProfile.height}</Text>
-            <Text style={styles.statLabel}>cm</Text>
+            <Text style={styles.statLabel}>{t("profile.units.cm")}</Text>
           </View>
 
           {bmi && (
@@ -463,7 +463,7 @@ const ProfileScreen = () => {
                 style={[styles.textInput, styles.disabledInput]}
                 value={userProfile.email}
                 editable={false}
-                placeholder="Email"
+                placeholder={t("email")}
               />
             </View>
 

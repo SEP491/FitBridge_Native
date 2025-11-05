@@ -204,11 +204,17 @@ export default function BookingDetailScreen({ route, navigation }) {
   const handleCreateActivity = async () => {
     // Validation
     if (!activityName.trim()) {
-      Alert.alert("Lỗi", "Vui lòng nhập tên hoạt động");
+      Alert.alert(
+        t("bookingDetail.error"),
+        t("bookingDetail.enterActivityName")
+      );
       return;
     }
     if (selectedMuscles.length === 0) {
-      Alert.alert("Lỗi", "Vui lòng chọn ít nhất một nhóm cơ");
+      Alert.alert(
+        t("bookingDetail.error"),
+        t("bookingDetail.selectAtLeastOneMuscleGroup")
+      );
       return;
     }
 
@@ -225,7 +231,10 @@ export default function BookingDetailScreen({ route, navigation }) {
     });
 
     if (validSets.length === 0) {
-      Alert.alert("Lỗi", "Vui lòng nhập thông tin bài tập");
+      Alert.alert(
+        t("bookingDetail.error"),
+        t("bookingDetail.enterExerciseInfo")
+      );
       return;
     }
 
@@ -258,15 +267,18 @@ export default function BookingDetailScreen({ route, navigation }) {
       console.log("Creating activity:", payload);
       await bookingService.createSessionActivities(payload);
 
-      Alert.alert("Thành công", "Đã tạo hoạt động thành công");
+      Alert.alert(
+        t("bookingDetail.success"),
+        t("bookingDetail.activityCreatedSuccessfully")
+      );
       setShowAddModal(false);
       resetForm();
       fetchBookingDetail();
     } catch (error) {
       console.error("Error creating activity:", error);
       Alert.alert(
-        "Lỗi",
-        error.response?.data?.message || "Không thể tạo hoạt động"
+        t("bookingDetail.error"),
+        error.response?.data?.message || t("bookingDetail.cannotCreateActivity")
       );
     } finally {
       setCreating(false);
@@ -343,7 +355,7 @@ export default function BookingDetailScreen({ route, navigation }) {
               activeTab === "details" && styles.activeTabText,
             ]}
           >
-            Chi tiết buổi tập
+            {t("bookingDetail.sessionDetailsTab")}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -361,7 +373,7 @@ export default function BookingDetailScreen({ route, navigation }) {
               activeTab === "results" && styles.activeTabText,
             ]}
           >
-            Kết quả tập luyện
+            {t("bookingDetail.trainingResultsTab")}
           </Text>
         </TouchableOpacity>
       </View>
@@ -541,7 +553,9 @@ export default function BookingDetailScreen({ route, navigation }) {
                 {activitySets.map((set, index) => (
                   <View key={index} style={styles.setInputCard}>
                     <View style={styles.setInputHeader}>
-                      <Text style={styles.setInputTitle}>Set {index + 1}</Text>
+                      <Text style={styles.setInputTitle}>
+                        {t("bookingDetail.set")} {index + 1}
+                      </Text>
                       {activitySets.length > 1 && (
                         <TouchableOpacity onPress={() => removeSet(index)}>
                           <Ionicons name="trash" size={20} color={colors.red} />

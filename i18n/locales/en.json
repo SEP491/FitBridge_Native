@@ -46,6 +46,7 @@
   },
 
   "screenTitles": {
+    "trainingResult": "Training Result",
     "ptList": "PT List",
     "blog": "Blog",
     "searchGym": "Search Gym",
@@ -271,7 +272,7 @@
     "startTime": "Start Time",
     "endTime": "End Time",
     "sessionStatus": "Session Status",
-    "bookingInfo": "Booking Information",
+    "bookingInfo": "Information",
     "customerInfo": "Customer Information",
     "sets": "sets",
     "seconds": "s",
@@ -279,7 +280,17 @@
     "kg": "kg",
     "completed": "Completed",
     "bookingDate": "Booking Date",
-    "customerName": "Customer Name"
+    "customerName": "Customer Name",
+    "sessionDetailsTab": "Session Details",
+    "trainingResultsTab": "Training Results",
+    "error": "Error",
+    "enterActivityName": "Please enter activity name",
+    "selectAtLeastOneMuscleGroup": "Please select at least one muscle group",
+    "enterExerciseInfo": "Please enter exercise information",
+    "success": "Success",
+    "activityCreatedSuccessfully": "Activity created successfully",
+    "cannotCreateActivity": "Cannot create activity",
+    "set": "Set"
   },
 
   "trainingActivity": {
@@ -383,7 +394,12 @@
     "fetchProfileError": "Cannot get profile information. Please try again later.",
     "updateProfileError": "Cannot update profile. Please try again later.",
     "updateSuccess": "Success",
-    "updateProfileSuccess": "Profile updated successfully"
+    "updateProfileSuccess": "Profile updated successfully",
+    "units": {
+      "kg": "kg",
+      "cm": "cm",
+      "bmi": "BMI"
+    }
   },
 
   "ptProfile": {
@@ -1585,7 +1601,15 @@
     "start": "Start",
     "current": "Current",
     "target": "Target",
-    "userGoal": "User Goal"
+    "userGoal": "User Goal",
+    "loadingText": "Loading training data...",
+    "errorText": "Failed to load training data. Please try again.",
+    "retry": "Retry",
+    "customer": "Customer",
+    "package": "Package",
+    "dailyProgressTracking": "Daily Progress Tracking",
+    "selectMuscleGroup": "Select Muscle Group",
+    "currentUserStats": "Current User Stats"
   },
 
   "muscleGroups": {
@@ -1626,7 +1650,16 @@
     "fillRequiredFields": "Please fill in all required fields",
     "fillTargetFields": "Please fill in all target fields",
     "goalCreatedSuccessfully": "User goal created successfully!",
-    "failedToCreateGoal": "Failed to create user goal. Please try again."
+    "failedToCreateGoal": "Failed to create user goal. Please try again.",
+    "currentUserStats": "Current User Stats",
+    "measurements": "measurements",
+    "latest": "Latest",
+    "noMeasurements": "No Measurements Yet",
+    "addMeasurements": "Add body measurements to track your progress",
+    "noDataAvailable": "No Data Available",
+    "addMeasurementsToSeeChart": "Add body measurements to see progress chart",
+    "recorded": "recorded",
+    "progress": "Progress"
   },
 
   "bookingRequest": {
@@ -1767,5 +1800,29 @@
     "offering_has_no_packages": "Offering exists but has no packages",
     "debug_logs": "Debug Logs",
     "current_offering": "Current Offering"
+  },
+
+  "bookingResultCard": {
+    "noTrainingResults": "No training results yet",
+    "trainingResults": "Training Results",
+    "viewTrainingAnalytics": "View Training Analytics",
+    "time": "Time",
+    "trainingDate": "Training Date",
+    "planned": "Planned",
+    "actual": "Actual",
+    "activityTypesPerformed": "Activity Types Performed",
+    "sessionOverview": "Session Overview",
+    "exercises": "Exercises",
+    "sets": "Sets",
+    "reps": "Reps",
+    "restMinutes": "Rest Minutes",
+    "completionProgress": "Completion Progress",
+    "overall": "Overall",
+    "sessionAnalysis": "Session Analysis",
+    "exercisesCount": "exercises",
+    "volume": "Volume",
+    "exerciseDetails": "Exercise Details",
+    "notes": "Notes",
+    "nutritionAdvice": "Nutrition Advice"
   }
 }
