@@ -74,6 +74,7 @@ export const UserGoalsProgress = ({
       const response = await BodyMeasurementsService.getBodyMeasurements(
         customerPurchasedId
       );
+      console.log("Body Measurements Response:", response);
       if (response?.status === "200" || response?.status === 200) {
         setBodyMeasurements(response.data?.items || []);
       }
@@ -252,7 +253,9 @@ export const UserGoalsProgress = ({
                   <Text style={styles.mainStatValue}>
                     {bodyMeasurements[0]?.height || "-"}
                   </Text>
-                  <Text style={styles.mainStatUnit}>{t("units.cm", "cm")}</Text>
+                  <Text style={styles.mainStatUnit}>
+                    {t("profile.units.cm", "cm")}
+                  </Text>
                 </View>
                 <View style={styles.mainStatDivider} />
                 <View style={styles.mainStatCard}>
@@ -262,11 +265,13 @@ export const UserGoalsProgress = ({
                   <Text style={styles.mainStatValue}>
                     {bodyMeasurements[0]?.weight || "-"}
                   </Text>
-                  <Text style={styles.mainStatUnit}>{t("units.kg", "kg")}</Text>
+                  <Text style={styles.mainStatUnit}>
+                    {t("profile.units.kg", "kg")}
+                  </Text>
                 </View>
               </View>
 
-              {/* Muscle Stats Grid */}
+              {/* Muscle Stats Grid - 2 Columns Full Width */}
               <View style={styles.muscleStatsGrid}>
                 {muscleGroups.map((group, index) => {
                   // Skip Height and Weight as they are displayed in the main stats row
@@ -290,10 +295,19 @@ export const UserGoalsProgress = ({
                           resizeMode="contain"
                         />
                       )}
-                      <Text style={styles.muscleStatLabel}>{group.label}</Text>
-                      <Text style={styles.muscleStatValue}>
-                        {latestValue || 0}
-                      </Text>
+                      <View style={styles.muscleStatInfo}>
+                        <Text style={styles.muscleStatLabel}>
+                          {group.label}
+                        </Text>
+                        <View style={styles.muscleStatValueContainer}>
+                          <Text style={styles.muscleStatValue}>
+                            {latestValue || 0}
+                          </Text>
+                          <Text style={styles.muscleStatUnit}>
+                            {t("profile.units.cm", "cm")}
+                          </Text>
+                        </View>
+                      </View>
                     </View>
                   );
                 })}
@@ -735,32 +749,47 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 12,
+    justifyContent: "space-between",
   },
   muscleStatCard: {
-    width: "31%",
+    width: "48%", // 2 columns with gap
     backgroundColor: "#f8f9fa",
     borderRadius: 12,
-    padding: 12,
+    padding: 14,
+    flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
     borderColor: "#E5E7EB",
+    gap: 12,
   },
   muscleStatImage: {
     width: 50,
     height: 50,
-    marginBottom: 8,
+  },
+  muscleStatInfo: {
+    flex: 1,
+    justifyContent: "center",
   },
   muscleStatLabel: {
-    fontSize: 11,
+    fontSize: 12,
     color: "#666",
-    textAlign: "center",
     marginBottom: 4,
     fontWeight: "600",
   },
+  muscleStatValueContainer: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    gap: 4,
+  },
   muscleStatValue: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: "bold",
     color: "#ED2A46",
+  },
+  muscleStatUnit: {
+    fontSize: 12,
+    color: "#999",
+    fontWeight: "600",
   },
   emptyStateContainer: {
     paddingVertical: 40,

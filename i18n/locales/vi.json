@@ -1655,7 +1655,7 @@
   },
 
   "bodyMeasurements": {
-    "addMeasurement": "Thêm Số Đo",
+    "addMeasurement": "Đo Chỉ Số",
     "failedToTakePhoto": "Không thể chụp ảnh",
     "failedToPickImage": "Không thể chọn ảnh",
     "bothImagesRequired": "Cần cả ảnh mặt trước và ảnh bên hông",

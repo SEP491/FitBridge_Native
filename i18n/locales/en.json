@@ -1665,7 +1665,7 @@
   },
 
   "bodyMeasurements": {
-    "addMeasurement": "Add Measurement",
+    "addMeasurement": "Body Measurements",
     "failedToTakePhoto": "Failed to take photo",
     "failedToPickImage": "Failed to pick image",
     "bothImagesRequired": "Both front and side images are required",

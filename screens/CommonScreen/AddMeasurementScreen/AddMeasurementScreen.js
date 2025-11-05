@@ -701,7 +701,6 @@ const styles = StyleSheet.create({
   cameraInstructions: {
     backgroundColor: "rgba(0, 0, 0, 0.6)",
     padding: 20,
-    marginTop: Platform.OS === "ios" ? 50 : 20,
   },
   cameraInstructionsText: {
     color: "#fff",
