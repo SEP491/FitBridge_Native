@@ -1,14 +1,5 @@
 import { requestBodyGram } from "./requestBodyGram";
 
-/**
- * Bodygram API Service
- * Handles body measurement estimation using Bodygram API
- *
- * API Flow:
- * 1. Create an estimate with front and side images
- * 2. Poll for estimate completion
- * 3. Retrieve measurement results
- */
 const ORG_ID = process.env.EXPO_PUBLIC_BODYGRAM_ORG_ID;
 const BodygramService = {
   createEstimate: async (data) => {

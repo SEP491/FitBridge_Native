@@ -497,7 +497,8 @@
     "priceAsc": "Price: Low to High",
     "priceDesc": "Price: High to Low",
     "rating": "Rating",
-    "experience": "Experience"
+    "experience": "Experience",
+    "completed": "Completed"
   },
 
   "freelancePT": {
@@ -1666,6 +1667,15 @@
 
   "bodyMeasurements": {
     "addMeasurement": "Body Measurements",
+    "headerDescription": "Take two photos to get accurate body measurements",
+    "tip1": "Wear fitted clothing",
+    "tip2": "Well-lit area",
+    "tip3": "Stand straight",
+    "frontPhotoDesc": "Face the camera, arms at sides",
+    "sidePhotoDesc": "Stand sideways, same posture",
+    "tapToCapture": "Tap to take photo",
+    "chooseFromGallery": "Choose from gallery",
+    "galleryPermissionDenied": "Gallery permission denied",
     "failedToTakePhoto": "Failed to take photo",
     "failedToPickImage": "Failed to pick image",
     "bothImagesRequired": "Both front and side images are required",
@@ -1674,8 +1684,8 @@
     "frontImageInstruction": "Stand facing the camera, arms at sides",
     "sideImageInstruction": "Stand sideways, arms at sides",
     "cameraPermissionDenied": "Camera permission denied",
-    "frontPhoto": "Front",
-    "sidePhoto": "Side",
+    "frontPhoto": "Front Photo",
+    "sidePhoto": "Side Photo",
     "review": "Review",
     "instructionsTitle": "How to Take Photos",
     "instruction1": "Wear fitted clothing for accurate measurements",
@@ -1684,11 +1694,12 @@
     "instruction4": "Make sure your full body is visible in the frame",
     "takeFrontPhoto": "Take Front Photo",
     "takeSidePhoto": "Take Side Photo",
+    "takePhotos": "Take Photos",
     "sidePhotoTitle": "Now Take Side Photo",
     "sidePhotoDescription": "Turn to your side and take a photo with the same posture",
     "reviewPhotos": "Review Your Photos",
-    "processMeasurements": "Process Measurements",
-    "processing": "Processing Your Measurements...",
+    "processMeasurements": "Analyze Measurements",
+    "processing": "Processing...",
     "processingDescription": "This may take a few moments. Please wait."
   },
 

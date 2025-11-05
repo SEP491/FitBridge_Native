@@ -1,9 +1,10 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, use } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
+  Pressable,
   Image,
   ScrollView,
   Alert,
@@ -14,9 +15,11 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import * as ImageManipulator from "expo-image-manipulator";
+import * as ImagePicker from "expo-image-picker";
 import { useTranslation } from "../../../hooks/useTranslation";
 import BodygramService from "../../../services/bodygramService";
 import BodyMeasurementsService from "../../../services/body-measurementService";
+import { fetchUserFromStorage } from "./../../../lib/async/asyncUtils";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -29,19 +32,33 @@ const AddMeasurementScreen = ({ route, navigation }) => {
   // State
   const [cameraType, setCameraType] = useState("back");
   const [showCamera, setShowCamera] = useState(false);
-  const [currentStep, setCurrentStep] = useState("instructions"); // instructions, front, side, review, processing
+  const [currentImageType, setCurrentImageType] = useState(null); // 'front' or 'side'
   const [frontImage, setFrontImage] = useState(null);
   const [sideImage, setSideImage] = useState(null);
   const [processing, setProcessing] = useState(false);
   const [measurements, setMeasurements] = useState(null);
 
   // User info for Bodygram API (these should ideally come from user profile)
-  const [userInfo, setUserInfo] = useState({
-    height: 170, // in cm
-    weight: 70, // in kg
-    age: 30,
-    gender: "male", // or "female"
-  });
+  const [userInfo, setUserInfo] = useState();
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const user = await fetchUserFromStorage();
+      setUserInfo(user);
+      const userAge =
+        new Date().getFullYear() - new Date(user.dob).getFullYear();
+      const gender = user.gender.toLowerCase();
+
+      setUserInfo((prevInfo) => ({
+        ...prevInfo,
+        age: userAge,
+        gender: gender,
+      }));
+      console.log("User age", userAge);
+      console.log("Fetched user from storage:", user);
+    };
+    fetchUser();
+  }, []);
 
   const resizeImageToRequiredDimensions = async (photoUri) => {
     try {
@@ -54,7 +71,7 @@ const AddMeasurementScreen = ({ route, navigation }) => {
         photoUri,
         [{ resize: { width: targetWidth, height: targetHeight } }],
         {
-          compress: 0.8,
+          compress: 1.0, // Maximum quality for full resolution
           format: ImageManipulator.SaveFormat.JPEG,
           base64: true,
         }
@@ -86,42 +103,90 @@ const AddMeasurementScreen = ({ route, navigation }) => {
       } catch (error) {
         console.error("Error taking picture:", error);
         Alert.alert(
-          t("common.error", "Error"),
-          t("bodyMeasurements.failedToTakePhoto", "Failed to take photo")
+          t("common.error", "Lỗi"),
+          t("bodyMeasurements.failedToTakePhoto", "Không thể chụp ảnh")
         );
         return null;
       }
     }
   };
 
-  const handleCaptureFrontImage = async () => {
+  const handleCapture = async () => {
     const photo = await takePicture();
     if (photo) {
-      setFrontImage(photo);
+      if (currentImageType === "front") {
+        setFrontImage(photo);
+      } else if (currentImageType === "side") {
+        setSideImage(photo);
+      }
       setShowCamera(false);
-      setCurrentStep("side");
+      setCurrentImageType(null);
     }
   };
 
-  const handleCaptureSideImage = async () => {
-    const photo = await takePicture();
-    if (photo) {
-      setSideImage(photo);
-      setShowCamera(false);
-      setCurrentStep("review");
+  const handleOpenCamera = (type) => {
+    setCurrentImageType(type);
+    setShowCamera(true);
+  };
+
+  const handleRetake = (type) => {
+    if (type === "front") {
+      setFrontImage(null);
+    } else if (type === "side") {
+      setSideImage(null);
     }
-  };
-
-  const handleRetakeFront = () => {
-    setFrontImage(null);
-    setCurrentStep("front");
+    setCurrentImageType(type);
     setShowCamera(true);
   };
 
-  const handleRetakeSide = () => {
-    setSideImage(null);
-    setCurrentStep("side");
-    setShowCamera(true);
+  const handlePickImage = async (type) => {
+    try {
+      // Request media library permissions
+      const permissionResult =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (permissionResult.granted === false) {
+        Alert.alert(
+          t("common.error", "Lỗi"),
+          t(
+            "bodyMeasurements.galleryPermissionDenied",
+            "Quyền truy cập thư viện bị từ chối"
+          )
+        );
+        return;
+      }
+
+      // Launch image picker
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: false,
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        // Resize image to meet dimension requirements
+        const resizedPhoto = await resizeImageToRequiredDimensions(
+          result.assets[0].uri
+        );
+
+        const photo = {
+          uri: resizedPhoto.uri,
+          base64: resizedPhoto.base64,
+        };
+
+        if (type === "front") {
+          setFrontImage(photo);
+        } else if (type === "side") {
+          setSideImage(photo);
+        }
+      }
+    } catch (error) {
+      console.error("Error picking image:", error);
+      Alert.alert(
+        t("common.error", "Lỗi"),
+        t("bodyMeasurements.failedToPickImage", "Không thể chọn ảnh")
+      );
+    }
   };
 
   const handleSubmit = async () => {
@@ -137,7 +202,6 @@ const AddMeasurementScreen = ({ route, navigation }) => {
     }
 
     setProcessing(true);
-    setCurrentStep("processing");
 
     try {
       const requestBody = {
@@ -205,7 +269,7 @@ const AddMeasurementScreen = ({ route, navigation }) => {
         [
           {
             text: t("common.retry", "Retry"),
-            onPress: () => setCurrentStep("review"),
+            onPress: handleSubmit,
           },
           {
             text: t("common.cancel", "Cancel"),
@@ -227,7 +291,7 @@ const AddMeasurementScreen = ({ route, navigation }) => {
             {/* Instructions */}
             <View style={styles.cameraInstructions}>
               <Text style={styles.cameraInstructionsText}>
-                {currentStep === "front"
+                {currentImageType === "front"
                   ? t(
                       "bodyMeasurements.frontImageInstruction",
                       "Stand facing the camera, arms at sides"
@@ -248,9 +312,7 @@ const AddMeasurementScreen = ({ route, navigation }) => {
                 style={styles.controlButton}
                 onPress={() => {
                   setShowCamera(false);
-                  setCurrentStep(
-                    currentStep === "front" ? "instructions" : "front"
-                  );
+                  setCurrentImageType(null);
                 }}
               >
                 <Ionicons name="close" size={30} color="#fff" />
@@ -258,11 +320,7 @@ const AddMeasurementScreen = ({ route, navigation }) => {
 
               <TouchableOpacity
                 style={styles.captureButton}
-                onPress={
-                  currentStep === "front"
-                    ? handleCaptureFrontImage
-                    : handleCaptureSideImage
-                }
+                onPress={handleCapture}
               >
                 <View style={styles.captureButtonInner} />
               </TouchableOpacity>
@@ -317,248 +375,278 @@ const AddMeasurementScreen = ({ route, navigation }) => {
   // Main screen content
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Step indicator */}
-        <View style={styles.stepIndicator}>
-          <View style={styles.stepRow}>
-            <View
-              style={[
-                styles.stepDot,
-                (currentStep === "instructions" || currentStep === "front") &&
-                  styles.stepDotActive,
-              ]}
-            />
-            <View style={styles.stepLine} />
-            <View
-              style={[
-                styles.stepDot,
-                currentStep === "side" && styles.stepDotActive,
-              ]}
-            />
-            <View style={styles.stepLine} />
-            <View
-              style={[
-                styles.stepDot,
-                (currentStep === "review" || currentStep === "processing") &&
-                  styles.stepDotActive,
-              ]}
-            />
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header with Instructions */}
+        <View style={styles.header}>
+          <View style={styles.headerIconContainer}>
+            <Ionicons name="body" size={32} color="#ED2A46" />
           </View>
-          <View style={styles.stepLabels}>
-            <Text style={styles.stepLabel}>
-              {t("bodyMeasurements.frontPhoto", "Front")}
+          <Text style={styles.headerTitle}>
+            {t("bodyMeasurements.addMeasurement", "Body Measurement")}
+          </Text>
+          <Text style={styles.headerSubtitle}>
+            {t(
+              "bodyMeasurements.headerDescription",
+              "Take two photos to get accurate body measurements"
+            )}
+          </Text>
+        </View>
+
+        {/* Quick Tips */}
+        <View style={styles.tipsContainer}>
+          <View style={styles.tipItem}>
+            <View style={styles.tipIconWrapper}>
+              <Ionicons name="shirt-outline" size={18} color="#ED2A46" />
+            </View>
+            <Text style={styles.tipText}>
+              {t("bodyMeasurements.tip1", "Wear fitted clothing")}
             </Text>
-            <Text style={styles.stepLabel}>
-              {t("bodyMeasurements.sidePhoto", "Side")}
+          </View>
+          <View style={styles.tipItem}>
+            <View style={styles.tipIconWrapper}>
+              <Ionicons name="sunny-outline" size={18} color="#ED2A46" />
+            </View>
+            <Text style={styles.tipText}>
+              {t("bodyMeasurements.tip2", "Well-lit area")}
             </Text>
-            <Text style={styles.stepLabel}>
-              {t("bodyMeasurements.review", "Review")}
+          </View>
+          <View style={styles.tipItem}>
+            <View style={styles.tipIconWrapper}>
+              <Ionicons name="person-outline" size={18} color="#ED2A46" />
+            </View>
+            <Text style={styles.tipText}>
+              {t("bodyMeasurements.tip3", "Stand straight")}
             </Text>
           </View>
         </View>
 
-        {/* Instructions Step */}
-        {currentStep === "instructions" && (
-          <View style={styles.instructionsContainer}>
-            <Ionicons name="information-circle" size={64} color="#ED2A46" />
-            <Text style={styles.instructionsTitle}>
-              {t("bodyMeasurements.instructionsTitle", "How to Take Photos")}
-            </Text>
-            <View style={styles.instructionsList}>
-              <View style={styles.instructionItem}>
-                <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
-                <Text style={styles.instructionText}>
-                  {t(
-                    "bodyMeasurements.instruction1",
-                    "Wear fitted clothing for accurate measurements"
-                  )}
-                </Text>
+        {/* Photo Frames Section */}
+        <View style={styles.photoFramesSection}>
+          {/* Front Photo Frame */}
+          <View style={styles.photoFrameWrapper}>
+            <View style={styles.photoFrameHeader}>
+              <View style={styles.photoNumberBadge}>
+                <Text style={styles.photoNumberText}>1</Text>
               </View>
-              <View style={styles.instructionItem}>
-                <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
-                <Text style={styles.instructionText}>
-                  {t(
-                    "bodyMeasurements.instruction2",
-                    "Stand in a well-lit area with plain background"
-                  )}
+              <View>
+                <Text style={styles.photoFrameTitle}>
+                  {t("bodyMeasurements.frontPhoto", "Front Photo")}
                 </Text>
-              </View>
-              <View style={styles.instructionItem}>
-                <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
-                <Text style={styles.instructionText}>
+                <Text style={styles.photoFrameDescription}>
                   {t(
-                    "bodyMeasurements.instruction3",
-                    "Keep arms at your sides, feet shoulder-width apart"
-                  )}
-                </Text>
-              </View>
-              <View style={styles.instructionItem}>
-                <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
-                <Text style={styles.instructionText}>
-                  {t(
-                    "bodyMeasurements.instruction4",
-                    "Make sure your full body is visible in the frame"
+                    "bodyMeasurements.frontPhotoDesc",
+                    "Face the camera, arms at sides"
                   )}
                 </Text>
               </View>
             </View>
-            <TouchableOpacity
-              style={styles.primaryButton}
-              onPress={() => {
-                setCurrentStep("front");
-                setShowCamera(true);
-              }}
+            <Pressable
+              style={styles.photoFrame}
+              onPress={() =>
+                frontImage ? handleRetake("front") : handleOpenCamera("front")
+              }
             >
-              <Ionicons name="camera" size={20} color="#fff" />
-              <Text style={styles.primaryButtonText}>
-                {t("bodyMeasurements.takeFrontPhoto", "Take Front Photo")}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* Front Photo Step */}
-        {currentStep === "front" && !showCamera && frontImage && (
-          <View style={styles.photoReviewContainer}>
-            <Text style={styles.photoReviewTitle}>
-              {t("bodyMeasurements.frontPhoto", "Front Photo")}
-            </Text>
-            <Image
-              source={{ uri: frontImage.uri }}
-              style={styles.photoPreview}
-            />
-            <View style={styles.buttonRow}>
-              <TouchableOpacity
-                style={styles.secondaryButton}
-                onPress={handleRetakeFront}
-              >
-                <Ionicons name="camera" size={20} color="#ED2A46" />
-                <Text style={styles.secondaryButtonText}>
-                  {t("common.retake", "Retake")}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.primaryButton}
-                onPress={() => {
-                  setCurrentStep("side");
-                  setShowCamera(true);
-                }}
-              >
-                <Text style={styles.primaryButtonText}>
-                  {t("common.next", "Next")}
-                </Text>
-                <Ionicons name="arrow-forward" size={20} color="#fff" />
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
-
-        {/* Side Photo Step */}
-        {currentStep === "side" && !showCamera && !sideImage && (
-          <View style={styles.instructionsContainer}>
-            <Ionicons name="body" size={64} color="#ED2A46" />
-            <Text style={styles.instructionsTitle}>
-              {t("bodyMeasurements.sidePhotoTitle", "Now Take Side Photo")}
-            </Text>
-            <Text style={styles.instructionsDescription}>
-              {t(
-                "bodyMeasurements.sidePhotoDescription",
-                "Turn to your side and take a photo with the same posture"
-              )}
-            </Text>
-            <TouchableOpacity
-              style={styles.primaryButton}
-              onPress={() => setShowCamera(true)}
-            >
-              <Ionicons name="camera" size={20} color="#fff" />
-              <Text style={styles.primaryButtonText}>
-                {t("bodyMeasurements.takeSidePhoto", "Take Side Photo")}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* Review Step */}
-        {currentStep === "review" && frontImage && sideImage && (
-          <View style={styles.reviewContainer}>
-            <Text style={styles.reviewTitle}>
-              {t("bodyMeasurements.reviewPhotos", "Review Your Photos")}
-            </Text>
-            <View style={styles.photoGrid}>
-              <View style={styles.photoCard}>
-                <Text style={styles.photoCardTitle}>
-                  {t("bodyMeasurements.frontPhoto", "Front")}
-                </Text>
-                <Image
-                  source={{ uri: frontImage.uri }}
-                  style={styles.photoThumbnail}
-                />
-                <TouchableOpacity
-                  style={styles.retakeButton}
-                  onPress={handleRetakeFront}
-                >
-                  <Text style={styles.retakeButtonText}>
-                    {t("common.retake", "Retake")}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-              <View style={styles.photoCard}>
-                <Text style={styles.photoCardTitle}>
-                  {t("bodyMeasurements.sidePhoto", "Side")}
-                </Text>
-                <Image
-                  source={{ uri: sideImage.uri }}
-                  style={styles.photoThumbnail}
-                />
-                <TouchableOpacity
-                  style={styles.retakeButton}
-                  onPress={handleRetakeSide}
-                >
-                  <Text style={styles.retakeButtonText}>
-                    {t("common.retake", "Retake")}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-            <TouchableOpacity
-              style={styles.primaryButton}
-              onPress={handleSubmit}
-              disabled={processing}
-            >
-              {processing ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
+              {({ pressed }) => (
                 <>
-                  <Ionicons name="checkmark-circle" size={20} color="#fff" />
-                  <Text style={styles.primaryButtonText}>
-                    {t(
-                      "bodyMeasurements.processMeasurements",
-                      "Process Measurements"
-                    )}
-                  </Text>
+                  {frontImage ? (
+                    <>
+                      <Image
+                        source={{ uri: frontImage.uri }}
+                        style={styles.photoFrameImage}
+                      />
+                      {pressed && (
+                        <View style={styles.photoFrameOverlay}>
+                          <View style={styles.overlayContent}>
+                            <Ionicons name="camera" size={32} color="#fff" />
+                            <Text style={styles.photoFrameOverlayText}>
+                              {t("common.retake", "Retake Photo")}
+                            </Text>
+                          </View>
+                        </View>
+                      )}
+                      <View style={styles.photoFrameSuccessBadge}>
+                        <Ionicons
+                          name="checkmark-circle"
+                          size={24}
+                          color="#4CAF50"
+                        />
+                        <Text style={styles.successBadgeText}>
+                          {t("common.completed", "Completed")}
+                        </Text>
+                      </View>
+                    </>
+                  ) : (
+                    <View
+                      style={[
+                        styles.emptyPhotoFrame,
+                        pressed && styles.emptyPhotoFramePressed,
+                      ]}
+                    >
+                      <View style={styles.cameraIconContainer}>
+                        <Ionicons
+                          name="camera"
+                          size={56}
+                          color={pressed ? "#ED2A46" : "#ccc"}
+                        />
+                      </View>
+                      <Text
+                        style={[
+                          styles.photoFrameHint,
+                          pressed && styles.photoFrameHintPressed,
+                        ]}
+                      >
+                        {t(
+                          "bodyMeasurements.tapToCapture",
+                          "Tap to take photo"
+                        )}
+                      </Text>
+                    </View>
+                  )}
                 </>
               )}
+            </Pressable>
+            {/* Pick from Gallery Button */}
+            <TouchableOpacity
+              style={styles.galleryButton}
+              onPress={() => handlePickImage("front")}
+            >
+              <Ionicons name="images-outline" size={20} color="#ED2A46" />
+              <Text style={styles.galleryButtonText}>
+                {t("bodyMeasurements.chooseFromGallery", "Chọn từ thư viện")}
+              </Text>
             </TouchableOpacity>
           </View>
-        )}
 
-        {/* Processing Step */}
-        {currentStep === "processing" && (
-          <View style={styles.processingContainer}>
-            <ActivityIndicator size="large" color="#ED2A46" />
-            <Text style={styles.processingTitle}>
-              {t(
-                "bodyMeasurements.processing",
-                "Processing Your Measurements..."
+          {/* Side Photo Frame */}
+          <View style={styles.photoFrameWrapper}>
+            <View style={styles.photoFrameHeader}>
+              <View style={styles.photoNumberBadge}>
+                <Text style={styles.photoNumberText}>2</Text>
+              </View>
+              <View>
+                <Text style={styles.photoFrameTitle}>
+                  {t("bodyMeasurements.sidePhoto", "Side Photo")}
+                </Text>
+                <Text style={styles.photoFrameDescription}>
+                  {t(
+                    "bodyMeasurements.sidePhotoDesc",
+                    "Stand sideways, same posture"
+                  )}
+                </Text>
+              </View>
+            </View>
+            <Pressable
+              style={styles.photoFrame}
+              onPress={() =>
+                sideImage ? handleRetake("side") : handleOpenCamera("side")
+              }
+            >
+              {({ pressed }) => (
+                <>
+                  {sideImage ? (
+                    <>
+                      <Image
+                        source={{ uri: sideImage.uri }}
+                        style={styles.photoFrameImage}
+                      />
+                      {pressed && (
+                        <View style={styles.photoFrameOverlay}>
+                          <View style={styles.overlayContent}>
+                            <Ionicons name="camera" size={32} color="#fff" />
+                            <Text style={styles.photoFrameOverlayText}>
+                              {t("common.retake", "Retake Photo")}
+                            </Text>
+                          </View>
+                        </View>
+                      )}
+                      <View style={styles.photoFrameSuccessBadge}>
+                        <Ionicons
+                          name="checkmark-circle"
+                          size={24}
+                          color="#4CAF50"
+                        />
+                        <Text style={styles.successBadgeText}>
+                          {t("common.completed", "Completed")}
+                        </Text>
+                      </View>
+                    </>
+                  ) : (
+                    <View
+                      style={[
+                        styles.emptyPhotoFrame,
+                        pressed && styles.emptyPhotoFramePressed,
+                      ]}
+                    >
+                      <View style={styles.cameraIconContainer}>
+                        <Ionicons
+                          name="camera"
+                          size={56}
+                          color={pressed ? "#ED2A46" : "#ccc"}
+                        />
+                      </View>
+                      <Text
+                        style={[
+                          styles.photoFrameHint,
+                          pressed && styles.photoFrameHintPressed,
+                        ]}
+                      >
+                        {t(
+                          "bodyMeasurements.tapToCapture",
+                          "Tap to take photo"
+                        )}
+                      </Text>
+                    </View>
+                  )}
+                </>
               )}
-            </Text>
-            <Text style={styles.processingDescription}>
-              {t(
-                "bodyMeasurements.processingDescription",
-                "This may take a few moments. Please wait."
-              )}
-            </Text>
+            </Pressable>
+            {/* Pick from Gallery Button */}
+            <TouchableOpacity
+              style={styles.galleryButton}
+              onPress={() => handlePickImage("side")}
+            >
+              <Ionicons name="images-outline" size={20} color="#ED2A46" />
+              <Text style={styles.galleryButtonText}>
+                {t("bodyMeasurements.chooseFromGallery", "Chọn từ thư viện")}
+              </Text>
+            </TouchableOpacity>
           </View>
+        </View>
+
+        {/* Submit Button */}
+        {frontImage && sideImage && (
+          <TouchableOpacity
+            style={[
+              styles.submitButton,
+              processing && styles.submitButtonDisabled,
+            ]}
+            onPress={handleSubmit}
+            disabled={processing}
+            activeOpacity={0.8}
+          >
+            {processing ? (
+              <>
+                <ActivityIndicator size="small" color="#fff" />
+                <Text style={styles.submitButtonText}>
+                  {t("bodyMeasurements.processing", "Processing...")}
+                </Text>
+              </>
+            ) : (
+              <>
+                <Ionicons name="analytics" size={22} color="#fff" />
+                <Text style={styles.submitButtonText}>
+                  {t(
+                    "bodyMeasurements.processMeasurements",
+                    "Analyze Measurements"
+                  )}
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
         )}
       </ScrollView>
     </View>
@@ -568,85 +656,387 @@ const AddMeasurementScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#f5f5f5",
   },
-
   content: {
     flex: 1,
-    padding: 20,
   },
-  stepIndicator: {
-    marginBottom: 30,
+  scrollContent: {
+    paddingBottom: 30,
   },
-  stepRow: {
+
+  // Header Section
+  header: {
+    backgroundColor: "#fff",
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 24,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+    marginBottom: 16,
+  },
+  headerIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: "rgba(237, 42, 70, 0.1)",
+    justifyContent: "center",
+    alignItems: "center",
+    alignSelf: "center",
+    marginBottom: 16,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#1a1a1a",
+    textAlign: "center",
+    marginBottom: 8,
+  },
+  headerSubtitle: {
+    fontSize: 15,
+    color: "#666",
+    textAlign: "center",
+    lineHeight: 22,
+  },
+
+  // Tips Container
+  tipsContainer: {
+    flexDirection: "row",
+    paddingHorizontal: 20,
+    marginBottom: 20,
+    gap: 8,
+  },
+  tipItem: {
+    flex: 1,
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 12,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  tipIconWrapper: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(237, 42, 70, 0.08)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  tipText: {
+    fontSize: 11,
+    color: "#333",
+    textAlign: "center",
+    fontWeight: "500",
+    lineHeight: 14,
+  },
+
+  // Photo Frames Section
+  photoFramesSection: {
+    paddingHorizontal: 20,
+    gap: 24,
+  },
+  photoFrameWrapper: {
+    marginBottom: 0,
+  },
+  photoFrameHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+    paddingHorizontal: 4,
+  },
+  photoNumberBadge: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "#ED2A46",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  photoNumberText: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#fff",
+  },
+  photoFrameTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1a1a1a",
+    flex: 1,
+  },
+  photoFrameDescription: {
+    fontSize: 13,
+    color: "#666",
+    marginTop: 2,
+  },
+  photoFrame: {
+    width: "100%",
+    height: SCREEN_WIDTH * 1.2,
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    overflow: "hidden",
+    position: "relative",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  emptyPhotoFrame: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fafafa",
+    borderWidth: 2,
+    borderColor: "#e8e8e8",
+    borderStyle: "dashed",
+    borderRadius: 16,
+  },
+  emptyPhotoFramePressed: {
+    backgroundColor: "rgba(237, 42, 70, 0.05)",
+    borderColor: "#ED2A46",
+  },
+  cameraIconContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  photoFrameHint: {
+    fontSize: 16,
+    color: "#999",
+    fontWeight: "600",
+  },
+  photoFrameHintPressed: {
+    color: "#ED2A46",
+  },
+  photoFrameImage: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "contain", // Show full resolution without cropping
+  },
+  photoFrameOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.75)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  overlayContent: {
+    alignItems: "center",
+  },
+  photoFrameOverlayText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+    marginTop: 12,
+  },
+  photoFrameSuccessBadge: {
+    position: "absolute",
+    top: 16,
+    right: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    gap: 6,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  successBadgeText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#4CAF50",
+  },
+
+  // Gallery Button
+  galleryButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 8,
+    gap: 8,
+    backgroundColor: "#fff",
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    marginTop: 12,
+    borderWidth: 1.5,
+    borderColor: "#ED2A46",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  stepDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: "#E0E0E0",
+  galleryButtonText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#ED2A46",
   },
-  stepDotActive: {
-    backgroundColor: "#ED2A46",
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-  },
-  stepLine: {
-    flex: 1,
-    height: 2,
-    backgroundColor: "#E0E0E0",
-    marginHorizontal: 8,
-  },
-  stepLabels: {
+
+  // Submit Button
+  submitButton: {
     flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    backgroundColor: "#ED2A46",
+    marginHorizontal: 20,
+    marginTop: 32,
+    paddingVertical: 18,
+    borderRadius: 16,
+    shadowColor: "#ED2A46",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  submitButtonDisabled: {
+    backgroundColor: "#ccc",
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+  },
+  submitButtonText: {
+    color: "#fff",
+    fontSize: 17,
+    fontWeight: "bold",
+    letterSpacing: 0.5,
+  },
+
+  // Camera Styles
+  camera: {
+    flex: 1,
+  },
+  cameraOverlay: {
+    flex: 1,
+    backgroundColor: "transparent",
     justifyContent: "space-between",
   },
-  stepLabel: {
-    fontSize: 12,
-    color: "#666",
-    flex: 1,
+  cameraInstructions: {
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    padding: 15,
+  },
+  cameraInstructionsText: {
+    color: "#fff",
+    fontSize: 14,
     textAlign: "center",
-  },
-  instructionsContainer: {
-    alignItems: "center",
-    paddingVertical: 20,
-  },
-  instructionsTitle: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#333",
-    marginTop: 16,
-    marginBottom: 24,
-    textAlign: "center",
-  },
-  instructionsDescription: {
-    fontSize: 16,
-    color: "#666",
-    textAlign: "center",
-    marginBottom: 24,
-    lineHeight: 24,
-  },
-  instructionsList: {
-    width: "100%",
-    marginBottom: 30,
-  },
-  instructionItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 16,
-    paddingHorizontal: 20,
-  },
-  instructionText: {
-    fontSize: 15,
-    color: "#333",
-    marginLeft: 12,
-    flex: 1,
+    fontWeight: "600",
     lineHeight: 22,
+  },
+  bodyGuide: {
+    position: "absolute",
+    top: "10%",
+    left: "15%",
+    width: "70%",
+    height: "73%",
+    borderWidth: 3,
+    borderColor: "rgba(237, 42, 70, 0.9)",
+    borderRadius: 20,
+    borderStyle: "dashed",
+  },
+  cameraControls: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    paddingBottom: 20,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+  },
+  controlButton: {
+    width: 45,
+    height: 45,
+    borderRadius: 27,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+  },
+  captureButton: {
+    width: 65,
+    height: 65,
+    borderRadius: 38,
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#ED2A46",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  captureButtonInner: {
+    width: 50,
+    height: 50,
+    borderRadius: 32,
+    backgroundColor: "#ED2A46",
+  },
+
+  // Permission Denied
+  permissionDenied: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  permissionText: {
+    fontSize: 18,
+    color: "#333",
+    marginTop: 20,
+    marginBottom: 30,
+    textAlign: "center",
   },
   primaryButton: {
     flexDirection: "row",
@@ -671,175 +1061,6 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
-  },
-  secondaryButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    backgroundColor: "#fff",
-    paddingVertical: 14,
-    paddingHorizontal: 30,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: "#ED2A46",
-    marginTop: 10,
-  },
-  secondaryButtonText: {
-    color: "#ED2A46",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  camera: {
-    flex: 1,
-  },
-  cameraOverlay: {
-    flex: 1,
-    backgroundColor: "transparent",
-    justifyContent: "space-between",
-  },
-  cameraInstructions: {
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
-    padding: 20,
-  },
-  cameraInstructionsText: {
-    color: "#fff",
-    fontSize: 16,
-    textAlign: "center",
-    fontWeight: "600",
-  },
-  bodyGuide: {
-    position: "absolute",
-    top: "20%",
-    left: "25%",
-    width: "50%",
-    height: "60%",
-    borderWidth: 2,
-    borderColor: "rgba(237, 42, 70, 0.8)",
-    borderRadius: 20,
-    borderStyle: "dashed",
-  },
-  cameraControls: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-    paddingBottom: 40,
-    paddingHorizontal: 20,
-  },
-  controlButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  captureButton: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: "#fff",
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 4,
-    borderColor: "#ED2A46",
-  },
-  captureButtonInner: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "#ED2A46",
-  },
-  photoReviewContainer: {
-    alignItems: "center",
-  },
-  photoReviewTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 20,
-  },
-  photoPreview: {
-    width: SCREEN_WIDTH - 80,
-    height: (SCREEN_WIDTH - 80) * 1.33,
-    borderRadius: 12,
-    marginBottom: 20,
-  },
-  buttonRow: {
-    flexDirection: "row",
-    gap: 12,
-    width: "100%",
-  },
-  reviewContainer: {
-    alignItems: "center",
-  },
-  reviewTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 20,
-  },
-  photoGrid: {
-    flexDirection: "row",
-    gap: 12,
-    marginBottom: 20,
-  },
-  photoCard: {
-    flex: 1,
-    backgroundColor: "#f8f9fa",
-    borderRadius: 12,
-    padding: 12,
-    alignItems: "center",
-  },
-  photoCardTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#666",
-    marginBottom: 8,
-  },
-  photoThumbnail: {
-    width: 140,
-    height: 186,
-    borderRadius: 8,
-    marginBottom: 8,
-  },
-  retakeButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-  },
-  retakeButtonText: {
-    color: "#ED2A46",
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  processingContainer: {
-    alignItems: "center",
-    paddingVertical: 60,
-  },
-  processingTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#333",
-    marginTop: 20,
-    marginBottom: 12,
-  },
-  processingDescription: {
-    fontSize: 15,
-    color: "#666",
-    textAlign: "center",
-  },
-  permissionDenied: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  permissionText: {
-    fontSize: 18,
-    color: "#333",
-    marginTop: 20,
-    marginBottom: 30,
-    textAlign: "center",
   },
 });
 
