@@ -414,6 +414,7 @@ export const TrainingResultScreen = ({ route, navigation }) => {
                 t={t}
                 StatCard={StatCard}
                 stats={stats}
+                navigation={navigation}
               />
             </>
           )}
@@ -535,6 +536,7 @@ export const TrainingResultScreen = ({ route, navigation }) => {
                 StatCard={StatCard}
                 stats={stats}
                 customerPurchasedId={customerPurchasedId}
+                navigation={navigation}
                 onCreateGoal={() => {
                   setShowCreateGoalForm(true);
                 }}

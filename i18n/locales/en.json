@@ -468,6 +468,8 @@
     "close": "Close",
     "next": "Next",
     "previous": "Previous",
+    "retake": "Retake",
+    "retry": "Retry",
     "search": "Search",
     "filter": "Filter",
     "sort": "Sort",
@@ -1660,6 +1662,34 @@
     "addMeasurementsToSeeChart": "Add body measurements to see progress chart",
     "recorded": "recorded",
     "progress": "Progress"
+  },
+
+  "bodyMeasurements": {
+    "addMeasurement": "Add Measurement",
+    "failedToTakePhoto": "Failed to take photo",
+    "failedToPickImage": "Failed to pick image",
+    "bothImagesRequired": "Both front and side images are required",
+    "measurementsSaved": "Body measurements saved successfully!",
+    "failedToProcessMeasurements": "Failed to process measurements",
+    "frontImageInstruction": "Stand facing the camera, arms at sides",
+    "sideImageInstruction": "Stand sideways, arms at sides",
+    "cameraPermissionDenied": "Camera permission denied",
+    "frontPhoto": "Front",
+    "sidePhoto": "Side",
+    "review": "Review",
+    "instructionsTitle": "How to Take Photos",
+    "instruction1": "Wear fitted clothing for accurate measurements",
+    "instruction2": "Stand in a well-lit area with plain background",
+    "instruction3": "Keep arms at your sides, feet shoulder-width apart",
+    "instruction4": "Make sure your full body is visible in the frame",
+    "takeFrontPhoto": "Take Front Photo",
+    "takeSidePhoto": "Take Side Photo",
+    "sidePhotoTitle": "Now Take Side Photo",
+    "sidePhotoDescription": "Turn to your side and take a photo with the same posture",
+    "reviewPhotos": "Review Your Photos",
+    "processMeasurements": "Process Measurements",
+    "processing": "Processing Your Measurements...",
+    "processingDescription": "This may take a few moments. Please wait."
   },
 
   "bookingRequest": {

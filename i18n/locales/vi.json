@@ -469,6 +469,8 @@
     "close": "Đóng",
     "next": "Tiếp theo",
     "previous": "Trước",
+    "retake": "Chụp lại",
+    "retry": "Thử lại",
     "search": "Tìm kiếm",
     "filter": "Bộ lọc",
     "sort": "Sắp xếp",
@@ -1650,6 +1652,34 @@
     "noDataAvailable": "Không Có Dữ Liệu",
     "addMeasurementsToSeeChart": "Thêm số đo cơ thể để xem biểu đồ tiến độ",
     "recorded": "đã ghi"
+  },
+
+  "bodyMeasurements": {
+    "addMeasurement": "Thêm Số Đo",
+    "failedToTakePhoto": "Không thể chụp ảnh",
+    "failedToPickImage": "Không thể chọn ảnh",
+    "bothImagesRequired": "Cần cả ảnh mặt trước và ảnh bên hông",
+    "measurementsSaved": "Đã lưu số đo cơ thể thành công!",
+    "failedToProcessMeasurements": "Không thể xử lý số đo",
+    "frontImageInstruction": "Đứng thẳng hướng về máy ảnh, tay để xuôi hai bên",
+    "sideImageInstruction": "Đứng nghiêng, tay để xuôi hai bên",
+    "cameraPermissionDenied": "Quyền truy cập máy ảnh bị từ chối",
+    "frontPhoto": "Mặt Trước",
+    "sidePhoto": "Bên Hông",
+    "review": "Xem Lại",
+    "instructionsTitle": "Cách Chụp Ảnh",
+    "instruction1": "Mặc trang phục vừa vặn để đo lường chính xác",
+    "instruction2": "Đứng ở nơi có ánh sáng tốt với nền đơn giản",
+    "instruction3": "Giữ tay xuôi hai bên, chân rộng bằng vai",
+    "instruction4": "Đảm bảo toàn bộ cơ thể của bạn hiển thị trong khung hình",
+    "takeFrontPhoto": "Chụp Ảnh Mặt Trước",
+    "takeSidePhoto": "Chụp Ảnh Bên Hông",
+    "sidePhotoTitle": "Bây Giờ Chụp Ảnh Bên Hông",
+    "sidePhotoDescription": "Quay sang một bên và chụp ảnh với tư thế tương tự",
+    "reviewPhotos": "Xem Lại Ảnh Của Bạn",
+    "processMeasurements": "Xử Lý Số Đo",
+    "processing": "Đang Xử Lý Số Đo Của Bạn...",
+    "processingDescription": "Quá trình này có thể mất vài phút. Vui lòng chờ."
   },
 
   "bookingRequest": {

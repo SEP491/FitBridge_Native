@@ -38,6 +38,7 @@ export const UserGoalsProgress = ({
   stats,
   customerPurchasedId,
   onCreateGoal,
+  navigation,
 }) => {
   const [userGoals, setUserGoals] = React.useState(null);
   const [bodyMeasurements, setBodyMeasurements] = React.useState([]);
@@ -224,6 +225,21 @@ export const UserGoalsProgress = ({
         title={t("trainingResults.currentUserStats", "Current User Stats")}
         icon="body"
       >
+        {/* Add Measurement Button */}
+        <TouchableOpacity
+          style={styles.addMeasurementButton}
+          onPress={() =>
+            navigation?.navigate("AddMeasurementScreen", {
+              customerPurchasedId,
+            })
+          }
+        >
+          <Ionicons name="add-circle" size={20} color="#fff" />
+          <Text style={styles.addMeasurementButtonText}>
+            {t("bodyMeasurements.addMeasurement", "Add Measurement")}
+          </Text>
+        </TouchableOpacity>
+
         <View style={styles.currentStatsContainer}>
           {/* Latest Measurement Stats */}
           {bodyMeasurements.length > 0 ? (
@@ -551,6 +567,30 @@ export const UserGoalsProgress = ({
 };
 
 const styles = StyleSheet.create({
+  addMeasurementButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    backgroundColor: "#ED2A46",
+    borderRadius: 10,
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  addMeasurementButtonText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 15,
+  },
   chartContainer: {
     alignItems: "center",
     marginVertical: 10,

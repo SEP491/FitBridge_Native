@@ -80,6 +80,7 @@ import BookingDetailScreen from "../screens/CustomerScreen/BookingDetailScreen/B
 import TrainingActivityScreen from "../screens/CustomerScreen/TrainingActivityScreen/TrainingActivityScreen";
 import EditSessionActivityScreen from "../screens/CustomerScreen/EditSessionActivityScreen/EditSessionActivityScreen";
 import EditActivitySetScreen from "../screens/CustomerScreen/EditActivitySetScreen/EditActivitySetScreen";
+import AddMeasurementScreen from "../screens/CommonScreen/AddMeasurementScreen/AddMeasurementScreen";
 import { useRevenueCat } from "../context/RevenueCatContext";
 import { useUser } from "../context/UserContext";
 import CalendarPTScreen from "../screens/GymPTScreen/CalendarPTScreen/CalendarPTScreen";
@@ -429,6 +430,19 @@ export default function Navigator({
           }}
         />
         <Stack.Screen
+          name="AddMeasurementScreen"
+          component={AddMeasurementScreen}
+          options={{
+            headerShown: true,
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
           name="TrainingActivityScreen"
           component={TrainingActivityScreen}
           options={{
@@ -464,6 +478,7 @@ export default function Navigator({
             orientation: "portrait",
           }}
         />
+
         <Stack.Screen
           name="CustomerDetailScreen"
           component={CustomerDetailScreen}
