@@ -46,6 +46,7 @@
 
   "screenTitles": {
     "ptList": "Danh sách PT",
+    "addMeasurement": "Đo Chỉ Số",
     "blog": "Blog",
     "searchGym": "Tìm kiếm phòng gym",
     "ptInfo": "Thông tin PT",
@@ -1431,7 +1432,11 @@
     "currentStreak": "Chuỗi hiện tại",
     "longestStreak": "Chuỗi dài nhất",
     "bestPerformance": "Thành tích tốt nhất",
-    "forceRefresh": "Làm mới"
+    "forceRefresh": "Làm mới",
+    "poweredByAppleHealth": "Dữ liệu từ Apple Health",
+    "dataSource": "Nguồn Dữ liệu",
+    "healthKitDescription": "Ứng dụng này sử dụng Apple Health (HealthKit) để theo dõi bước chân, khoảng cách và calo của bạn. Dữ liệu sức khỏe được xử lý trên thiết bị và dùng để cung cấp thông tin sức khỏe cá nhân hóa.",
+    "appleHealth": "Apple Health"
   },
 
   "notifications": {

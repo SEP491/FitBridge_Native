@@ -20,7 +20,7 @@ import { useTranslation } from "../../../hooks/useTranslation";
 import BodygramService from "../../../services/bodygramService";
 import BodyMeasurementsService from "../../../services/body-measurementService";
 import { fetchUserFromStorage } from "./../../../lib/async/asyncUtils";
-
+import outline from "../../../assets/images/outline2.png";
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 const AddMeasurementScreen = ({ route, navigation }) => {
@@ -304,7 +304,9 @@ const AddMeasurementScreen = ({ route, navigation }) => {
             </View>
 
             {/* Body outline guide */}
-            <View style={styles.bodyGuide} />
+            <View style={styles.bodyGuide}>
+              <Image source={outline} style={styles.bodyOutlineImage} />
+            </View>
 
             {/* Camera controls */}
             <View style={styles.cameraControls}>
@@ -352,7 +354,7 @@ const AddMeasurementScreen = ({ route, navigation }) => {
     return (
       <View style={styles.container}>
         <View style={styles.permissionDenied}>
-          <Ionicons name="camera-off" size={64} color="#ED2A46" />
+          <Ionicons name="camera" size={64} color="#ED2A46" />
           <Text style={styles.permissionText}>
             {t(
               "bodyMeasurements.cameraPermissionDenied",
@@ -363,9 +365,7 @@ const AddMeasurementScreen = ({ route, navigation }) => {
             style={styles.primaryButton}
             onPress={requestPermission}
           >
-            <Text style={styles.primaryButtonText}>
-              {t("common.grantPermission", "Grant Permission")}
-            </Text>
+            <Text style={styles.primaryButtonText}>Grant Permission</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -970,17 +970,21 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     lineHeight: 22,
   },
-  bodyGuide: {
-    position: "absolute",
-    top: "10%",
-    left: "15%",
-    width: "70%",
-    height: "73%",
-    borderWidth: 3,
-    borderColor: "rgba(237, 42, 70, 0.9)",
-    borderRadius: 20,
-    borderStyle: "dashed",
-  },
+  // bodyGuide: {
+  //   position: "absolute",
+  //   top: 0,
+  //   left: 0,
+  //   right: 0,
+  //   bottom: 0,
+  //   justifyContent: "center",
+  //   alignItems: "center",
+  // },
+  // bodyOutlineImage: {
+  //   width: SCREEN_WIDTH * 0.7,
+  //   height: SCREEN_HEIGHT * 0.8,
+  //   resizeMode: "contain",
+  //   opacity: 1,
+  // },
   cameraControls: {
     flexDirection: "row",
     justifyContent: "space-around",

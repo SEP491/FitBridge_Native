@@ -434,6 +434,7 @@ export default function Navigator({
           component={AddMeasurementScreen}
           options={{
             headerShown: true,
+            title: t("screenTitles.addMeasurement"),
             headerTitleAlign: "center",
             headerTitleStyle: {
               fontWeight: "bold",

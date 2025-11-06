@@ -6,30 +6,24 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Dimensions,
   Alert,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useFitnessContext } from "../../../context/FitnessContext";
 import { useTranslation } from "../../../hooks/useTranslation";
-import { useNavigation } from "@react-navigation/native";
-
-const { width } = Dimensions.get("window");
 
 const FitnessDetailScreen = () => {
-  const navigation = useNavigation();
   const { t } = useTranslation();
   const {
     fitnessData,
     isLoading,
-    error,
     refreshData,
     startTracking,
     stopTracking,
     getFitnessStatistics,
     forceRefresh,
-    getDebugInfo,
-    getDebugFitnessHistory,
+    saveTodayData,
   } = useFitnessContext();
 
   const [selectedPeriod, setSelectedPeriod] = useState("daily"); // daily, weekly, monthly
@@ -114,6 +108,25 @@ const FitnessDetailScreen = () => {
         },
       ]
     );
+  };
+
+  const handleSaveNow = async () => {
+    try {
+      setRefreshing(true);
+      await saveTodayData();
+      Alert.alert(
+        "✅ Success",
+        "Today's fitness data has been saved to history!",
+        [{ text: "OK" }]
+      );
+      await loadComprehensiveStats();
+    } catch (error) {
+      Alert.alert("❌ Error", "Failed to save data: " + error.message, [
+        { text: "OK" },
+      ]);
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   const renderPeriodSelector = () => (
@@ -504,10 +517,44 @@ const FitnessDetailScreen = () => {
                     {refreshing ? "Refreshing..." : t("fitness.forceRefresh")}
                   </Text>
                 </TouchableOpacity>
+
+                {/* <TouchableOpacity
+                  onPress={handleSaveNow}
+                  style={[
+                    styles.trackingButton,
+                    styles.secondaryButton,
+                    { backgroundColor: "#FF9500" },
+                  ]}
+                  disabled={refreshing}
+                >
+                  <Ionicons name="save-outline" size={20} color="#FFFFFF" />
+                  <Text style={styles.trackingButtonText}>Save Now</Text>
+                </TouchableOpacity> */}
               </View>
             </View>
           </View>
         </View>
+
+        {/* HealthKit Data Source Disclosure - iOS Only */}
+        {Platform.OS === "ios" && (
+          <View style={styles.healthKitDisclosure}>
+            <View style={styles.healthKitHeader}>
+              <Ionicons name="heart-outline" size={20} color="#FF2D55" />
+              <Text style={styles.healthKitTitle}>
+                {t("fitness.dataSource")}
+              </Text>
+            </View>
+            <Text style={styles.healthKitDescription}>
+              {t("fitness.healthKitDescription")}
+            </Text>
+            <View style={styles.healthKitBadge}>
+              <Ionicons name="logo-apple" size={16} color="#000000" />
+              <Text style={styles.healthKitBadgeText}>
+                {t("fitness.appleHealth")}
+              </Text>
+            </View>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -735,30 +782,30 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    gap: 12,
+    gap: 8,
     width: "100%",
     flexWrap: "wrap",
   },
   trackingButton: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
     borderRadius: 28,
     shadowColor: "#000",
     shadowOpacity: 0.15,
     shadowRadius: 6,
     elevation: 4,
-    minWidth: 120,
+    minWidth: 100,
     justifyContent: "center",
   },
   primaryButton: {
     flex: 1,
-    maxWidth: 140,
+    maxWidth: 130,
   },
   secondaryButton: {
     flex: 0,
-    minWidth: 100,
+    minWidth: 90,
   },
   trackingButtonText: {
     fontSize: 16,
@@ -839,6 +886,53 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: "#8E8E93",
     textAlign: "center",
+  },
+  // HealthKit Disclosure Styles
+  healthKitDisclosure: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 20,
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 24,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: "#FFE5E5",
+  },
+  healthKitHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  healthKitTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#1C1C1E",
+    marginLeft: 8,
+  },
+  healthKitDescription: {
+    fontSize: 14,
+    color: "#6B6B6B",
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  healthKitBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    backgroundColor: "#F0F0F0",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
+  healthKitBadgeText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#000000",
+    marginLeft: 6,
   },
 });
 

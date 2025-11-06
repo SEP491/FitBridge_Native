@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useFitnessContext } from "../../context/FitnessContext";
@@ -151,6 +152,16 @@ const FitnessSummary = () => {
               : t("fitness.trackingPaused")}
           </Text>
         </View>
+
+        {/* HealthKit Attribution - iOS Only */}
+        {Platform.OS === "ios" && (
+          <View style={styles.healthKitAttributionContainer}>
+            <Ionicons name="heart-outline" size={14} color="#FF2D55" />
+            <Text style={styles.healthKitAttributionText}>
+              {t("fitness.poweredByAppleHealth")}
+            </Text>
+          </View>
+        )}
       </View>
     </View>
   );
@@ -305,6 +316,21 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#8E8E93",
     fontWeight: "500",
+  },
+  healthKitAttributionContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: "#F0F0F0",
+  },
+  healthKitAttributionText: {
+    fontSize: 11,
+    color: "#8E8E93",
+    fontWeight: "400",
+    marginLeft: 6,
   },
   loadingContainer: {
     backgroundColor: "#F8F9FA",

@@ -47,6 +47,7 @@
 
   "screenTitles": {
     "trainingResult": "Training Result",
+    "addMeasurement": "Measure Body",
     "ptList": "PT List",
     "blog": "Blog",
     "searchGym": "Search Gym",
@@ -1525,7 +1526,11 @@
     "currentStreak": "Current Streak",
     "longestStreak": "Longest Streak",
     "bestPerformance": "Best Performance",
-    "forceRefresh": "Refresh"
+    "forceRefresh": "Refresh",
+    "poweredByAppleHealth": "Data from Apple Health",
+    "dataSource": "Data Source",
+    "healthKitDescription": "This app uses Apple Health (HealthKit) to track your steps, distance, and calories. Your health data is processed on your device and used to provide personalized fitness insights.",
+    "appleHealth": "Apple Health"
   },
 
   "notifications": {
