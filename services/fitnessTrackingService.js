@@ -17,12 +17,6 @@ const STORAGE_KEYS = {
 };
 
 // Default user profile for calorie calculation
-const DEFAULT_USER_PROFILE = {
-  weight: 70, // kg
-  height: 170, // cm
-  age: 25,
-  gender: "male", // male or female
-};
 
 class FitnessTrackingService {
   constructor() {
@@ -33,7 +27,7 @@ class FitnessTrackingService {
     this.realTimeSteps = 0; // Real-time incremental steps from watchStepCount
     this.todayDistance = 0;
     this.todayCalories = 0;
-    this.userProfile = DEFAULT_USER_PROFILE;
+    this.userProfile = {};
     this.listeners = [];
     this.lastSavedSteps = 0; // Track last saved steps for auto-save
     this.lastSaveTime = Date.now(); // Track last save time
@@ -59,10 +53,7 @@ class FitnessTrackingService {
     try {
       const userInfo = await fetchUserFromStorage();
       if (userInfo) {
-        this.userProfile = {
-          ...DEFAULT_USER_PROFILE,
-          ...JSON.parse(userInfo),
-        };
+        this.userProfile = userInfo;
       }
     } catch (error) {
       console.error("Error loading profile:", error.message);
@@ -440,7 +431,7 @@ class FitnessTrackingService {
     const heightInMeters = this.userProfile.height / 100;
     let stepLength;
 
-    if (this.userProfile.gender === "female") {
+    if (this.userProfile.gender === "Female") {
       stepLength = heightInMeters * 0.413; // Slightly shorter for women
     } else {
       stepLength = heightInMeters * 0.415; // Standard for men
