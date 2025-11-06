@@ -73,6 +73,7 @@ import NotificationScreen from "../screens/CommonScreen/NotificationScreen/Notif
 import { useSignalR } from "../context/SignalRContext";
 import * as Notifications from "expo-notifications";
 import notificationService from "../services/notificationService";
+import NotificationBannerWrapper from "../components/NotificationBannerWrapper";
 import ScheduleFreelanceScreen from "../screens/CustomerScreen/ScheduleFreelanceScreen/ScheduleFreelanceScreen";
 import FreelanceChoosingCourseScreen from "../screens/FreelancePTScreen/FreelanceChoosingCourseScreen/FreelanceChoosingCourseScreen";
 import FreelancePTRequestScreen from "../screens/FreelancePTScreen/FreelancePTRequestScreen/FreelancePTRequestScreen";
@@ -1554,7 +1555,7 @@ export default function Navigator({
 
   return (
     <NavigationContainer linking={linking}>
-      <>
+      <NotificationBannerWrapper>
         <Stack.Navigator
           screenOptions={({ navigation, route }) => ({
             headerTitleAlign: "center",
@@ -1649,7 +1650,7 @@ export default function Navigator({
           )}
         </Stack.Navigator>
         <FloatingVideoCall />
-      </>
+      </NotificationBannerWrapper>
     </NavigationContainer>
   );
 }

@@ -37,6 +37,7 @@ export const NotificationProvider = ({ children }) => {
   const [refreshing, setRefreshing] = useState(false);
   const { service: signalrService } = useSignalR();
   const [isSignalRConnected, setIsSignalRConnected] = useState(false);
+  const [inAppNotification, setInAppNotification] = useState(null);
 
   // Fetch notifications from API
   const fetchNotifications = useCallback(async () => {
@@ -130,6 +131,11 @@ export const NotificationProvider = ({ children }) => {
     const handleNotificationReceived = (notification) => {
       console.log("🔔 SignalR: Real-time notification received!", notification);
       setPingCount((prev) => prev + 1);
+
+      // Only show in-app notification if app is in foreground
+
+      setInAppNotification(notification);
+
       fetchNotifications();
       // Confirm receipt to server
       signalrService
@@ -213,12 +219,14 @@ export const NotificationProvider = ({ children }) => {
       refreshing,
       isSignalRConnected,
       pingCount,
+      inAppNotification,
       fetchNotifications,
       markAsRead,
       markAllAsRead,
       deleteNotification,
       deleteAllNotifications,
       setPingCount,
+      setInAppNotification,
     }),
     [
       notifications,
@@ -227,6 +235,7 @@ export const NotificationProvider = ({ children }) => {
       refreshing,
       isSignalRConnected,
       pingCount,
+      inAppNotification,
     ]
   );
 

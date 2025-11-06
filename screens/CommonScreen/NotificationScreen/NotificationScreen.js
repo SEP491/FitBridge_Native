@@ -29,8 +29,6 @@ export default function NotificationScreen() {
     markAllAsRead,
     deleteNotification,
     deleteAllNotifications,
-    pingCount,
-    setPingCount,
   } = useNotification();
 
   const [filter, setFilter] = useState("all"); // all, unread, read
@@ -92,7 +90,6 @@ export default function NotificationScreen() {
           style: "destructive",
           onPress: async () => {
             await deleteAllNotifications();
-            setPingCount(0);
           },
         },
       ]
