@@ -1528,9 +1528,12 @@
     "bestPerformance": "Best Performance",
     "forceRefresh": "Refresh",
     "poweredByAppleHealth": "Data from Apple Health",
+    "poweredByMotionFitness": "Uses Motion & Fitness",
     "dataSource": "Data Source",
     "healthKitDescription": "This app uses Apple Health (HealthKit) to track your steps, distance, and calories. Your health data is processed on your device and used to provide personalized fitness insights.",
-    "appleHealth": "Apple Health"
+    "motionFitnessDescription": "This app uses Motion & Fitness activity tracking to monitor your steps, distance, and calories burned. All data is processed locally on your device.",
+    "appleHealth": "Apple Health",
+    "motionAndFitness": "Motion & Fitness"
   },
 
   "notifications": {
