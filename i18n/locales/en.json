@@ -1279,7 +1279,9 @@
     "searchTitle": "Search for gyms",
     "searchSubtitle": "Enter gym name to start searching",
     "loadingMore": "Loading more...",
-    "clearAll": "Clear Search"
+    "clearAll": "Clear Search",
+    "searchResults": "Search Results",
+    "recommended": "Recommended for You"
   },
 
   "hotKeywords": {

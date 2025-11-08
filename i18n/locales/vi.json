@@ -1152,7 +1152,9 @@
     "searchTitle": "Tìm kiếm phòng gym",
     "searchSubtitle": "Nhập tên phòng gym để bắt đầu tìm kiếm",
     "loadingMore": "Đang tải thêm...",
-    "clearAll": "Xóa tất cả"
+    "clearAll": "Xóa tất cả",
+    "searchResults": "Kết Quả Tìm Kiếm",
+    "recommended": "Đề Xuất Cho Bạn"
   },
 
   "hotKeywords": {
