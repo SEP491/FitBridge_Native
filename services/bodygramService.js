@@ -42,6 +42,11 @@ const BodygramService = {
       customerPurchasedId: customerPurchasedId,
     };
   },
+
+  createScanToken: (data) =>
+    requestBodyGram("POST", `orgs/${ORG_ID}/scan-tokens`, data),
+  getScanResult: (scanId) =>
+    requestBodyGram("GET", `orgs/${ORG_ID}/scans/${scanId}`),
 };
 
 export default BodygramService;
