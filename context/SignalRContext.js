@@ -87,15 +87,17 @@ export const SignalRProvider = ({ children }) => {
         await service.pauseConnection();
       } else if (nextAppState === "active") {
         console.log("App became active - checking authentication");
-        
+
         // Validate if user is authenticated before starting connection
         const authResult = await authService.validateToken();
-        
+
         if (authResult.isValid) {
           console.log("User is authenticated - starting SignalR connection");
-          await service.resumeConnection();
+          service.resumeConnection();
         } else {
-          console.log("User is not authenticated - skipping SignalR connection");
+          console.log(
+            "User is not authenticated - skipping SignalR connection"
+          );
         }
       }
     };

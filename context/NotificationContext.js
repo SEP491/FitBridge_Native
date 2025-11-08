@@ -137,7 +137,6 @@ export const NotificationProvider = ({ children }) => {
       setInAppNotification(notification);
 
       fetchNotifications();
-      // Confirm receipt to server
       signalrService
         .invokeHubMethod(HUB_METHODS.CONFIRM_HANDSHAKE)
         .then(() => {

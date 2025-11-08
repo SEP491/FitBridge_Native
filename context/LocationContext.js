@@ -13,7 +13,7 @@ export const LocationProvider = ({ children }) => {
   // Request location permission
   const requestLocationPermission = async () => {
     try {
-      console.log("🔍 Checking location permissions...");
+      // console.log("🔍 Checking location permissions...");
 
       const { status: existingStatus } =
         await Location.getForegroundPermissionsAsync();
@@ -62,7 +62,7 @@ export const LocationProvider = ({ children }) => {
     } = options;
 
     try {
-      console.log("📡 Getting current location...");
+      // console.log("📡 Getting current location...");
       setLoading(true);
       setError(null);
 
@@ -95,7 +95,7 @@ export const LocationProvider = ({ children }) => {
   // Initialize location on app start
   const initializeLocation = async () => {
     try {
-      console.log("🚀 Initializing location service...");
+      // console.log("🚀 Initializing location service...");
       setLoading(true);
 
       // Request permission

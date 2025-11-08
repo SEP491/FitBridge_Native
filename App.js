@@ -29,17 +29,17 @@ export default function App() {
   useEffect(() => {
     async function prepare() {
       try {
-        console.log("Starting app initialization");
+        // console.log("Starting app initialization");
 
         // Check authentication status
-        console.log("Checking authentication");
+        // console.log("Checking authentication");
         const authResult = await authService.validateToken();
 
         if (authResult.isValid) {
-          console.log(
-            "User authenticated:",
-            authResult.user?.email || "unknown"
-          );
+          // console.log(
+          //   "User authenticated:",
+          //   authResult.user?.email || "unknown"
+          // );
           setIsAuthenticated(true);
           setUser(authResult.user);
         } else {
@@ -50,7 +50,7 @@ export default function App() {
 
         setAuthCheckComplete(true);
 
-        console.log("App initialization complete");
+        // console.log("App initialization complete");
       } catch (e) {
         console.error("App initialization error:", e.message);
         // Even if there's an error, we should continue with unauthenticated state

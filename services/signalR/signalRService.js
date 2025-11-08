@@ -160,8 +160,6 @@ export const pauseConnection = async () => {
       console.log("SignalR: Connection paused");
     } catch (error) {
       console.error("SignalR: Error pausing connection", error);
-    } finally {
-      connectionCallbacks.clear();
     }
   }
 };
