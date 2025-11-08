@@ -1434,9 +1434,12 @@
     "bestPerformance": "Thành tích tốt nhất",
     "forceRefresh": "Làm mới",
     "poweredByAppleHealth": "Dữ liệu từ Apple Health",
+    "poweredByMotionFitness": "Sử dụng Motion & Fitness",
     "dataSource": "Nguồn Dữ liệu",
     "healthKitDescription": "Ứng dụng này sử dụng Apple Health (HealthKit) để theo dõi bước chân, khoảng cách và calo của bạn. Dữ liệu sức khỏe được xử lý trên thiết bị và dùng để cung cấp thông tin sức khỏe cá nhân hóa.",
-    "appleHealth": "Apple Health"
+    "motionFitnessDescription": "Ứng dụng này sử dụng theo dõi hoạt động Motion & Fitness để giám sát bước chân, khoảng cách và lượng calo tiêu thụ của bạn. Tất cả dữ liệu được xử lý cục bộ trên thiết bị của bạn.",
+    "appleHealth": "Apple Health",
+    "motionAndFitness": "Motion & Fitness"
   },
 
   "notifications": {

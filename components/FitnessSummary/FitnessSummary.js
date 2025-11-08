@@ -153,12 +153,12 @@ const FitnessSummary = () => {
           </Text>
         </View>
 
-        {/* HealthKit Attribution - iOS Only */}
+        {/* Motion & Fitness Attribution - iOS Only */}
         {Platform.OS === "ios" && (
           <View style={styles.healthKitAttributionContainer}>
-            <Ionicons name="heart-outline" size={14} color="#FF2D55" />
+            <Ionicons name="walk-outline" size={14} color="#34C759" />
             <Text style={styles.healthKitAttributionText}>
-              {t("fitness.poweredByAppleHealth")}
+              {t("fitness.poweredByMotionFitness")}
             </Text>
           </View>
         )}

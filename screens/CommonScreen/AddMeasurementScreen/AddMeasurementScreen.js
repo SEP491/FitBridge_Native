@@ -305,7 +305,7 @@ const AddMeasurementScreen = ({ route, navigation }) => {
 
             {/* Body outline guide */}
             <View style={styles.bodyGuide}>
-              <Image source={outline} style={styles.bodyOutlineImage} />
+              {/* <Image source={outline} style={styles.bodyOutlineImage} /> */}
             </View>
 
             {/* Camera controls */}

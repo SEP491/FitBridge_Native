@@ -535,22 +535,22 @@ const FitnessDetailScreen = () => {
           </View>
         </View>
 
-        {/* HealthKit Data Source Disclosure - iOS Only */}
+        {/* Motion & Fitness Data Source Disclosure - iOS Only */}
         {Platform.OS === "ios" && (
           <View style={styles.healthKitDisclosure}>
             <View style={styles.healthKitHeader}>
-              <Ionicons name="heart-outline" size={20} color="#FF2D55" />
+              <Ionicons name="walk-outline" size={20} color="#34C759" />
               <Text style={styles.healthKitTitle}>
                 {t("fitness.dataSource")}
               </Text>
             </View>
             <Text style={styles.healthKitDescription}>
-              {t("fitness.healthKitDescription")}
+              {t("fitness.motionFitnessDescription")}
             </Text>
             <View style={styles.healthKitBadge}>
-              <Ionicons name="logo-apple" size={16} color="#000000" />
+              <Ionicons name="fitness-outline" size={16} color="#34C759" />
               <Text style={styles.healthKitBadgeText}>
-                {t("fitness.appleHealth")}
+                {t("fitness.motionAndFitness")}
               </Text>
             </View>
           </View>

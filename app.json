@@ -22,8 +22,7 @@
         "NSLocationUsageDescription": "FitBridge needs your location to find gyms near you and show them on the map.",
         "NSPhotoLibraryUsageDescription": "FitBridge needs access to your photo library to allow you to upload images for your profile and gym photos.",
         "NSCameraUsageDescription": "FitBridge needs access to your camera to allow you to take photos for your profile and gym photos.",
-        "NSMotionUsageDescription": "FitBridge needs access to your motion data to track your daily steps and fitness activity.",
-        "NSHealthShareUsageDescription": "FitBridge needs access to your health data to provide accurate fitness tracking."
+        "NSMotionUsageDescription": "FitBridge uses Motion & Fitness activity tracking to monitor your steps, distance, and calories burned throughout the day."
       }
     },
     "android": {
