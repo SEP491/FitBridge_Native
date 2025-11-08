@@ -166,6 +166,41 @@ export const pauseConnection = async () => {
   }
 };
 
+export const resumeConnection = async () => {
+  if (!connection) {
+    console.warn("SignalR: Cannot resume - no connection exists");
+    return false;
+  }
+
+  try {
+    const currentState = connection.state;
+    
+    // Only resume if disconnected
+    if (currentState === signalR.HubConnectionState.Disconnected) {
+      console.log("SignalR: Resuming connection...");
+      await connection.start();
+      triggerCallback("onReconnected");
+      console.log("SignalR: Connection resumed");
+      
+      // Rejoin groups after resume
+      groups.forEach((group) => {
+        addToGroup(group);
+      });
+      
+      return true;
+    } else if (currentState === signalR.HubConnectionState.Connected) {
+      console.log("SignalR: Already connected, no need to resume");
+      return true;
+    } else {
+      console.log(`SignalR: Cannot resume from state: ${currentState}`);
+      return false;
+    }
+  } catch (error) {
+    console.error("SignalR: Error resuming connection", error);
+    return false;
+  }
+};
+
 export const onEvent = (eventName, callback) => {
   if (typeof eventName !== "string" || !eventName.trim()) {
     throw new Error("Event name must be a non-empty string");
