@@ -33,6 +33,7 @@
     "map": "Map",
     "schedule": "Schedule",
     "aiChatbox": "AI Chatbox",
+    "message": "Message",
     "me": "Me",
     "ptSchedule": "Schedule",
 
@@ -65,6 +66,7 @@
     "viewBookedSlots": "View Booked Slots",
     "ptBookingHistory": "PT Booking History",
     "aiChatbox": "AI Chatbox",
+    "message": "Message",
     "settings": "Settings",
     "chooseLanguage": "Choose Language",
     "profile": "Profile",
@@ -499,7 +501,8 @@
     "priceDesc": "Price: High to Low",
     "rating": "Rating",
     "experience": "Experience",
-    "completed": "Completed"
+    "completed": "Completed",
+    "no": "No"
   },
 
   "freelancePT": {

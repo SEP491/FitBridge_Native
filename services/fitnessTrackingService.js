@@ -1,5 +1,5 @@
 import { Pedometer } from "expo-sensors";
-import * as BackgroundFetch from "expo-background-fetch";
+import * as BackgroundTask from "expo-background-task";
 import * as TaskManager from "expo-task-manager";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { fetchUserFromStorage } from "./../lib/async/asyncUtils";
@@ -1011,10 +1011,8 @@ class FitnessTrackingService {
   // Register background task
   async registerBackgroundTask() {
     try {
-      await BackgroundFetch.registerTaskAsync(BACKGROUND_FETCH_TASK, {
+      await BackgroundTask.registerTaskAsync(BACKGROUND_FETCH_TASK, {
         minimumInterval: 60 * 60, // 1 hour (in seconds)
-        stopOnTerminate: false,
-        startOnBoot: true,
       });
       console.log("Background fetch task registered (1 hour interval)");
     } catch (error) {
@@ -1025,7 +1023,7 @@ class FitnessTrackingService {
   // Unregister background task
   async unregisterBackgroundTask() {
     try {
-      await BackgroundFetch.unregisterTaskAsync(BACKGROUND_FETCH_TASK);
+      await BackgroundTask.unregisterTaskAsync(BACKGROUND_FETCH_TASK);
     } catch (error) {
       console.error("Error unregistering background task:", error);
     }
@@ -1067,12 +1065,11 @@ TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
     await service.saveTodayData();
 
     console.log("✅ Background task completed - data saved");
-
-    return BackgroundFetch.BackgroundFetchResult.NewData;
   } catch (error) {
     console.error("Background fetch task error:", error);
-    return BackgroundFetch.BackgroundFetchResult.Failed;
+    return BackgroundTask.BackgroundTaskResult.Failed;
   }
+  return BackgroundTask.BackgroundTaskResult.Success;
 });
 
 // Singleton instance
