@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,36 +9,98 @@ import {
   SafeAreaView,
   RefreshControl,
   StatusBar,
+  ActivityIndicator,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import ConversationCard from "../../../components/ChatComponents/ConversationCard";
 import colors from "../../../constants/color";
+import messageService from "../../../services/messageService";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  startConnection,
+  onEvent,
+  offEvent,
+} from "../../../services/signalR/signalR-messagingService";
+import { CLIENT_METHODS } from "../../../services/signalR/hubMethods";
 
 export default function MessageScreen({ navigation }) {
-  const [conversations, setConversations] = useState(getMockConversations());
-  const [filteredConversations, setFilteredConversations] = useState(
-    getMockConversations()
-  );
+  const [conversations, setConversations] = useState([]);
+  const [filteredConversations, setFilteredConversations] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  // const [currentUserId, setCurrentUserId] = useState(null);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const currentUserId = "126ec3d4-4d34-45f2-bbf7-98b9a3dfc31c";
 
-  // Fetch conversations (using mock data)
-  const fetchConversations = useCallback(() => {
-    setRefreshing(true);
-    // Simulate loading delay
-    setTimeout(() => {
-      const mockData = getMockConversations();
-      setConversations(mockData);
-      setFilteredConversations(mockData);
-      setRefreshing(false);
-    }, 500);
+  // Fetch conversations on mount
+  useEffect(() => {
+    fetchConversations(true);
   }, []);
+
+  // Fetch conversations from API
+  const fetchConversations = useCallback(
+    async (isRefresh = false) => {
+      if (loading) return;
+
+      try {
+        isRefresh ? setRefreshing(true) : setLoading(true);
+
+        const params = {
+          pageNumber: isRefresh ? 1 : pageNumber,
+          pageSize: 20,
+        };
+
+        const response = await messageService.getConversations(params); // Handle paginated response
+        const newConversations = response.items || response || [];
+
+        if (isRefresh) {
+          setConversations(newConversations);
+          setFilteredConversations(newConversations);
+          setPageNumber(1);
+          setHasMore(newConversations.length >= 20);
+        } else {
+          // Filter out duplicates by ID
+          setConversations((prev) => {
+            const existingIds = new Set(prev.map((c) => c.id));
+            const uniqueNewConversations = newConversations.filter(
+              (c) => !existingIds.has(c.id)
+            );
+            return [...prev, ...uniqueNewConversations];
+          });
+          setFilteredConversations((prev) => {
+            const existingIds = new Set(prev.map((c) => c.id));
+            const uniqueNewConversations = newConversations.filter(
+              (c) => !existingIds.has(c.id)
+            );
+            return [...prev, ...uniqueNewConversations];
+          });
+          setHasMore(newConversations.length >= 20);
+        }
+      } catch (error) {
+        console.error("Error fetching conversations:", error);
+        // Keep existing data on error
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [pageNumber]
+  );
 
   // Handle refresh
   const onRefresh = useCallback(() => {
-    fetchConversations();
+    fetchConversations(true);
   }, [fetchConversations]);
+
+  // Handle load more
+  const handleLoadMore = useCallback(() => {
+    if (!loading && hasMore) {
+      setPageNumber((prev) => prev + 1);
+      fetchConversations(false);
+    }
+  }, [loading, hasMore, fetchConversations]);
 
   // Handle search
   const handleSearch = useCallback(
@@ -62,15 +124,29 @@ export default function MessageScreen({ navigation }) {
   );
 
   // Handle conversation press
-  const handleConversationPress = (conversation) => {
-    // Mark as read locally
+  const handleConversationPress = async (conversation) => {
     if (!conversation.isRead) {
-      setConversations((prev) =>
-        prev.map((c) => (c.id === conversation.id ? { ...c, isRead: true } : c))
-      );
-      setFilteredConversations((prev) =>
-        prev.map((c) => (c.id === conversation.id ? { ...c, isRead: true } : c))
-      );
+      try {
+        await messageService.markAsRead({
+          conversationId: conversation.id,
+          messageIds: [],
+        });
+
+        // Update local state
+        setConversations((prev) =>
+          prev.map((c) =>
+            c.id === conversation.id ? { ...c, isRead: true } : c
+          )
+        );
+        setFilteredConversations((prev) =>
+          prev.map((c) =>
+            c.id === conversation.id ? { ...c, isRead: true } : c
+          )
+        );
+      } catch (error) {
+        console.error("Error marking conversation as read:", error);
+        // Continue navigation even if marking as read fails
+      }
     }
 
     // Navigate to chat screen with conversation data
@@ -79,11 +155,6 @@ export default function MessageScreen({ navigation }) {
       conversationTitle: conversation.title,
       conversationImg: conversation.conversationImg,
     });
-  };
-
-  // Handle create new conversation
-  const handleCreateConversation = () => {
-    // navigation.navigate("CreateConversation");
   };
 
   // Get unread count
@@ -146,14 +217,21 @@ export default function MessageScreen({ navigation }) {
           <ConversationCard
             conversation={item}
             onPress={handleConversationPress}
-            currentUserId="126ec3d4-4d34-45f2-bbf7-98b9a3dfc31c"
+            currentUserId={currentUserId}
           />
         )}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item, index) => item.id || `conversation-${index}`}
         contentContainerStyle={
           filteredConversations.length === 0 && styles.emptyList
         }
         ListEmptyComponent={renderEmptyState}
+        ListFooterComponent={
+          loading && !refreshing ? (
+            <View style={styles.loadingFooter}>
+              <ActivityIndicator size="small" color={colors.red} />
+            </View>
+          ) : null
+        }
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -162,6 +240,8 @@ export default function MessageScreen({ navigation }) {
             colors={[colors.red]}
           />
         }
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
         showsVerticalScrollIndicator={false}
       />
 
@@ -177,106 +257,15 @@ export default function MessageScreen({ navigation }) {
   );
 }
 
-// Mock data for development
-const getMockConversations = () => [
-  {
-    id: "c2e60ad7-8f05-4ba7-afb9-3984251cc1bb",
-    isGroup: false,
-    title: "doe",
-    updatedAt: "2025-11-12T06:52:19.347739Z",
-    lastMessageContent: "doe has approved the booking request",
-    lastMessageType: "System",
-    lastMessageMediaType: "BookingRequest",
-    lastMessageSenderName: "john",
-    lastMessageSenderId: "126ec3d4-4d34-45f2-bbf7-98b9a3dfc31c",
-    isRead: true,
-    conversationImg:
-      "https://images.unsplash.com/photo-1593483316242-efb5420596ca?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8b3JhbmdlJTIwY2F0fGVufDB8fDB8fHww&fm=jpg&q=60&w=3000",
-    members: [
-      {
-        userId: "126ec3d4-4d34-45f2-bbf7-98b9a3dfc31c",
-        username: "john",
-        avatarUrl:
-          "https://static.wikia.nocookie.net/gokurakugai/images/0/0a/Tao_Saotome_Portrait.png/revision/latest?cb=20240608031140",
-        role: "Customer",
-      },
-      {
-        userId: "126ec3d4-4d34-45f2-bbf7-98b9a3dfc31d",
-        username: "doe",
-        avatarUrl:
-          "https://images.unsplash.com/photo-1593483316242-efb5420596ca?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8b3JhbmdlJTIwY2F0fGVufDB8fDB8fHww&fm=jpg&q=60&w=3000",
-        role: "Pt",
-      },
-    ],
-  },
-  {
-    id: "99e7ac6b-ad15-4d90-8dca-0361edf88321",
-    isGroup: false,
-    title: "jerry",
-    updatedAt: "2025-11-12T06:44:34.819465Z",
-    lastMessageContent: "Reply",
-    lastMessageType: "User",
-    lastMessageMediaType: "Text",
-    lastMessageSenderName: "jerry",
-    lastMessageSenderId: "a1b2c3d4-e5f6-7890-1234-567890abcdef",
-    isRead: false,
-    conversationImg:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQWYhiYyxVZlJb1tuhnhvf9tdim8ZrQWAqeyg&s",
-    members: [
-      {
-        userId: "126ec3d4-4d34-45f2-bbf7-98b9a3dfc31c",
-        username: "john",
-        avatarUrl:
-          "https://static.wikia.nocookie.net/gokurakugai/images/0/0a/Tao_Saotome_Portrait.png/revision/latest?cb=20240608031140",
-        role: "Customer",
-      },
-      {
-        userId: "a1b2c3d4-e5f6-7890-1234-567890abcdef",
-        username: "jerry",
-        avatarUrl:
-          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQWYhiYyxVZlJb1tuhnhvf9tdim8ZrQWAqeyg&s",
-        role: "Customer",
-      },
-    ],
-  },
-  {
-    id: "81cf7bac-583b-470f-9620-89220341328f",
-    isGroup: false,
-    title: "tom",
-    updatedAt: "2025-11-10T11:16:54.104937Z",
-    lastMessageContent: "yellow",
-    lastMessageType: "User",
-    lastMessageMediaType: "Text",
-    lastMessageSenderName: "tom",
-    lastMessageSenderId: "126ec3d4-4d34-45f2-bbf7-98b9a3dfc31e",
-    isRead: true,
-    conversationImg:
-      "https://cdn.hanna-barberawiki.com/thumb/8/85/Tom_Cat.png/800px-Tom_Cat.png",
-    members: [
-      {
-        userId: "126ec3d4-4d34-45f2-bbf7-98b9a3dfc31c",
-        username: "john",
-        avatarUrl:
-          "https://static.wikia.nocookie.net/gokurakugai/images/0/0a/Tao_Saotome_Portrait.png/revision/latest?cb=20240608031140",
-        role: "Customer",
-      },
-      {
-        userId: "126ec3d4-4d34-45f2-bbf7-98b9a3dfc31e",
-        username: "tom",
-        avatarUrl:
-          "https://cdn.hanna-barberawiki.com/thumb/8/85/Tom_Cat.png/800px-Tom_Cat.png",
-        role: "Pt",
-      },
-    ],
-  },
-];
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FFFFFF",
   },
-
+  loadingFooter: {
+    paddingVertical: 20,
+    alignItems: "center",
+  },
   unreadBadge: {
     backgroundColor: colors.red,
     borderRadius: 12,

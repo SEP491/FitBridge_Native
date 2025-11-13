@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
   StatusBar,
   Image,
   Modal,
+  ActivityIndicator,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {
@@ -19,67 +20,191 @@ import {
   BookingRequestCard,
 } from "../../../components/ChatComponents";
 import colors from "../../../constants/color";
+import messageService from "../../../services/messageService";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  startConnection,
+  stopConnection,
+  addToGroup,
+  removeFromGroup,
+  onEvent,
+  offEvent,
+} from "../../../services/signalR/signalR-messagingService";
+import { CLIENT_METHODS } from "../../../services/signalR/hubMethods";
 
 export default function MessageDetailScreen({ route, navigation }) {
   const { conversationId, conversationTitle, conversationImg } =
     route.params || {};
 
-  const [messages, setMessages] = useState(getMockMessages());
+  const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState("");
   const [replyingTo, setReplyingTo] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [sending, setSending] = useState(false);
+  // const [currentUserId, setCurrentUserId] = useState(null);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const flatListRef = useRef(null);
-  const currentUserId = "126ec3d4-4d34-45f2-bbf7-98b9a3dfc31c"; // john
+  const currentUserId = "126ec3d4-4d34-45f2-bbf7-98b9a3dfc31c";
+
+  // Fetch messages on mount
+  useEffect(() => {
+    if (conversationId) {
+      fetchMessages(true);
+      markMessagesAsRead();
+    }
+  }, [conversationId]);
+
+  // Fetch messages from API
+  const fetchMessages = useCallback(
+    async (isInitial = false) => {
+      if (loading || !conversationId) return;
+
+      try {
+        setLoading(true);
+        const params = {
+          pageNumber: isInitial ? 1 : pageNumber,
+          pageSize: 20,
+        };
+
+        const response = await messageService.getMessages(
+          conversationId,
+          params
+        );
+        const newMessages = response.items || response || [];
+
+        if (isInitial) {
+          setMessages(newMessages);
+          setPageNumber(1);
+        } else {
+          // Filter out duplicates by ID
+          setMessages((prev) => {
+            const existingIds = new Set(prev.map((m) => m.id));
+            const uniqueNewMessages = newMessages.filter(
+              (m) => !existingIds.has(m.id)
+            );
+            return [...prev, ...uniqueNewMessages];
+          });
+        }
+
+        setHasMore(newMessages.length >= 20);
+      } catch (error) {
+        console.error("Error fetching messages:", error);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [conversationId, pageNumber]
+  );
+
+  // Mark messages as read
+  const markMessagesAsRead = useCallback(async () => {
+    if (!conversationId) return;
+
+    try {
+      // Collect message IDs from current messages
+      const messageIds = messages
+        .filter((m) => m.id && m.senderId !== currentUserId) // Only mark others' messages
+        .map((m) => m.id);
+
+      if (messageIds.length > 0) {
+        await messageService.markAsRead({
+          conversationId,
+          messageIds,
+        });
+      }
+    } catch (error) {
+      console.error("Error marking messages as read:", error);
+    }
+  }, [conversationId, messages, currentUserId]);
+
+  // Handle load more messages
+  const handleLoadMore = useCallback(() => {
+    if (!loading && hasMore) {
+      setPageNumber((prev) => prev + 1);
+      fetchMessages(false);
+    }
+  }, [loading, hasMore, fetchMessages]);
 
   // Handle send message
-  const handleSend = useCallback(() => {
-    if (inputText.trim()) {
-      const newMessage = {
-        id: Date.now().toString(),
-        content: inputText.trim(),
-        createdAt: new Date().toISOString(),
-        updatedAt: null,
-        isDeleted: false,
+  const handleSend = useCallback(async () => {
+    if (!inputText.trim() || sending || !conversationId) return;
+
+    const messageContent = inputText.trim();
+    const replyData = replyingTo
+      ? {
+          replyToMessageId: replyingTo.id,
+          replyToMessageContent: replyingTo.content,
+          replyToMessageMediaType: replyingTo.mediaType,
+        }
+      : {};
+
+    // Clear input immediately for better UX
+    setInputText("");
+    setReplyingTo(null);
+
+    try {
+      setSending(true);
+
+      const messageData = {
+        conversationId,
+        content: messageContent,
         mediaType: "Text",
-        messageType: "User",
-        conversationId: conversationId,
-        deliveryStatus: "Sent",
-        status: null,
-        replyToMessageId: replyingTo?.id || null,
-        replyToMessageContent: replyingTo?.content || null,
-        replyToMessageMediaType: replyingTo?.mediaType || null,
-        senderId: currentUserId,
-        reaction: null,
-        senderName: "john",
-        senderAvatarUrl:
-          "https://static.wikia.nocookie.net/gokurakugai/images/0/0a/Tao_Saotome_Portrait.png/revision/latest?cb=20240608031140",
-        bookingRequest: null,
+        ...replyData,
       };
 
-      setMessages((prev) => [newMessage, ...prev]);
-      setInputText("");
-      setReplyingTo(null);
+      const sentMessage = await messageService.sendMessage(messageData);
+
+      // Add the sent message to the top of the list (check for duplicates)
+      setMessages((prev) => {
+        // Check if message already exists (e.g., from SignalR)
+        if (prev.some((m) => m.id === sentMessage.id)) {
+          return prev;
+        }
+        return [sentMessage, ...prev];
+      });
+    } catch (error) {
+      console.error("Error sending message:", error);
+      // Restore input on error
+      setInputText(messageContent);
+      if (replyData.replyToMessageId) {
+        setReplyingTo(replyingTo);
+      }
+    } finally {
+      setSending(false);
     }
-  }, [inputText, replyingTo, conversationId, currentUserId]);
+  }, [inputText, replyingTo, conversationId, sending]);
 
   // Handle booking action
-  const handleBookingAction = useCallback((bookingRequestId, action) => {
+  const handleBookingAction = useCallback(async (bookingRequestId, action) => {
     console.log(`Booking ${action}:`, bookingRequestId);
-    // Update booking status locally
-    setMessages((prev) =>
-      prev.map((msg) => {
-        if (msg.bookingRequest?.bookingRequestId === bookingRequestId) {
-          return {
-            ...msg,
-            bookingRequest: {
-              ...msg.bookingRequest,
-              requestStatus: action === "approve" ? "Approved" : "Rejected",
-            },
-          };
-        }
-        return msg;
-      })
-    );
+
+    try {
+      if (action === "approve") {
+        await messageService.approveBookingRequest(bookingRequestId);
+      } else if (action === "reject") {
+        await messageService.rejectBookingRequest(bookingRequestId);
+      }
+
+      // Update booking status locally
+      setMessages((prev) =>
+        prev.map((msg) => {
+          if (msg.bookingRequest?.bookingRequestId === bookingRequestId) {
+            return {
+              ...msg,
+              bookingRequest: {
+                ...msg.bookingRequest,
+                requestStatus: action === "approve" ? "Approved" : "Rejected",
+              },
+            };
+          }
+          return msg;
+        })
+      );
+    } catch (error) {
+      console.error(`Error ${action}ing booking request:`, error);
+    }
   }, []);
 
   // Handle image press
@@ -184,8 +309,16 @@ export default function MessageDetailScreen({ route, navigation }) {
         />
 
         {inputText.trim() ? (
-          <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
-            <Ionicons name="send" size={20} color="#FFFFFF" />
+          <TouchableOpacity
+            style={styles.sendButton}
+            onPress={handleSend}
+            disabled={sending}
+          >
+            {sending ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <Ionicons name="send" size={20} color="#FFFFFF" />
+            )}
           </TouchableOpacity>
         ) : (
           <TouchableOpacity style={styles.inputButton}>
@@ -236,10 +369,19 @@ export default function MessageDetailScreen({ route, navigation }) {
           ref={flatListRef}
           data={messages}
           renderItem={renderMessage}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item, index) => item.id || `message-${index}`}
           inverted
           contentContainerStyle={styles.messageList}
           showsVerticalScrollIndicator={false}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={
+            loading ? (
+              <View style={styles.loadingFooter}>
+                <ActivityIndicator size="small" color={colors.red} />
+              </View>
+            ) : null
+          }
         />
 
         {renderInputArea()}
@@ -250,227 +392,6 @@ export default function MessageDetailScreen({ route, navigation }) {
   );
 }
 
-// Mock messages data
-const getMockMessages = () => [
-  {
-    id: "23475a5f-77a5-4336-bf7c-167b5db46f22",
-    content: "john has approved the booking request",
-    createdAt: "2025-11-12T07:35:56.005688Z",
-    updatedAt: null,
-    isDeleted: false,
-    mediaType: "Text",
-    messageType: "System",
-    conversationId: "c2e60ad7-8f05-4ba7-afb9-3984251cc1bb",
-    deliveryStatus: "None",
-    status: null,
-    replyToMessageId: null,
-    replyToMessageContent: null,
-    replyToMessageMediaType: null,
-    senderId: null,
-    reaction: null,
-    senderName: null,
-    senderAvatarUrl: null,
-    bookingRequest: null,
-  },
-  {
-    id: "904617f3-7c8a-44c1-8690-a656ec7e2b91",
-    content: "doe has edited the booking request",
-    createdAt: "2025-11-12T07:35:41.202868Z",
-    updatedAt: null,
-    isDeleted: false,
-    mediaType: "Text",
-    messageType: "System",
-    conversationId: "c2e60ad7-8f05-4ba7-afb9-3984251cc1bb",
-    deliveryStatus: "None",
-    status: null,
-    replyToMessageId: null,
-    replyToMessageContent: null,
-    replyToMessageMediaType: null,
-    senderId: null,
-    reaction: null,
-    senderName: null,
-    senderAvatarUrl: null,
-    bookingRequest: null,
-  },
-  {
-    id: "ee8dc1d5-a597-4803-ae0a-28727caa4c89",
-    content: "",
-    createdAt: "2025-11-12T07:35:23.515165Z",
-    updatedAt: null,
-    isDeleted: false,
-    mediaType: "BookingRequest",
-    messageType: "User",
-    conversationId: "c2e60ad7-8f05-4ba7-afb9-3984251cc1bb",
-    deliveryStatus: "Sent",
-    status: null,
-    replyToMessageId: null,
-    replyToMessageContent: null,
-    replyToMessageMediaType: null,
-    senderId: "126ec3d4-4d34-45f2-bbf7-98b9a3dfc31c",
-    reaction: null,
-    senderName: "john",
-    senderAvatarUrl:
-      "https://static.wikia.nocookie.net/gokurakugai/images/0/0a/Tao_Saotome_Portrait.png/revision/latest?cb=20240608031140",
-    bookingRequest: {
-      bookingRequestId: "019a76fd-9c7d-710d-99cc-ee13382759f2",
-      requestStatus: "Approved",
-      requestType: "PtUpdate",
-      startTime: "09:00:00",
-      endTime: "09:30:00",
-      bookingDate: "2025-11-14",
-      targetBookingId: null,
-      note: null,
-      bookingName: "Initial Consultation1231",
-    },
-  },
-  {
-    id: "235240bd-6a6d-4f9b-9ddd-3f5d8b1a53ae",
-    content: "john has created a booking request",
-    createdAt: "2025-11-12T07:35:18.517562Z",
-    updatedAt: null,
-    isDeleted: false,
-    mediaType: "Text",
-    messageType: "System",
-    conversationId: "c2e60ad7-8f05-4ba7-afb9-3984251cc1bb",
-    deliveryStatus: "None",
-    status: null,
-    replyToMessageId: null,
-    replyToMessageContent: null,
-    replyToMessageMediaType: null,
-    senderId: null,
-    reaction: null,
-    senderName: null,
-    senderAvatarUrl: null,
-    bookingRequest: null,
-  },
-  {
-    id: "629e95ad-22c1-4cd9-9dca-ba75ef8eb903",
-    content:
-      "https://res.cloudinary.com/dfdq4xhtm/image/upload/v1762932866/FitBridge/small-orange-kitten_43d5a8d0-102f-4868-a515-e51d1c2d3563.png",
-    createdAt: "2025-11-12T07:34:27.099918Z",
-    updatedAt: null,
-    isDeleted: false,
-    mediaType: "Image",
-    messageType: "User",
-    conversationId: "c2e60ad7-8f05-4ba7-afb9-3984251cc1bb",
-    deliveryStatus: "Sent",
-    status: null,
-    replyToMessageId: null,
-    replyToMessageContent: null,
-    replyToMessageMediaType: null,
-    senderId: "126ec3d4-4d34-45f2-bbf7-98b9a3dfc31c",
-    reaction: null,
-    senderName: "john",
-    senderAvatarUrl:
-      "https://static.wikia.nocookie.net/gokurakugai/images/0/0a/Tao_Saotome_Portrait.png/revision/latest?cb=20240608031140",
-    bookingRequest: null,
-  },
-  {
-    id: "16eed9a8-9c65-4618-beb8-91315f60141f",
-    content: "bye",
-    createdAt: "2025-11-12T07:33:47.257775Z",
-    updatedAt: "2025-11-12T07:34:07.083923Z",
-    isDeleted: false,
-    mediaType: "Text",
-    messageType: "User",
-    conversationId: "c2e60ad7-8f05-4ba7-afb9-3984251cc1bb",
-    deliveryStatus: "Sent",
-    status: "Edited",
-    replyToMessageId: "27c838c2-def9-4ddd-b5b1-070a828de890",
-    replyToMessageContent: "herere",
-    replyToMessageMediaType: "Text",
-    senderId: "126ec3d4-4d34-45f2-bbf7-98b9a3dfc31c",
-    reaction: null,
-    senderName: "john",
-    senderAvatarUrl:
-      "https://static.wikia.nocookie.net/gokurakugai/images/0/0a/Tao_Saotome_Portrait.png/revision/latest?cb=20240608031140",
-    bookingRequest: null,
-  },
-  {
-    id: "e5625877-2592-4ec2-af6b-dbe288998b9b",
-    content: "helo",
-    createdAt: "2025-11-12T07:32:52.618247Z",
-    updatedAt: "2025-11-12T07:34:03.976634Z",
-    isDeleted: false,
-    mediaType: "Text",
-    messageType: "User",
-    conversationId: "c2e60ad7-8f05-4ba7-afb9-3984251cc1bb",
-    deliveryStatus: "Sent",
-    status: "Edited",
-    replyToMessageId: null,
-    replyToMessageContent: null,
-    replyToMessageMediaType: null,
-    senderId: "126ec3d4-4d34-45f2-bbf7-98b9a3dfc31c",
-    reaction: "👍",
-    senderName: "john",
-    senderAvatarUrl:
-      "https://static.wikia.nocookie.net/gokurakugai/images/0/0a/Tao_Saotome_Portrait.png/revision/latest?cb=20240608031140",
-    bookingRequest: null,
-  },
-  {
-    id: "e81fd15f-f48a-430e-acca-2db3f068b2f2",
-    content: "Here 123",
-    createdAt: "2025-11-12T07:32:46.422474Z",
-    updatedAt: "2025-11-12T07:33:35.319065Z",
-    isDeleted: false,
-    mediaType: "Text",
-    messageType: "User",
-    conversationId: "c2e60ad7-8f05-4ba7-afb9-3984251cc1bb",
-    deliveryStatus: "None",
-    status: "Edited",
-    replyToMessageId: null,
-    replyToMessageContent: null,
-    replyToMessageMediaType: null,
-    senderId: "126ec3d4-4d34-45f2-bbf7-98b9a3dfc31d",
-    reaction: null,
-    senderName: "doe",
-    senderAvatarUrl:
-      "https://images.unsplash.com/photo-1593483316242-efb5420596ca?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8b3JhbmdlJTIwY2F0fGVufDB8fDB8fHww&fm=jpg&q=60&w=3000",
-    bookingRequest: null,
-  },
-  {
-    id: "f83e25ad-ac87-455b-b59e-1aa8e08fc652",
-    content: "doe has approved the booking request",
-    createdAt: "2025-11-12T06:52:19.347739Z",
-    updatedAt: null,
-    isDeleted: false,
-    mediaType: "Text",
-    messageType: "System",
-    conversationId: "c2e60ad7-8f05-4ba7-afb9-3984251cc1bb",
-    deliveryStatus: "Read",
-    status: null,
-    replyToMessageId: null,
-    replyToMessageContent: null,
-    replyToMessageMediaType: null,
-    senderId: null,
-    reaction: null,
-    senderName: null,
-    senderAvatarUrl: null,
-    bookingRequest: null,
-  },
-  {
-    id: "27c838c2-def9-4ddd-b5b1-070a828de890",
-    content: "herere",
-    createdAt: "2025-11-12T06:51:15.47732Z",
-    updatedAt: null,
-    isDeleted: false,
-    mediaType: "Text",
-    messageType: "User",
-    conversationId: "c2e60ad7-8f05-4ba7-afb9-3984251cc1bb",
-    deliveryStatus: "Sent",
-    status: null,
-    replyToMessageId: null,
-    replyToMessageContent: null,
-    replyToMessageMediaType: null,
-    senderId: "126ec3d4-4d34-45f2-bbf7-98b9a3dfc31c",
-    reaction: null,
-    senderName: "john",
-    senderAvatarUrl:
-      "https://static.wikia.nocookie.net/gokurakugai/images/0/0a/Tao_Saotome_Portrait.png/revision/latest?cb=20240608031140",
-    bookingRequest: null,
-  },
-];
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -478,6 +399,11 @@ const styles = StyleSheet.create({
   },
   flex: {
     flex: 1,
+  },
+  loadingFooter: {
+    paddingVertical: 20,
+    alignItems: "center",
+    transform: [{ scaleY: -1 }], // Flip it back since list is inverted
   },
   header: {
     flexDirection: "row",
