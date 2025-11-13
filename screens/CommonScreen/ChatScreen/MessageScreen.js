@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -15,29 +15,208 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import ConversationCard from "../../../components/ChatComponents/ConversationCard";
 import colors from "../../../constants/color";
 import messageService from "../../../services/messageService";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import {
-  startConnection,
-  onEvent,
-  offEvent,
-} from "../../../services/signalR/signalR-messagingService";
-import { CLIENT_METHODS } from "../../../services/signalR/hubMethods";
+import { useMessagingState } from "../../../context/messagingStateContext";
+import { CLIENT_METHODS } from "../../../services/signalR/Message/constants/hubMethods";
+import { LIFECYCLE_METHODS } from "../../../services/signalR/Message/constants/lifecycleMethods";
 
 export default function MessageScreen({ navigation }) {
-  const [conversations, setConversations] = useState([]);
+  // const [conversations, setConversations] = useState([]);
   const [filteredConversations, setFilteredConversations] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  // const [currentUserId, setCurrentUserId] = useState(null);
   const [pageNumber, setPageNumber] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const currentUserId = "126ec3d4-4d34-45f2-bbf7-98b9a3dfc31c";
+
+  // Get messaging state context
+  const {
+    conversations,
+    messagingService,
+    activeConversation,
+    setConversations,
+    setActiveConversation,
+    addConversation,
+    connectionStatus,
+  } = useMessagingState();
+
+  const isConnected = connectionStatus === "connected";
+
+  // Use refs to avoid stale closure in event handlers
+  const conversationsRef = useRef(conversations);
+  useEffect(() => {
+    conversationsRef.current = conversations;
+  }, [conversations]);
 
   // Fetch conversations on mount
   useEffect(() => {
     fetchConversations(true);
   }, []);
+
+  // Function to find and update conversation in state
+  const findAndUpdateConversation = useCallback(
+    (message) => {
+      const conversationId = message.conversationId;
+
+      setConversations((prev) => {
+        const convo = prev.find((conv) => conv.id === conversationId);
+
+        if (convo) {
+          // Update existing conversation
+          const updatedConversations = prev.map((conv) => {
+            if (conv.id === conversationId) {
+              return {
+                ...conv,
+                lastMessageContent: message.content,
+                lastMessageType: message.messageType,
+                lastMessageMediaType: message.mediaType,
+                lastMessageSenderName: message.senderName,
+                lastMessageSenderId: message.senderId,
+                updatedAt: message.createdAt,
+                isRead: message.senderId === currentUserId, // Mark as unread if from other user
+              };
+            }
+            return conv;
+          });
+
+          // Sort by latest message time
+          return updatedConversations.sort(
+            (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)
+          );
+        } else {
+          // Add new conversation if message includes conversation data
+          if (message.newConversation) {
+            const newConversation = {
+              id: conversationId,
+              isGroup: message.newConversation.isGroup || false,
+              isRead: false,
+              title: message.senderName || message.newConversation.title,
+              updatedAt: message.createdAt,
+              lastMessageContent: message.content,
+              lastMessageType: message.messageType,
+              lastMessageMediaType: message.mediaType,
+              lastMessageSenderName: message.senderName,
+              lastMessageSenderId: message.senderId,
+              conversationImg: message.newConversation.conversationImg || null,
+            };
+            const newConversations = [...prev, newConversation];
+            return newConversations.sort(
+              (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)
+            );
+          }
+          return prev;
+        }
+      });
+
+      // Also update filtered conversations if search is active
+      if (searchQuery) {
+        setFilteredConversations((prev) => {
+          const convo = prev.find((conv) => conv.id === conversationId);
+
+          if (convo) {
+            const updatedConversations = prev.map((conv) => {
+              if (conv.id === conversationId) {
+                return {
+                  ...conv,
+                  lastMessageContent: message.content,
+                  lastMessageType: message.messageType,
+                  lastMessageMediaType: message.mediaType,
+                  lastMessageSenderName: message.senderName,
+                  lastMessageSenderId: message.senderId,
+                  updatedAt: message.createdAt,
+                  isRead: message.senderId === currentUserId,
+                };
+              }
+              return conv;
+            });
+
+            return updatedConversations.sort(
+              (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)
+            );
+          }
+          return prev;
+        });
+      }
+    },
+    [currentUserId, searchQuery]
+  );
+
+  // Subscribe to real-time message events
+  useEffect(() => {
+    if (!isConnected || !messagingService) return;
+
+    // Handle new message received
+    const handleMessageReceived = (message) => {
+      console.log("MessageScreen: New message received", message);
+      findAndUpdateConversation(message);
+    };
+
+    // Handle message updated
+    const handleMessageUpdated = (updatedMessage) => {
+      console.log("MessageScreen: Message updated", updatedMessage);
+
+      // Update conversation if it's the last message
+      setConversations((prev) =>
+        prev.map((conv) => {
+          if (
+            conv.id === updatedMessage.conversationId &&
+            conv.lastMessageId === updatedMessage.id
+          ) {
+            return {
+              ...conv,
+              lastMessageContent:
+                updatedMessage.content || updatedMessage.newContent,
+            };
+          }
+          return conv;
+        })
+      );
+
+      setFilteredConversations((prev) =>
+        prev.map((conv) => {
+          if (
+            conv.id === updatedMessage.conversationId &&
+            conv.lastMessageId === updatedMessage.id
+          ) {
+            return {
+              ...conv,
+              lastMessageContent:
+                updatedMessage.content || updatedMessage.newContent,
+            };
+          }
+          return conv;
+        })
+      );
+    };
+
+    // Subscribe to events using the functional API
+    messagingService.onEvent(
+      CLIENT_METHODS.MESSAGE_RECEIVED,
+      handleMessageReceived
+    );
+    messagingService.onEvent(
+      CLIENT_METHODS.MESSAGE_UPDATED,
+      handleMessageUpdated
+    );
+    messagingService.onEvent(LIFECYCLE_METHODS.ON_RECONNECTING, () =>
+      fetchConversations(true)
+    );
+
+    // Cleanup subscriptions
+    return () => {
+      messagingService.offEvent(
+        CLIENT_METHODS.MESSAGE_RECEIVED,
+        handleMessageReceived
+      );
+      messagingService.offEvent(
+        CLIENT_METHODS.MESSAGE_UPDATED,
+        handleMessageUpdated
+      );
+      messagingService.offEvent(LIFECYCLE_METHODS.ON_RECONNECTING, () =>
+        fetchConversations(true)
+      );
+    };
+  }, [isConnected, messagingService, findAndUpdateConversation]);
 
   // Fetch conversations from API
   const fetchConversations = useCallback(
@@ -159,6 +338,12 @@ export default function MessageScreen({ navigation }) {
 
   // Get unread count
   const unreadCount = conversations.filter((c) => !c.isRead).length;
+
+  // Handle create conversation (placeholder)
+  const handleCreateConversation = () => {
+    console.log("Create new conversation");
+    // TODO: Navigate to user selection screen or implement create conversation flow
+  };
 
   // Render search bar
   const renderSearchBar = () => (

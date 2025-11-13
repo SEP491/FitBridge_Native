@@ -21,16 +21,12 @@ import {
 } from "../../../components/ChatComponents";
 import colors from "../../../constants/color";
 import messageService from "../../../services/messageService";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useMessagingState } from "../../../context/messagingStateContext";
 import {
-  startConnection,
-  stopConnection,
-  addToGroup,
-  removeFromGroup,
-  onEvent,
-  offEvent,
-} from "../../../services/signalR/signalR-messagingService";
-import { CLIENT_METHODS } from "../../../services/signalR/hubMethods";
+  CLIENT_METHODS,
+  HUB_METHODS,
+} from "../../../services/signalR/Message/constants/hubMethods";
+import { LIFECYCLE_METHODS } from "../../../services/signalR/Message/constants/lifecycleMethods";
 
 export default function MessageDetailScreen({ route, navigation }) {
   const { conversationId, conversationTitle, conversationImg } =
@@ -42,11 +38,217 @@ export default function MessageDetailScreen({ route, navigation }) {
   const [selectedImage, setSelectedImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
-  // const [currentUserId, setCurrentUserId] = useState(null);
   const [pageNumber, setPageNumber] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [typingStatus, setTypingStatus] = useState(null);
+  const [processingBookingRequestId, setProcessingBookingRequestId] =
+    useState(null);
+  const [processingMessageId, setProcessingMessageId] = useState(null);
+
   const flatListRef = useRef(null);
   const currentUserId = "126ec3d4-4d34-45f2-bbf7-98b9a3dfc31c";
+  const typingTimeoutRef = useRef(null);
+
+  // Get messaging state context
+  const { messagingService, connectionStatus } = useMessagingState();
+
+  const isConnected = connectionStatus === "connected";
+
+  // Join conversation on mount
+  useEffect(() => {
+    if (conversationId && isConnected && messagingService) {
+      messagingService.addToGroup(conversationId);
+      console.log("MessageDetailScreen: Joined conversation", conversationId);
+    }
+
+    // Leave conversation on unmount
+    return () => {
+      if (conversationId && isConnected && messagingService) {
+        messagingService.removeFromGroup(conversationId);
+        console.log("MessageDetailScreen: Left conversation", conversationId);
+      }
+    };
+  }, [conversationId, isConnected, messagingService]);
+
+  // Subscribe to real-time message events
+  useEffect(() => {
+    if (!isConnected || !conversationId || !messagingService) return;
+
+    // Handle new message received
+    const handleMessageReceived = (message) => {
+      console.log("MessageDetailScreen: New message received", message);
+
+      // Only add message if it belongs to this conversation
+      if (message.conversationId === conversationId) {
+        setMessages((prev) => {
+          // Check if message already exists
+          const exists = prev.some((m) => m.id === message.id);
+          if (exists) return prev;
+
+          // Add new message at the beginning (since list is inverted)
+          return [message, ...prev];
+        });
+
+        // Mark as read if from other user
+        if (message.senderId !== currentUserId) {
+          markMessagesAsRead([message.id]);
+        }
+      }
+    };
+
+    // Handle message updated
+    const handleMessageUpdated = (updatedMessage) => {
+      console.log("MessageDetailScreen: Message updated", updatedMessage);
+
+      if (updatedMessage.conversationId === conversationId) {
+        setMessages((prev) =>
+          prev.map((msg) => {
+            if (msg.id === updatedMessage.id) {
+              return {
+                ...msg,
+                content: updatedMessage.newContent || updatedMessage.content,
+                isDeleted: updatedMessage.isDeleted || msg.isDeleted,
+                updatedAt: updatedMessage.updatedAt || new Date().toISOString(),
+                bookingRequest:
+                  updatedMessage.bookingRequest || msg.bookingRequest,
+              };
+            }
+            return msg;
+          })
+        );
+      }
+    };
+
+    // Handle typing indicator
+    const handleTyping = (typingData) => {
+      console.log("MessageDetailScreen: User typing", typingData);
+
+      if (
+        typingData.conversationId === conversationId &&
+        typingData.userId !== currentUserId
+      ) {
+        setTypingStatus(typingData);
+
+        // Clear typing status after 3 seconds of inactivity
+        if (typingTimeoutRef.current) {
+          clearTimeout(typingTimeoutRef.current);
+        }
+
+        if (typingData.isTyping) {
+          typingTimeoutRef.current = setTimeout(() => {
+            setTypingStatus(null);
+          }, 3000);
+        }
+      }
+    };
+
+    // Handle message status update
+    const handleStatusUpdate = (statusUpdate) => {
+      console.log("MessageDetailScreen: Message status updated", statusUpdate);
+
+      if (statusUpdate.conversationId === conversationId) {
+        setMessages((prev) =>
+          prev.map((msg) => {
+            if (statusUpdate.messageIds?.includes(msg.id)) {
+              return {
+                ...msg,
+                deliveryStatus: statusUpdate.status,
+                isRead: true,
+              };
+            }
+            return msg;
+          })
+        );
+      }
+    };
+
+    // Handle reaction received
+    const handleReactionReceived = (reactionData) => {
+      console.log("MessageDetailScreen: Reaction received", reactionData);
+
+      if (reactionData.conversationId === conversationId) {
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === reactionData.messageId
+              ? { ...msg, reaction: reactionData.reaction }
+              : msg
+          )
+        );
+      }
+    };
+
+    // Handle reaction removed
+    const handleReactionRemoved = (reactionData) => {
+      console.log("MessageDetailScreen: Reaction removed", reactionData);
+
+      if (reactionData.conversationId === conversationId) {
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === reactionData.messageId ? { ...msg, reaction: null } : msg
+          )
+        );
+      }
+    };
+
+    // Subscribe to events using the functional API
+    messagingService.onEvent(
+      CLIENT_METHODS.MESSAGE_RECEIVED,
+      handleMessageReceived
+    );
+    messagingService.onEvent(
+      CLIENT_METHODS.MESSAGE_UPDATED,
+      handleMessageUpdated
+    );
+    messagingService.onEvent(CLIENT_METHODS.USER_TYPING, handleTyping);
+    messagingService.onEvent(
+      CLIENT_METHODS.UPDATE_MESSAGE_STATUS,
+      handleStatusUpdate
+    );
+    messagingService.onEvent(
+      CLIENT_METHODS.REACTION_RECEIVED,
+      handleReactionReceived
+    );
+    messagingService.onEvent(
+      CLIENT_METHODS.REACTION_REMOVED,
+      handleReactionRemoved
+    );
+    messagingService.onEvent(LIFECYCLE_METHODS.ON_RECONNECTING, () =>
+      fetchMessages(true)
+    );
+
+    // Cleanup subscriptions
+    return () => {
+      messagingService.offEvent(
+        CLIENT_METHODS.MESSAGE_RECEIVED,
+        handleMessageReceived
+      );
+      messagingService.offEvent(
+        CLIENT_METHODS.MESSAGE_UPDATED,
+        handleMessageUpdated
+      );
+      messagingService.offEvent(CLIENT_METHODS.USER_TYPING, handleTyping);
+      messagingService.offEvent(
+        CLIENT_METHODS.UPDATE_MESSAGE_STATUS,
+        handleStatusUpdate
+      );
+      messagingService.offEvent(
+        CLIENT_METHODS.REACTION_RECEIVED,
+        handleReactionReceived
+      );
+      messagingService.offEvent(
+        CLIENT_METHODS.REACTION_REMOVED,
+        handleReactionRemoved
+      );
+      messagingService.offEvent(LIFECYCLE_METHODS.ON_RECONNECTING, () =>
+        fetchMessages(true)
+      );
+
+      // Clear typing timeout on cleanup
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, [isConnected, conversationId, messagingService, currentUserId]);
 
   // Fetch messages on mount
   useEffect(() => {
@@ -99,25 +301,30 @@ export default function MessageDetailScreen({ route, navigation }) {
   );
 
   // Mark messages as read
-  const markMessagesAsRead = useCallback(async () => {
-    if (!conversationId) return;
+  const markMessagesAsRead = useCallback(
+    async (messageIds = null) => {
+      if (!conversationId) return;
 
-    try {
-      // Collect message IDs from current messages
-      const messageIds = messages
-        .filter((m) => m.id && m.senderId !== currentUserId) // Only mark others' messages
-        .map((m) => m.id);
+      try {
+        // Use provided IDs or collect from current messages
+        const idsToMark =
+          messageIds ||
+          messages
+            .filter((m) => m.id && m.senderId !== currentUserId && !m.isRead)
+            .map((m) => m.id);
 
-      if (messageIds.length > 0) {
-        await messageService.markAsRead({
-          conversationId,
-          messageIds,
-        });
+        if (idsToMark.length > 0) {
+          await messageService.markAsRead({
+            conversationId,
+            messageIds: idsToMark,
+          });
+        }
+      } catch (error) {
+        console.error("Error marking messages as read:", error);
       }
-    } catch (error) {
-      console.error("Error marking messages as read:", error);
-    }
-  }, [conversationId, messages, currentUserId]);
+    },
+    [conversationId, messages, currentUserId]
+  );
 
   // Handle load more messages
   const handleLoadMore = useCallback(() => {
@@ -126,6 +333,56 @@ export default function MessageDetailScreen({ route, navigation }) {
       fetchMessages(false);
     }
   }, [loading, hasMore, fetchMessages]);
+
+  // Handle typing indicator with debounce
+  const handleTyping = useCallback(
+    (text) => {
+      setInputText(text);
+
+      if (isConnected && conversationId && messagingService) {
+        // Clear previous timeout
+        if (typingTimeoutRef.current) {
+          clearTimeout(typingTimeoutRef.current);
+        }
+
+        // Send typing indicator when user starts typing
+        if (text.length > 0) {
+          messagingService
+            .invokeHubMethod(HUB_METHODS.USER_TYPING, conversationId, true)
+            .catch((error) => {
+              console.error(
+                "MessageDetailScreen: Error sending typing indicator",
+                error
+              );
+            });
+
+          // Auto-stop typing after 3 seconds
+          typingTimeoutRef.current = setTimeout(() => {
+            if (messagingService && isConnected) {
+              messagingService
+                .invokeHubMethod(HUB_METHODS.USER_TYPING, conversationId, false)
+                .catch((error) => {
+                  console.error(
+                    "MessageDetailScreen: Error stopping typing indicator",
+                    error
+                  );
+                });
+            }
+          }, 3000);
+        } else {
+          messagingService
+            .invokeHubMethod(HUB_METHODS.USER_TYPING, conversationId, false)
+            .catch((error) => {
+              console.error(
+                "MessageDetailScreen: Error sending typing indicator",
+                error
+              );
+            });
+        }
+      }
+    },
+    [isConnected, conversationId, messagingService]
+  );
 
   // Handle send message
   const handleSend = useCallback(async () => {
@@ -177,35 +434,55 @@ export default function MessageDetailScreen({ route, navigation }) {
   }, [inputText, replyingTo, conversationId, sending]);
 
   // Handle booking action
-  const handleBookingAction = useCallback(async (bookingRequestId, action) => {
-    console.log(`Booking ${action}:`, bookingRequestId);
+  const handleBookingAction = useCallback(
+    async (bookingRequestId, action) => {
+      console.log(`Booking ${action}:`, bookingRequestId);
 
-    try {
-      if (action === "approve") {
-        await messageService.approveBookingRequest(bookingRequestId);
-      } else if (action === "reject") {
-        await messageService.rejectBookingRequest(bookingRequestId);
+      if (processingBookingRequestId) return;
+
+      try {
+        setProcessingBookingRequestId(bookingRequestId);
+
+        if (action === "approve") {
+          await messageService.approveBookingRequest(bookingRequestId);
+        } else if (action === "reject") {
+          await messageService.rejectBookingRequest(bookingRequestId);
+        }
+
+        // Update booking status locally - will also be updated via SignalR
+        setMessages((prev) =>
+          prev.map((msg) => {
+            if (
+              msg.bookingRequest?.bookingRequestId === bookingRequestId ||
+              msg.bookingRequest?.id === bookingRequestId
+            ) {
+              return {
+                ...msg,
+                bookingRequest: {
+                  ...msg.bookingRequest,
+                  requestStatus: action === "approve" ? "Accepted" : "Rejected",
+                },
+              };
+            }
+            return msg;
+          })
+        );
+      } catch (error) {
+        console.error(`Error ${action}ing booking request:`, error);
+      } finally {
+        setProcessingBookingRequestId(null);
       }
+    },
+    [processingBookingRequestId]
+  );
 
-      // Update booking status locally
-      setMessages((prev) =>
-        prev.map((msg) => {
-          if (msg.bookingRequest?.bookingRequestId === bookingRequestId) {
-            return {
-              ...msg,
-              bookingRequest: {
-                ...msg.bookingRequest,
-                requestStatus: action === "approve" ? "Approved" : "Rejected",
-              },
-            };
-          }
-          return msg;
-        })
-      );
-    } catch (error) {
-      console.error(`Error ${action}ing booking request:`, error);
-    }
-  }, []);
+  // Check if booking request is being processed
+  const isProcessingBookingRequest = useCallback(
+    (messageId) => {
+      return processingMessageId === messageId;
+    },
+    [processingMessageId]
+  );
 
   // Handle image press
   const handleImagePress = useCallback((imageUrl) => {
@@ -260,7 +537,9 @@ export default function MessageDetailScreen({ route, navigation }) {
         />
         <View style={styles.headerTextContainer}>
           <Text style={styles.headerTitle}>{conversationTitle}</Text>
-          <Text style={styles.headerSubtitle}>Active now</Text>
+          <Text style={styles.headerSubtitle}>
+            {typingStatus?.isTyping ? "Typing..." : "Active now"}
+          </Text>
         </View>
       </TouchableOpacity>
 
@@ -303,7 +582,7 @@ export default function MessageDetailScreen({ route, navigation }) {
           placeholder="Type a message..."
           placeholderTextColor="#9CA3AF"
           value={inputText}
-          onChangeText={setInputText}
+          onChangeText={handleTyping}
           multiline
           maxLength={1000}
         />
@@ -375,6 +654,17 @@ export default function MessageDetailScreen({ route, navigation }) {
           showsVerticalScrollIndicator={false}
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.5}
+          ListHeaderComponent={
+            typingStatus?.isTyping ? (
+              <View style={styles.typingIndicatorContainer}>
+                <View style={styles.typingBubble}>
+                  <View style={styles.typingDot} />
+                  <View style={[styles.typingDot, styles.typingDotDelay1]} />
+                  <View style={[styles.typingDot, styles.typingDotDelay2]} />
+                </View>
+              </View>
+            ) : null
+          }
           ListFooterComponent={
             loading ? (
               <View style={styles.loadingFooter}>
@@ -522,5 +812,32 @@ const styles = StyleSheet.create({
   fullScreenImage: {
     width: "100%",
     height: "100%",
+  },
+  typingIndicatorContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    alignItems: "flex-start",
+  },
+  typingBubble: {
+    flexDirection: "row",
+    backgroundColor: "#E5E7EB",
+    borderRadius: 18,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  typingDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#6B7280",
+    marginHorizontal: 2,
+  },
+  typingDotDelay1: {
+    opacity: 0.7,
+  },
+  typingDotDelay2: {
+    opacity: 0.4,
   },
 });

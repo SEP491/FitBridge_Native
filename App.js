@@ -16,6 +16,7 @@ import { MeetingStateProvider } from "./context/meetingStateContext";
 import { SignalR_WebRTCProvider } from "./context/signalrContext_webrtc";
 import { RevenueCatProvider } from "./context/RevenueCatContext";
 import { UserProvider } from "./context/UserContext";
+import { MessagingStateProvider } from "./context/messagingStateContext";
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
 
@@ -87,22 +88,24 @@ export default function App() {
           <SignalR_WebRTCProvider>
             <WebRTCProvider>
               <MeetingStateProvider>
-                <NotificationProvider>
-                  <RevenueCatProvider>
-                    <LocationProvider>
-                      <FitnessProvider>
-                        <CartProvider>
-                          <UserProvider>
-                            <Navigator
-                              isAuthenticated={isAuthenticated}
-                              user={user}
-                            />
-                          </UserProvider>
-                        </CartProvider>
-                      </FitnessProvider>
-                    </LocationProvider>
-                  </RevenueCatProvider>
-                </NotificationProvider>
+                <MessagingStateProvider>
+                  <NotificationProvider>
+                    <RevenueCatProvider>
+                      <LocationProvider>
+                        <FitnessProvider>
+                          <CartProvider>
+                            <UserProvider>
+                              <Navigator
+                                isAuthenticated={isAuthenticated}
+                                user={user}
+                              />
+                            </UserProvider>
+                          </CartProvider>
+                        </FitnessProvider>
+                      </LocationProvider>
+                    </RevenueCatProvider>
+                  </NotificationProvider>
+                </MessagingStateProvider>
               </MeetingStateProvider>
             </WebRTCProvider>
           </SignalR_WebRTCProvider>
