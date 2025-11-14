@@ -14,6 +14,7 @@ class SignalRService {
   #isDisposed = false;
   #areHandlersRegistered = false;
   #hasConnectedSuccessfully = false;
+  #isIntentionalDisconnect = false; // Track intentional disconnects (pause/stop)
 
   constructor(url, hubName) {
     if (!url) {
@@ -82,14 +83,37 @@ class SignalRService {
       return;
     }
 
-    try {
-      const accessToken = await AsyncStorage.getItem("accessToken");
-      console.log("accessToken", accessToken);
+    // If connection exists but is disconnected, try to start it
+    if (
+      this.#connection &&
+      this.#connection.state === signalR.HubConnectionState.Disconnected
+    ) {
+      try {
+        console.log("SignalR: Restarting existing connection");
+        this.#isIntentionalDisconnect = false;
+        await this.#connection.start();
+        this.#hasConnectedSuccessfully = true;
+        this.#reconnectAttempts = 0;
+        this.triggerCallback("onConnected");
+        return;
+      } catch (error) {
+        console.error(
+          "SignalR: Failed to restart existing connection, will rebuild",
+          error
+        );
+        // If restart fails, continue to rebuild the connection
+      }
+    }
 
+    try {
       // Build connection with authentication
+      // Use a factory function that retrieves fresh token each time
+      const token =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxMjZlYzNkNC00ZDM0LTQ1ZjItYmJmNy05OGI5YTNkZmMzMWMiLCJ1bmlxdWVfbmFtZSI6ImpvaG4iLCJyb2xlIjoiQ3VzdG9tZXIiLCJBdmF0YXJVcmwiOiJodHRwczovL3N0YXRpYy53aWtpYS5ub2Nvb2tpZS5uZXQvZ29rdXJha3VnYWkvaW1hZ2VzLzAvMGEvVGFvX1Nhb3RvbWVfUG9ydHJhaXQucG5nL3JldmlzaW9uL2xhdGVzdD9jYj0yMDI0MDYwODAzMTE0MCIsIm5iZiI6MTc2MzA4MjkxMiwiZXhwIjoxNzYzMDg2NTEyLCJpYXQiOjE3NjMwODI5MTJ9.BFz_dcsyNVGozs2Ghc97SLN5-70yXp5OzUSSbLJEOK8";
+      console.log("token", token);
       this.#connection = new HubConnectionBuilder()
         .withUrl(this.#url, {
-          accessTokenFactory: () => accessToken,
+          accessTokenFactory: () => token,
           skipNegotiation: true,
           transport: signalR.HttpTransportType.WebSockets,
         })
@@ -117,6 +141,10 @@ class SignalRService {
 
       this.#connection.serverTimeoutInMilliseconds = serverTimeoutMs;
       this.#connection.keepAliveIntervalInMilliseconds = keepAliveMs;
+
+      // Setup lifecycle handlers before starting
+      this.#setupLifeCycleHandlers();
+
       // Start connection with 15 second timeout
       await Promise.race([
         this.#connection.start(),
@@ -133,7 +161,6 @@ class SignalRService {
       this.#reconnectAttempts = 0; // Reset counter on successful connection
 
       this.triggerCallback("onConnected");
-      this.#setupLifeCycleHandlers();
     } catch (error) {
       console.error("SignalR: Initial connection failed", error);
       this.triggerCallback("onInitialConnectionFailed", error);

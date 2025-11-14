@@ -44,6 +44,7 @@ export default function MessageDetailScreen({ route, navigation }) {
   const [processingBookingRequestId, setProcessingBookingRequestId] =
     useState(null);
   const [processingMessageId, setProcessingMessageId] = useState(null);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const flatListRef = useRef(null);
   const currentUserId = "126ec3d4-4d34-45f2-bbf7-98b9a3dfc31c";
@@ -54,6 +55,18 @@ export default function MessageDetailScreen({ route, navigation }) {
 
   const isConnected = connectionStatus === "connected";
 
+  // Debug connection status
+  useEffect(() => {
+    console.log(
+      "MessageDetailScreen: Connection status changed to:",
+      connectionStatus
+    );
+    console.log(
+      "MessageDetailScreen: messagingService exists:",
+      !!messagingService
+    );
+  }, [connectionStatus, messagingService]);
+
   // Join conversation on mount
   useEffect(() => {
     if (conversationId && isConnected && messagingService) {
@@ -63,7 +76,24 @@ export default function MessageDetailScreen({ route, navigation }) {
 
     // Leave conversation on unmount
     return () => {
+      // Clear typing timeout
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+
+      // Stop typing indicator if active
       if (conversationId && isConnected && messagingService) {
+        messagingService
+          .invokeHubMethod(HUB_METHODS.USER_TYPING, {
+            conversationId: conversationId,
+            isTyping: false,
+          })
+          .catch((error) => {
+            console.error(
+              "MessageDetailScreen: Error stopping typing on unmount",
+              error
+            );
+          });
         messagingService.removeFromGroup(conversationId);
         console.log("MessageDetailScreen: Left conversation", conversationId);
       }
@@ -72,7 +102,22 @@ export default function MessageDetailScreen({ route, navigation }) {
 
   // Subscribe to real-time message events
   useEffect(() => {
-    if (!isConnected || !conversationId || !messagingService) return;
+    if (!conversationId || !messagingService) {
+      console.log(
+        "MessageDetailScreen: Waiting for conversationId or messagingService"
+      );
+      return;
+    }
+
+    if (!isConnected) {
+      console.log(
+        "MessageDetailScreen: Not connected yet, connectionStatus:",
+        connectionStatus
+      );
+      return;
+    }
+
+    console.log("MessageDetailScreen: Setting up event listeners");
 
     // Handle new message received
     const handleMessageReceived = (message) => {
@@ -190,6 +235,12 @@ export default function MessageDetailScreen({ route, navigation }) {
       }
     };
 
+    // Handle reconnecting
+    const handleReconnecting = () => {
+      console.log("MessageDetailScreen: Reconnecting, refetching messages");
+      fetchMessages(1, true);
+    };
+
     // Subscribe to events using the functional API
     messagingService.onEvent(
       CLIENT_METHODS.MESSAGE_RECEIVED,
@@ -212,8 +263,9 @@ export default function MessageDetailScreen({ route, navigation }) {
       CLIENT_METHODS.REACTION_REMOVED,
       handleReactionRemoved
     );
-    messagingService.onEvent(LIFECYCLE_METHODS.ON_RECONNECTING, () =>
-      fetchMessages(true)
+    messagingService.onEvent(
+      LIFECYCLE_METHODS.ON_RECONNECTING,
+      handleReconnecting
     );
 
     // Cleanup subscriptions
@@ -239,8 +291,9 @@ export default function MessageDetailScreen({ route, navigation }) {
         CLIENT_METHODS.REACTION_REMOVED,
         handleReactionRemoved
       );
-      messagingService.offEvent(LIFECYCLE_METHODS.ON_RECONNECTING, () =>
-        fetchMessages(true)
+      messagingService.offEvent(
+        LIFECYCLE_METHODS.ON_RECONNECTING,
+        handleReconnecting
       );
 
       // Clear typing timeout on cleanup
@@ -253,39 +306,47 @@ export default function MessageDetailScreen({ route, navigation }) {
   // Fetch messages on mount
   useEffect(() => {
     if (conversationId) {
-      fetchMessages(true);
+      fetchMessages(1, true);
       markMessagesAsRead();
     }
   }, [conversationId]);
 
   // Fetch messages from API
   const fetchMessages = useCallback(
-    async (isInitial = false) => {
-      if (loading || !conversationId) return;
+    async (page = 1, isInitial = false) => {
+      if ((isInitial ? loading : isLoadingMore) || !conversationId) return;
 
       try {
-        setLoading(true);
+        if (isInitial) {
+          setLoading(true);
+        } else {
+          setIsLoadingMore(true);
+        }
+
         const params = {
-          pageNumber: isInitial ? 1 : pageNumber,
+          pageNumber: page,
           pageSize: 20,
         };
 
+        console.log("Fetching messages with params:", params);
         const response = await messageService.getMessages(
           conversationId,
           params
         );
         const newMessages = response.items || response || [];
+        console.log("Fetched", newMessages.length, "messages for page", page);
 
         if (isInitial) {
           setMessages(newMessages);
           setPageNumber(1);
         } else {
-          // Filter out duplicates by ID
+          // Filter out duplicates by ID and append to end (older messages)
           setMessages((prev) => {
             const existingIds = new Set(prev.map((m) => m.id));
             const uniqueNewMessages = newMessages.filter(
               (m) => !existingIds.has(m.id)
             );
+            console.log("Adding", uniqueNewMessages.length, "unique messages");
             return [...prev, ...uniqueNewMessages];
           });
         }
@@ -294,10 +355,14 @@ export default function MessageDetailScreen({ route, navigation }) {
       } catch (error) {
         console.error("Error fetching messages:", error);
       } finally {
-        setLoading(false);
+        if (isInitial) {
+          setLoading(false);
+        } else {
+          setIsLoadingMore(false);
+        }
       }
     },
-    [conversationId, pageNumber]
+    [conversationId, loading, isLoadingMore]
   );
 
   // Mark messages as read
@@ -328,11 +393,13 @@ export default function MessageDetailScreen({ route, navigation }) {
 
   // Handle load more messages
   const handleLoadMore = useCallback(() => {
-    if (!loading && hasMore) {
-      setPageNumber((prev) => prev + 1);
-      fetchMessages(false);
+    if (!loading && !isLoadingMore && hasMore) {
+      const nextPage = pageNumber + 1;
+      console.log("Loading more messages, page:", nextPage);
+      setPageNumber(nextPage);
+      fetchMessages(nextPage, false);
     }
-  }, [loading, hasMore, fetchMessages]);
+  }, [loading, isLoadingMore, hasMore, pageNumber, fetchMessages]);
 
   // Handle typing indicator with debounce
   const handleTyping = useCallback(
@@ -348,7 +415,10 @@ export default function MessageDetailScreen({ route, navigation }) {
         // Send typing indicator when user starts typing
         if (text.length > 0) {
           messagingService
-            .invokeHubMethod(HUB_METHODS.USER_TYPING, conversationId, true)
+            .invokeHubMethod(HUB_METHODS.USER_TYPING, {
+              conversationId: conversationId,
+              isTyping: true,
+            })
             .catch((error) => {
               console.error(
                 "MessageDetailScreen: Error sending typing indicator",
@@ -360,7 +430,10 @@ export default function MessageDetailScreen({ route, navigation }) {
           typingTimeoutRef.current = setTimeout(() => {
             if (messagingService && isConnected) {
               messagingService
-                .invokeHubMethod(HUB_METHODS.USER_TYPING, conversationId, false)
+                .invokeHubMethod(HUB_METHODS.USER_TYPING, {
+                  conversationId: conversationId,
+                  isTyping: false,
+                })
                 .catch((error) => {
                   console.error(
                     "MessageDetailScreen: Error stopping typing indicator",
@@ -371,7 +444,10 @@ export default function MessageDetailScreen({ route, navigation }) {
           }, 3000);
         } else {
           messagingService
-            .invokeHubMethod(HUB_METHODS.USER_TYPING, conversationId, false)
+            .invokeHubMethod(HUB_METHODS.USER_TYPING, {
+              conversationId: conversationId,
+              isTyping: false,
+            })
             .catch((error) => {
               console.error(
                 "MessageDetailScreen: Error sending typing indicator",
@@ -397,6 +473,22 @@ export default function MessageDetailScreen({ route, navigation }) {
         }
       : {};
 
+    // Stop typing indicator
+    if (isConnected && messagingService && typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+      messagingService
+        .invokeHubMethod(HUB_METHODS.USER_TYPING, {
+          conversationId: conversationId,
+          isTyping: false,
+        })
+        .catch((error) => {
+          console.error(
+            "MessageDetailScreen: Error stopping typing on send",
+            error
+          );
+        });
+    }
+
     // Clear input immediately for better UX
     setInputText("");
     setReplyingTo(null);
@@ -419,7 +511,7 @@ export default function MessageDetailScreen({ route, navigation }) {
         if (prev.some((m) => m.id === sentMessage.id)) {
           return prev;
         }
-        return [sentMessage, ...prev];
+        return [...prev];
       });
     } catch (error) {
       console.error("Error sending message:", error);
@@ -520,34 +612,51 @@ export default function MessageDetailScreen({ route, navigation }) {
   );
 
   // Render header
-  const renderHeader = () => (
-    <View style={styles.header}>
-      <TouchableOpacity
-        onPress={() => navigation.goBack()}
-        style={styles.backButton}
-      >
-        <Ionicons name="caret-back" size={30} color="#ED2A46" />
-      </TouchableOpacity>
+  const renderHeader = () => {
+    const getSubtitleColor = () => {
+      if (typingStatus?.isTyping) return "#6B7280";
+      if (connectionStatus === "connected") return "#10B981";
+      if (connectionStatus === "reconnecting") return "#F59E0B";
+      return "#EF4444";
+    };
 
-      <TouchableOpacity style={styles.headerCenter} activeOpacity={0.7}>
-        <Image
-          source={{ uri: conversationImg }}
-          style={styles.headerAvatar}
-          resizeMode="cover"
-        />
-        <View style={styles.headerTextContainer}>
-          <Text style={styles.headerTitle}>{conversationTitle}</Text>
-          <Text style={styles.headerSubtitle}>
-            {typingStatus?.isTyping ? "Typing..." : "Active now"}
-          </Text>
-        </View>
-      </TouchableOpacity>
+    return (
+      <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
+          <Ionicons name="caret-back" size={30} color="#ED2A46" />
+        </TouchableOpacity>
 
-      <TouchableOpacity style={styles.headerButton}>
-        <Ionicons name="ellipsis-vertical" size={22} color="#111827" />
-      </TouchableOpacity>
-    </View>
-  );
+        <TouchableOpacity style={styles.headerCenter} activeOpacity={0.7}>
+          <Image
+            source={{ uri: conversationImg }}
+            style={styles.headerAvatar}
+            resizeMode="cover"
+          />
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.headerTitle}>{conversationTitle}</Text>
+            <Text
+              style={[styles.headerSubtitle, { color: getSubtitleColor() }]}
+            >
+              {typingStatus?.isTyping
+                ? "Typing..."
+                : connectionStatus === "connected"
+                ? "Active now"
+                : connectionStatus === "reconnecting"
+                ? "Reconnecting..."
+                : "Offline"}
+            </Text>
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.headerButton}>
+          <Ionicons name="ellipsis-vertical" size={22} color="#111827" />
+        </TouchableOpacity>
+      </View>
+    );
+  };
 
   // Render input area
   const renderInputArea = () => (
@@ -557,7 +666,7 @@ export default function MessageDetailScreen({ route, navigation }) {
         <View style={styles.replyPreviewContainer}>
           <View style={styles.replyPreviewContent}>
             <Text style={styles.replyPreviewLabel}>Replying to</Text>
-            <Text style={styles.replyPreviewText} numberOfLines={1}>
+            <Text style={styles.replyPreviewText} numberOfLines={2}>
               {replyingTo.content}
             </Text>
           </View>
@@ -644,35 +753,46 @@ export default function MessageDetailScreen({ route, navigation }) {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
-        <FlatList
-          ref={flatListRef}
-          data={messages}
-          renderItem={renderMessage}
-          keyExtractor={(item, index) => item.id || `message-${index}`}
-          inverted
-          contentContainerStyle={styles.messageList}
-          showsVerticalScrollIndicator={false}
-          onEndReached={handleLoadMore}
-          onEndReachedThreshold={0.5}
-          ListHeaderComponent={
-            typingStatus?.isTyping ? (
-              <View style={styles.typingIndicatorContainer}>
-                <View style={styles.typingBubble}>
-                  <View style={styles.typingDot} />
-                  <View style={[styles.typingDot, styles.typingDotDelay1]} />
-                  <View style={[styles.typingDot, styles.typingDotDelay2]} />
+        {loading ? (
+          <View style={styles.initialLoadingContainer}>
+            <ActivityIndicator size="large" color={colors.red} />
+          </View>
+        ) : (
+          <FlatList
+            ref={flatListRef}
+            data={messages}
+            renderItem={renderMessage}
+            keyExtractor={(item, index) => item.id || `message-${index}`}
+            inverted
+            contentContainerStyle={styles.messageList}
+            showsVerticalScrollIndicator={false}
+            onEndReached={handleLoadMore}
+            onEndReachedThreshold={0.5}
+            ListHeaderComponent={
+              typingStatus?.isTyping ? (
+                <View style={styles.typingIndicatorContainer}>
+                  <Image
+                    source={{ uri: conversationImg }}
+                    style={styles.typingAvatar}
+                    resizeMode="cover"
+                  />
+                  <View style={styles.typingBubble}>
+                    <View style={styles.typingDot} />
+                    <View style={[styles.typingDot, styles.typingDotDelay1]} />
+                    <View style={[styles.typingDot, styles.typingDotDelay2]} />
+                  </View>
                 </View>
-              </View>
-            ) : null
-          }
-          ListFooterComponent={
-            loading ? (
-              <View style={styles.loadingFooter}>
-                <ActivityIndicator size="small" color={colors.red} />
-              </View>
-            ) : null
-          }
-        />
+              ) : null
+            }
+            ListFooterComponent={
+              isLoadingMore ? (
+                <View style={styles.loadingFooter}>
+                  <ActivityIndicator size="small" color={colors.red} />
+                </View>
+              ) : null
+            }
+          />
+        )}
 
         {renderInputArea()}
       </KeyboardAvoidingView>
@@ -689,6 +809,11 @@ const styles = StyleSheet.create({
   },
   flex: {
     flex: 1,
+  },
+  initialLoadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   loadingFooter: {
     paddingVertical: 20,
@@ -816,7 +941,15 @@ const styles = StyleSheet.create({
   typingIndicatorContainer: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    alignItems: "flex-start",
+    flexDirection: "row",
+    alignItems: "flex-end",
+  },
+  typingAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#E5E7EB",
+    marginRight: 8,
   },
   typingBubble: {
     flexDirection: "row",

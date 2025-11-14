@@ -20,7 +20,7 @@ import { CLIENT_METHODS } from "../../../services/signalR/Message/constants/hubM
 import { LIFECYCLE_METHODS } from "../../../services/signalR/Message/constants/lifecycleMethods";
 
 export default function MessageScreen({ navigation }) {
-  // const [conversations, setConversations] = useState([]);
+  const [conversations, setConversations] = useState([]);
   const [filteredConversations, setFilteredConversations] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
@@ -30,41 +30,64 @@ export default function MessageScreen({ navigation }) {
   const currentUserId = "126ec3d4-4d34-45f2-bbf7-98b9a3dfc31c";
 
   // Get messaging state context
-  const {
-    conversations,
-    messagingService,
-    activeConversation,
-    setConversations,
-    setActiveConversation,
-    addConversation,
-    connectionStatus,
-  } = useMessagingState();
+  const { messagingService, connectionStatus } = useMessagingState();
 
   const isConnected = connectionStatus === "connected";
 
+  // Debug connection status
+  useEffect(() => {
+    console.log(
+      "MessageScreen: Connection status changed to:",
+      connectionStatus
+    );
+    console.log("MessageScreen: messagingService exists:", !!messagingService);
+  }, [connectionStatus, messagingService]);
+
   // Use refs to avoid stale closure in event handlers
   const conversationsRef = useRef(conversations);
+  const searchQueryRef = useRef(searchQuery);
+
   useEffect(() => {
     conversationsRef.current = conversations;
   }, [conversations]);
+
+  useEffect(() => {
+    searchQueryRef.current = searchQuery;
+  }, [searchQuery]);
 
   // Fetch conversations on mount
   useEffect(() => {
     fetchConversations(true);
   }, []);
 
+  // Sync filteredConversations with conversations when there's no search
+  useEffect(() => {
+    if (!searchQuery || searchQuery.trim() === "") {
+      setFilteredConversations(conversations);
+    }
+  }, [conversations, searchQuery]);
+
   // Function to find and update conversation in state
   const findAndUpdateConversation = useCallback(
     (message) => {
       const conversationId = message.conversationId;
+      console.log("MessageScreen: Updating conversation:", conversationId);
 
       setConversations((prev) => {
-        const convo = prev.find((conv) => conv.id === conversationId);
+        const convo = prev.find((conv) => {
+          const matches =
+            conv.id === conversationId ||
+            conv.id?.toString() === conversationId?.toString();
+          return matches;
+        });
 
         if (convo) {
           // Update existing conversation
           const updatedConversations = prev.map((conv) => {
-            if (conv.id === conversationId) {
+            if (
+              conv.id === conversationId ||
+              conv.id?.toString() === conversationId?.toString()
+            ) {
               return {
                 ...conv,
                 lastMessageContent: message.content,
@@ -73,7 +96,7 @@ export default function MessageScreen({ navigation }) {
                 lastMessageSenderName: message.senderName,
                 lastMessageSenderId: message.senderId,
                 updatedAt: message.createdAt,
-                isRead: message.senderId === currentUserId, // Mark as unread if from other user
+                isRead: message.senderId === currentUserId,
               };
             }
             return conv;
@@ -86,6 +109,7 @@ export default function MessageScreen({ navigation }) {
         } else {
           // Add new conversation if message includes conversation data
           if (message.newConversation) {
+            console.log("MessageScreen: Adding new conversation");
             const newConversation = {
               id: conversationId,
               isGroup: message.newConversation.isGroup || false,
@@ -109,13 +133,21 @@ export default function MessageScreen({ navigation }) {
       });
 
       // Also update filtered conversations if search is active
-      if (searchQuery) {
+      const currentSearchQuery = searchQueryRef.current;
+      if (currentSearchQuery) {
         setFilteredConversations((prev) => {
-          const convo = prev.find((conv) => conv.id === conversationId);
+          const convo = prev.find(
+            (conv) =>
+              conv.id === conversationId ||
+              conv.id?.toString() === conversationId?.toString()
+          );
 
           if (convo) {
             const updatedConversations = prev.map((conv) => {
-              if (conv.id === conversationId) {
+              if (
+                conv.id === conversationId ||
+                conv.id?.toString() === conversationId?.toString()
+              ) {
                 return {
                   ...conv,
                   lastMessageContent: message.content,
@@ -138,22 +170,35 @@ export default function MessageScreen({ navigation }) {
         });
       }
     },
-    [currentUserId, searchQuery]
+    [currentUserId]
   );
 
   // Subscribe to real-time message events
   useEffect(() => {
-    if (!isConnected || !messagingService) return;
+    if (!messagingService) {
+      console.log("MessageScreen: Waiting for messagingService");
+      return;
+    }
+
+    if (!isConnected) {
+      console.log(
+        "MessageScreen: Not connected yet, connectionStatus:",
+        connectionStatus
+      );
+      return;
+    }
+
+    console.log("MessageScreen: Setting up event listeners");
 
     // Handle new message received
     const handleMessageReceived = (message) => {
-      console.log("MessageScreen: New message received", message);
+      console.log("MessageScreen: New message received");
       findAndUpdateConversation(message);
     };
 
     // Handle message updated
     const handleMessageUpdated = (updatedMessage) => {
-      console.log("MessageScreen: Message updated", updatedMessage);
+      console.log("MessageScreen: Message updated");
 
       // Update conversation if it's the last message
       setConversations((prev) =>
@@ -189,6 +234,12 @@ export default function MessageScreen({ navigation }) {
       );
     };
 
+    // Handle reconnecting
+    const handleReconnecting = () => {
+      console.log("MessageScreen: Reconnecting, refetching conversations");
+      fetchConversations(true);
+    };
+
     // Subscribe to events using the functional API
     messagingService.onEvent(
       CLIENT_METHODS.MESSAGE_RECEIVED,
@@ -198,8 +249,9 @@ export default function MessageScreen({ navigation }) {
       CLIENT_METHODS.MESSAGE_UPDATED,
       handleMessageUpdated
     );
-    messagingService.onEvent(LIFECYCLE_METHODS.ON_RECONNECTING, () =>
-      fetchConversations(true)
+    messagingService.onEvent(
+      LIFECYCLE_METHODS.ON_RECONNECTING,
+      handleReconnecting
     );
 
     // Cleanup subscriptions
@@ -212,11 +264,12 @@ export default function MessageScreen({ navigation }) {
         CLIENT_METHODS.MESSAGE_UPDATED,
         handleMessageUpdated
       );
-      messagingService.offEvent(LIFECYCLE_METHODS.ON_RECONNECTING, () =>
-        fetchConversations(true)
+      messagingService.offEvent(
+        LIFECYCLE_METHODS.ON_RECONNECTING,
+        handleReconnecting
       );
     };
-  }, [isConnected, messagingService, findAndUpdateConversation]);
+  }, [isConnected, messagingService, currentUserId, findAndUpdateConversation]);
 
   // Fetch conversations from API
   const fetchConversations = useCallback(
@@ -282,25 +335,22 @@ export default function MessageScreen({ navigation }) {
   }, [loading, hasMore, fetchConversations]);
 
   // Handle search
-  const handleSearch = useCallback(
-    (text) => {
-      setSearchQuery(text);
+  const handleSearch = useCallback((text) => {
+    setSearchQuery(text);
 
-      if (text.trim() === "") {
-        setFilteredConversations(conversations);
-      } else {
-        const filtered = conversations.filter(
-          (conversation) =>
-            conversation.title.toLowerCase().includes(text.toLowerCase()) ||
-            conversation.members.some((member) =>
-              member.username.toLowerCase().includes(text.toLowerCase())
-            )
-        );
-        setFilteredConversations(filtered);
-      }
-    },
-    [conversations]
-  );
+    if (text.trim() === "") {
+      setFilteredConversations(conversationsRef.current);
+    } else {
+      const filtered = conversationsRef.current.filter(
+        (conversation) =>
+          conversation.title.toLowerCase().includes(text.toLowerCase()) ||
+          conversation.members.some((member) =>
+            member.username.toLowerCase().includes(text.toLowerCase())
+          )
+      );
+      setFilteredConversations(filtered);
+    }
+  }, []);
 
   // Handle conversation press
   const handleConversationPress = async (conversation) => {
@@ -394,6 +444,41 @@ export default function MessageScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
+
+      {/* Connection status banner */}
+      {connectionStatus !== "connected" && (
+        <View
+          style={[
+            styles.connectionBanner,
+            {
+              backgroundColor:
+                connectionStatus === "reconnecting" ? "#FEF3C7" : "#FEE2E2",
+            },
+          ]}
+        >
+          <Ionicons
+            name={
+              connectionStatus === "reconnecting" ? "sync" : "cloud-offline"
+            }
+            size={16}
+            color={connectionStatus === "reconnecting" ? "#F59E0B" : "#EF4444"}
+          />
+          <Text
+            style={[
+              styles.connectionBannerText,
+              {
+                color:
+                  connectionStatus === "reconnecting" ? "#F59E0B" : "#EF4444",
+              },
+            ]}
+          >
+            {connectionStatus === "reconnecting"
+              ? "Reconnecting..."
+              : "Offline - Messages won't update"}
+          </Text>
+        </View>
+      )}
+
       {renderSearchBar()}
 
       <FlatList
@@ -446,6 +531,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FFFFFF",
+  },
+  connectionBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    gap: 8,
+  },
+  connectionBannerText: {
+    fontSize: 13,
+    fontWeight: "500",
   },
   loadingFooter: {
     paddingVertical: 20,

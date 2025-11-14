@@ -8,6 +8,7 @@ import React, {
   useRef,
 } from "react";
 import { AppState } from "react-native";
+import * as signalR from "@microsoft/signalr";
 import SignalRServiceFactory from "../services/signalR/Message/factory";
 import { ServiceName } from "../services/signalR/Message/constants/ServiceConfigs";
 import registerHandlers from "../services/signalR/Message/handlers/registerMainHandlers";
@@ -212,6 +213,27 @@ export const MessagingStateProvider = ({ children }) => {
         payload: messagingService,
       });
       if (!messagingService) return;
+
+      // Set initial connection status
+      const status = messagingService.connectionStatus;
+      console.log("Initial connection status:", status);
+      if (status.state === signalR.HubConnectionState.Connected) {
+        dispatch({
+          type: actionTypes.SET_CONNECTION_STATUS,
+          payload: "connected",
+        });
+      } else if (status.state === signalR.HubConnectionState.Connecting) {
+        dispatch({
+          type: actionTypes.SET_CONNECTION_STATUS,
+          payload: "connecting",
+        });
+      } else {
+        dispatch({
+          type: actionTypes.SET_CONNECTION_STATUS,
+          payload: "disconnected",
+        });
+      }
+
       try {
         registerHandlers(
           messagingService,
@@ -267,6 +289,68 @@ export const MessagingStateProvider = ({ children }) => {
       }
     };
   }, [state.activeConversation, state.messagingService]);
+
+  // Listen to lifecycle events for connection status tracking
+  useEffect(() => {
+    if (!state.messagingService) return;
+
+    const handleConnected = () => {
+      console.log("MessagingStateProvider: Connection established");
+      dispatch({
+        type: actionTypes.SET_CONNECTION_STATUS,
+        payload: "connected",
+      });
+    };
+
+    const handleDisconnected = (error) => {
+      console.log("MessagingStateProvider: Connection disconnected", error);
+      dispatch({
+        type: actionTypes.SET_CONNECTION_STATUS,
+        payload: "disconnected",
+      });
+    };
+
+    const handleReconnecting = (error) => {
+      console.log("MessagingStateProvider: Connection reconnecting", error);
+      dispatch({
+        type: actionTypes.SET_CONNECTION_STATUS,
+        payload: "reconnecting",
+      });
+    };
+
+    const handleReconnected = (connectionId) => {
+      console.log(
+        "MessagingStateProvider: Connection reconnected",
+        connectionId
+      );
+      dispatch({
+        type: actionTypes.SET_CONNECTION_STATUS,
+        payload: "connected",
+      });
+    };
+
+    try {
+      state.messagingService.onEvent("onConnected", handleConnected);
+      state.messagingService.onEvent("onDisconnected", handleDisconnected);
+      state.messagingService.onEvent("onReconnecting", handleReconnecting);
+      state.messagingService.onEvent("onReconnected", handleReconnected);
+    } catch (error) {
+      console.error("Error setting up lifecycle event listeners", error);
+    }
+
+    return () => {
+      if (state.messagingService) {
+        try {
+          state.messagingService.offEvent("onConnected", handleConnected);
+          state.messagingService.offEvent("onDisconnected", handleDisconnected);
+          state.messagingService.offEvent("onReconnecting", handleReconnecting);
+          state.messagingService.offEvent("onReconnected", handleReconnected);
+        } catch (error) {
+          console.error("Error removing lifecycle event listeners", error);
+        }
+      }
+    };
+  }, [state.messagingService]);
 
   useEffect(() => {
     if (!state.messagingService) return;

@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   replyContent: {
-    flex: 1,
+    // flex: 1,
   },
   replyLabel: {
     fontSize: 11,
