@@ -33,6 +33,10 @@ const TabBarIcon = ({ routeName, focused, color, size = 24 }) => {
       Me: focused ? "person" : "person-outline",
       Profile: focused ? "person" : "person-outline",
 
+      // E-commerce icons
+      "Thương mại": focused ? "cart" : "cart-outline",
+      "E-commerce": focused ? "cart" : "cart-outline",
+
       // Booking icons
       "Đặt lịch": focused ? "barbell" : "barbell-outline",
       Booking: focused ? "barbell" : "barbell-outline",

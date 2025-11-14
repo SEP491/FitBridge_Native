@@ -45,13 +45,18 @@ export default function FullScreenSearch({
   const [keywords, setKeywords] = useState([]);
   
   // Search results states
-  const [gymResults, setGymResults] = useState([]);
-  const [freelancePTResults, setFreelancePTResults] = useState([]);
+  const [gymSearchResults, setGymSearchResults] = useState([]);
+  const [freelancePTSearchResults, setFreelancePTSearchResults] = useState([]);
+  const [gymRecommendedResults, setGymRecommendedResults] = useState([]);
+  const [freelancePTRecommendedResults, setFreelancePTRecommendedResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
-  const [totalGymResults, setTotalGymResults] = useState(0);
-  const [totalFreelancePTResults, setTotalFreelancePTResults] = useState(0);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [totalGymSearchResults, setTotalGymSearchResults] = useState(0);
+  const [totalFreelancePTSearchResults, setTotalFreelancePTSearchResults] = useState(0);
+  const [totalGymRecommended, setTotalGymRecommended] = useState(0);
+  const [totalFreelancePTRecommended, setTotalFreelancePTRecommended] = useState(0);
   const [currentGymPage, setCurrentGymPage] = useState(1);
   const [currentFreelancePTPage, setCurrentFreelancePTPage] = useState(1);
   const [hasMoreGymData, setHasMoreGymData] = useState(false);
@@ -86,6 +91,7 @@ export default function FullScreenSearch({
     if (visible) {
       loadRecentSearches();
       loadKeywords();
+      setIsSearchFocused(true);
 
       // Auto focus on search input when visible
       if (searchInputRef.current) {
@@ -95,6 +101,8 @@ export default function FullScreenSearch({
           }
         }, 100);
       }
+    } else {
+      setIsSearchFocused(false);
     }
   }, [visible]);
 
@@ -113,81 +121,142 @@ export default function FullScreenSearch({
         setHasSearched(true);
       }
 
-      // Build filter parameters
-      const params = {
+      // Build filter parameters for search
+      const searchParams = {
         searchTerm: query.trim(),
         size: 10,
+        page: activeTab === 'gyms' ? gymPage : freelancePTPage,
+      };
+
+      // Build filter parameters for all data (without search term)
+      const allDataParams = {
+        size: 10,
+        page: activeTab === 'gyms' ? gymPage : freelancePTPage,
       };
 
       // Add filter parameters only for Freelance PT tab
       if (activeTab === 'freelancePts') {
+        const filterParams = {};
+        
         if (filters.priceRange.min) {
-          params.fromPrice = parseFloat(filters.priceRange.min);
+          filterParams.fromPrice = parseFloat(filters.priceRange.min);
         }
         if (filters.priceRange.max) {
-          params.toPrice = parseFloat(filters.priceRange.max);
+          filterParams.toPrice = parseFloat(filters.priceRange.max);
         }
         if (filters.rating > 0) {
-          params.rating = filters.rating;
+          filterParams.rating = filters.rating;
         }
         if (filters.experienceYears.min) {
-          params.experienceYears = parseInt(filters.experienceYears.min);
+          filterParams.experienceYears = parseInt(filters.experienceYears.min);
         }
         if (filters.sortBy && filters.sortBy !== 'relevance') {
-          params.sortBy = filters.sortBy;
+          filterParams.sortBy = filters.sortBy;
         }
         if (filters.sortBy === 'priceAsc' || filters.sortBy === 'priceDesc') {
-          params.sortOrder = filters.sortBy === 'priceAsc' ? 'asc' : 'desc';
-          params.sortBy = 'price';
+          filterParams.sortOrder = filters.sortBy === 'priceAsc' ? 'asc' : 'desc';
+          filterParams.sortBy = 'price';
         }
+
+        // Apply filters to both params
+        Object.assign(searchParams, filterParams);
+        Object.assign(allDataParams, filterParams);
       }
 
-      const response = await accountService.searchAllAccounts(params);
+      // Call API twice: once with search term, once without
+      const [searchResponse, allDataResponse] = await Promise.all([
+        accountService.searchAllAccounts(searchParams),
+        accountService.searchAllAccounts(allDataParams)
+      ]);
 
-      console.log("Search results response:", response.data);
+      console.log("Search results response:", searchResponse.data);
+      console.log("All data response:", allDataResponse.data);
 
-      const { gyms, freelancePts } = response.data;
+      const searchData = searchResponse.data;
+      const allData = allDataResponse.data;
+
+      // Filter out search results from all data to get only recommended items
+      const getRecommendedItems = (searchItems, allItems) => {
+        const searchIds = new Set(searchItems.map(item => item.id));
+        return allItems.filter(item => !searchIds.has(item.id));
+      };
 
       // Update gym results
       if (activeTab === 'gyms') {
+        const recommendedGyms = getRecommendedItems(
+          searchData.gyms.items || [],
+          allData.gyms.items || []
+        );
+
         if (append) {
-          setGymResults((prev) => [...prev, ...gyms.items]);
+          setGymSearchResults((prev) => [...prev, ...(searchData.gyms.items || [])]);
+          setGymRecommendedResults((prev) => [...prev, ...recommendedGyms]);
         } else {
-          setGymResults(gyms.items);
+          setGymSearchResults(searchData.gyms.items || []);
+          setGymRecommendedResults(recommendedGyms);
         }
-        setTotalGymResults(gyms.total);
-        setCurrentGymPage(gyms.page);
+        
+        setTotalGymSearchResults(searchData.gyms.total || 0);
+        setTotalGymRecommended(allData.gyms.total - (searchData.gyms.total || 0));
+        setCurrentGymPage(gymPage);
         setHasMoreGymData(
-          gyms.items?.length === 10 && gymResults?.length + gyms.items?.length < gyms.total
+          (searchData.gyms.items?.length === 10 || recommendedGyms.length === 10) &&
+          gymSearchResults.length + gymRecommendedResults.length + 
+          (searchData.gyms.items?.length || 0) + recommendedGyms.length < allData.gyms.total
         );
       }
 
       // Update freelance PT results
       if (activeTab === 'freelancePts') {
+        const recommendedPTs = getRecommendedItems(
+          searchData.freelancePts.items || [],
+          allData.freelancePts.items || []
+        );
+
         if (append) {
-          setFreelancePTResults((prev) => [...prev, ...freelancePTs.items]);
+          setFreelancePTSearchResults((prev) => [...prev, ...(searchData.freelancePts.items || [])]);
+          setFreelancePTRecommendedResults((prev) => [...prev, ...recommendedPTs]);
         } else {
-          setFreelancePTResults(freelancePts.items);
+          setFreelancePTSearchResults(searchData.freelancePts.items || []);
+          setFreelancePTRecommendedResults(recommendedPTs);
         }
-        setTotalFreelancePTResults(freelancePts.total);
-        setCurrentFreelancePTPage(freelancePts.page);
+        
+        setTotalFreelancePTSearchResults(searchData.freelancePts.total || 0);
+        setTotalFreelancePTRecommended(allData.freelancePts.total - (searchData.freelancePts.total || 0));
+        setCurrentFreelancePTPage(freelancePTPage);
         setHasMoreFreelancePTData(
-          freelancePts.items?.length === 10 && 
-          freelancePTResults?.length + freelancePts.items?.length < freelancePts.total
+          (searchData.freelancePts.items?.length === 10 || recommendedPTs.length === 10) &&
+          freelancePTSearchResults.length + freelancePTRecommendedResults.length + 
+          (searchData.freelancePts.items?.length || 0) + recommendedPTs.length < allData.freelancePts.total
         );
       }
 
       // Set total results for initial load
       if (!append) {
-        setTotalGymResults(gyms.total);
-        setTotalFreelancePTResults(freelancePts.total);
-        setGymResults(gyms.items);
-        setFreelancePTResults(freelancePts.items);
+        // For gyms
+        const gymRecommended = getRecommendedItems(
+          searchData.gyms.items || [],
+          allData.gyms.items || []
+        );
+        setGymSearchResults(searchData.gyms.items || []);
+        setGymRecommendedResults(gymRecommended);
+        setTotalGymSearchResults(searchData.gyms.total || 0);
+        setTotalGymRecommended(allData.gyms.total - (searchData.gyms.total || 0));
+
+        // For freelance PTs
+        const ptRecommended = getRecommendedItems(
+          searchData.freelancePts.items || [],
+          allData.freelancePts.items || []
+        );
+        setFreelancePTSearchResults(searchData.freelancePts.items || []);
+        setFreelancePTRecommendedResults(ptRecommended);
+        setTotalFreelancePTSearchResults(searchData.freelancePts.total || 0);
+        setTotalFreelancePTRecommended(allData.freelancePts.total - (searchData.freelancePts.total || 0));
 
         // Auto-navigate to other tab if current tab has no results
-        if (activeTab === 'gyms' && gyms.total === 0 && freelancePts.total > 0) {
+        if (activeTab === 'gyms' && searchData.gyms.total === 0 && searchData.freelancePts.total > 0) {
           setActiveTab('freelancePts');
-        } else if (activeTab === 'freelancePts' && freelancePts.total === 0 && gyms.total > 0) {
+        } else if (activeTab === 'freelancePts' && searchData.freelancePts.total === 0 && searchData.gyms.total > 0) {
           setActiveTab('gyms');
         }
       }
@@ -222,8 +291,10 @@ export default function FullScreenSearch({
     setShowFilterModal(false);
     setCurrentGymPage(1);
     setCurrentFreelancePTPage(1);
-    setGymResults([]);
-    setFreelancePTResults([]);
+    setGymSearchResults([]);
+    setFreelancePTSearchResults([]);
+    setGymRecommendedResults([]);
+    setFreelancePTRecommendedResults([]);
     performSearch(searchText, 1, 1);
   };
 
@@ -237,19 +308,33 @@ export default function FullScreenSearch({
     setShowFilterModal(false);
     setCurrentGymPage(1);
     setCurrentFreelancePTPage(1);
-    setGymResults([]);
-    setFreelancePTResults([]);
+    setGymSearchResults([]);
+    setFreelancePTSearchResults([]);
+    setGymRecommendedResults([]);
+    setFreelancePTRecommendedResults([]);
     if (searchText.trim()) {
       performSearch(searchText, 1, 1);
     }
   };
 
-  const getCurrentResults = () => {
-    return activeTab === 'gyms' ? gymResults : freelancePTResults;
+  const getCurrentSearchResults = () => {
+    return activeTab === 'gyms' ? gymSearchResults : freelancePTSearchResults;
+  };
+
+  const getCurrentRecommendedResults = () => {
+    return activeTab === 'gyms' ? gymRecommendedResults : freelancePTRecommendedResults;
+  };
+
+  const getCurrentSearchTotal = () => {
+    return activeTab === 'gyms' ? totalGymSearchResults : totalFreelancePTSearchResults;
+  };
+
+  const getCurrentRecommendedTotal = () => {
+    return activeTab === 'gyms' ? totalGymRecommended : totalFreelancePTRecommended;
   };
 
   const getCurrentTotal = () => {
-    return activeTab === 'gyms' ? totalGymResults : totalFreelancePTResults;
+    return getCurrentSearchTotal() + getCurrentRecommendedTotal();
   };
 
   const getCurrentHasMore = () => {
@@ -305,11 +390,15 @@ export default function FullScreenSearch({
 
   const clearSearch = () => {
     setSearchText("");
-    setGymResults([]);
-    setFreelancePTResults([]);
+    setGymSearchResults([]);
+    setFreelancePTSearchResults([]);
+    setGymRecommendedResults([]);
+    setFreelancePTRecommendedResults([]);
     setHasSearched(false);
-    setTotalGymResults(0);
-    setTotalFreelancePTResults(0);
+    setTotalGymSearchResults(0);
+    setTotalFreelancePTSearchResults(0);
+    setTotalGymRecommended(0);
+    setTotalFreelancePTRecommended(0);
     setCurrentGymPage(1);
     setCurrentFreelancePTPage(1);
     setHasMoreGymData(false);
@@ -397,6 +486,65 @@ export default function FullScreenSearch({
           </TouchableOpacity>
         </View>
 
+        {/* Tabs - Fixed below header when search is performed */}
+        {hasSearched && (
+          <View style={styles.tabsContainer}>
+            <View style={styles.tabsWrapper}>
+              <TouchableOpacity
+                style={[styles.tab, activeTab === 'gyms' && styles.activeTab]}
+                onPress={() => setActiveTab('gyms')}
+              >
+                <Ionicons 
+                  name="fitness" 
+                  size={18} 
+                  color={activeTab === 'gyms' ? '#ED2A46' : '#999'} 
+                />
+                <Text style={[
+                  styles.tabText,
+                  activeTab === 'gyms' && styles.activeTabText
+                ]}>
+                  {t('common.gym', 'Gyms')} ({totalGymSearchResults})
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.tab, activeTab === 'freelancePts' && styles.activeTab]}
+                onPress={() => setActiveTab('freelancePts')}
+              >
+                <Ionicons 
+                  name="person" 
+                  size={18} 
+                  color={activeTab === 'freelancePts' ? '#ED2A46' : '#999'} 
+                />
+                <Text style={[
+                  styles.tabText,
+                  activeTab === 'freelancePts' && styles.activeTabText
+                ]}>
+                  {t('common.freelancePT', 'Freelance PT')} ({totalFreelancePTSearchResults})
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Filter Button */}
+            <TouchableOpacity
+              style={[
+                styles.filterButton,
+                (filters.priceRange.min || filters.priceRange.max || 
+                 filters.experienceYears.min || filters.rating > 0 || 
+                 filters.sortBy !== 'relevance') && styles.filterButtonActive
+              ]}
+              onPress={() => setShowFilterModal(true)}
+            >
+              <Ionicons name="filter" size={20} color="#ED2A46" />
+              {(filters.priceRange.min || filters.priceRange.max || 
+                filters.experienceYears.min || filters.rating > 0 || 
+                filters.sortBy !== 'relevance') && (
+                <View style={styles.filterBadge} />
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Content */}
         <ScrollView
           style={styles.content}
@@ -428,84 +576,17 @@ export default function FullScreenSearch({
           {/* Show search results if searched */}
           {hasSearched ? (
             <>
-              {/* Tabs */}
-              <View style={styles.tabsContainer}>
-                <View style={styles.tabsWrapper}>
-                  <TouchableOpacity
-                    style={[styles.tab, activeTab === 'gyms' && styles.activeTab]}
-                    onPress={() => setActiveTab('gyms')}
-                  >
-                    <Ionicons 
-                      name="fitness" 
-                      size={18} 
-                      color={activeTab === 'gyms' ? '#ED2A46' : '#999'} 
-                    />
-                    <Text style={[
-                      styles.tabText,
-                      activeTab === 'gyms' && styles.activeTabText
-                    ]}>
-                      {t('common.gym', 'Gyms')} ({totalGymResults})
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[styles.tab, activeTab === 'freelancePts' && styles.activeTab]}
-                    onPress={() => setActiveTab('freelancePts')}
-                  >
-                    <Ionicons 
-                      name="person" 
-                      size={18} 
-                      color={activeTab === 'freelancePts' ? '#ED2A46' : '#999'} 
-                    />
-                    <Text style={[
-                      styles.tabText,
-                      activeTab === 'freelancePts' && styles.activeTabText
-                    ]}>
-                      {t('common.freelancePT', 'Freelance PT')} ({totalFreelancePTResults})
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-
-                {/* Filter Button */}
-                <TouchableOpacity
-                  style={[
-                    styles.filterButton,
-                    (filters.priceRange.min || filters.priceRange.max || 
-                     filters.experienceYears.min || filters.rating > 0 || 
-                     filters.sortBy !== 'relevance') && styles.filterButtonActive
-                  ]}
-                  onPress={() => setShowFilterModal(true)}
-                >
-                  <Ionicons name="filter" size={20} color="#ED2A46" />
-                  {(filters.priceRange.min || filters.priceRange.max || 
-                    filters.experienceYears.min || filters.rating > 0 || 
-                    filters.sortBy !== 'relevance') && (
-                    <View style={styles.filterBadge} />
-                  )}
-                </TouchableOpacity>
-              </View>
-
-              {/* Result Info */}
-              <View style={styles.resultInfo}>
-                <Text style={styles.resultText}>
-                  {searchText
-                    ? t("searchGymScreen.foundResultsFor", {
-                        count: getCurrentTotal(),
-                        query: searchText,
-                      })
-                    : t("searchGymScreen.foundResults", { count: getCurrentTotal() })}
-                </Text>
-              </View>
+              
 
               {/* Loading State */}
-              {loading && !refreshing && getCurrentResults()?.length === 0 ? (
+              {loading && !refreshing && getCurrentSearchResults()?.length === 0 && getCurrentRecommendedResults()?.length === 0 ? (
                 <View style={styles.loadingContainer}>
                   <ActivityIndicator size="large" color="#ED2A46" />
                   <Text style={styles.loadingText}>
                     {t("searchGymScreen.searching")}
                   </Text>
                 </View>
-              ) : getCurrentResults()?.length === 0 ? (
+              ) : getCurrentSearchResults()?.length === 0 && getCurrentRecommendedResults()?.length === 0 ? (
                 <View style={styles.emptyContainer}>
                   <Ionicons name="search" size={80} color="#E0E0E0" />
                   <Text style={styles.emptyTitle}>
@@ -516,23 +597,82 @@ export default function FullScreenSearch({
                   </Text>
                 </View>
               ) : (
-                <View style={styles.resultsGrid}>
-                  {activeTab === 'gyms' 
-                    ? gymResults.map((gym, index) => (
-                        <View key={gym.id || index} style={styles.gymCardContainer}>
-                          <GymCard gym={gym} fullWidth={true} height={200} />
-                        </View>
-                      ))
-                    : (
-                      <View style={styles.ptGrid}>
-                        {freelancePTResults.map((pt, index) => (
-                          <View key={pt.id || index} style={styles.ptCardContainer}>
-                            <FreelancePTProfileCard pt={pt} />
+                <View style={styles.resultsContainer}>
+                  {/* Search Results Section */}
+                  {getCurrentSearchResults()?.length > 0 && (
+                    <View style={styles.sectionWrapper}>
+                      <View style={styles.sectionHeaderBar}>
+                        <View style={styles.sectionHeaderContent}>
+                          <Ionicons name="search" size={20} color="#ED2A46" />
+                          <Text style={styles.sectionHeaderTitle}>
+                            {t('searchGymScreen.searchResults', 'Search Results')}
+                          </Text>
+                          <View style={styles.countBadge}>
+                            <Text style={styles.countBadgeText}>
+                              {getCurrentSearchTotal()}
+                            </Text>
                           </View>
-                        ))}
+                        </View>
                       </View>
-                    )
-                  }
+
+                      <View style={styles.resultsGrid}>
+                        {activeTab === 'gyms' 
+                          ? gymSearchResults.map((gym, index) => (
+                              <View key={gym.id || `search-gym-${index}`} style={styles.gymCardContainer}>
+                                <GymCard gym={gym} fullWidth={true} height={200} />
+                              </View>
+                            ))
+                          : (
+                            <View style={styles.ptGrid}>
+                              {freelancePTSearchResults.map((pt, index) => (
+                                <View key={pt.id || `search-pt-${index}`} style={styles.ptCardContainer}>
+                                  <FreelancePTProfileCard pt={pt} />
+                                </View>
+                              ))}
+                            </View>
+                          )
+                        }
+                      </View>
+                    </View>
+                  )}
+
+                  {/* Recommended Section */}
+                  {getCurrentRecommendedResults()?.length > 0 && (
+                    <View style={styles.sectionWrapper}>
+                      <View style={[styles.sectionHeaderBar, styles.recommendedHeaderBar]}>
+                        <View style={styles.sectionHeaderContent}>
+                          <Ionicons name="star" size={20} color="#FF9500" />
+                          <Text style={styles.sectionHeaderTitle}>
+                            {t('searchGymScreen.recommended', 'Recommended for You')}
+                          </Text>
+                          <View style={[styles.countBadge, styles.recommendedBadge]}>
+                            <Text style={styles.countBadgeText}>
+                              {getCurrentRecommendedTotal()}
+                            </Text>
+                          </View>
+                        </View>
+                      </View>
+
+                      <View style={styles.resultsGrid}>
+                        {activeTab === 'gyms' 
+                          ? gymRecommendedResults.map((gym, index) => (
+                              <View key={gym.id || `rec-gym-${index}`} style={styles.gymCardContainer}>
+                                <GymCard gym={gym} fullWidth={true} height={200} />
+                              </View>
+                            ))
+                          : (
+                            <View style={styles.ptGrid}>
+                              {freelancePTRecommendedResults.map((pt, index) => (
+                                <View key={pt.id || `rec-pt-${index}`} style={styles.ptCardContainer}>
+                                  <FreelancePTProfileCard pt={pt} />
+                                </View>
+                              ))}
+                            </View>
+                          )
+                        }
+                      </View>
+                    </View>
+                  )}
 
                   {getCurrentHasMore() && (
                     <View style={styles.loadMoreContainer}>
@@ -548,7 +688,7 @@ export default function FullScreenSearch({
           ) : (
             <>
               {/* Recent Searches - Show before search */}
-              {recentSearches.length > 0 && !hasSearched && (
+              {recentSearches.length > 0 && (
                 <View style={styles.section}>
                   <View style={styles.sectionHeader}>
                     <View style={styles.sectionTitleContainer}>
@@ -1077,6 +1217,49 @@ const styles = StyleSheet.create({
     marginTop: 8,
     textAlign: "center",
     lineHeight: 20,
+  },
+  resultsContainer: {
+    paddingBottom: 20,
+  },
+  sectionWrapper: {
+  },
+  sectionHeaderBar: {
+    backgroundColor: '#FFF5F6',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#ED2A46',
+  },
+  recommendedHeaderBar: {
+    backgroundColor: '#FFF9F0',
+    borderLeftColor: '#FF9500',
+  },
+  sectionHeaderContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  sectionHeaderTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#333',
+    flex: 1,
+  },
+  countBadge: {
+    backgroundColor: '#ED2A46',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    minWidth: 32,
+    alignItems: 'center',
+  },
+  recommendedBadge: {
+    backgroundColor: '#FF9500',
+  },
+  countBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#fff',
   },
   resultsGrid: {
     paddingHorizontal: 20,

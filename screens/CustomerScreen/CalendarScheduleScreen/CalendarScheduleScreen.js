@@ -399,7 +399,19 @@ export default function CalendarScheduleScreen() {
               onDateSelect={handleDateSelect}
               initialDate={selectedDate}
             />
-
+          {/* Book Session Button */}
+        <View style={styles.bookingButtonContainer}>
+          <TouchableOpacity
+            style={styles.bookSessionButton}
+            onPress={() => navigation.navigate("ChoosingCourseScreen")}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="add-circle" size={24} color="#FFFFFF" />
+            <Text style={styles.bookSessionButtonText}>
+              {t("schedule.bookNewSession")}
+            </Text>
+          </TouchableOpacity>
+        </View>
             {/* Sessions List */}
             <ScrollView
               style={styles.scrollView}
@@ -699,6 +711,33 @@ const styles = StyleSheet.create({
   weekViewContainer: {
     flex: 1,
     backgroundColor: "#f8f9fa",
+  },
+  bookingButtonContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e9ecef",
+  },
+  bookSessionButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.red,
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  bookSessionButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "600",
+    marginLeft: 8,
   },
   // Sessions List Header
 

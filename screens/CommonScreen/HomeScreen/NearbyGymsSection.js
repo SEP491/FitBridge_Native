@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -10,10 +10,44 @@ import { useNavigation } from "@react-navigation/native";
 import PairedSwiper from "../../../components/PairSwiper/PairSwiper";
 import GymCard from "../../../components/GymCard/GymCard";
 import { useTranslation } from "../../../hooks/useTranslation";
+import { useLocationContext } from "../../../context/LocationContext";
+import gymService from "../../../services/gymService";
+import { filterGymsByDistance } from "../../../lib";
 
-export default function NearbyGymsSection({ gyms, loading }) {
+export default function NearbyGymsSection({ refreshTrigger }) {
   const navigation = useNavigation();
   const { t } = useTranslation();
+  const { coordinates } = useLocationContext();
+  const [gyms, setGyms] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchNearbyGyms = async () => {
+    setLoading(true);
+    try {
+      // Fetch all gyms
+      const response = await gymService.getAllGyms({
+        page: 1,
+        size: 200,
+      });
+      const { items } = response.data;
+
+      // Filter by distance if coordinates are available
+      if (coordinates) {
+        const filteredGyms = filterGymsByDistance(items, coordinates, 5);
+        setGyms(filteredGyms);
+      } else {
+        setGyms(items);
+      }
+    } catch (error) {
+      console.error("Error fetching nearby gyms:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchNearbyGyms();
+  }, [coordinates, refreshTrigger]);
 
   const renderGymCard = (item) => {
     return <GymCard gym={item} />;
