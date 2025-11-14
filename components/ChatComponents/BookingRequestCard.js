@@ -16,6 +16,7 @@ const BookingRequestCard = ({
   bookingRequest,
   isCurrentUser,
   onAction,
+  onEdit,
   senderAvatarUrl,
 }) => {
   const {
@@ -305,6 +306,19 @@ const BookingRequestCard = ({
               </TouchableOpacity>
             </View>
           )}
+
+          {/* Edit Button (for sent pending requests) */}
+          {isCurrentUser && requestStatus === "Pending" && onEdit && (
+            <View style={styles.actionButtons}>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.editButton]}
+                onPress={() => onEdit(bookingRequest)}
+              >
+                <Ionicons name="create-outline" size={18} color="#FFFFFF" />
+                <Text style={styles.editButtonText}>Edit Request</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </View>
 
@@ -465,12 +479,22 @@ const styles = StyleSheet.create({
   approveButton: {
     backgroundColor: "#10B981",
   },
+  editButton: {
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+  },
   rejectButtonText: {
     color: "#EF4444",
     fontSize: 14,
     fontWeight: "600",
   },
   approveButtonText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  editButtonText: {
     color: "#FFFFFF",
     fontSize: 14,
     fontWeight: "600",

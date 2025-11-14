@@ -35,9 +35,9 @@ const messageService = {
   updateBookingRequest: (data) =>
     requestMessage("PUT", `/booking-request`, data),
   approveBookingRequest: (requestId) =>
-    requestMessage("PUT", `/booking-request/approve`, requestId),
+    requestMessage("PUT", `/booking-request/approve`, `"${requestId}"`),
   rejectBookingRequest: (requestId) =>
-    requestMessage("PUT", `/booking-request/reject`, requestId),
+    requestMessage("PUT", `/booking-request/reject`, `"${requestId}"`),
 
   markAsRead: (data) => requestMessage("POST", `/messages/read`, data),
 

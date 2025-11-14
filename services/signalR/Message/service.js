@@ -109,7 +109,7 @@ class SignalRService {
       // Build connection with authentication
       // Use a factory function that retrieves fresh token each time
       const token =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxMjZlYzNkNC00ZDM0LTQ1ZjItYmJmNy05OGI5YTNkZmMzMWMiLCJ1bmlxdWVfbmFtZSI6ImpvaG4iLCJyb2xlIjoiQ3VzdG9tZXIiLCJBdmF0YXJVcmwiOiJodHRwczovL3N0YXRpYy53aWtpYS5ub2Nvb2tpZS5uZXQvZ29rdXJha3VnYWkvaW1hZ2VzLzAvMGEvVGFvX1Nhb3RvbWVfUG9ydHJhaXQucG5nL3JldmlzaW9uL2xhdGVzdD9jYj0yMDI0MDYwODAzMTE0MCIsIm5iZiI6MTc2MzExMDE5OSwiZXhwIjoxNzYzMTEzNzk5LCJpYXQiOjE3NjMxMTAxOTl9.Ihq9CNmm8-hr-uQmavMv1r9Q7vn2APE4JVY1ReK1oiQ";
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxMjZlYzNkNC00ZDM0LTQ1ZjItYmJmNy05OGI5YTNkZmMzMWMiLCJ1bmlxdWVfbmFtZSI6ImpvaG4iLCJyb2xlIjoiQ3VzdG9tZXIiLCJBdmF0YXJVcmwiOiJodHRwczovL3N0YXRpYy53aWtpYS5ub2Nvb2tpZS5uZXQvZ29rdXJha3VnYWkvaW1hZ2VzLzAvMGEvVGFvX1Nhb3RvbWVfUG9ydHJhaXQucG5nL3JldmlzaW9uL2xhdGVzdD9jYj0yMDI0MDYwODAzMTE0MCIsIm5iZiI6MTc2MzExMzg4MywiZXhwIjoxNzYzMTE3NDgzLCJpYXQiOjE3NjMxMTM4ODN9.xn3OwuHIhgYzOD4QxT6nbPjbSHM7zc0-t_oOkYoCk7A";
       console.log("token", token);
       this.#connection = new HubConnectionBuilder()
         .withUrl(this.#url, {

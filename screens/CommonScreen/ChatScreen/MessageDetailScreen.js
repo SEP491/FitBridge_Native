@@ -17,6 +17,7 @@ import {
   Linking,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {
   MessageBubble,
@@ -54,6 +55,29 @@ export default function MessageDetailScreen({ route, navigation }) {
   const [editingMessage, setEditingMessage] = useState(null);
   const [showReactionPicker, setShowReactionPicker] = useState(false);
   const [messageLayout, setMessageLayout] = useState(null);
+  const [showBookingRequestModal, setShowBookingRequestModal] = useState(false);
+  const [editingBookingRequest, setEditingBookingRequest] = useState(null);
+  const [bookingFormData, setBookingFormData] = useState(() => {
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    const startHour = currentHour + 1;
+    const endHour = currentHour + 2;
+
+    return {
+      bookingName: "",
+      bookingDate: now.toISOString().split("T")[0],
+      startTime: `${startHour.toString().padStart(2, "0")}:${currentMinute
+        .toString()
+        .padStart(2, "0")}:00`,
+      endTime: `${endHour.toString().padStart(2, "0")}:${currentMinute
+        .toString()
+        .padStart(2, "0")}:00`,
+    };
+  });
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showStartTimePicker, setShowStartTimePicker] = useState(false);
+  const [showEndTimePicker, setShowEndTimePicker] = useState(false);
 
   const flatListRef = useRef(null);
   const currentUserId = "126ec3d4-4d34-45f2-bbf7-98b9a3dfc31c";
@@ -130,6 +154,18 @@ export default function MessageDetailScreen({ route, navigation }) {
 
       // Only add message if it belongs to this conversation
       if (message.conversationId === conversationId) {
+        // Check if this is a system message about booking request update
+        if (
+          message.messageType === "System" &&
+          message.content &&
+          message.content.includes("edited the booking request")
+        ) {
+          console.log("Booking request updated, refetching messages...");
+          // Refetch messages to get the updated booking request
+          fetchMessages(1, true);
+          return; // Don't add the system message to the list
+        }
+
         setMessages((prev) => {
           // Check if message already exists
           const exists = prev.some((m) => m.id === message.id);
@@ -888,6 +924,218 @@ export default function MessageDetailScreen({ route, navigation }) {
     setSelectedMessage(null);
   }, [selectedMessage]);
 
+  // Handle send booking request
+  const handleSendBookingRequest = useCallback(async () => {
+    if (!bookingFormData.bookingName.trim()) {
+      Alert.alert("Error", "Please enter a booking name");
+      return;
+    }
+
+    // Validate date is not in the past
+    const selectedDate = new Date(bookingFormData.bookingDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    selectedDate.setHours(0, 0, 0, 0);
+
+    if (selectedDate < today) {
+      Alert.alert("Invalid Date", "Booking date cannot be in the past.");
+      return;
+    }
+
+    // Validate time if booking is today
+    const isToday =
+      bookingFormData.bookingDate === new Date().toISOString().split("T")[0];
+    if (isToday) {
+      const [startHours, startMinutes] = bookingFormData.startTime
+        .split(":")
+        .map(Number);
+      const now = new Date();
+      const currentHours = now.getHours();
+      const currentMinutes = now.getMinutes();
+
+      const startTotalMinutes = startHours * 60 + startMinutes;
+      const currentTotalMinutes = currentHours * 60 + currentMinutes;
+
+      if (startTotalMinutes <= currentTotalMinutes) {
+        Alert.alert("Invalid Time", "Start time must be in the future.");
+        return;
+      }
+    }
+
+    // Validate end time is at least 1 hour after start time
+    const [startHours, startMinutes] = bookingFormData.startTime
+      .split(":")
+      .map(Number);
+    const [endHours, endMinutes] = bookingFormData.endTime
+      .split(":")
+      .map(Number);
+
+    const startTotalMinutes = startHours * 60 + startMinutes;
+    const endTotalMinutes = endHours * 60 + endMinutes;
+
+    if (endTotalMinutes < startTotalMinutes + 60) {
+      Alert.alert(
+        "Invalid Time",
+        "End time must be at least 1 hour after start time."
+      );
+      return;
+    }
+
+    try {
+      setSending(true);
+      setShowBookingRequestModal(false);
+
+      const messageData = {
+        conversationId,
+        content: `Booking request: ${bookingFormData.bookingName}`,
+        message: `Booking request for ${bookingFormData.bookingName} on ${bookingFormData.bookingDate}`,
+        replyToMessageId: null,
+        replyToMessageMediaType: null,
+        replyToMessageContent: null,
+        mediaType: "BookingRequest",
+        createBookingRequest: {
+          customerId: currentUserId,
+          ptId: "126ec3d4-4d34-45f2-bbf7-98b9a3dfc31d",
+          requestBookingDto: {
+            bookingName: bookingFormData.bookingName,
+            bookingDate: bookingFormData.bookingDate,
+            ptFreelanceStartTime: bookingFormData.startTime,
+            ptFreelanceEndTime: bookingFormData.endTime,
+          },
+        },
+      };
+      console.log("Sending booking request:", messageData);
+      await messageService.sendMessage(messageData);
+
+      // Reset form with current time
+      const now = new Date();
+      const currentHour = now.getHours();
+      const currentMinute = now.getMinutes();
+      const startHour = currentHour + 1;
+      const endHour = currentHour + 2;
+
+      setBookingFormData({
+        bookingName: "",
+        bookingDate: now.toISOString().split("T")[0],
+        startTime: `${startHour.toString().padStart(2, "0")}:${currentMinute
+          .toString()
+          .padStart(2, "0")}:00`,
+        endTime: `${endHour.toString().padStart(2, "0")}:${currentMinute
+          .toString()
+          .padStart(2, "0")}:00`,
+      });
+    } catch (error) {
+      console.error("Error sending booking request:", error);
+      Alert.alert("Error", "Failed to send booking request. Please try again.");
+    } finally {
+      setSending(false);
+    }
+  }, [bookingFormData, conversationId, currentUserId]);
+
+  // Handle edit booking request
+  const handleEditBookingRequest = useCallback(async () => {
+    if (!editingBookingRequest || !bookingFormData.bookingName.trim()) {
+      Alert.alert("Error", "Please enter a booking name");
+      return;
+    }
+
+    // Validate date is not in the past
+    const selectedDate = new Date(bookingFormData.bookingDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    selectedDate.setHours(0, 0, 0, 0);
+
+    if (selectedDate < today) {
+      Alert.alert("Invalid Date", "Booking date cannot be in the past.");
+      return;
+    }
+
+    // Validate time if booking is today
+    const isToday =
+      bookingFormData.bookingDate === new Date().toISOString().split("T")[0];
+    if (isToday) {
+      const [startHours, startMinutes] = bookingFormData.startTime
+        .split(":")
+        .map(Number);
+      const now = new Date();
+      const currentHours = now.getHours();
+      const currentMinutes = now.getMinutes();
+
+      const startTotalMinutes = startHours * 60 + startMinutes;
+      const currentTotalMinutes = currentHours * 60 + currentMinutes;
+
+      if (startTotalMinutes <= currentTotalMinutes) {
+        Alert.alert("Invalid Time", "Start time must be in the future.");
+        return;
+      }
+    }
+
+    // Validate end time is at least 1 hour after start time
+    const [startHours, startMinutes] = bookingFormData.startTime
+      .split(":")
+      .map(Number);
+    const [endHours, endMinutes] = bookingFormData.endTime
+      .split(":")
+      .map(Number);
+
+    const startTotalMinutes = startHours * 60 + startMinutes;
+    const endTotalMinutes = endHours * 60 + endMinutes;
+
+    if (endTotalMinutes < startTotalMinutes + 60) {
+      Alert.alert(
+        "Invalid Time",
+        "End time must be at least 1 hour after start time."
+      );
+      return;
+    }
+
+    try {
+      setSending(true);
+      setShowBookingRequestModal(false);
+
+      await messageService.updateBookingRequest({
+        id: editingBookingRequest.bookingRequestId || editingBookingRequest.id,
+        requestBookingDto: {
+          bookingName: bookingFormData.bookingName,
+          bookingDate: bookingFormData.bookingDate,
+          ptFreelanceStartTime: bookingFormData.startTime,
+          ptFreelanceEndTime: bookingFormData.endTime,
+        },
+      });
+
+      // Refetch messages to get the updated booking request
+      await fetchMessages(1, true);
+
+      // Reset form and editing state with current time
+      setEditingBookingRequest(null);
+
+      const now = new Date();
+      const currentHour = now.getHours();
+      const currentMinute = now.getMinutes();
+      const startHour = currentHour + 1;
+      const endHour = currentHour + 2;
+
+      setBookingFormData({
+        bookingName: "",
+        bookingDate: now.toISOString().split("T")[0],
+        startTime: `${startHour.toString().padStart(2, "0")}:${currentMinute
+          .toString()
+          .padStart(2, "0")}:00`,
+        endTime: `${endHour.toString().padStart(2, "0")}:${currentMinute
+          .toString()
+          .padStart(2, "0")}:00`,
+      });
+    } catch (error) {
+      console.error("Error updating booking request:", error);
+      Alert.alert(
+        "Error",
+        "Failed to update booking request. Please try again."
+      );
+    } finally {
+      setSending(false);
+    }
+  }, [editingBookingRequest, bookingFormData]);
+
   // Render message item
   const renderMessage = useCallback(
     ({ item }) => {
@@ -900,6 +1148,57 @@ export default function MessageDetailScreen({ route, navigation }) {
             bookingRequest={item.bookingRequest}
             isCurrentUser={isCurrentUser}
             onAction={handleBookingAction}
+            onEdit={(bookingRequest) => {
+              setEditingBookingRequest(bookingRequest);
+
+              // Parse the existing data safely
+              const now = new Date();
+              const currentHour = now.getHours();
+              const currentMinute = now.getMinutes();
+
+              let startDate = now.toISOString().split("T")[0];
+              let startTime = `${(currentHour + 1)
+                .toString()
+                .padStart(2, "0")}:${currentMinute
+                .toString()
+                .padStart(2, "0")}:00`;
+              let endTime = `${(currentHour + 2)
+                .toString()
+                .padStart(2, "0")}:${currentMinute
+                .toString()
+                .padStart(2, "0")}:00`;
+
+              try {
+                // Try to parse start date/time
+                if (bookingRequest.startTime) {
+                  const parts = bookingRequest.startTime.split("T");
+                  if (parts.length === 2) {
+                    startDate = parts[0];
+                    startTime = parts[1].slice(0, 8);
+                  }
+                } else if (bookingRequest.bookingDate) {
+                  startDate = bookingRequest.bookingDate.split("T")[0];
+                }
+
+                // Try to parse end time
+                if (bookingRequest.endTime) {
+                  const parts = bookingRequest.endTime.split("T");
+                  if (parts.length === 2) {
+                    endTime = parts[1].slice(0, 8);
+                  }
+                }
+              } catch (error) {
+                console.error("Error parsing booking request data:", error);
+              }
+
+              setBookingFormData({
+                bookingName: bookingRequest.bookingName || "",
+                bookingDate: startDate,
+                startTime: startTime,
+                endTime: endTime,
+              });
+              setShowBookingRequestModal(true);
+            }}
             senderAvatarUrl={item.senderAvatarUrl}
           />
         );
@@ -1013,8 +1312,20 @@ export default function MessageDetailScreen({ route, navigation }) {
 
       {/* Input bar */}
       <View style={styles.inputBar}>
-        <TouchableOpacity style={styles.inputButton}>
-          <Ionicons name="add-circle" size={28} color={colors.red} />
+        <TouchableOpacity
+          style={styles.inputButton}
+          onPress={() => {
+            setEditingBookingRequest(null);
+            setBookingFormData({
+              bookingName: "",
+              bookingDate: new Date().toISOString().split("T")[0],
+              startTime: "09:00:00",
+              endTime: "10:00:00",
+            });
+            setShowBookingRequestModal(true);
+          }}
+        >
+          <Ionicons name="calendar" size={28} color={colors.red} />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -1288,6 +1599,342 @@ export default function MessageDetailScreen({ route, navigation }) {
     </Modal>
   );
 
+  // Booking request modal
+  const renderBookingRequestModal = () => (
+    <Modal
+      visible={showBookingRequestModal}
+      transparent
+      animationType="fade"
+      onRequestClose={() => {
+        setShowBookingRequestModal(false);
+        setEditingBookingRequest(null);
+      }}
+    >
+      <View style={styles.bookingModalOverlay}>
+        <View style={styles.bookingRequestSheet}>
+          <View style={styles.bookingRequestHeader}>
+            <Text style={styles.bookingRequestTitle}>
+              {editingBookingRequest
+                ? "Edit Booking Request"
+                : "Create Booking Request"}
+            </Text>
+            <TouchableOpacity
+              onPress={() => {
+                setShowBookingRequestModal(false);
+                setEditingBookingRequest(null);
+              }}
+            >
+              <Ionicons name="close" size={24} color="#111827" />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.bookingRequestForm}>
+            {/* Booking Name */}
+            <View style={styles.formGroup}>
+              <Text style={styles.formLabel}>Booking Name</Text>
+              <TextInput
+                style={styles.formInput}
+                placeholder="Enter booking name"
+                value={bookingFormData.bookingName}
+                onChangeText={(text) =>
+                  setBookingFormData((prev) => ({ ...prev, bookingName: text }))
+                }
+              />
+            </View>
+
+            {/* Booking Date */}
+            <View style={styles.formGroup}>
+              <Text style={styles.formLabel}>Date</Text>
+              <TouchableOpacity
+                style={styles.formInputTouchable}
+                onPress={() => setShowDatePicker(true)}
+              >
+                <Ionicons name="calendar-outline" size={20} color="#6B7280" />
+                <Text style={styles.formInputText}>
+                  {bookingFormData.bookingDate}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Start Time */}
+            <View style={styles.formGroup}>
+              <Text style={styles.formLabel}>Start Time</Text>
+              <TouchableOpacity
+                style={styles.formInputTouchable}
+                onPress={() => setShowStartTimePicker(true)}
+              >
+                <Ionicons name="time-outline" size={20} color="#6B7280" />
+                <Text style={styles.formInputText}>
+                  {bookingFormData.startTime}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* End Time */}
+            <View style={styles.formGroup}>
+              <Text style={styles.formLabel}>End Time</Text>
+              <TouchableOpacity
+                style={styles.formInputTouchable}
+                onPress={() => setShowEndTimePicker(true)}
+              >
+                <Ionicons name="time-outline" size={20} color="#6B7280" />
+                <Text style={styles.formInputText}>
+                  {bookingFormData.endTime}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Submit Button */}
+            <TouchableOpacity
+              style={styles.submitButton}
+              onPress={
+                editingBookingRequest
+                  ? handleEditBookingRequest
+                  : handleSendBookingRequest
+              }
+              disabled={sending}
+            >
+              {sending ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Text style={styles.submitButtonText}>
+                  {editingBookingRequest ? "Update Request" : "Send Request"}
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+
+      {/* Date Picker Modal */}
+      <DateTimePickerModal
+        isVisible={showDatePicker}
+        mode="date"
+        onConfirm={(selectedDate) => {
+          setShowDatePicker(false);
+          if (selectedDate) {
+            const formatted = selectedDate.toISOString().split("T")[0];
+            const today = new Date().toISOString().split("T")[0];
+            const isToday = formatted === today;
+
+            // If selecting today, ensure times are not in the past
+            if (isToday) {
+              const now = new Date();
+              const currentHour = now.getHours();
+              const currentMinute = now.getMinutes();
+
+              // Set start time to at least current time + 1 hour
+              const minStartHour = currentHour + 1;
+              const startTime = `${minStartHour
+                .toString()
+                .padStart(2, "0")}:${currentMinute
+                .toString()
+                .padStart(2, "0")}:00`;
+              const endTime = `${(minStartHour + 1)
+                .toString()
+                .padStart(2, "0")}:${currentMinute
+                .toString()
+                .padStart(2, "0")}:00`;
+
+              setBookingFormData((prev) => ({
+                ...prev,
+                bookingDate: formatted,
+                startTime: startTime,
+                endTime: endTime,
+              }));
+            } else {
+              setBookingFormData((prev) => ({
+                ...prev,
+                bookingDate: formatted,
+              }));
+            }
+          }
+        }}
+        onCancel={() => setShowDatePicker(false)}
+        date={(() => {
+          try {
+            if (bookingFormData.bookingDate) {
+              // Ensure date is in YYYY-MM-DD format
+              const dateStr = bookingFormData.bookingDate.split("T")[0];
+              const [year, month, day] = dateStr.split("-").map(Number);
+              // JavaScript months are 0-indexed
+              return new Date(year, month - 1, day);
+            }
+          } catch (error) {
+            console.error("Error parsing date:", error);
+          }
+          return new Date();
+        })()}
+        minimumDate={new Date()}
+        confirmTextIOS="Confirm"
+        cancelTextIOS="Cancel"
+        headerTextIOS="Select Date"
+        display="spinner"
+        isDarkModeEnabled={false}
+        buttonTextColorIOS={colors.red}
+      />
+
+      {/* Start Time Picker Modal */}
+      <DateTimePickerModal
+        isVisible={showStartTimePicker}
+        mode="time"
+        onConfirm={(selectedTime) => {
+          setShowStartTimePicker(false);
+          if (selectedTime) {
+            const selectedHours = selectedTime.getHours();
+            const selectedMinutes = selectedTime.getMinutes();
+
+            // Check if booking date is today
+            const today = new Date().toISOString().split("T")[0];
+            const isToday = bookingFormData.bookingDate === today;
+
+            if (isToday) {
+              const now = new Date();
+              const currentHours = now.getHours();
+              const currentMinutes = now.getMinutes();
+
+              // Calculate total minutes
+              const selectedTotalMinutes = selectedHours * 60 + selectedMinutes;
+              const currentTotalMinutes = currentHours * 60 + currentMinutes;
+
+              if (selectedTotalMinutes <= currentTotalMinutes) {
+                Alert.alert(
+                  "Invalid Time",
+                  "Start time must be in the future."
+                );
+                return;
+              }
+            }
+
+            const hours = selectedHours.toString().padStart(2, "0");
+            const minutes = selectedMinutes.toString().padStart(2, "0");
+            const newStartTime = `${hours}:${minutes}:00`;
+
+            // Auto-adjust end time to be at least 1 hour after start time
+            const endHours = (selectedHours + 1).toString().padStart(2, "0");
+            const endMinutes = selectedMinutes.toString().padStart(2, "0");
+            const newEndTime = `${endHours}:${endMinutes}:00`;
+
+            setBookingFormData((prev) => ({
+              ...prev,
+              startTime: newStartTime,
+              endTime: newEndTime,
+            }));
+          }
+        }}
+        onCancel={() => setShowStartTimePicker(false)}
+        date={(() => {
+          try {
+            const [hours, minutes] = bookingFormData.startTime.split(":");
+            const time = new Date();
+            const parsedHours = parseInt(hours, 10);
+            const parsedMinutes = parseInt(minutes, 10);
+
+            if (!isNaN(parsedHours) && !isNaN(parsedMinutes)) {
+              time.setHours(parsedHours, parsedMinutes, 0, 0);
+              return time;
+            }
+          } catch (error) {
+            console.error("Error parsing start time:", error);
+          }
+          return new Date();
+        })()}
+        minimumDate={(() => {
+          const today = new Date().toISOString().split("T")[0];
+          const isToday = bookingFormData.bookingDate === today;
+          if (isToday) {
+            return new Date();
+          }
+          return undefined;
+        })()}
+        confirmTextIOS="Confirm"
+        cancelTextIOS="Cancel"
+        headerTextIOS="Select Start Time"
+        display="spinner"
+        isDarkModeEnabled={false}
+        buttonTextColorIOS={colors.red}
+      />
+
+      {/* End Time Picker Modal */}
+      <DateTimePickerModal
+        isVisible={showEndTimePicker}
+        mode="time"
+        onConfirm={(selectedTime) => {
+          setShowEndTimePicker(false);
+          if (selectedTime) {
+            const selectedHours = selectedTime.getHours();
+            const selectedMinutes = selectedTime.getMinutes();
+
+            // Get start time
+            const [startHours, startMinutes] = bookingFormData.startTime
+              .split(":")
+              .map(Number);
+
+            // Calculate total minutes
+            const selectedTotalMinutes = selectedHours * 60 + selectedMinutes;
+            const startTotalMinutes = startHours * 60 + startMinutes;
+            const minEndTotalMinutes = startTotalMinutes + 60; // At least 1 hour after start
+
+            if (selectedTotalMinutes < minEndTotalMinutes) {
+              Alert.alert(
+                "Invalid Time",
+                "End time must be at least 1 hour after start time."
+              );
+              return;
+            }
+
+            const hours = selectedHours.toString().padStart(2, "0");
+            const minutes = selectedMinutes.toString().padStart(2, "0");
+
+            setBookingFormData((prev) => ({
+              ...prev,
+              endTime: `${hours}:${minutes}:00`,
+            }));
+          }
+        }}
+        onCancel={() => setShowEndTimePicker(false)}
+        date={(() => {
+          try {
+            const [hours, minutes] = bookingFormData.endTime.split(":");
+            const time = new Date();
+            const parsedHours = parseInt(hours, 10);
+            const parsedMinutes = parseInt(minutes, 10);
+
+            if (!isNaN(parsedHours) && !isNaN(parsedMinutes)) {
+              time.setHours(parsedHours, parsedMinutes, 0, 0);
+              return time;
+            }
+          } catch (error) {
+            console.error("Error parsing end time:", error);
+          }
+          return new Date();
+        })()}
+        minimumDate={(() => {
+          try {
+            // Set minimum to start time + 1 hour
+            const [startHours, startMinutes] = bookingFormData.startTime
+              .split(":")
+              .map(Number);
+            if (!isNaN(startHours) && !isNaN(startMinutes)) {
+              const minTime = new Date();
+              minTime.setHours(startHours + 1, startMinutes, 0, 0);
+              return minTime;
+            }
+          } catch (error) {
+            console.error("Error calculating minimum end time:", error);
+          }
+          return new Date();
+        })()}
+        confirmTextIOS="Confirm"
+        cancelTextIOS="Cancel"
+        headerTextIOS="Select End Time"
+        display="spinner"
+        isDarkModeEnabled={false}
+        buttonTextColorIOS={colors.red}
+      />
+    </Modal>
+  );
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
@@ -1345,6 +1992,7 @@ export default function MessageDetailScreen({ route, navigation }) {
       {renderImageViewer()}
       {renderMessageActions()}
       {renderReactionPicker()}
+      {renderBookingRequestModal()}
     </SafeAreaView>
   );
 }
@@ -1662,5 +2310,85 @@ const styles = StyleSheet.create({
   },
   reactionEmoji: {
     fontSize: 28,
+  },
+  bookingModalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+  },
+  bookingRequestSheet: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    width: "100%",
+    maxWidth: 400,
+    maxHeight: "80%",
+  },
+  bookingRequestHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F3F4F6",
+  },
+  bookingRequestTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#111827",
+  },
+  bookingRequestForm: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  formGroup: {
+    marginBottom: 20,
+  },
+  formLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#111827",
+    marginBottom: 8,
+  },
+  formInput: {
+    backgroundColor: "#F3F4F6",
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 15,
+    color: "#111827",
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+  },
+  formInputTouchable: {
+    backgroundColor: "#F3F4F6",
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+  },
+  formInputText: {
+    fontSize: 15,
+    color: "#111827",
+    marginLeft: 10,
+    flex: 1,
+  },
+  submitButton: {
+    backgroundColor: colors.red,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: "center",
+    marginTop: 10,
+    marginBottom: 20,
+  },
+  submitButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
