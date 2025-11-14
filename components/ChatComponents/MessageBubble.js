@@ -196,7 +196,16 @@ const MessageBubble = ({
             {/* Message info (time, status, edited) */}
             <View style={styles.messageInfo}>
               {status === "Edited" && (
-                <Text style={styles.editedText}>Edited • </Text>
+                <Text
+                  style={
+                    (styles.editedText,
+                    isCurrentUser
+                      ? styles.currentUserEditedText
+                      : styles.otherUserEditedText)
+                  }
+                >
+                  Edited •{" "}
+                </Text>
               )}
               <Text
                 style={[
@@ -389,6 +398,12 @@ const styles = StyleSheet.create({
   },
   otherUserTimeText: {
     color: "#9CA3AF",
+  },
+  currentUserEditedText: {
+    color: "rgba(255, 255, 255, 0.7)",
+  },
+  otherUserEditedText: {
+    color: "#6B7280",
   },
   statusIcon: {
     marginLeft: 4,

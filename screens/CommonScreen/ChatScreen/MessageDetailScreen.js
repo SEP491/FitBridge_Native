@@ -663,22 +663,38 @@ export default function MessageDetailScreen({ route, navigation }) {
       try {
         setSending(true);
         setInputText("");
+        const messageIdToUpdate = editingMessage.id;
         setEditingMessage(null);
 
         await messageService.updateMessage({
-          messageId: editingMessage.id,
+          messageId: messageIdToUpdate,
           conversationId: conversationId,
           newContent: messageContent,
         });
 
-        // Update local state
+        // Update local state in MessageDetailScreen
         setMessages((prev) =>
           prev.map((msg) =>
-            msg.id === editingMessage.id
+            msg.id === messageIdToUpdate
               ? { ...msg, content: messageContent, status: "Edited" }
               : msg
           )
         );
+
+        // Manually trigger MESSAGE_UPDATED event for current user to update MessageScreen
+        if (messagingService) {
+          const updatedMessageEvent = {
+            id: messageIdToUpdate,
+            conversationId: conversationId,
+            content: messageContent,
+            newContent: messageContent,
+            status: "Edited",
+          };
+          messagingService.triggerCallback(
+            CLIENT_METHODS.MESSAGE_UPDATED,
+            updatedMessageEvent
+          );
+        }
       } catch (error) {
         console.error("Error editing message:", error);
         setInputText(messageContent);
