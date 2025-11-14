@@ -385,6 +385,11 @@ export const MessagingStateProvider = ({ children }) => {
   const appState = useRef(AppState.currentState);
   const bypassAppStateChangeRef = useRef(state.bypassAppStateChange);
 
+  // Sync bypassAppStateChangeRef with state
+  useEffect(() => {
+    bypassAppStateChangeRef.current = state.bypassAppStateChange;
+  }, [state.bypassAppStateChange]);
+
   useEffect(() => {
     if (!state.messagingService) return;
 
@@ -424,8 +429,21 @@ export const MessagingStateProvider = ({ children }) => {
         );
         try {
           await state.messagingService.resumeConnection();
+          // Check connection status after resume
+          const status = state.messagingService.connectionStatus;
+          console.log("Connection status after resume:", status);
+          if (status.state === signalR.HubConnectionState.Connected) {
+            dispatch({
+              type: actionTypes.SET_CONNECTION_STATUS,
+              payload: "connected",
+            });
+          }
         } catch (error) {
           console.error("Error starting SignalR connection:", error);
+          dispatch({
+            type: actionTypes.SET_CONNECTION_STATUS,
+            payload: "disconnected",
+          });
         }
       }
 

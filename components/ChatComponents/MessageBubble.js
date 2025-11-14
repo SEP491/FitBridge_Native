@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Dimensions,
+  ActivityIndicator,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { formatDistanceToNow } from "date-fns";
@@ -17,6 +18,7 @@ const MessageBubble = ({ message, isCurrentUser, onImagePress, onReply }) => {
     content,
     createdAt,
     mediaType,
+    mediaUrl,
     messageType,
     status,
     reaction,
@@ -25,6 +27,7 @@ const MessageBubble = ({ message, isCurrentUser, onImagePress, onReply }) => {
     replyToMessageContent,
     replyToMessageMediaType,
     deliveryStatus,
+    isUploading,
   } = message;
 
   // Format time
@@ -98,14 +101,27 @@ const MessageBubble = ({ message, isCurrentUser, onImagePress, onReply }) => {
           {/* Image message */}
           {mediaType === "Image" && (
             <TouchableOpacity
-              onPress={() => onImagePress && onImagePress(content)}
+              onPress={() =>
+                !isUploading &&
+                onImagePress &&
+                onImagePress(mediaUrl || content)
+              }
               activeOpacity={0.9}
+              disabled={isUploading}
             >
-              <Image
-                source={{ uri: content }}
-                style={styles.messageImage}
-                resizeMode="cover"
-              />
+              <View style={styles.imageContainer}>
+                <Image
+                  source={{ uri: mediaUrl || content }}
+                  style={styles.messageImage}
+                  resizeMode="cover"
+                />
+                {isUploading && (
+                  <View style={styles.uploadingOverlay}>
+                    <ActivityIndicator size="large" color="#FFFFFF" />
+                    <Text style={styles.uploadingText}>Uploading...</Text>
+                  </View>
+                )}
+              </View>
             </TouchableOpacity>
           )}
 
@@ -245,11 +261,31 @@ const styles = StyleSheet.create({
     backgroundColor: "#F3F4F6",
     borderBottomLeftRadius: 4,
   },
+  imageContainer: {
+    position: "relative",
+  },
   messageImage: {
     width: width * 0.6,
     height: width * 0.6,
     borderRadius: 8,
     marginBottom: 4,
+  },
+  uploadingOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 4,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    borderRadius: 8,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  uploadingText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "600",
+    marginTop: 8,
   },
   messageText: {
     fontSize: 15,

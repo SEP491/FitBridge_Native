@@ -13,7 +13,10 @@ import {
   Image,
   Modal,
   ActivityIndicator,
+  Alert,
+  Linking,
 } from "react-native";
+import * as ImagePicker from "expo-image-picker";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {
   MessageBubble,
@@ -21,6 +24,7 @@ import {
 } from "../../../components/ChatComponents";
 import colors from "../../../constants/color";
 import messageService from "../../../services/messageService";
+import uploadImageService from "../../../services/uploadImageService";
 import { useMessagingState } from "../../../context/messagingStateContext";
 import {
   CLIENT_METHODS,
@@ -51,7 +55,8 @@ export default function MessageDetailScreen({ route, navigation }) {
   const typingTimeoutRef = useRef(null);
 
   // Get messaging state context
-  const { messagingService, connectionStatus } = useMessagingState();
+  const { messagingService, connectionStatus, setBypassAppStateChange } =
+    useMessagingState();
 
   const isConnected = connectionStatus === "connected";
 
@@ -109,15 +114,10 @@ export default function MessageDetailScreen({ route, navigation }) {
       return;
     }
 
-    if (!isConnected) {
-      console.log(
-        "MessageDetailScreen: Not connected yet, connectionStatus:",
-        connectionStatus
-      );
-      return;
-    }
-
-    console.log("MessageDetailScreen: Setting up event listeners");
+    console.log("MessageDetailScreen: Setting up event listeners", {
+      conversationId,
+      connectionStatus,
+    });
 
     // Handle new message received
     const handleMessageReceived = (message) => {
@@ -301,7 +301,7 @@ export default function MessageDetailScreen({ route, navigation }) {
         clearTimeout(typingTimeoutRef.current);
       }
     };
-  }, [isConnected, conversationId, messagingService, currentUserId]);
+  }, [conversationId, messagingService, currentUserId]);
 
   // Fetch messages on mount
   useEffect(() => {
@@ -459,6 +459,157 @@ export default function MessageDetailScreen({ route, navigation }) {
     },
     [isConnected, conversationId, messagingService]
   );
+
+  // Handle image picker with temporary message approach
+  const handlePickImage = useCallback(async () => {
+    let tempMessageId = null;
+    try {
+      // Set bypass flag before opening picker
+      if (setBypassAppStateChange) {
+        setBypassAppStateChange(true);
+      }
+
+      const permissionResult =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (permissionResult.granted === false) {
+        Alert.alert(
+          "Permission Required",
+          "Permission to access gallery is required to send images.",
+          [
+            { text: "Cancel", style: "cancel" },
+            {
+              text: "Open Settings",
+              onPress: () => {
+                if (Platform.OS === "ios") {
+                  Linking.openURL("app-settings:");
+                } else {
+                  Linking.openSettings();
+                }
+              },
+            },
+          ]
+        );
+        if (setBypassAppStateChange) {
+          setBypassAppStateChange(false);
+        }
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: false,
+        quality: 0.8,
+      });
+
+      // Reset bypass flag after picker closes
+      if (setBypassAppStateChange) {
+        setBypassAppStateChange(false);
+      }
+
+      if (result.canceled || !result.assets || !result.assets[0]) {
+        return;
+      }
+
+      const asset = result.assets[0];
+      console.log("Picked image:", {
+        uri: asset.uri,
+        width: asset.width,
+        height: asset.height,
+        fileSize: asset.fileSize,
+      });
+
+      // Create temporary message ID
+      tempMessageId = `temp_${Date.now()}`;
+
+      // Add temporary message to show immediately with loading state
+      const tempMessage = {
+        id: tempMessageId,
+        conversationId: conversationId,
+        senderId: currentUserId,
+        senderName: "You",
+        content: asset.uri, // Local URI for display
+        mediaType: "Image",
+        mediaUrl: asset.uri, // Use local URI initially
+        messageType: "User",
+        createdAt: new Date().toISOString(),
+        isUploading: true, // Flag to show loading indicator
+      };
+
+      setMessages((prev) => [tempMessage, ...prev]);
+
+      // Build FormData for upload
+      const fileName =
+        asset.fileName ||
+        asset.uri.split("/").pop() ||
+        `upload_${Date.now()}.jpg`;
+      const fileExtension = fileName.split(".").pop()?.toLowerCase() || "jpg";
+
+      let mimeType = asset.mimeType || "image/jpeg";
+      if (!mimeType) {
+        if (fileExtension === "png") {
+          mimeType = "image/png";
+        } else if (fileExtension === "jpg" || fileExtension === "jpeg") {
+          mimeType = "image/jpeg";
+        } else if (fileExtension === "gif") {
+          mimeType = "image/gif";
+        } else if (fileExtension === "webp") {
+          mimeType = "image/webp";
+        }
+      }
+
+      const formData = new FormData();
+      formData.append("file", {
+        uri:
+          Platform.OS === "ios" ? asset.uri.replace("file://", "") : asset.uri,
+        name: fileName,
+        type: mimeType,
+      });
+
+      // Upload image
+      console.log("Uploading image...");
+      const uploadResponse = await uploadImageService.uploadImage(formData);
+      console.log("Upload response:", uploadResponse);
+
+      if (uploadResponse.status !== "200" || !uploadResponse.data) {
+        throw new Error("Failed to upload image");
+      }
+
+      const uploadedUrl = uploadResponse.data;
+
+      // Send message with uploaded URL
+      console.log("Sending image message with URL:", uploadedUrl);
+      const messageData = {
+        conversationId,
+        content: uploadedUrl, // Use uploaded URL as content
+        mediaType: "Image",
+        mediaUrl: uploadedUrl, // Also set mediaUrl
+        replyToMessageId: replyingTo?.id || null,
+      };
+
+      await messageService.sendMessage(messageData);
+
+      // Remove temporary message - real message will come via SignalR
+      setMessages((prev) => prev.filter((m) => m.id !== tempMessageId));
+
+      console.log("Image sent successfully");
+    } catch (error) {
+      console.error("Error sending image:", error);
+
+      // Remove temporary message on error
+      if (tempMessageId) {
+        setMessages((prev) => prev.filter((m) => m.id !== tempMessageId));
+      }
+
+      Alert.alert("Error", "Failed to send image. Please try again.", [
+        { text: "OK" },
+      ]);
+    } finally {
+      if (setBypassAppStateChange) {
+        setBypassAppStateChange(false);
+      }
+    }
+  }, [setBypassAppStateChange, conversationId, currentUserId, replyingTo]);
 
   // Handle send message
   const handleSend = useCallback(async () => {
@@ -682,7 +833,11 @@ export default function MessageDetailScreen({ route, navigation }) {
           <Ionicons name="add-circle" size={28} color={colors.red} />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.inputButton}>
+        <TouchableOpacity
+          style={styles.inputButton}
+          onPress={handlePickImage}
+          disabled={sending}
+        >
           <Ionicons name="image" size={24} color={colors.red} />
         </TouchableOpacity>
 

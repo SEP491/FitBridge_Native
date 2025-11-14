@@ -180,15 +180,9 @@ export default function MessageScreen({ navigation }) {
       return;
     }
 
-    if (!isConnected) {
-      console.log(
-        "MessageScreen: Not connected yet, connectionStatus:",
-        connectionStatus
-      );
-      return;
-    }
-
-    console.log("MessageScreen: Setting up event listeners");
+    console.log("MessageScreen: Setting up event listeners", {
+      connectionStatus,
+    });
 
     // Handle new message received
     const handleMessageReceived = (message) => {
@@ -269,7 +263,7 @@ export default function MessageScreen({ navigation }) {
         handleReconnecting
       );
     };
-  }, [isConnected, messagingService, currentUserId, findAndUpdateConversation]);
+  }, [messagingService, currentUserId, findAndUpdateConversation]);
 
   // Fetch conversations from API
   const fetchConversations = useCallback(

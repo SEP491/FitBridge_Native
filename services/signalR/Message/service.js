@@ -109,7 +109,7 @@ class SignalRService {
       // Build connection with authentication
       // Use a factory function that retrieves fresh token each time
       const token =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxMjZlYzNkNC00ZDM0LTQ1ZjItYmJmNy05OGI5YTNkZmMzMWMiLCJ1bmlxdWVfbmFtZSI6ImpvaG4iLCJyb2xlIjoiQ3VzdG9tZXIiLCJBdmF0YXJVcmwiOiJodHRwczovL3N0YXRpYy53aWtpYS5ub2Nvb2tpZS5uZXQvZ29rdXJha3VnYWkvaW1hZ2VzLzAvMGEvVGFvX1Nhb3RvbWVfUG9ydHJhaXQucG5nL3JldmlzaW9uL2xhdGVzdD9jYj0yMDI0MDYwODAzMTE0MCIsIm5iZiI6MTc2MzA4MjkxMiwiZXhwIjoxNzYzMDg2NTEyLCJpYXQiOjE3NjMwODI5MTJ9.BFz_dcsyNVGozs2Ghc97SLN5-70yXp5OzUSSbLJEOK8";
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxMjZlYzNkNC00ZDM0LTQ1ZjItYmJmNy05OGI5YTNkZmMzMWMiLCJ1bmlxdWVfbmFtZSI6ImpvaG4iLCJyb2xlIjoiQ3VzdG9tZXIiLCJBdmF0YXJVcmwiOiJodHRwczovL3N0YXRpYy53aWtpYS5ub2Nvb2tpZS5uZXQvZ29rdXJha3VnYWkvaW1hZ2VzLzAvMGEvVGFvX1Nhb3RvbWVfUG9ydHJhaXQucG5nL3JldmlzaW9uL2xhdGVzdD9jYj0yMDI0MDYwODAzMTE0MCIsIm5iZiI6MTc2MzEwNjI2MCwiZXhwIjoxNzYzMTA5ODYwLCJpYXQiOjE3NjMxMDYyNjB9.wwv2VX47-42HuvZccWEn2ePSXDhirQKIu7kR9265EOI";
       console.log("token", token);
       this.#connection = new HubConnectionBuilder()
         .withUrl(this.#url, {
@@ -278,16 +278,19 @@ class SignalRService {
     console.log("SignalR: resumeConnection() called");
     this.#checkDisposed();
     if (this.#checkConnectionConnected("resumeConnection")) {
+      console.log("SignalR: Already connected, no need to resume");
       return;
     }
 
     try {
       console.log("SignalR: Resuming connection");
-      await this.#connection.start();
       this.triggerCallback("onReconnecting");
-      console.log("SignalR: Connection resumed");
+      await this.#connection.start();
+      console.log("SignalR: Connection resumed successfully");
+      this.triggerCallback("onReconnected", this.#connection.connectionId);
     } catch (error) {
       console.error("SignalR: Error resuming connection", error);
+      this.triggerCallback("onDisconnected", error);
       throw error;
     }
   }
