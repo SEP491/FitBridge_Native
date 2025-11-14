@@ -846,9 +846,24 @@ export default function MessageDetailScreen({ route, navigation }) {
           onPress: async () => {
             try {
               setShowMessageActions(false);
+              const messageId = selectedMessage.id;
               setSelectedMessage(null);
-              await messageService.deleteMessage(selectedMessage.id);
-              // Let SignalR MESSAGE_UPDATED event handle the UI update
+
+              await messageService.deleteMessage(messageId);
+
+              // Update local state immediately for current user
+              setMessages((prev) =>
+                prev.map((msg) =>
+                  msg.id === messageId
+                    ? {
+                        ...msg,
+                        content: "This message was deleted",
+                        isDeleted: true,
+                        status: "Deleted",
+                      }
+                    : msg
+                )
+              );
             } catch (error) {
               console.error("Error deleting message:", error);
               Alert.alert(

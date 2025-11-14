@@ -126,13 +126,15 @@ const MessageBubble = ({
             ]}
           >
             {/* Image message */}
-            {mediaType === "Image" && (
+            {mediaType === "Image" && !isDeleted && (
               <TouchableOpacity
                 onPress={() =>
                   !isUploading &&
                   onImagePress &&
                   onImagePress(mediaUrl || content)
                 }
+                onLongPress={handleLongPress}
+                delayLongPress={500}
                 activeOpacity={0.9}
                 disabled={isUploading}
               >
@@ -152,24 +154,38 @@ const MessageBubble = ({
               </TouchableOpacity>
             )}
 
-            {/* Text message */}
-            {mediaType === "Text" && (
-              <View style={isDeleted && styles.deletedMessageContainer}>
-                {isDeleted && (
-                  <Ionicons
-                    name="ban-outline"
-                    size={16}
-                    color="#9CA3AF"
-                    style={styles.deletedIcon}
-                  />
-                )}
+            {/* Deleted message (for both text and image) */}
+            {isDeleted && (
+              <View style={styles.deletedMessageContainer}>
+                <Ionicons
+                  name="ban-outline"
+                  size={16}
+                  color="#9CA3AF"
+                  style={styles.deletedIcon}
+                />
                 <Text
                   style={[
                     styles.messageText,
                     isCurrentUser
                       ? styles.currentUserText
                       : styles.otherUserText,
-                    isDeleted && styles.deletedText,
+                    styles.deletedText,
+                  ]}
+                >
+                  This message was deleted
+                </Text>
+              </View>
+            )}
+
+            {/* Text message */}
+            {mediaType === "Text" && !isDeleted && (
+              <View>
+                <Text
+                  style={[
+                    styles.messageText,
+                    isCurrentUser
+                      ? styles.currentUserText
+                      : styles.otherUserText,
                   ]}
                 >
                   {content}
@@ -369,7 +385,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   currentUserTimeText: {
-    color: "rgba(255, 255, 255, 0.8)",
+    color: "#9CA3AF",
   },
   otherUserTimeText: {
     color: "#9CA3AF",
