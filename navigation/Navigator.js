@@ -629,14 +629,7 @@ export default function Navigator({
           name="MessageScreen"
           component={MessageScreen}
           options={{
-            headerShown: true,
-            title: t("screenTitles.message"),
-            headerTitleAlign: "center",
-            headerTitleStyle: {
-              fontWeight: "bold",
-              fontSize: 20,
-              color: "#ED2A46",
-            },
+            headerShown: false,
           }}
         />
         <Stack.Screen
@@ -644,13 +637,6 @@ export default function Navigator({
           component={MessageDetailScreen}
           options={{
             headerShown: false,
-            title: t("screenTitles.message"),
-            headerTitleAlign: "center",
-            headerTitleStyle: {
-              fontWeight: "bold",
-              fontSize: 20,
-              color: "#ED2A46",
-            },
           }}
         />
 
@@ -1042,7 +1028,7 @@ export default function Navigator({
           headerTintColor: "#ED2A46",
         })}
       >
-        <Stack.Screen
+        {/* <Stack.Screen
           name="FreelancePTChatScreen"
           component={FreelancePTChatScreen}
           options={{
@@ -1054,6 +1040,20 @@ export default function Navigator({
               fontSize: 20,
               color: "#ED2A46",
             },
+          }}
+        /> */}
+        <Stack.Screen
+          name="MessageScreen"
+          component={MessageScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="MessageDetailScreen"
+          component={MessageDetailScreen}
+          options={{
+            headerShown: false,
           }}
         />
         <Stack.Screen

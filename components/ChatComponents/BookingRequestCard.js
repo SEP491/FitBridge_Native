@@ -288,23 +288,40 @@ const BookingRequestCard = ({
           </View>
 
           {/* Action Buttons (for received requests) */}
-          {!isCurrentUser && requestStatus === "Pending" && onAction && (
-            <View style={styles.actionButtons}>
-              <TouchableOpacity
-                style={[styles.actionButton, styles.rejectButton]}
-                onPress={() => onAction(bookingRequestId, "reject")}
-              >
-                <Ionicons name="close" size={18} color="#EF4444" />
-                <Text style={styles.rejectButtonText}>Reject</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.actionButton, styles.approveButton]}
-                onPress={() => onAction(bookingRequestId, "approve")}
-              >
-                <Ionicons name="checkmark" size={18} color="#FFFFFF" />
-                <Text style={styles.approveButtonText}>Approve</Text>
-              </TouchableOpacity>
-            </View>
+          {!isCurrentUser && requestStatus === "Pending" && (
+            <>
+              {onEdit && (
+                <View style={styles.actionButtons}>
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.editButtonReceived]}
+                    onPress={() => onEdit(bookingRequest)}
+                  >
+                    <Ionicons name="create-outline" size={18} color="#3B82F6" />
+                    <Text style={styles.editButtonReceivedText}>
+                      Edit Request
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+              {onAction && (
+                <View style={styles.actionButtons}>
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.rejectButton]}
+                    onPress={() => onAction(bookingRequestId, "reject")}
+                  >
+                    <Ionicons name="close" size={18} color="#EF4444" />
+                    <Text style={styles.rejectButtonText}>Reject</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.approveButton]}
+                    onPress={() => onAction(bookingRequestId, "approve")}
+                  >
+                    <Ionicons name="checkmark" size={18} color="#FFFFFF" />
+                    <Text style={styles.approveButtonText}>Approve</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </>
           )}
 
           {/* Edit Button (for sent pending requests) */}
@@ -484,6 +501,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.3)",
   },
+  editButtonFull: {
+    flex: 1,
+  },
+  editButtonReceived: {
+    backgroundColor: "#EFF6FF",
+    borderWidth: 1,
+    borderColor: "#DBEAFE",
+    flex: 1,
+  },
   rejectButtonText: {
     color: "#EF4444",
     fontSize: 14,
@@ -496,6 +522,11 @@ const styles = StyleSheet.create({
   },
   editButtonText: {
     color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  editButtonReceivedText: {
+    color: "#3B82F6",
     fontSize: 14,
     fontWeight: "600",
   },

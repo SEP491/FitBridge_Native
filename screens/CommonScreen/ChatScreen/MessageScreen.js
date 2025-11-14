@@ -481,7 +481,7 @@ export default function MessageScreen({ navigation }) {
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
       {/* Connection status banner */}
@@ -562,7 +562,7 @@ export default function MessageScreen({ navigation }) {
       >
         <Ionicons name="create-outline" size={24} color="#FFFFFF" />
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 }
 
