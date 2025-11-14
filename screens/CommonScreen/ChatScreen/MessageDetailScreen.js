@@ -154,18 +154,6 @@ export default function MessageDetailScreen({ route, navigation }) {
 
       // Only add message if it belongs to this conversation
       if (message.conversationId === conversationId) {
-        // Check if this is a system message about booking request update
-        if (
-          message.messageType === "System" &&
-          message.content &&
-          message.content.includes("edited the booking request")
-        ) {
-          console.log("Booking request updated, refetching messages...");
-          // Refetch messages to get the updated booking request
-          fetchMessages(1, true);
-          return; // Don't add the system message to the list
-        }
-
         setMessages((prev) => {
           // Check if message already exists
           const exists = prev.some((m) => m.id === message.id);
@@ -1089,7 +1077,7 @@ export default function MessageDetailScreen({ route, navigation }) {
       setShowBookingRequestModal(false);
 
       await messageService.updateBookingRequest({
-        id: editingBookingRequest.bookingRequestId || editingBookingRequest.id,
+        id: editingBookingRequest.bookingRequestId,
         requestBookingDto: {
           bookingName: bookingFormData.bookingName,
           bookingDate: bookingFormData.bookingDate,
@@ -1098,8 +1086,29 @@ export default function MessageDetailScreen({ route, navigation }) {
         },
       });
 
-      // Refetch messages to get the updated booking request
-      await fetchMessages(1, true);
+      // Update the message with the updated booking request from form data
+      setMessages((prev) =>
+        prev.map((msg) => {
+          if (
+            msg.bookingRequest?.bookingRequestId ===
+            editingBookingRequest.bookingRequestId
+          ) {
+            return {
+              ...msg,
+              bookingRequest: {
+                ...msg.bookingRequest,
+                bookingName: bookingFormData.bookingName,
+                bookingDate: bookingFormData.bookingDate,
+                startTime: bookingFormData.startTime,
+                endTime: bookingFormData.endTime,
+                ptFreelanceStartTime: bookingFormData.startTime,
+                ptFreelanceEndTime: bookingFormData.endTime,
+              },
+            };
+          }
+          return msg;
+        })
+      );
 
       // Reset form and editing state with current time
       setEditingBookingRequest(null);
