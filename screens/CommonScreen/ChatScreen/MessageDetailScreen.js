@@ -78,6 +78,7 @@ export default function MessageDetailScreen({ route, navigation }) {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showStartTimePicker, setShowStartTimePicker] = useState(false);
   const [showEndTimePicker, setShowEndTimePicker] = useState(false);
+  const [userPresence, setUserPresence] = useState(null);
 
   const flatListRef = useRef(null);
   const currentUserId = "126ec3d4-4d34-45f2-bbf7-98b9a3dfc31c";
@@ -272,6 +273,15 @@ export default function MessageDetailScreen({ route, navigation }) {
       fetchMessages(1, true);
     };
 
+    // Handle user presence update
+    const handleUserPresenceUpdate = (presenceData) => {
+      console.log("MessageDetailScreen: User presence update", presenceData);
+      // Only update if it's not the current user
+      if (presenceData.id !== currentUserId) {
+        setUserPresence(presenceData);
+      }
+    };
+
     // Subscribe to events using the functional API
     messagingService.onEvent(
       CLIENT_METHODS.MESSAGE_RECEIVED,
@@ -293,6 +303,10 @@ export default function MessageDetailScreen({ route, navigation }) {
     messagingService.onEvent(
       CLIENT_METHODS.REACTION_REMOVED,
       handleReactionRemoved
+    );
+    messagingService.onEvent(
+      CLIENT_METHODS.USER_PRESENCE_UPDATE,
+      handleUserPresenceUpdate
     );
     messagingService.onEvent(
       LIFECYCLE_METHODS.ON_RECONNECTING,
@@ -321,6 +335,10 @@ export default function MessageDetailScreen({ route, navigation }) {
       messagingService.offEvent(
         CLIENT_METHODS.REACTION_REMOVED,
         handleReactionRemoved
+      );
+      messagingService.offEvent(
+        CLIENT_METHODS.USER_PRESENCE_UPDATE,
+        handleUserPresenceUpdate
       );
       messagingService.offEvent(
         LIFECYCLE_METHODS.ON_RECONNECTING,
@@ -1262,9 +1280,9 @@ export default function MessageDetailScreen({ route, navigation }) {
   const renderHeader = () => {
     const getSubtitleColor = () => {
       if (typingStatus?.isTyping) return "#6B7280";
-      if (connectionStatus === "connected") return "#10B981";
+      if (userPresence?.isOnline) return "#10B981";
       if (connectionStatus === "reconnecting") return "#F59E0B";
-      return "#EF4444";
+      return "#9CA3AF";
     };
 
     return (
@@ -1284,17 +1302,31 @@ export default function MessageDetailScreen({ route, navigation }) {
           />
           <View style={styles.headerTextContainer}>
             <Text style={styles.headerTitle}>{conversationTitle}</Text>
-            <Text
-              style={[styles.headerSubtitle, { color: getSubtitleColor() }]}
-            >
-              {typingStatus?.isTyping
-                ? "Typing..."
-                : connectionStatus === "connected"
-                ? "Active now"
-                : connectionStatus === "reconnecting"
-                ? "Reconnecting..."
-                : "Offline"}
-            </Text>
+            <View style={styles.headerSubtitleRow}>
+              {!typingStatus?.isTyping && (
+                <View
+                  style={[
+                    styles.statusDot,
+                    {
+                      backgroundColor: userPresence?.isOnline
+                        ? "#10B981"
+                        : "#9CA3AF",
+                    },
+                  ]}
+                />
+              )}
+              <Text
+                style={[styles.headerSubtitle, { color: getSubtitleColor() }]}
+              >
+                {typingStatus?.isTyping
+                  ? "Typing..."
+                  : userPresence?.isOnline
+                  ? "Online"
+                  : connectionStatus === "reconnecting"
+                  ? "Reconnecting..."
+                  : "Offline"}
+              </Text>
+            </View>
           </View>
         </TouchableOpacity>
 
@@ -2094,6 +2126,17 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#10B981",
     marginTop: 2,
+  },
+  headerSubtitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 2,
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 6,
   },
   headerButton: {
     padding: 8,

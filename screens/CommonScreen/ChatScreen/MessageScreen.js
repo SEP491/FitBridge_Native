@@ -27,6 +27,7 @@ export default function MessageScreen({ navigation }) {
   const [refreshing, setRefreshing] = useState(false);
   const [pageNumber, setPageNumber] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [userPresences, setUserPresences] = useState({});
   const currentUserId = "126ec3d4-4d34-45f2-bbf7-98b9a3dfc31c";
 
   // Get messaging state context
@@ -264,6 +265,15 @@ export default function MessageScreen({ navigation }) {
       fetchConversations(true);
     };
 
+    // Handle user presence update
+    const handleUserPresenceUpdate = (presenceData) => {
+      console.log("MessageScreen: User presence update", presenceData);
+      setUserPresences((prev) => ({
+        ...prev,
+        [presenceData.id]: presenceData.isOnline,
+      }));
+    };
+
     // Subscribe to events using the functional API
     messagingService.onEvent(
       CLIENT_METHODS.MESSAGE_RECEIVED,
@@ -272,6 +282,10 @@ export default function MessageScreen({ navigation }) {
     messagingService.onEvent(
       CLIENT_METHODS.MESSAGE_UPDATED,
       handleMessageUpdated
+    );
+    messagingService.onEvent(
+      CLIENT_METHODS.USER_PRESENCE_UPDATE,
+      handleUserPresenceUpdate
     );
     messagingService.onEvent(
       LIFECYCLE_METHODS.ON_RECONNECTING,
@@ -287,6 +301,10 @@ export default function MessageScreen({ navigation }) {
       messagingService.offEvent(
         CLIENT_METHODS.MESSAGE_UPDATED,
         handleMessageUpdated
+      );
+      messagingService.offEvent(
+        CLIENT_METHODS.USER_PRESENCE_UPDATE,
+        handleUserPresenceUpdate
       );
       messagingService.offEvent(
         LIFECYCLE_METHODS.ON_RECONNECTING,
@@ -527,6 +545,7 @@ export default function MessageScreen({ navigation }) {
             conversation={item}
             onPress={handleConversationPress}
             currentUserId={currentUserId}
+            userPresences={userPresences}
           />
         )}
         keyExtractor={(item, index) => item.id || `conversation-${index}`}

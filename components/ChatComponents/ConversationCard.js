@@ -3,7 +3,12 @@ import { View, Text, TouchableOpacity, Image, StyleSheet } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { formatDistanceToNow } from "date-fns";
 
-const ConversationCard = ({ conversation, onPress, currentUserId }) => {
+const ConversationCard = ({
+  conversation,
+  onPress,
+  currentUserId,
+  userPresences = {},
+}) => {
   const {
     id,
     isGroup,
@@ -18,6 +23,23 @@ const ConversationCard = ({ conversation, onPress, currentUserId }) => {
     conversationImg,
     members,
   } = conversation;
+
+  // Get other user ID (for non-group chats)
+  const getOtherUserId = () => {
+    if (isGroup || !members || members.length !== 2) return null;
+    const otherMember = members.find((m) => {
+      // Handle if member is an object with userId or id property
+      const memberId = typeof m === "string" ? m : m.userId || m.id;
+      return memberId !== currentUserId;
+    });
+    // Return the userId or id from the member object
+    return typeof otherMember === "string"
+      ? otherMember
+      : otherMember?.userId || otherMember?.id;
+  };
+
+  const otherUserId = getOtherUserId();
+  const isOnline = otherUserId ? userPresences[otherUserId] : false;
 
   // Format the last message time
   const formatTime = (dateString) => {
@@ -69,6 +91,7 @@ const ConversationCard = ({ conversation, onPress, currentUserId }) => {
           resizeMode="cover"
         />
         {!isRead && <View style={styles.unreadBadge} />}
+        {!isGroup && isOnline && <View style={styles.onlineIndicator} />}
       </View>
 
       {/* Content */}
@@ -130,6 +153,17 @@ const styles = StyleSheet.create({
     height: 14,
     borderRadius: 7,
     backgroundColor: "#ED2A46",
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
+  },
+  onlineIndicator: {
+    position: "absolute",
+    bottom: 2,
+    right: 2,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: "#10B981",
     borderWidth: 2,
     borderColor: "#FFFFFF",
   },
