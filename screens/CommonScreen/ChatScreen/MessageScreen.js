@@ -88,13 +88,20 @@ export default function MessageScreen({ navigation }) {
               conv.id === conversationId ||
               conv.id?.toString() === conversationId?.toString()
             ) {
+              const isDeleted =
+                message.status === "Deleted" || message.isDeleted;
               return {
                 ...conv,
-                lastMessageContent: message.content,
+                lastMessageContent: isDeleted
+                  ? "This message was deleted"
+                  : message.content,
                 lastMessageType: message.messageType,
                 lastMessageMediaType: message.mediaType,
                 lastMessageSenderName: message.senderName,
                 lastMessageSenderId: message.senderId,
+                lastMessageId: message.id,
+                lastMessageStatus: message.status,
+                lastMessageIsDeleted: isDeleted,
                 updatedAt: message.createdAt,
                 isRead: message.senderId === currentUserId,
               };
@@ -148,13 +155,20 @@ export default function MessageScreen({ navigation }) {
                 conv.id === conversationId ||
                 conv.id?.toString() === conversationId?.toString()
               ) {
+                const isDeleted =
+                  message.status === "Deleted" || message.isDeleted;
                 return {
                   ...conv,
-                  lastMessageContent: message.content,
+                  lastMessageContent: isDeleted
+                    ? "This message was deleted"
+                    : message.content,
                   lastMessageType: message.messageType,
                   lastMessageMediaType: message.mediaType,
                   lastMessageSenderName: message.senderName,
                   lastMessageSenderId: message.senderId,
+                  lastMessageId: message.id,
+                  lastMessageStatus: message.status,
+                  lastMessageIsDeleted: isDeleted,
                   updatedAt: message.createdAt,
                   isRead: message.senderId === currentUserId,
                 };
@@ -192,20 +206,34 @@ export default function MessageScreen({ navigation }) {
 
     // Handle message updated
     const handleMessageUpdated = (updatedMessage) => {
-      console.log("MessageScreen: Message updated");
+      console.log("MessageScreen: Message updated", updatedMessage);
 
-      // Update conversation if it's the last message
+      const isDeleted =
+        updatedMessage.status === "Deleted" || updatedMessage.isDeleted;
+      const updatedContent = isDeleted
+        ? "This message was deleted"
+        : updatedMessage.newContent || updatedMessage.content;
+
+      // Update conversation's last message content
       setConversations((prev) =>
         prev.map((conv) => {
-          if (
-            conv.id === updatedMessage.conversationId &&
-            conv.lastMessageId === updatedMessage.id
-          ) {
-            return {
-              ...conv,
-              lastMessageContent:
-                updatedMessage.content || updatedMessage.newContent,
-            };
+          // Match by conversationId and either lastMessageId or if it's the most recent
+          if (conv.id === updatedMessage.conversationId) {
+            // Update if lastMessageId matches, or if no lastMessageId is set
+            if (
+              !conv.lastMessageId ||
+              conv.lastMessageId === updatedMessage.id
+            ) {
+              console.log(
+                "MessageScreen: Updating conversation preview",
+                conv.id
+              );
+              return {
+                ...conv,
+                lastMessageContent: updatedContent,
+                lastMessageId: updatedMessage.id,
+              };
+            }
           }
           return conv;
         })
@@ -213,15 +241,17 @@ export default function MessageScreen({ navigation }) {
 
       setFilteredConversations((prev) =>
         prev.map((conv) => {
-          if (
-            conv.id === updatedMessage.conversationId &&
-            conv.lastMessageId === updatedMessage.id
-          ) {
-            return {
-              ...conv,
-              lastMessageContent:
-                updatedMessage.content || updatedMessage.newContent,
-            };
+          if (conv.id === updatedMessage.conversationId) {
+            if (
+              !conv.lastMessageId ||
+              conv.lastMessageId === updatedMessage.id
+            ) {
+              return {
+                ...conv,
+                lastMessageContent: updatedContent,
+                lastMessageId: updatedMessage.id,
+              };
+            }
           }
           return conv;
         })
@@ -279,7 +309,22 @@ export default function MessageScreen({ navigation }) {
         };
 
         const response = await messageService.getConversations(params); // Handle paginated response
-        const newConversations = response.items || response || [];
+        const fetchedConversations = response.items || response || [];
+
+        // Process conversations to handle deleted messages
+        const newConversations = fetchedConversations.map((conv) => {
+          // Check if the last message is deleted based on status or isDeleted flag
+          const isLastMessageDeleted =
+            conv.lastMessageStatus === "Deleted" || conv.lastMessageIsDeleted;
+
+          if (isLastMessageDeleted) {
+            return {
+              ...conv,
+              lastMessageContent: "This message was deleted",
+            };
+          }
+          return conv;
+        });
 
         if (isRefresh) {
           setConversations(newConversations);

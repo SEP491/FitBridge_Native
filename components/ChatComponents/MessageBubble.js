@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import {
   View,
   Text,
@@ -13,7 +13,15 @@ import { formatDistanceToNow } from "date-fns";
 
 const { width } = Dimensions.get("window");
 
-const MessageBubble = ({ message, isCurrentUser, onImagePress, onReply }) => {
+const MessageBubble = ({
+  message,
+  isCurrentUser,
+  onImagePress,
+  onReply,
+  onLongPress,
+}) => {
+  const messageRef = useRef(null);
+
   const {
     content,
     createdAt,
@@ -28,7 +36,19 @@ const MessageBubble = ({ message, isCurrentUser, onImagePress, onReply }) => {
     replyToMessageMediaType,
     deliveryStatus,
     isUploading,
+    isDeleted,
   } = message;
+
+  // Handle long press with layout measurement
+  const handleLongPress = () => {
+    if (isUploading || !onLongPress) return;
+
+    if (messageRef.current) {
+      messageRef.current.measureInWindow((x, y, width, height) => {
+        onLongPress(message, { x, y, width, height });
+      });
+    }
+  };
 
   // Format time
   const formatTime = (dateString) => {
@@ -56,6 +76,7 @@ const MessageBubble = ({ message, isCurrentUser, onImagePress, onReply }) => {
 
   return (
     <View
+      ref={messageRef}
       style={[
         styles.messageContainer,
         isCurrentUser ? styles.currentUserContainer : styles.otherUserContainer,
@@ -92,92 +113,112 @@ const MessageBubble = ({ message, isCurrentUser, onImagePress, onReply }) => {
         )}
 
         {/* Message bubble */}
-        <View
-          style={[
-            styles.bubble,
-            isCurrentUser ? styles.currentUserBubble : styles.otherUserBubble,
-          ]}
+        <TouchableOpacity
+          activeOpacity={1}
+          onLongPress={handleLongPress}
+          delayLongPress={500}
         >
-          {/* Image message */}
-          {mediaType === "Image" && (
-            <TouchableOpacity
-              onPress={() =>
-                !isUploading &&
-                onImagePress &&
-                onImagePress(mediaUrl || content)
-              }
-              activeOpacity={0.9}
-              disabled={isUploading}
-            >
-              <View style={styles.imageContainer}>
-                <Image
-                  source={{ uri: mediaUrl || content }}
-                  style={styles.messageImage}
-                  resizeMode="cover"
-                />
-                {isUploading && (
-                  <View style={styles.uploadingOverlay}>
-                    <ActivityIndicator size="large" color="#FFFFFF" />
-                    <Text style={styles.uploadingText}>Uploading...</Text>
-                  </View>
-                )}
-              </View>
-            </TouchableOpacity>
-          )}
-
-          {/* Text message */}
-          {mediaType === "Text" && (
-            <Text
-              style={[
-                styles.messageText,
-                isCurrentUser ? styles.currentUserText : styles.otherUserText,
-              ]}
-            >
-              {content}
-            </Text>
-          )}
-
-          {/* Message info (time, status, edited) */}
-          <View style={styles.messageInfo}>
-            {status === "Edited" && (
-              <Text style={styles.editedText}>Edited • </Text>
+          <View
+            style={[
+              styles.bubble,
+              isCurrentUser ? styles.currentUserBubble : styles.otherUserBubble,
+              isDeleted && styles.deletedBubble,
+            ]}
+          >
+            {/* Image message */}
+            {mediaType === "Image" && (
+              <TouchableOpacity
+                onPress={() =>
+                  !isUploading &&
+                  onImagePress &&
+                  onImagePress(mediaUrl || content)
+                }
+                activeOpacity={0.9}
+                disabled={isUploading}
+              >
+                <View style={styles.imageContainer}>
+                  <Image
+                    source={{ uri: mediaUrl || content }}
+                    style={styles.messageImage}
+                    resizeMode="cover"
+                  />
+                  {isUploading && (
+                    <View style={styles.uploadingOverlay}>
+                      <ActivityIndicator size="large" color="#FFFFFF" />
+                      <Text style={styles.uploadingText}>Uploading...</Text>
+                    </View>
+                  )}
+                </View>
+              </TouchableOpacity>
             )}
-            <Text
-              style={[
-                styles.timeText,
-                isCurrentUser
-                  ? styles.currentUserTimeText
-                  : styles.otherUserTimeText,
-              ]}
-            >
-              {formatTime(createdAt)}
-            </Text>
-            {isCurrentUser && (
-              <View style={styles.statusIcon}>
-                {deliveryStatus === "Sent" && (
-                  <Ionicons name="checkmark" size={14} color="#FFFFFF" />
+
+            {/* Text message */}
+            {mediaType === "Text" && (
+              <View style={isDeleted && styles.deletedMessageContainer}>
+                {isDeleted && (
+                  <Ionicons
+                    name="ban-outline"
+                    size={16}
+                    color="#9CA3AF"
+                    style={styles.deletedIcon}
+                  />
                 )}
-                {deliveryStatus === "Read" && (
-                  <Ionicons name="checkmark-done" size={14} color="#FFFFFF" />
-                )}
+                <Text
+                  style={[
+                    styles.messageText,
+                    isCurrentUser
+                      ? styles.currentUserText
+                      : styles.otherUserText,
+                    isDeleted && styles.deletedText,
+                  ]}
+                >
+                  {content}
+                </Text>
+              </View>
+            )}
+
+            {/* Message info (time, status, edited) */}
+            <View style={styles.messageInfo}>
+              {status === "Edited" && (
+                <Text style={styles.editedText}>Edited • </Text>
+              )}
+              <Text
+                style={[
+                  styles.timeText,
+                  isCurrentUser
+                    ? styles.currentUserTimeText
+                    : styles.otherUserTimeText,
+                ]}
+              >
+                {formatTime(createdAt)}
+              </Text>
+              {isCurrentUser && (
+                <View style={styles.statusIcon}>
+                  {deliveryStatus === "Sent" && (
+                    <Ionicons name="checkmark" size={14} color="#FFFFFF" />
+                  )}
+                  {deliveryStatus === "Read" && (
+                    <Ionicons name="checkmark-done" size={14} color="#FFFFFF" />
+                  )}
+                </View>
+              )}
+            </View>
+
+            {/* Reaction */}
+            {reaction && (
+              <View
+                style={[
+                  styles.reactionBubble,
+                  isCurrentUser
+                    ? styles.reactionBubbleRight
+                    : styles.reactionBubbleLeft,
+                ]}
+              >
+                <Text style={styles.reactionText}>{reaction}</Text>
               </View>
             )}
           </View>
-
-          {/* Reaction */}
-          {reaction && (
-            <View
-              style={[
-                styles.reactionBubble,
-                isCurrentUser
-                  ? styles.reactionBubbleRight
-                  : styles.reactionBubbleLeft,
-              ]}
-            >
-              <Text style={styles.reactionText}>{reaction}</Text>
-            </View>
-          )}
-        </View>
+        </TouchableOpacity>
       </View>
 
       {/* Avatar for current user */}
@@ -260,6 +301,24 @@ const styles = StyleSheet.create({
   otherUserBubble: {
     backgroundColor: "#F3F4F6",
     borderBottomLeftRadius: 4,
+  },
+  deletedBubble: {
+    backgroundColor: "#FAFAFA",
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    borderStyle: "dashed",
+    opacity: 0.7,
+  },
+  deletedMessageContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  deletedIcon: {
+    marginRight: 6,
+  },
+  deletedText: {
+    fontStyle: "italic",
+    color: "#9CA3AF",
   },
   imageContainer: {
     position: "relative",

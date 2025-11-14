@@ -49,6 +49,11 @@ export default function MessageDetailScreen({ route, navigation }) {
     useState(null);
   const [processingMessageId, setProcessingMessageId] = useState(null);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [selectedMessage, setSelectedMessage] = useState(null);
+  const [showMessageActions, setShowMessageActions] = useState(false);
+  const [editingMessage, setEditingMessage] = useState(null);
+  const [showReactionPicker, setShowReactionPicker] = useState(false);
+  const [messageLayout, setMessageLayout] = useState(null);
 
   const flatListRef = useRef(null);
   const currentUserId = "126ec3d4-4d34-45f2-bbf7-98b9a3dfc31c";
@@ -146,13 +151,20 @@ export default function MessageDetailScreen({ route, navigation }) {
       console.log("MessageDetailScreen: Message updated", updatedMessage);
 
       if (updatedMessage.conversationId === conversationId) {
+        const isDeleted =
+          updatedMessage.status === "Deleted" || updatedMessage.isDeleted;
         setMessages((prev) =>
           prev.map((msg) => {
             if (msg.id === updatedMessage.id) {
               return {
                 ...msg,
-                content: updatedMessage.newContent || updatedMessage.content,
-                isDeleted: updatedMessage.isDeleted || msg.isDeleted,
+                content: isDeleted
+                  ? "This message was deleted"
+                  : updatedMessage.newContent ||
+                    updatedMessage.content ||
+                    msg.content,
+                isDeleted: isDeleted,
+                status: updatedMessage.status || msg.status,
                 updatedAt: updatedMessage.updatedAt || new Date().toISOString(),
                 bookingRequest:
                   updatedMessage.bookingRequest || msg.bookingRequest,
@@ -333,7 +345,17 @@ export default function MessageDetailScreen({ route, navigation }) {
           conversationId,
           params
         );
-        const newMessages = response.items || response || [];
+        const allMessages = response.items || response || [];
+        // Replace content for deleted messages
+        const newMessages = allMessages.map((msg) => {
+          if (msg.isDeleted) {
+            return {
+              ...msg,
+              content: "This message was deleted",
+            };
+          }
+          return msg;
+        });
         console.log("Fetched", newMessages.length, "messages for page", page);
 
         if (isInitial) {
@@ -616,6 +638,39 @@ export default function MessageDetailScreen({ route, navigation }) {
     if (!inputText.trim() || sending || !conversationId) return;
 
     const messageContent = inputText.trim();
+
+    // Check if editing
+    if (editingMessage) {
+      try {
+        setSending(true);
+        setInputText("");
+        setEditingMessage(null);
+
+        await messageService.updateMessage({
+          messageId: editingMessage.id,
+          conversationId: conversationId,
+          newContent: messageContent,
+        });
+
+        // Update local state
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === editingMessage.id
+              ? { ...msg, content: messageContent, status: "Edited" }
+              : msg
+          )
+        );
+      } catch (error) {
+        console.error("Error editing message:", error);
+        setInputText(messageContent);
+        setEditingMessage(editingMessage);
+        Alert.alert("Error", "Failed to edit message. Please try again.");
+      } finally {
+        setSending(false);
+      }
+      return;
+    }
+
     const replyData = replyingTo
       ? {
           replyToMessageId: replyingTo.id,
@@ -674,7 +729,15 @@ export default function MessageDetailScreen({ route, navigation }) {
     } finally {
       setSending(false);
     }
-  }, [inputText, replyingTo, conversationId, sending]);
+  }, [
+    inputText,
+    replyingTo,
+    conversationId,
+    sending,
+    editingMessage,
+    isConnected,
+    messagingService,
+  ]);
 
   // Handle booking action
   const handleBookingAction = useCallback(
@@ -732,6 +795,99 @@ export default function MessageDetailScreen({ route, navigation }) {
     setSelectedImage(imageUrl);
   }, []);
 
+  // Handle message long press
+  const handleMessageLongPress = useCallback((message, layout) => {
+    if (message.isUploading || message.isDeleted) return;
+    setSelectedMessage(message);
+    setMessageLayout(layout);
+    setShowMessageActions(true);
+  }, []);
+
+  // Handle edit message
+  const handleEditMessage = useCallback(() => {
+    if (!selectedMessage) return;
+    setEditingMessage(selectedMessage);
+    setInputText(selectedMessage.content);
+    setShowMessageActions(false);
+    setSelectedMessage(null);
+  }, [selectedMessage]);
+
+  // Handle delete message
+  const handleDeleteMessage = useCallback(async () => {
+    if (!selectedMessage) return;
+
+    Alert.alert(
+      "Delete Message",
+      "Are you sure you want to delete this message?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              setShowMessageActions(false);
+              setSelectedMessage(null);
+              await messageService.deleteMessage(selectedMessage.id);
+              // Let SignalR MESSAGE_UPDATED event handle the UI update
+            } catch (error) {
+              console.error("Error deleting message:", error);
+              Alert.alert(
+                "Error",
+                "Failed to delete message. Please try again."
+              );
+            }
+          },
+        },
+      ]
+    );
+  }, [selectedMessage]);
+
+  // Handle react to message
+  const handleReactMessage = useCallback(
+    (reaction) => {
+      if (!selectedMessage) return;
+
+      const reactToMessage = async () => {
+        try {
+          const removeReaction = selectedMessage.reaction === reaction;
+          await messageService.reactMessage(selectedMessage.id, {
+            reaction: reaction,
+            removeReaction: removeReaction,
+          });
+
+          // Update local state
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === selectedMessage.id
+                ? { ...msg, reaction: removeReaction ? null : reaction }
+                : msg
+            )
+          );
+
+          // Close modals after reacting
+          setShowReactionPicker(false);
+          setShowMessageActions(false);
+          setSelectedMessage(null);
+        } catch (error) {
+          console.error("Error reacting to message:", error);
+          Alert.alert("Error", "Failed to react to message. Please try again.");
+        }
+      };
+
+      reactToMessage();
+    },
+    [selectedMessage]
+  );
+
+  // Handle reply to message
+  const handleReplyToMessage = useCallback(() => {
+    if (!selectedMessage) return;
+    setReplyingTo(selectedMessage);
+    setShowMessageActions(false);
+    setSelectedMessage(null);
+  }, [selectedMessage]);
+
   // Render message item
   const renderMessage = useCallback(
     ({ item }) => {
@@ -756,10 +912,16 @@ export default function MessageDetailScreen({ route, navigation }) {
           isCurrentUser={isCurrentUser}
           onImagePress={handleImagePress}
           onReply={(msg) => setReplyingTo(msg)}
+          onLongPress={handleMessageLongPress}
         />
       );
     },
-    [currentUserId, handleBookingAction, handleImagePress]
+    [
+      currentUserId,
+      handleBookingAction,
+      handleImagePress,
+      handleMessageLongPress,
+    ]
   );
 
   // Render header
@@ -812,8 +974,30 @@ export default function MessageDetailScreen({ route, navigation }) {
   // Render input area
   const renderInputArea = () => (
     <View style={styles.inputContainer}>
+      {/* Edit mode preview */}
+      {editingMessage && (
+        <View style={styles.replyPreviewContainer}>
+          <View style={styles.replyPreviewContent}>
+            <Text style={[styles.replyPreviewLabel, { color: "#F59E0B" }]}>
+              Editing message
+            </Text>
+            <Text style={styles.replyPreviewText} numberOfLines={2}>
+              {editingMessage.content}
+            </Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => {
+              setEditingMessage(null);
+              setInputText("");
+            }}
+          >
+            <Ionicons name="close" size={20} color="#6B7280" />
+          </TouchableOpacity>
+        </View>
+      )}
+
       {/* Reply preview */}
-      {replyingTo && (
+      {replyingTo && !editingMessage && (
         <View style={styles.replyPreviewContainer}>
           <View style={styles.replyPreviewContent}>
             <Text style={styles.replyPreviewLabel}>Replying to</Text>
@@ -871,6 +1055,212 @@ export default function MessageDetailScreen({ route, navigation }) {
       </View>
     </View>
   );
+
+  // Inline message actions - Instagram style
+  const renderMessageActions = () => {
+    if (!showMessageActions || !selectedMessage) return null;
+
+    const isCurrentUser = selectedMessage?.senderId === currentUserId;
+    const reactions = ["❤️", "👍", "😂", "😮", "😢", "🙏"];
+
+    return (
+      <Modal
+        visible={showMessageActions}
+        transparent
+        animationType="fade"
+        onRequestClose={() => {
+          setShowMessageActions(false);
+          setSelectedMessage(null);
+          setMessageLayout(null);
+        }}
+      >
+        <TouchableOpacity
+          style={styles.inlineActionOverlay}
+          activeOpacity={1}
+          onPress={() => {
+            setShowMessageActions(false);
+            setSelectedMessage(null);
+            setMessageLayout(null);
+          }}
+        >
+          {/* Position message at its actual location */}
+          <View
+            style={[
+              styles.messageInPlace,
+              messageLayout && {
+                position: "absolute",
+                top: messageLayout.y,
+                left: 0,
+                right: 0,
+                paddingHorizontal: 16,
+              },
+            ]}
+          >
+            {/* Reaction icons row - above message (for other users) */}
+            {!isCurrentUser && (
+              <View
+                style={[
+                  styles.inlineReactionsRow,
+                  isCurrentUser
+                    ? { alignSelf: "flex-end" }
+                    : { alignSelf: "flex-start" },
+                ]}
+              >
+                {reactions.map((reaction) => (
+                  <TouchableOpacity
+                    key={reaction}
+                    style={[
+                      styles.inlineReactionBtn,
+                      selectedMessage?.reaction === reaction &&
+                        styles.inlineReactionBtnActive,
+                    ]}
+                    onPress={() => handleReactMessage(reaction)}
+                  >
+                    <Text style={styles.inlineReactionEmoji}>{reaction}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+
+            {/* Message bubble - at actual position */}
+            <View
+              style={[
+                styles.focusedMessageBubble,
+                isCurrentUser
+                  ? styles.focusedMessageRight
+                  : styles.focusedMessageLeft,
+              ]}
+            >
+              {!isCurrentUser && (
+                <Image
+                  source={{ uri: selectedMessage.senderAvatarUrl }}
+                  style={styles.focusedAvatar}
+                  resizeMode="cover"
+                />
+              )}
+              <View
+                style={[
+                  styles.focusedBubbleContent,
+                  isCurrentUser
+                    ? styles.focusedBubbleCurrentUser
+                    : styles.focusedBubbleOtherUser,
+                ]}
+              >
+                {selectedMessage?.mediaType === "Image" ? (
+                  <Image
+                    source={{
+                      uri: selectedMessage.mediaUrl || selectedMessage.content,
+                    }}
+                    style={styles.focusedMessageImage}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <Text
+                    style={[
+                      styles.focusedMessageText,
+                      isCurrentUser && styles.focusedMessageTextRight,
+                    ]}
+                  >
+                    {selectedMessage?.content}
+                  </Text>
+                )}
+              </View>
+            </View>
+
+            {/* Action buttons row - directly below message */}
+            <View
+              style={[
+                styles.inlineActionsRow,
+                isCurrentUser
+                  ? styles.inlineActionsRight
+                  : styles.inlineActionsLeft,
+              ]}
+            >
+              {/* Reply - for other users */}
+              {!isCurrentUser && (
+                <TouchableOpacity
+                  style={styles.inlineActionBtn}
+                  onPress={handleReplyToMessage}
+                >
+                  <Ionicons name="arrow-undo" size={20} color="#FFFFFF" />
+                  <Text style={styles.inlineActionText}>Reply</Text>
+                </TouchableOpacity>
+              )}
+
+              {/* Edit - for current user text messages only */}
+              {isCurrentUser &&
+                selectedMessage?.mediaType === "Text" &&
+                !selectedMessage?.isDeleted && (
+                  <TouchableOpacity
+                    style={styles.inlineActionBtn}
+                    onPress={handleEditMessage}
+                  >
+                    <Ionicons name="create" size={20} color="#FFFFFF" />
+                    <Text style={styles.inlineActionText}>Edit</Text>
+                  </TouchableOpacity>
+                )}
+
+              {/* Delete - for current user (only if not already deleted) */}
+              {isCurrentUser && !selectedMessage?.isDeleted && (
+                <TouchableOpacity
+                  style={styles.inlineActionBtn}
+                  onPress={handleDeleteMessage}
+                >
+                  <Ionicons name="trash" size={20} color="#FFFFFF" />
+                  <Text style={styles.inlineActionText}>Delete</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    );
+  };
+
+  // Reaction picker modal
+  const renderReactionPicker = () => {
+    const reactions = ["❤️", "👍", "😂", "😮", "😢", "🙏"];
+
+    return (
+      <Modal
+        visible={showReactionPicker}
+        transparent
+        animationType="fade"
+        onRequestClose={() => {
+          setShowReactionPicker(false);
+          setSelectedMessage(null);
+        }}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => {
+            setShowReactionPicker(false);
+            setSelectedMessage(null);
+          }}
+        >
+          <View style={styles.reactionSheet}>
+            <Text style={styles.reactionSheetTitle}>Choose a Reaction</Text>
+            <View style={styles.reactionGrid}>
+              {reactions.map((reaction) => (
+                <TouchableOpacity
+                  key={reaction}
+                  style={[
+                    styles.reactionButton,
+                    selectedMessage?.reaction === reaction &&
+                      styles.reactionButtonActive,
+                  ]}
+                  onPress={() => handleReactMessage(reaction)}
+                >
+                  <Text style={styles.reactionEmoji}>{reaction}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    );
+  };
 
   // Image viewer modal
   const renderImageViewer = () => (
@@ -953,6 +1343,8 @@ export default function MessageDetailScreen({ route, navigation }) {
       </KeyboardAvoidingView>
 
       {renderImageViewer()}
+      {renderMessageActions()}
+      {renderReactionPicker()}
     </SafeAreaView>
   );
 }
@@ -1030,7 +1422,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     backgroundColor: "#F9FAFB",
-    // paddingHorizontal: 16,
+    paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: "#E5E7EB",
@@ -1127,5 +1519,148 @@ const styles = StyleSheet.create({
   },
   typingDotDelay2: {
     opacity: 0.4,
+  },
+  // Inline action styles - Instagram style
+  inlineActionOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.85)",
+  },
+  messageInPlace: {
+    // Position will be set dynamically
+  },
+  inlineReactionsRow: {
+    flexDirection: "row",
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
+    borderRadius: 30,
+    padding: 8,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  inlineReactionBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: "center",
+    alignItems: "center",
+    marginHorizontal: 4,
+    backgroundColor: "transparent",
+  },
+  inlineReactionBtnActive: {
+    backgroundColor: "#FEE2E2",
+    transform: [{ scale: 1.1 }],
+  },
+  inlineReactionEmoji: {
+    fontSize: 24,
+  },
+  focusedMessageBubble: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    marginBottom: 12,
+  },
+  focusedMessageLeft: {
+    alignSelf: "flex-start",
+  },
+  focusedMessageRight: {
+    alignSelf: "flex-end",
+  },
+  focusedAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    marginRight: 8,
+    backgroundColor: "#E5E7EB",
+  },
+  focusedBubbleContent: {
+    padding: 12,
+    borderRadius: 18,
+    maxWidth: "80%",
+  },
+  focusedBubbleOtherUser: {
+    backgroundColor: "#E5E7EB",
+  },
+  focusedBubbleCurrentUser: {
+    backgroundColor: colors.red,
+  },
+  focusedMessageText: {
+    fontSize: 15,
+    color: "#111827",
+  },
+  focusedMessageTextRight: {
+    color: "#FFFFFF",
+  },
+  focusedMessageImage: {
+    width: 200,
+    height: 200,
+    borderRadius: 12,
+  },
+  inlineActionsRow: {
+    flexDirection: "row",
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    borderRadius: 24,
+    padding: 4,
+    backdropFilter: "blur(10px)",
+  },
+  inlineActionsLeft: {
+    alignSelf: "flex-start",
+  },
+  inlineActionsRight: {
+    alignSelf: "flex-end",
+  },
+  inlineActionBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginHorizontal: 4,
+    borderRadius: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+  },
+  inlineActionText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "600",
+    marginLeft: 4,
+  },
+  reactionSheet: {
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 34,
+    paddingTop: 20,
+    paddingHorizontal: 20,
+  },
+  reactionSheetTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#111827",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  reactionGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-around",
+    gap: 12,
+  },
+  reactionButton: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#F3F4F6",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  reactionButtonActive: {
+    backgroundColor: "#FEE2E2",
+    borderWidth: 2,
+    borderColor: "#EF4444",
+  },
+  reactionEmoji: {
+    fontSize: 28,
   },
 });

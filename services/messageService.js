@@ -23,7 +23,8 @@ const messageService = {
     ),
 
   sendMessage: (data) => requestMessage("POST", `/messages/send`, data),
-
+  reactMessage: (messageId, data) =>
+    requestMessage("PUT", `/messages/${messageId}/reaction`, data),
   deleteMessage: (messageId) =>
     requestMessage("PUT", `/messages/${messageId}/delete`),
 
