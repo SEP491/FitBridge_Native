@@ -258,29 +258,24 @@ export default function MessageDetailScreen({ route, navigation }) {
     // Handle reaction received
     const handleReactionReceived = (reactionData) => {
       console.log("MessageDetailScreen: Reaction received", reactionData);
-
-      if (reactionData.conversationId === conversationId) {
-        setMessages((prev) =>
-          prev.map((msg) =>
-            msg.id === reactionData.messageId
-              ? { ...msg, reaction: reactionData.reaction }
-              : msg
-          )
-        );
-      }
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === reactionData.messageId
+            ? { ...msg, reaction: reactionData.reaction }
+            : msg
+        )
+      );
     };
 
     // Handle reaction removed
     const handleReactionRemoved = (reactionData) => {
       console.log("MessageDetailScreen: Reaction removed", reactionData);
 
-      if (reactionData.conversationId === conversationId) {
-        setMessages((prev) =>
-          prev.map((msg) =>
-            msg.id === reactionData.messageId ? { ...msg, reaction: null } : msg
-          )
-        );
-      }
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === reactionData.messageId ? { ...msg, reaction: null } : msg
+        )
+      );
     };
 
     // Handle reconnecting
@@ -1476,6 +1471,13 @@ export default function MessageDetailScreen({ route, navigation }) {
                   </Text>
                 )}
               </View>
+              {isCurrentUser && (
+                <Image
+                  source={{ uri: selectedMessage.senderAvatarUrl }}
+                  style={styles.focusedAvatarRight}
+                  resizeMode="cover"
+                />
+              )}
             </View>
 
             {/* Action buttons row - directly below message */}
@@ -1942,7 +1944,7 @@ export default function MessageDetailScreen({ route, navigation }) {
 
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : "padding"}
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
         {loading ? (
@@ -2208,6 +2210,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-end",
     marginBottom: 12,
+    paddingHorizontal: 16,
   },
   focusedMessageLeft: {
     alignSelf: "flex-start",
@@ -2220,6 +2223,13 @@ const styles = StyleSheet.create({
     height: 32,
     borderRadius: 16,
     marginRight: 8,
+    backgroundColor: "#E5E7EB",
+  },
+  focusedAvatarRight: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    marginLeft: 8,
     backgroundColor: "#E5E7EB",
   },
   focusedBubbleContent: {
