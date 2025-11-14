@@ -1,13 +1,36 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import PairedSwiper from "../../../components/PairSwiper/PairSwiper";
 import FreelancePTProfileCard from "../../../components/FreelancePTProfileCard/FreelancePTProfileCard";
 import { useTranslation } from "../../../hooks/useTranslation";
+import accountService from "../../../services/accountService";
 
-export default function FreelancePTTrainersSection({ freelancePT, loading }) {
+export default function FreelancePTTrainersSection({ refreshTrigger }) {
   const navigation = useNavigation();
   const { t } = useTranslation();
+  const [freelancePT, setFreelancePT] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchFreelancePT = async () => {
+    setLoading(true);
+    try {
+      const response = await accountService.getAllFreelancePT({
+        page: 1,
+        size: 200,
+      });
+      const { items } = response.data;
+      setFreelancePT(items);
+    } catch (error) {
+      console.error("Error fetching freelance PT:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchFreelancePT();
+  }, [refreshTrigger]);
 
   const renderFreelancePTProfileCard = (item) => {
     return <FreelancePTProfileCard pt={item} />;
@@ -24,7 +47,10 @@ export default function FreelancePTTrainersSection({ freelancePT, loading }) {
         </View>
         <TouchableOpacity
           style={styles.viewMoreButton}
-          onPress={() => navigation.navigate("FreelancePTScreen", { freelancPT: freelancePT })}
+          onPress={() => navigation.navigate(t("navigation.ecommerce"), { 
+            screen: "EcommerceMain",
+            params: { category: "freelancePts" }
+          })}
           activeOpacity={0.7}
         >
           <Text style={styles.viewMoreText}>{t("home.viewMore")}</Text>

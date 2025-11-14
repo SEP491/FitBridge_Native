@@ -82,6 +82,8 @@ import EditSessionActivityScreen from "../screens/CustomerScreen/EditSessionActi
 import EditActivitySetScreen from "../screens/CustomerScreen/EditActivitySetScreen/EditActivitySetScreen";
 import { useRevenueCat } from "../context/RevenueCatContext";
 import { useUser } from "../context/UserContext";
+import EcommerceScreen from "../screens/CommonScreen/EcommerceScreen/EcommerceScreen";
+import ProductDetailsScreen from "../screens/CommonScreen/ProductDetailsScreen/ProductDetailsScreen";
 
 export default function Navigator({
   isAuthenticated: propIsAuthenticated,
@@ -322,6 +324,13 @@ export default function Navigator({
           }}
         />
         <Stack.Screen
+          name="ProductDetailsScreen"
+          component={ProductDetailsScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
           name="JoinCallVideoScreen"
           component={VideoCallScreen}
           options={{
@@ -464,6 +473,64 @@ export default function Navigator({
             },
           }}
         />
+        
+        {/* Booking Screens - moved from BookingStack */}
+        <Stack.Screen
+          name="ChoosingCourseScreen"
+          component={ChoosingCourseScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.bookSession"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="ScheduleFreelanceScreen"
+          component={ScheduleFreelanceScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.schedule"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="ScheduleScreen"
+          component={ScheduleScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.schedule"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="BookingHistoryScreen"
+          component={BookingHistoryScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.bookingHistory"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
       </Stack.Navigator>
     );
   };
@@ -580,6 +647,81 @@ export default function Navigator({
           options={{
             headerShown: false,
             orientation: "portrait",
+          }}
+        />
+      </Stack.Navigator>
+    );
+  };
+
+  const EcommerceStack = () => {
+    return (
+      <Stack.Navigator
+        screenOptions={({ navigation, route }) => ({
+          headerTitleAlign: "center",
+          headerShown: false,
+          headerTintColor: "#ED2A46",
+          headerLeft: (props) =>
+            navigation.canGoBack() ? (
+              <TouchableOpacity onPress={() => navigation.goBack()}>
+                <Ionicons name="caret-back" size={30} color="#ED2A46" />
+              </TouchableOpacity>
+            ) : null,
+        })}
+      >
+        <Stack.Screen
+          name="EcommerceMain"
+          component={EcommerceScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="GymDetailScreen"
+          component={GymDetailScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.gymDetail"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="PTProfileScreen"
+          component={PTProfileScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.ptInfo"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="CartScreen"
+          component={CartScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.cart"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="ProductDetailsScreen"
+          component={ProductDetailsScreen}
+          options={{
+            headerShown: false,
           }}
         />
       </Stack.Navigator>
@@ -1363,8 +1505,19 @@ export default function Navigator({
             }}
           />
         )}
+        
 
         {/* Role-specific tabs */}
+        {user?.role === "Customer" && (
+          <Tab.Screen
+            name={t("navigation.ecommerce")}
+            component={EcommerceStack}
+            options={{
+              headerShown: false,
+            }}
+          />
+        )}
+
         {user?.role === "Customer" && (
           <Tab.Screen
             name={t("navigation.schedule")}
@@ -1375,15 +1528,7 @@ export default function Navigator({
           />
         )}
 
-        {user?.role === "Customer" && (
-          <Tab.Screen
-            name={t("navigation.Booking")}
-            component={BookingStack}
-            options={{
-              headerShown: false,
-            }}
-          />
-        )}
+
         {user?.role === "Customer" && (
           <Tab.Screen
             name={t("navigation.aiChatbox")}

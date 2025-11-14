@@ -19,11 +19,13 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import accountService from "../../../services/accountService";
 import SessionCard from "../../../components/SessionCard/SessionCard_New";
 import WeekCalendar from "../../../components/WeekCalendar/WeekCalendar";
+import { useNavigation } from "@react-navigation/native";
 
 const { width, height } = Dimensions.get("window");
 
 export default function ScheduleScreen({ route }) {
   const { t, currentLanguage } = useTranslation();
+  const navigation = useNavigation();
   const [slots, setSlots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -176,12 +178,16 @@ export default function ScheduleScreen({ route }) {
       <StatusBar barStyle="light-content" backgroundColor={colors.red} />
 
       <View style={styles.container}>
+        
+
         {/* Week Calendar Component */}
         <WeekCalendar
           selectedDate={selectedDate}
           onDateSelect={handleDateSelect}
           initialDate={selectedDate}
         />
+
+        
 
         {/* Sessions List */}
         <ScrollView
@@ -194,6 +200,7 @@ export default function ScheduleScreen({ route }) {
             />
           }
         >
+        
           {loading ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color={colors.red} />
@@ -257,6 +264,33 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f8f9fa",
+  },
+  bookingButtonContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e9ecef",
+  },
+  bookSessionButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.red,
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  bookSessionButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "600",
+    marginLeft: 8,
   },
   scrollView: {
     flex: 1,

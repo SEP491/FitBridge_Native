@@ -23,6 +23,7 @@
     "home": "Trang chủ",
     "search": "Tìm kiếm",
     "booking": "Đặt lịch",
+    "ecommerce": "Thương mại",
     "profile": "Hồ sơ",
     "settings": "Cài đặt",
     "cart": "Giỏ hàng",
@@ -130,6 +131,8 @@
     "seeAll": "Xem tất cả",
     "refreshing": "Đang làm mới...",
     "featuredGyms": "Phòng Gym Nổi Bật",
+    "topRatedProducts": "Sản Phẩm Được Đánh Giá Cao",
+    "bestSellerProducts": "Sản Phẩm Bán Chạy Nhất",
     "nearbyGymsTitle": "Phòng Gym Gần Tôi",
     "viewMap": "Xem Bản Đồ",
     "noNearbyGyms": "Hiện không có phòng gym nào gần bạn",
@@ -139,7 +142,7 @@
     "viewMore": "Xem thêm",
     "freelancePT": "Gói Tập Freelance PT",
     "noFreelancePTPackages": "Hiện chưa có gói tập Freelance PT",
-    "freelancePTTrainers": "PT Freelance",
+    "freelancePTTrainers": "Huấn luyện viên tự do",
     "noFreelancePT": "Hiện chưa có huấn luyện viên freelance",
     "blogPost1Title": "10 Bài Tập Tốt Nhất Để Giảm Cân",
     "blogPost1Summary": "Khám phá những bài tập hiệu quả nhất giúp bạn giảm cân và có vóc dáng cân đối.",
@@ -326,6 +329,9 @@
     "success": "Thành công",
     "packageAddedToCart": "Đã thêm gói tập vào giỏ hàng thành công",
     "continueShopping": "Tiếp tục mua sắm",
+    "addToCart": "Thêm vào giỏ",
+    "addedToCart": "Đã thêm vào giỏ",
+    "productAddedSuccessfully": "Sản phẩm đã được thêm vào giỏ hàng",
     "viewCart": "Xem giỏ hàng",
     "extendPackage": "Gia hạn gói",
     "ptAssignmentFee": "Phí giao PT:",
@@ -475,7 +481,10 @@
     "priceDesc": "Giá: Cao đến Thấp",
     "rating": "Đánh giá",
     "experience": "Kinh nghiệm",
-    "later": "Để sau"
+    "later": "Để sau",
+    "viewAll": "Xem tất cả",
+    "comingSoon": "Sắp ra mắt",
+    "loadMore": "Tải thêm"
   },
 
   "account": {
@@ -898,6 +907,7 @@
   "schedule": {
     "bookSlot": "Đặt lịch",
     "booking": "Đang đặt...",
+    "bookNewSession": "Đặt buổi tập mới",
     "success": "Thành công",
     "bookingSuccess": "Đặt lịch thành công!",
     "booked": "Đã được đặt",
@@ -1713,5 +1723,41 @@
     "offering_has_no_packages": "Offering đã có nhưng chưa có packages",
     "debug_logs": "Debug Logs",
     "current_offering": "Current Offering"
+  },
+  "ecommerce": {
+    "categories": "Danh mục",
+    "all": "Tất cả",
+    "gyms": "Phòng gym",
+    "personalTrainers": "Huấn luyện viên",
+    "products": "Sản Phẩm",
+    "nutrition": "Dinh dưỡng",
+    "equipment": "Thiết bị",
+    "featured": "Nổi bật",
+    "trending": "Xu hướng",
+    "allGyms": "Tất cả phòng gym",
+    "allPTs": "Tất cả huấn luyện viên",
+    "allItems": "Tất cả sản phẩm",
+    "selectCategory": "Chọn danh mục",
+    "selectCategoryHint": "Chọn một danh mục ở trên để duyệt phòng gym và huấn luyện viên",
+    "productsComingSoon": "Sản phẩm sắp ra mắt"
+  },
+  "product": {
+    "productDetails": "Chi tiết sản phẩm",
+    "description": "Mô tả",
+    "reviews": "Đánh giá",
+    "rating": "Xếp hạng",
+    "sold": "Đã bán",
+    "inStock": "Còn hàng",
+    "outOfStock": "Hết hàng",
+    "available": "có sẵn",
+    "quantity": "Số lượng",
+    "origin": "Xuất xứ",
+    "buyNow": "Mua ngay",
+    "noDescription": "Chưa có mô tả",
+    "noReviews": "Chưa có đánh giá",
+    "productOutOfStock": "Sản phẩm này hiện đang hết hàng"
+  },
+  "search": {
+    "searchGymsAndPTs": "Tìm kiếm phòng gym và huấn luyện viên..."
   }
 }

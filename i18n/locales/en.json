@@ -24,6 +24,7 @@
     "home": "Home",
     "search": "Search",
     "booking": "Booking",
+    "ecommerce": "E-commerce",
     "profile": "Profile",
     "settings": "Settings",
     "cart": "Cart",
@@ -129,6 +130,8 @@
     "seeAll": "See All",
     "refreshing": "Refreshing...",
     "featuredGyms": "Featured Gyms",
+    "topRatedProducts": "Top Rated Products",
+    "bestSellerProducts": "Best Seller Products",
     "nearbyGymsTitle": "Nearby Gyms",
     "viewMap": "View Map",
     "noNearbyGyms": "No gyms found nearby",
@@ -322,6 +325,9 @@
     "success": "Success",
     "packageAddedToCart": "Package added to cart successfully",
     "continueShopping": "Continue Shopping",
+    "addToCart": "Add to Cart",
+    "addedToCart": "Added to Cart",
+    "productAddedSuccessfully": "Product has been added to your cart",
     "viewCart": "View Cart",
     "extendPackage": "Extend Package",
     "ptAssignmentFee": "PT Assignment Fee:",
@@ -471,7 +477,10 @@
     "priceAsc": "Price: Low to High",
     "priceDesc": "Price: High to Low",
     "rating": "Rating",
-    "experience": "Experience"
+    "experience": "Experience",
+    "viewAll": "View All",
+    "comingSoon": "Coming Soon",
+    "loadMore": "Load More"
   },
 
   "freelancePT": {
@@ -969,6 +978,7 @@
   "schedule": {
     "bookSlot": "Book Slot",
     "booking": "Booking...",
+    "bookNewSession": "Book New Session",
     "success": "Success",
     "bookingSuccess": "Booking successful!",
     "booked": "Booked",
@@ -1753,5 +1763,41 @@
     "offering_has_no_packages": "Offering exists but has no packages",
     "debug_logs": "Debug Logs",
     "current_offering": "Current Offering"
+  },
+  "ecommerce": {
+    "categories": "Categories",
+    "all": "All",
+    "gyms": "Gyms",
+    "personalTrainers": "Personal Trainers",
+    "products": "Products",
+    "nutrition": "Nutrition",
+    "equipment": "Equipment",
+    "featured": "Featured",
+    "trending": "Trending",
+    "allGyms": "All Gyms",
+    "allPTs": "All Personal Trainers",
+    "allItems": "All Items",
+    "selectCategory": "Select a Category",
+    "selectCategoryHint": "Choose a category above to browse gyms and personal trainers",
+    "productsComingSoon": "Products Coming Soon"
+  },
+  "product": {
+    "productDetails": "Product Details",
+    "description": "Description",
+    "reviews": "Reviews",
+    "rating": "Rating",
+    "sold": "Sold",
+    "inStock": "In Stock",
+    "outOfStock": "Out of Stock",
+    "available": "available",
+    "quantity": "Quantity",
+    "origin": "Origin",
+    "buyNow": "Buy Now",
+    "noDescription": "No description available",
+    "noReviews": "No reviews yet",
+    "productOutOfStock": "This product is currently out of stock"
+  },
+  "search": {
+    "searchGymsAndPTs": "Search gyms and personal trainers..."
   }
 }
