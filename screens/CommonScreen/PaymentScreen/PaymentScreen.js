@@ -6,9 +6,6 @@ import {
   TouchableOpacity,
   Linking,
   Alert,
-  TextInput,
-  ActivityIndicator,
-  Image,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { useCart } from "../../../context/CartContext";
@@ -19,6 +16,13 @@ import cartService from "../../../services/cartService";
 import { formatPrice, showErrorAlert, showSuccessAlert } from "../../../lib";
 import { useTranslation } from "../../../hooks/useTranslation";
 import CartCard_Extend from "../../../components/CartCard_Extend/CartCard_Extend";
+import {
+  ProductPaymentCard,
+  AddressSection,
+  PaymentMethodSection,
+  VoucherSection,
+  PaymentDetailsSection,
+} from "./components";
 
 export default function PaymentScreen({ navigation, route }) {
   const {
@@ -67,6 +71,14 @@ export default function PaymentScreen({ navigation, route }) {
   const [isApplyingVoucher, setIsApplyingVoucher] = useState(false);
   const [orderToExtend, setOrderToExtend] = useState([]);
   const isExtending = displayItems.some((item) => item.toExtend === true);
+  const [selectedAddress, setSelectedAddress] = useState(null);
+  
+  // Check if cart contains any products
+  const hasProducts = displayItems.some((item) => item.selectedVariant && !item.gymId);
+
+  const handleAddressSelection = (addressData) => {
+    setSelectedAddress(addressData);
+  };
 
   useEffect(() => {
     const fetchOrderItemsToExtend = async () => {
@@ -138,6 +150,12 @@ export default function PaymentScreen({ navigation, route }) {
   };
 
   const handleCheckout = async () => {
+    // Validate address for products
+    if (hasProducts && !selectedAddress) {
+      showErrorAlert(t("payment.pleaseSelectAddress"));
+      return;
+    }
+
     // Use displayItems (either direct purchase or cart items)
     console.log("Processing payment for:", displayItems);
     console.log("Is direct purchase:", isDirectPurchase);
@@ -149,7 +167,7 @@ export default function PaymentScreen({ navigation, route }) {
           ? customerPurchasedIdToExtend
           : null,
         shippingFee: isExtending ? orderToExtend.shippingFee : 0,
-        addressId: null,
+        addressId: hasProducts && selectedAddress ? selectedAddress.id : null,
         paymentMethodId:
           selectedPaymentMethod === "bank"
             ? "01997597-d188-7f12-95f4-43ef8d442612"
@@ -273,47 +291,13 @@ export default function PaymentScreen({ navigation, route }) {
             {displayItems.map((item, index) => {
               // Check if item is a product (has selectedVariant)
               if (item.selectedVariant && !item.gymId) {
-                const variantImage = item.selectedVariant?.imageUrl;
-                const productImage = item.imageUrl;
-                const displayImage = (variantImage && variantImage !== null) ? variantImage : productImage;
-                
                 return (
-                  <View key={item.cartItemId || item.id || index} style={styles.productPaymentCard}>
-                    <Image
-                      source={{ uri: displayImage }}
-                      style={styles.productPaymentImage}
-                      resizeMode="cover"
-                    />
-                    <View style={styles.productPaymentInfo}>
-                      <Text style={styles.productPaymentName} numberOfLines={2}>
-                        {item.name}
-                      </Text>
-                      {item.selectedVariant && (
-                        <Text style={styles.productPaymentVariant}>
-                          {item.selectedVariant.weightValue} {item.selectedVariant.weightUnit} - {item.selectedVariant.flavourName}
-                        </Text>
-                      )}
-                      <View style={styles.productPaymentPriceRow}>
-                        <Text style={styles.productPaymentPrice}>
-                          {formatPrice(item.selectedVariant?.salePrice || item.salePrice)}
-                        </Text>
-                        <Text style={styles.productPaymentQuantity}>
-                          x{item.quantity || 1}
-                        </Text>
-                      </View>
-                      <Text style={styles.productPaymentSubtotal}>
-                        {t("payment.subtotal")}: {formatPrice((item.selectedVariant?.salePrice || item.salePrice) * (item.quantity || 1))}
-                      </Text>
-                    </View>
-                    {!isDirectPurchase && (
-                      <TouchableOpacity
-                        style={styles.productRemoveButton}
-                        onPress={() => handleRemoveItem(item.cartItemId)}
-                      >
-                        <MaterialIcons name="close" size={20} color="#FF4D4F" />
-                      </TouchableOpacity>
-                    )}
-                  </View>
+                  <ProductPaymentCard
+                    key={item.cartItemId || item.id || index}
+                    item={item}
+                    onRemove={() => handleRemoveItem(item.cartItemId)}
+                    showRemove={!isDirectPurchase}
+                  />
                 );
               }
               
@@ -374,142 +358,39 @@ export default function PaymentScreen({ navigation, route }) {
           </View>
         )}
 
-        <View style={styles.paymentMethod}>
-          <View style={styles.cartUpper}>
-            <Text style={{ fontSize: 15, color: "#ED2A46" }}>
-              {t("payment.paymentMethods")}
-            </Text>
-            <Text style={{ fontSize: 10 }}>{t("payment.seeAll")}</Text>
-          </View>
+        {/* Address Section - Only shown when there are products */}
+        <AddressSection
+          visible={hasProducts}
+          selectedAddress={selectedAddress}
+          onSelectAddress={handleAddressSelection}
+        />
 
-          <View style={styles.cardUnder}>
-            <TouchableOpacity
-              style={styles.paymentOption}
-              onPress={() => setSelectedPaymentMethod("bank")}
-            >
-              <View style={styles.paymentLeft}>
-                <MaterialIcons name="payment" size={30} color="#ED2A46" />
-                <Text>{t("payment.bankTransfer")}</Text>
-              </View>
-              {selectedPaymentMethod === "bank" && (
-                <MaterialIcons name="check-circle" size={24} color="#ED2A46" />
-              )}
-            </TouchableOpacity>
+        {/* Payment Method Section */}
+        <PaymentMethodSection
+          selectedMethod={selectedPaymentMethod}
+          onSelectMethod={setSelectedPaymentMethod}
+        />
 
-            <TouchableOpacity
-              style={styles.paymentOption}
-              onPress={() => setSelectedPaymentMethod("qr")}
-            >
-              <View style={styles.paymentLeft}>
-                <MaterialIcons name="qr-code" size={30} color="#ED2A46" />
-                <Text>{t("payment.qrCode")}</Text>
-              </View>
-              {selectedPaymentMethod === "qr" && (
-                <MaterialIcons name="check-circle" size={24} color="#ED2A46" />
-              )}
-            </TouchableOpacity>
-          </View>
-        </View>
+        {/* Voucher Section */}
+        <VoucherSection
+          voucherCode={voucherCode}
+          onVoucherCodeChange={setVoucherCode}
+          selectedVoucher={selectedVoucher}
+          onApplyVoucher={handleApplyVoucher}
+          onRemoveVoucher={() => {
+            setVoucherCode("");
+            setSelectedVoucher(null);
+          }}
+          isApplying={isApplyingVoucher}
+        />
 
-        {/* Voucher Section - Modified to inline input */}
-        <View style={styles.paymentMethod}>
-          <View style={styles.cartUpper}>
-            <Text style={{ fontSize: 15, color: "#ED2A46" }}>
-              {t("payment.voucher")}
-            </Text>
-          </View>
-
-          <View style={styles.voucherSection}>
-            {selectedVoucher ? (
-              <View style={styles.voucherApplied}>
-                <View style={styles.voucherInfo}>
-                  <MaterialIcons name="local-offer" size={24} color="#4CAF50" />
-                  <View style={styles.voucherTextContainer}>
-                    <Text style={styles.voucherCodeText}>
-                      {selectedVoucher.couponCode || voucherCode}
-                    </Text>
-                    <Text style={styles.voucherDiscountText}>
-                      -{formatPrice(voucherDiscount)}
-                    </Text>
-                  </View>
-                </View>
-                <TouchableOpacity
-                  onPress={() => {
-                    setVoucherCode("");
-                    setSelectedVoucher(null);
-                  }}
-                >
-                  <MaterialIcons name="close" size={24} color="#666" />
-                </TouchableOpacity>
-              </View>
-            ) : (
-              <View style={styles.voucherInputContainer}>
-                <TextInput
-                  style={styles.voucherInput}
-                  placeholder={t("payment.enterVoucherCode")}
-                  value={voucherCode}
-                  onChangeText={setVoucherCode}
-                  autoCapitalize="characters"
-                  editable={!isApplyingVoucher}
-                />
-                <TouchableOpacity
-                  style={[
-                    styles.applyButton,
-                    isApplyingVoucher && styles.applyButtonDisabled,
-                  ]}
-                  onPress={handleApplyVoucher}
-                  disabled={isApplyingVoucher || !voucherCode.trim()}
-                >
-                  {isApplyingVoucher ? (
-                    <ActivityIndicator size="small" color="#fff" />
-                  ) : (
-                    <Text style={styles.applyButtonText}>
-                      {t("payment.apply")}
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
-        </View>
-
-        <View style={styles.paymentMethod}>
-          <View style={styles.cartUpper}>
-            <Text style={{ fontSize: 15, color: "#ED2A46" }}>
-              {t("payment.paymentDetails")}
-            </Text>
-          </View>
-
-          <View style={styles.cardUnder}>
-            <View style={styles.row}>
-              <Text>{t("payment.totalServiceAmount")}</Text>
-              <Text>
-                {" "}
-                {isExtending
-                  ? formatPrice(orderToExtend.totalAmount)
-                  : formatPrice(subTotal)}
-              </Text>
-            </View>
-            {selectedVoucher && voucherDiscount > 0 && (
-              <View style={[styles.row]}>
-                <Text style={styles.discountText}>
-                  {t("payment.voucherDiscount")}
-                </Text>
-                <Text style={styles.discountAmount}>
-                  -{formatPrice(voucherDiscount)}
-                </Text>
-              </View>
-            )}
-            <View style={[styles.row, styles.separator]}>
-              <Text>{t("payment.additionalFees")}</Text>
-              <Text>0 đ</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.totalText}>{t("payment.total")}</Text>
-              <Text style={styles.totalAmount}>{formatPrice(finalTotal)}</Text>
-            </View>
-          </View>
-        </View>
+        {/* Payment Details Section */}
+        <PaymentDetailsSection
+          subTotal={isExtending ? orderToExtend.totalAmount : subTotal}
+          voucherDiscount={voucherDiscount}
+          finalTotal={finalTotal}
+          showVoucherDiscount={selectedVoucher && voucherDiscount > 0}
+        />
       </ScrollView>
 
       <View style={styles.orderSummary}>
@@ -586,34 +467,6 @@ const styles = StyleSheet.create({
   itemsContainer: {
     paddingVertical: 20,
   },
-  paymentMethod: {
-    width: "100%",
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    marginTop: 20,
-    padding: 15,
-    shadowColor: "#000",
-    shadowOpacity: 0.25,
-    shadowRadius: 3,
-    elevation: 6,
-  },
-  cartUpper: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  cardUnder: {
-    marginTop: 10,
-  },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 10,
-  },
-  separator: {
-    borderBottomWidth: 1,
-    borderBottomColor: "#DDD9D9",
-  },
   orderSummary: {
     paddingVertical: 35,
     borderTopLeftRadius: 20,
@@ -646,167 +499,5 @@ const styles = StyleSheet.create({
   checkoutText: {
     color: "#FFFFFF",
     fontSize: 16,
-  },
-  paymentOption: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 10,
-    borderTopWidth: 1,
-    borderTopColor: "#DDD9D9",
-  },
-  paymentLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  voucherSection: {
-    marginTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: "#DDD9D9",
-    paddingTop: 10,
-  },
-  voucherInputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  voucherInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: "#DDD9D9",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
-    backgroundColor: "#F9F9F9",
-  },
-  applyButton: {
-    backgroundColor: "#ED2A46",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
-    minWidth: 80,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  applyButtonDisabled: {
-    backgroundColor: "#CCCCCC",
-  },
-  applyButtonText: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  voucherApplied: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 8,
-    // backgroundColor: "#F1F8F4",
-    paddingHorizontal: 12,
-    borderRadius: 8,
-  },
-  voucherInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
-  },
-  voucherTextContainer: {
-    marginLeft: 12,
-    flex: 1,
-  },
-  voucherCodeText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#1A1A1A",
-  },
-  voucherDiscountText: {
-    fontSize: 12,
-    color: "#4CAF50",
-    fontWeight: "600",
-    marginTop: 2,
-  },
-
-  discountText: {
-    color: "#4CAF50",
-    fontWeight: "600",
-  },
-  discountAmount: {
-    color: "#4CAF50",
-    fontWeight: "600",
-  },
-  totalText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#1A1A1A",
-  },
-  totalAmount: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#ED2A46",
-  },
-  // Product payment card styles
-  productPaymentCard: {
-    flexDirection: "row",
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    position: "relative",
-  },
-  productPaymentImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
-    backgroundColor: "#F5F5F5",
-  },
-  productPaymentInfo: {
-    flex: 1,
-    marginLeft: 12,
-    justifyContent: "space-between",
-  },
-  productPaymentName: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#333",
-    marginBottom: 4,
-  },
-  productPaymentVariant: {
-    fontSize: 12,
-    color: "#666",
-    marginBottom: 4,
-  },
-  productPaymentPriceRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 4,
-  },
-  productPaymentPrice: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#ED2A46",
-  },
-  productPaymentQuantity: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#666",
-  },
-  productPaymentSubtotal: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#333",
-  },
-  productRemoveButton: {
-    position: "absolute",
-    top: 8,
-    right: 8,
-    padding: 4,
   },
 });

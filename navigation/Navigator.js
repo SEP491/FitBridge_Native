@@ -84,6 +84,7 @@ import { useRevenueCat } from "../context/RevenueCatContext";
 import { useUser } from "../context/UserContext";
 import EcommerceScreen from "../screens/CommonScreen/EcommerceScreen/EcommerceScreen";
 import ProductDetailsScreen from "../screens/CommonScreen/ProductDetailsScreen/ProductDetailsScreen";
+import AddressSelectionScreen from "../screens/CommonScreen/PaymentScreen/AddressSelectionScreen";
 
 export default function Navigator({
   isAuthenticated: propIsAuthenticated,
@@ -723,6 +724,20 @@ export default function Navigator({
           options={{
             headerShown: true,
             title: t("screenTitles.payment"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="AddressSelectionScreen"
+          component={AddressSelectionScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.addressSelection"),
             headerTitleAlign: "center",
             headerTitleStyle: {
               fontWeight: "bold",

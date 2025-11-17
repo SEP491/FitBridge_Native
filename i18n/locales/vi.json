@@ -1322,7 +1322,25 @@
     "applyVoucher": "Áp dụng Voucher",
     "voucherDiscount": "Giảm giá Voucher",
     "change": "Thay đổi",
-    "voucherApplied": "Đã áp dụng Voucher"
+    "voucherApplied": "Đã áp dụng Voucher",
+    "deliveryAddress": "Địa Chỉ Giao Hàng",
+    "selectDeliveryAddress": "Chọn Địa Chỉ Giao Hàng",
+    "addDeliveryAddress": "Thêm Địa Chỉ Giao Hàng",
+    "select": "Chọn",
+    "default": "Mặc Định",
+    "recipientName": "Tên Người Nhận",
+    "phoneNumber": "Số Điện Thoại",
+    "addressDetail": "Chi Tiết Địa Chỉ",
+    "enterRecipientName": "Nhập tên người nhận",
+    "enterPhoneNumber": "Nhập số điện thoại",
+    "enterAddressDetail": "Nhập tòa nhà, tầng, v.v. (không bắt buộc)",
+    "setAsDefaultAddress": "Đặt làm địa chỉ mặc định",
+    "saveAddress": "Lưu Địa Chỉ",
+    "searchAddress": "Tìm Kiếm Địa Chỉ",
+    "selectedAddress": "Địa Chỉ Đã Chọn",
+    "selectLocationOnMap": "Chọn Vị Trí Trên Bản Đồ",
+    "tapMapToSelectLocation": "Chạm vào bản đồ hoặc kéo điểm đánh dấu để chọn vị trí giao hàng của bạn",
+    "pleaseSelectAddress": "Vui lòng chọn địa chỉ giao hàng trước khi thanh toán"
   },
 
   "deleteAccount": {

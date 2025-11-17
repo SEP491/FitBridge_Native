@@ -1196,7 +1196,25 @@
     "change": "Change",
     "voucherApplied": "Voucher Applied",
     "apply": "Apply",
-    "enterVoucherCode": "Enter voucher code"
+    "enterVoucherCode": "Enter voucher code",
+    "deliveryAddress": "Delivery Address",
+    "selectDeliveryAddress": "Select Delivery Address",
+    "addDeliveryAddress": "Add Delivery Address",
+    "select": "Select",
+    "default": "Default",
+    "recipientName": "Recipient Name",
+    "phoneNumber": "Phone Number",
+    "addressDetail": "Address Detail",
+    "enterRecipientName": "Enter recipient name",
+    "enterPhoneNumber": "Enter phone number",
+    "enterAddressDetail": "Enter building, floor, etc. (optional)",
+    "setAsDefaultAddress": "Set as default address",
+    "saveAddress": "Save Address",
+    "searchAddress": "Search Address",
+    "selectedAddress": "Selected Address",
+    "selectLocationOnMap": "Select Location on Map",
+    "tapMapToSelectLocation": "Tap on the map or drag the marker to select your delivery location",
+    "pleaseSelectAddress": "Please select a delivery address before checkout"
   },
 
   "faq": {
