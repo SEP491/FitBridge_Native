@@ -1798,6 +1798,14 @@
     "productOutOfStock": "This product is currently out of stock"
   },
   "search": {
-    "searchGymsAndPTs": "Search gyms and personal trainers..."
+    "searchGymsAndPTs": "Search gyms and personal trainers...",
+    "searchProducts": "Search for products...",
+    "recentSearches": "Recent Searches",
+    "clearAll": "Clear All",
+    "searchResults": "Search Results",
+    "recommendedProducts": "Recommended Products",
+    "productsFound": "products found",
+    "noProductsFound": "No products found",
+    "tryDifferentKeywords": "Try searching with different keywords"
   }
 }

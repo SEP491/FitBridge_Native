@@ -1758,6 +1758,14 @@
     "productOutOfStock": "Sản phẩm này hiện đang hết hàng"
   },
   "search": {
-    "searchGymsAndPTs": "Tìm kiếm phòng gym và huấn luyện viên..."
+    "searchGymsAndPTs": "Tìm kiếm phòng gym và huấn luyện viên...",
+    "searchProducts": "Tìm kiếm sản phẩm...",
+    "recentSearches": "Tìm kiếm gần đây",
+    "clearAll": "Xóa tất cả",
+    "searchResults": "Kết quả tìm kiếm",
+    "recommendedProducts": "Sản phẩm đề xuất",
+    "productsFound": "sản phẩm được tìm thấy",
+    "noProductsFound": "Không tìm thấy sản phẩm",
+    "tryDifferentKeywords": "Thử tìm kiếm với từ khóa khác"
   }
 }
