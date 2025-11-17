@@ -8,6 +8,7 @@ import {
   Alert,
   TextInput,
   ActivityIndicator,
+  Image,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { useCart } from "../../../context/CartContext";
@@ -52,6 +53,13 @@ export default function PaymentScreen({ navigation, route }) {
   // Calculate discount
   const voucherDiscount = selectedVoucher?.discountAmount || 0;
   const [subTotal, setSubTotal] = useState(totalPrice);
+
+  // Update subtotal when displayItems or totalPrice changes
+  useEffect(() => {
+    if (!isExtending) {
+      setSubTotal(totalPrice);
+    }
+  }, [totalPrice, isExtending]);
 
   const finalTotal = Math.max(0, subTotal - voucherDiscount);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("bank");
@@ -150,36 +158,53 @@ export default function PaymentScreen({ navigation, route }) {
 
         orderItems: isExtending
           ? orderToExtend.orderItems
-          : displayItems.map((item) =>
-              item.type === "FreelancePT"
-                ? {
-                    quantity: 1,
-                    productDetailId: null,
-                    gymCourseId: null,
-                    gymPtId: null,
-                    serviceInformationId: null,
-                    freelancePTPackageId: item.id, // Use actual item ID
-                  }
-                : item.type === "WithPt"
-                ? {
-                    quantity: item.quantity,
-                    productDetailId: null,
-                    gymCourseId: item.id,
-                    gymPtId: item.pt ? item.pt.id : null,
-                    serviceInformationId: null,
-                    freelancePTPackageId: null,
-                  }
-                : item.type === "Normal"
-                ? {
-                    quantity: item.quantity,
-                    productDetailId: null,
-                    gymCourseId: item.id,
-                    gymPtId: null,
-                    serviceInformationId: null,
-                    freelancePTPackageId: null,
-                  }
-                : {}
-            ),
+          : displayItems.map((item) => {
+              // Product with variant
+              if (item.selectedVariant && !item.gymId) {
+                return {
+                  quantity: item.quantity || 1,
+                  productDetailId: item.selectedVariant.id,
+                  gymCourseId: null,
+                  gymPtId: null,
+                  serviceInformationId: null,
+                  freelancePTPackageId: null,
+                };
+              }
+              // Freelance PT
+              if (item.type === "FreelancePT") {
+                return {
+                  quantity: 1,
+                  productDetailId: null,
+                  gymCourseId: null,
+                  gymPtId: null,
+                  serviceInformationId: null,
+                  freelancePTPackageId: item.id,
+                };
+              }
+              // Gym course with PT
+              if (item.type === "WithPt") {
+                return {
+                  quantity: item.quantity,
+                  productDetailId: null,
+                  gymCourseId: item.id,
+                  gymPtId: item.pt ? item.pt.id : null,
+                  serviceInformationId: null,
+                  freelancePTPackageId: null,
+                };
+              }
+              // Normal gym course
+              if (item.type === "Normal") {
+                return {
+                  quantity: item.quantity,
+                  productDetailId: null,
+                  gymCourseId: item.id,
+                  gymPtId: null,
+                  serviceInformationId: null,
+                  freelancePTPackageId: null,
+                };
+              }
+              return {};
+            }),
       },
     };
     console.log("Checkout request:", requestData);
@@ -246,6 +271,52 @@ export default function PaymentScreen({ navigation, route }) {
         {displayItems.length > 0 ? (
           <View style={styles.itemsContainer}>
             {displayItems.map((item, index) => {
+              // Check if item is a product (has selectedVariant)
+              if (item.selectedVariant && !item.gymId) {
+                const variantImage = item.selectedVariant?.imageUrl;
+                const productImage = item.imageUrl;
+                const displayImage = (variantImage && variantImage !== null) ? variantImage : productImage;
+                
+                return (
+                  <View key={item.cartItemId || item.id || index} style={styles.productPaymentCard}>
+                    <Image
+                      source={{ uri: displayImage }}
+                      style={styles.productPaymentImage}
+                      resizeMode="cover"
+                    />
+                    <View style={styles.productPaymentInfo}>
+                      <Text style={styles.productPaymentName} numberOfLines={2}>
+                        {item.name}
+                      </Text>
+                      {item.selectedVariant && (
+                        <Text style={styles.productPaymentVariant}>
+                          {item.selectedVariant.weightValue} {item.selectedVariant.weightUnit} - {item.selectedVariant.flavourName}
+                        </Text>
+                      )}
+                      <View style={styles.productPaymentPriceRow}>
+                        <Text style={styles.productPaymentPrice}>
+                          {formatPrice(item.selectedVariant?.salePrice || item.salePrice)}
+                        </Text>
+                        <Text style={styles.productPaymentQuantity}>
+                          x{item.quantity || 1}
+                        </Text>
+                      </View>
+                      <Text style={styles.productPaymentSubtotal}>
+                        {t("payment.subtotal")}: {formatPrice((item.selectedVariant?.salePrice || item.salePrice) * (item.quantity || 1))}
+                      </Text>
+                    </View>
+                    {!isDirectPurchase && (
+                      <TouchableOpacity
+                        style={styles.productRemoveButton}
+                        onPress={() => handleRemoveItem(item.cartItemId)}
+                      >
+                        <MaterialIcons name="close" size={20} color="#FF4D4F" />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                );
+              }
+              
               // Check if item type is FreelancePT
               if (item.type === "FreelancePT") {
                 return (
@@ -674,5 +745,68 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     color: "#ED2A46",
+  },
+  // Product payment card styles
+  productPaymentCard: {
+    flexDirection: "row",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    position: "relative",
+  },
+  productPaymentImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+    backgroundColor: "#F5F5F5",
+  },
+  productPaymentInfo: {
+    flex: 1,
+    marginLeft: 12,
+    justifyContent: "space-between",
+  },
+  productPaymentName: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 4,
+  },
+  productPaymentVariant: {
+    fontSize: 12,
+    color: "#666",
+    marginBottom: 4,
+  },
+  productPaymentPriceRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 4,
+  },
+  productPaymentPrice: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#ED2A46",
+  },
+  productPaymentQuantity: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#666",
+  },
+  productPaymentSubtotal: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#333",
+  },
+  productRemoveButton: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    padding: 4,
   },
 });

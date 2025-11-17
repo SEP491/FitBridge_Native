@@ -718,6 +718,20 @@ export default function Navigator({
           }}
         />
         <Stack.Screen
+          name="PaymentScreen"
+          component={PaymentScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.payment"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
           name="ProductDetailsScreen"
           component={ProductDetailsScreen}
           options={{
