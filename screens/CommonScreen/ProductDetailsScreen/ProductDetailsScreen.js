@@ -35,6 +35,10 @@ export default function ProductDetailsScreen() {
   const [variantModalVisible, setVariantModalVisible] = useState(false);
   const [pendingAction, setPendingAction] = useState(null); // 'addToCart' or 'buyNow'
   const [modalQuantity, setModalQuantity] = useState(1); // Quantity in modal
+  const [selectedWeight, setSelectedWeight] = useState(null);
+  const [selectedFlavour, setSelectedFlavour] = useState(null);
+  const [availableWeights, setAvailableWeights] = useState([]);
+  const [availableFlavours, setAvailableFlavours] = useState([]);
 
   useEffect(() => {
     fetchProductDetails();
@@ -45,9 +49,52 @@ export default function ProductDetailsScreen() {
       setLoading(true);
       const response = await productService.getProductDetails(product.id);
       setProductDetails(response.data);
-      // Set first available variant as default
-      if (response.data?.productDetails && response.data.productDetails.length > 0) {
-        setSelectedVariant(response.data.productDetails[0]);
+
+      if (
+        response.data?.productDetails &&
+        response.data.productDetails.length > 0
+      ) {
+        const variants = response.data.productDetails;
+
+        // Extract unique weights
+        const weightsMap = new Map();
+        variants.forEach((v) => {
+          const key = `${v.weightValue}-${v.weightUnit}`;
+          if (!weightsMap.has(key)) {
+            weightsMap.set(key, {
+              weightId: v.weightId,
+              weightValue: v.weightValue,
+              weightUnit: v.weightUnit,
+            });
+          }
+        });
+        const weights = Array.from(weightsMap.values());
+        setAvailableWeights(weights);
+
+        // Extract unique flavours
+        const flavoursMap = new Map();
+        variants.forEach((v) => {
+          if (!flavoursMap.has(v.flavourId)) {
+            flavoursMap.set(v.flavourId, {
+              flavourId: v.flavourId,
+              flavourName: v.flavourName,
+            });
+          }
+        });
+        const flavours = Array.from(flavoursMap.values());
+        setAvailableFlavours(flavours);
+
+        // Set default selections
+        setSelectedWeight(weights[0]);
+        setSelectedFlavour(flavours[0]);
+
+        // Find matching variant
+        const matchingVariant = variants.find(
+          (v) =>
+            v.weightId === weights[0].weightId &&
+            v.flavourId === flavours[0].flavourId
+        );
+        setSelectedVariant(matchingVariant || variants[0]);
       }
     } catch (error) {
       console.error("Error fetching product details:", error);
@@ -64,10 +111,62 @@ export default function ProductDetailsScreen() {
     }).format(price);
   };
 
+  const findVariantBySelection = (weightId, flavourId) => {
+    if (!productDetails?.productDetails) return null;
+    return productDetails.productDetails.find(
+      (v) => v.weightId === weightId && v.flavourId === flavourId
+    );
+  };
+
+  const handleWeightChange = (weight) => {
+    setSelectedWeight(weight);
+    
+    // Check if current flavour is available for this weight
+    const currentVariant = findVariantBySelection(
+      weight.weightId,
+      selectedFlavour?.flavourId
+    );
+    
+    if (currentVariant && currentVariant.quantity > 0) {
+      // Current flavour is available, use it
+      setSelectedVariant(currentVariant);
+      setQuantity(1);
+    } else {
+      // Find first available flavour for this weight
+      const availableVariant = productDetails?.productDetails?.find(
+        (v) => v.weightId === weight.weightId && v.quantity > 0
+      );
+      
+      if (availableVariant) {
+        const newFlavour = availableFlavours.find(
+          (f) => f.flavourId === availableVariant.flavourId
+        );
+        setSelectedFlavour(newFlavour);
+        setSelectedVariant(availableVariant);
+        setQuantity(1);
+      }
+    }
+  };
+
+  const handleFlavourChange = (flavour) => {
+    setSelectedFlavour(flavour);
+    if (selectedWeight) {
+      const variant = findVariantBySelection(
+        selectedWeight.weightId,
+        flavour.flavourId
+      );
+      if (variant) {
+        setSelectedVariant(variant);
+        setQuantity(1);
+      }
+    }
+  };
+
   const discountPercentage = selectedVariant
     ? selectedVariant.displayPrice > selectedVariant.salePrice
       ? Math.round(
-          ((selectedVariant.displayPrice - selectedVariant.salePrice) / selectedVariant.displayPrice) *
+          ((selectedVariant.displayPrice - selectedVariant.salePrice) /
+            selectedVariant.displayPrice) *
             100
         )
       : 0
@@ -92,9 +191,9 @@ export default function ProductDetailsScreen() {
     setVariantModalVisible(false);
 
     // Execute the pending action
-    if (pendingAction === 'addToCart') {
+    if (pendingAction === "addToCart") {
       executeAddToCart(variant, modalQuantity);
-    } else if (pendingAction === 'buyNow') {
+    } else if (pendingAction === "buyNow") {
       executeBuyNow(variant, modalQuantity);
     }
     setPendingAction(null);
@@ -104,11 +203,9 @@ export default function ProductDetailsScreen() {
   const executeAddToCart = (variant, qty) => {
     const currentQuantity = variant?.quantity || product.quantity;
     if (currentQuantity === 0) {
-      Alert.alert(
-        t("product.outOfStock"),
-        t("product.productOutOfStock"),
-        [{ text: t("common.ok") }]
-      );
+      Alert.alert(t("product.outOfStock"), t("product.productOutOfStock"), [
+        { text: t("common.ok") },
+      ]);
       return;
     }
 
@@ -118,30 +215,25 @@ export default function ProductDetailsScreen() {
       quantity: qty,
     });
 
-    Alert.alert(
-      t("cart.addedToCart"),
-      t("cart.productAddedSuccessfully"),
-      [
-        {
-          text: t("common.continueShopping"),
-          style: "cancel",
-        },
-        {
-          text: t("cart.viewCart"),
-          onPress: () => navigation.navigate("CartScreen", { initialTab: "product" }),
-        },
-      ]
-    );
+    Alert.alert(t("cart.addedToCart"), t("cart.productAddedSuccessfully"), [
+      {
+        text: t("common.continueShopping"),
+        style: "cancel",
+      },
+      {
+        text: t("cart.viewCart"),
+        onPress: () =>
+          navigation.navigate("CartScreen", { initialTab: "product" }),
+      },
+    ]);
   };
 
   const executeBuyNow = (variant, qty) => {
     const currentQuantity = variant?.quantity || product.quantity;
     if (currentQuantity === 0) {
-      Alert.alert(
-        t("product.outOfStock"),
-        t("product.productOutOfStock"),
-        [{ text: t("common.ok") }]
-      );
+      Alert.alert(t("product.outOfStock"), t("product.productOutOfStock"), [
+        { text: t("common.ok") },
+      ]);
       return;
     }
 
@@ -155,13 +247,13 @@ export default function ProductDetailsScreen() {
   };
 
   const handleAddToCart = () => {
-    setPendingAction('addToCart');
+    setPendingAction("addToCart");
     setModalQuantity(1);
     setVariantModalVisible(true);
   };
 
   const handleBuyNow = () => {
-    setPendingAction('buyNow');
+    setPendingAction("buyNow");
     setModalQuantity(1);
     setVariantModalVisible(true);
   };
@@ -215,7 +307,7 @@ export default function ProductDetailsScreen() {
           <Image
             source={{ uri: selectedVariant?.imageUrl || product.imageUrl }}
             style={styles.productImage}
-            resizeMode="cover"
+            resizeMode="contain"
           />
           {discountPercentage > 0 && (
             <View style={styles.discountBadge}>
@@ -223,56 +315,6 @@ export default function ProductDetailsScreen() {
             </View>
           )}
         </View>
-
-        {/* Variant Selector */}
-        {productDetails?.productDetails && productDetails.productDetails.length > 0 && (
-          <View style={styles.variantSection}>
-            <View style={styles.variantHeader}>
-              <Text style={styles.variantLabel}>Select Variant:</Text>
-              <TouchableOpacity onPress={() => setVariantModalVisible(true)}>
-                <Text style={styles.viewAllText}>View All</Text>
-              </TouchableOpacity>
-            </View>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.variantsContainer}
-            >
-              {productDetails.productDetails.map((variant) => (
-                <TouchableOpacity
-                  key={variant.id}
-                  style={[
-                    styles.variantCard,
-                    selectedVariant?.id === variant.id && styles.variantCardSelected,
-                  ]}
-                  onPress={() => {
-                    setSelectedVariant(variant);
-                    setQuantity(1);
-                  }}
-                >
-                  <Text style={[
-                    styles.variantWeight,
-                    selectedVariant?.id === variant.id && styles.variantTextSelected,
-                  ]}>
-                    {variant.weightValue} {variant.weightUnit}
-                  </Text>
-                  <Text style={[
-                    styles.variantFlavour,
-                    selectedVariant?.id === variant.id && styles.variantTextSelected,
-                  ]}>
-                    {variant.flavourName}
-                  </Text>
-                  {variant.quantity === 0 && (
-                    <View style={styles.outOfStockBadge}>
-                      <Text style={styles.outOfStockBadgeText}>Out</Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        )}
-
         {/* Product Info */}
         <View style={styles.infoSection}>
           <Text style={styles.productName}>{product.name}</Text>
@@ -300,7 +342,9 @@ export default function ProductDetailsScreen() {
             </Text>
             {discountPercentage > 0 && (
               <Text style={styles.originalPrice}>
-                {formatPrice(selectedVariant?.displayPrice || product.displayPrice)}
+                {formatPrice(
+                  selectedVariant?.displayPrice || product.displayPrice
+                )}
               </Text>
             )}
           </View>
@@ -316,58 +360,127 @@ export default function ProductDetailsScreen() {
           {/* Stock Status */}
           <View style={styles.stockRow}>
             <Ionicons
-              name={(selectedVariant?.quantity || product.quantity) > 0 ? "checkmark-circle" : "close-circle"}
+              name={
+                (selectedVariant?.quantity || product.quantity) > 0
+                  ? "checkmark-circle"
+                  : "close-circle"
+              }
               size={20}
-              color={(selectedVariant?.quantity || product.quantity) > 0 ? "#52C41A" : "#FF4D4F"}
+              color={
+                (selectedVariant?.quantity || product.quantity) > 0
+                  ? "#52C41A"
+                  : "#FF4D4F"
+              }
             />
             <Text
               style={[
                 styles.stockText,
-                { color: (selectedVariant?.quantity || product.quantity) > 0 ? "#52C41A" : "#FF4D4F" },
+                {
+                  color:
+                    (selectedVariant?.quantity || product.quantity) > 0
+                      ? "#52C41A"
+                      : "#FF4D4F",
+                },
               ]}
             >
               {(selectedVariant?.quantity || product.quantity) > 0
-                ? `${t("product.inStock")} (${selectedVariant?.quantity || product.quantity} ${t("product.available")})`
+                ? `${t("product.inStock")} (${
+                    selectedVariant?.quantity || product.quantity
+                  } ${t("product.available")})`
                 : t("product.outOfStock")}
             </Text>
           </View>
         </View>
 
-        {/* Quantity Selector */}
-        {(selectedVariant?.quantity || product.quantity) > 0 && (
-          <View style={styles.quantitySection}>
-            <Text style={styles.sectionLabel}>{t("product.quantity")}</Text>
-            <View style={styles.quantityControls}>
-              <TouchableOpacity
-                style={[
-                  styles.quantityButton,
-                  quantity === 1 && styles.quantityButtonDisabled,
-                ]}
-                onPress={handleDecreaseQuantity}
-                disabled={quantity === 1}
-              >
-                <Ionicons
-                  name="remove"
-                  size={20}
-                  color={quantity === 1 ? "#CCC" : colors.red}
-                />
-              </TouchableOpacity>
-              <Text style={styles.quantityText}>{quantity}</Text>
-              <TouchableOpacity
-                style={[
-                  styles.quantityButton,
-                  quantity === (selectedVariant?.quantity || product.quantity) && styles.quantityButtonDisabled,
-                ]}
-                onPress={handleIncreaseQuantity}
-                disabled={quantity === (selectedVariant?.quantity || product.quantity)}
-              >
-                <Ionicons
-                  name="add"
-                  size={20}
-                  color={quantity === (selectedVariant?.quantity || product.quantity) ? "#CCC" : colors.red}
-                />
+        {/* Weight Selector */}
+        {availableWeights.length > 0 && (
+          <View style={styles.variantSection}>
+            <View style={styles.variantHeader}>
+              <Text style={styles.variantLabel}>Select Weight:</Text>
+              <TouchableOpacity onPress={() => setVariantModalVisible(true)}>
+                <Text style={styles.viewAllText}>View All</Text>
               </TouchableOpacity>
             </View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.variantsContainer}
+            >
+              {availableWeights.map((weight) => (
+                <TouchableOpacity
+                  key={weight.weightId}
+                  style={[
+                    styles.variantCard,
+                    selectedWeight?.weightId === weight.weightId &&
+                      styles.variantCardSelected,
+                  ]}
+                  onPress={() => handleWeightChange(weight)}
+                >
+                  <Text
+                    style={[
+                      styles.variantWeight,
+                      selectedWeight?.weightId === weight.weightId &&
+                        styles.variantTextSelected,
+                    ]}
+                  >
+                    {weight.weightValue} {weight.weightUnit}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
+        {/* Flavour Selector */}
+        {availableFlavours.length > 0 && (
+          <View style={styles.variantSection}>
+            <View style={styles.variantHeader}>
+              <Text style={styles.variantLabel}>Select Flavour:</Text>
+            </View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.variantsContainer}
+            >
+              {availableFlavours.map((flavour) => {
+                // Check if this flavour is available for selected weight
+                const variant = findVariantBySelection(
+                  selectedWeight?.weightId,
+                  flavour.flavourId
+                );
+                const isAvailable = variant && variant.quantity > 0;
+
+                return (
+                  <TouchableOpacity
+                    key={flavour.flavourId}
+                    style={[
+                      styles.variantCard,
+                      selectedFlavour?.flavourId === flavour.flavourId &&
+                        styles.variantCardSelected,
+                      !isAvailable && styles.variantCardDisabled,
+                    ]}
+                    onPress={() => isAvailable && handleFlavourChange(flavour)}
+                    disabled={!isAvailable}
+                  >
+                    <Text
+                      style={[
+                        styles.variantFlavour,
+                        selectedFlavour?.flavourId === flavour.flavourId &&
+                          styles.variantTextSelected,
+                        !isAvailable && styles.variantTextDisabled,
+                      ]}
+                    >
+                      {flavour.flavourName}
+                    </Text>
+                    {!isAvailable && (
+                      <View style={styles.outOfStockBadge}>
+                        <Text style={styles.outOfStockBadgeText}>Out</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
           </View>
         )}
 
@@ -460,76 +573,156 @@ export default function ProductDetailsScreen() {
               </TouchableOpacity>
             </View>
 
-            <FlatList
-              data={productDetails?.productDetails || []}
-              keyExtractor={(item) => item.id}
-              numColumns={3}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.modalVariantList}
-              renderItem={({ item: variant }) => {
-                const isSelected = selectedVariant?.id === variant.id;
-                const discountPercent = variant.displayPrice > variant.salePrice
-                  ? Math.round(((variant.displayPrice - variant.salePrice) / variant.displayPrice) * 100)
-                  : 0;
-
-                return (
-                  <TouchableOpacity
-                    style={[
-                      styles.modalVariantCard,
-                      isSelected && styles.modalVariantCardSelected,
-                    ]}
-                    onPress={() => {
-                      if (variant.quantity > 0) {
-                        setSelectedVariant(variant);
-                        setModalQuantity(1); // Reset quantity when changing variant
-                      }
-                    }}
-                    disabled={variant.quantity === 0}
-                  >
-                    <View style={styles.modalVariantImageContainer}>
-                      <Image
-                        source={{ uri: variant.imageUrl || product.imageUrl }}
-                        style={styles.modalVariantImage}
-                        resizeMode="cover"
-                      />
-                      {variant.quantity === 0 && (
-                        <View style={styles.modalOutOfStockOverlay}>
-                          <Text style={styles.modalOutOfStockText}>Out of Stock</Text>
-                        </View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {/* Weight Selection in Modal */}
+              <View style={styles.modalSection}>
+                <Text style={styles.modalSectionTitle}>Weight</Text>
+                <View style={styles.modalOptionsGrid}>
+                  {availableWeights.map((weight) => (
+                    <TouchableOpacity
+                      key={weight.weightId}
+                      style={[
+                        styles.modalOptionCard,
+                        selectedWeight?.weightId === weight.weightId &&
+                          styles.modalOptionCardSelected,
+                      ]}
+                      onPress={() => {
+                        setSelectedWeight(weight);
+                        // Find a valid flavour for this weight
+                        const variant = findVariantBySelection(
+                          weight.weightId,
+                          selectedFlavour?.flavourId
+                        );
+                        if (!variant || variant.quantity === 0) {
+                          // Find first available flavour for this weight
+                          const availableVariant =
+                            productDetails.productDetails.find(
+                              (v) =>
+                                v.weightId === weight.weightId && v.quantity > 0
+                            );
+                          if (availableVariant) {
+                            const newFlavour = availableFlavours.find(
+                              (f) => f.flavourId === availableVariant.flavourId
+                            );
+                            setSelectedFlavour(newFlavour);
+                            setSelectedVariant(availableVariant);
+                          }
+                        } else {
+                          setSelectedVariant(variant);
+                        }
+                        setModalQuantity(1);
+                      }}
+                    >
+                      <Text
+                        style={[
+                          styles.modalOptionText,
+                          selectedWeight?.weightId === weight.weightId &&
+                            styles.modalOptionTextSelected,
+                        ]}
+                      >
+                        {weight.weightValue} {weight.weightUnit}
+                      </Text>
+                      {selectedWeight?.weightId === weight.weightId && (
+                        <Ionicons
+                          name="checkmark-circle"
+                          size={18}
+                          color={colors.red}
+                          style={styles.modalOptionCheck}
+                        />
                       )}
-                      {discountPercent > 0 && variant.quantity > 0 && (
-                        <View style={styles.modalDiscountBadge}>
-                          <Text style={styles.modalDiscountText}>-{discountPercent}%</Text>
-                        </View>
-                      )}
-                    </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
 
-                    <View style={styles.modalVariantInfo}>
-                      <Text style={styles.modalVariantWeight} numberOfLines={1}>
-                        {variant.weightValue} {variant.weightUnit}
-                      </Text>
-                      <Text style={styles.modalVariantFlavour} numberOfLines={1}>
-                        {variant.flavourName}
-                      </Text>
-                      <Text style={styles.modalVariantSalePrice}>
-                        {formatPrice(variant.salePrice)}
-                      </Text>
-                      {discountPercent > 0 && (
-                        <Text style={styles.modalVariantDisplayPrice}>
-                          {formatPrice(variant.displayPrice)}
+              {/* Flavour Selection in Modal */}
+              <View style={styles.modalSection}>
+                <Text style={styles.modalSectionTitle}>Flavour</Text>
+                <View style={styles.modalOptionsGrid}>
+                  {availableFlavours.map((flavour) => {
+                    const variant = findVariantBySelection(
+                      selectedWeight?.weightId,
+                      flavour.flavourId
+                    );
+                    const isAvailable = variant && variant.quantity > 0;
+                    const isSelected =
+                      selectedFlavour?.flavourId === flavour.flavourId;
+
+                    return (
+                      <TouchableOpacity
+                        key={flavour.flavourId}
+                        style={[
+                          styles.modalOptionCard,
+                          isSelected && styles.modalOptionCardSelected,
+                          !isAvailable && styles.modalOptionCardDisabled,
+                        ]}
+                        onPress={() => {
+                          if (isAvailable) {
+                            setSelectedFlavour(flavour);
+                            setSelectedVariant(variant);
+                            setModalQuantity(1);
+                          }
+                        }}
+                        disabled={!isAvailable}
+                      >
+                        <Text
+                          style={[
+                            styles.modalOptionText,
+                            isSelected && styles.modalOptionTextSelected,
+                            !isAvailable && styles.modalOptionTextDisabled,
+                          ]}
+                        >
+                          {flavour.flavourName}
                         </Text>
-                      )}
-                    </View>
+                        {isSelected && isAvailable && (
+                          <Ionicons
+                            name="checkmark-circle"
+                            size={18}
+                            color={colors.red}
+                            style={styles.modalOptionCheck}
+                          />
+                        )}
+                        {!isAvailable && (
+                          <Text style={styles.modalOptionOutOfStock}>Out</Text>
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
 
-                    {isSelected && (
-                      <View style={styles.modalSelectedIndicator}>
-                        <Ionicons name="checkmark-circle" size={20} color={colors.red} />
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                );
-              }}
-            />
+              {/* Selected Variant Preview */}
+              {selectedVariant && (
+                <View style={styles.modalVariantPreview}>
+                  <Image
+                    source={{
+                      uri: selectedVariant.imageUrl || product.imageUrl,
+                    }}
+                    style={styles.modalPreviewImage}
+                    resizeMode="cover"
+                  />
+                  <View style={styles.modalPreviewInfo}>
+                    <Text style={styles.modalPreviewName} numberOfLines={2}>
+                      {product.name}
+                    </Text>
+                    <Text style={styles.modalPreviewVariant}>
+                      {selectedVariant.weightValue} {selectedVariant.weightUnit}{" "}
+                      - {selectedVariant.flavourName}
+                    </Text>
+                    <Text style={styles.modalPreviewPrice}>
+                      {formatPrice(selectedVariant.salePrice)}
+                    </Text>
+                    <Text style={styles.modalPreviewStock}>
+                      {selectedVariant.quantity > 0
+                        ? `${selectedVariant.quantity} ${t(
+                            "product.available"
+                          )}`
+                        : t("product.outOfStock")}
+                    </Text>
+                  </View>
+                </View>
+              )}
+            </ScrollView>
 
             {/* Confirm Button */}
             {pendingAction && selectedVariant && (
@@ -541,7 +734,8 @@ export default function ProductDetailsScreen() {
                     <TouchableOpacity
                       style={[
                         styles.modalQuantityButton,
-                        modalQuantity === 1 && styles.modalQuantityButtonDisabled,
+                        modalQuantity === 1 &&
+                          styles.modalQuantityButtonDisabled,
                       ]}
                       onPress={() => {
                         if (modalQuantity > 1) {
@@ -556,11 +750,14 @@ export default function ProductDetailsScreen() {
                         color={modalQuantity === 1 ? "#CCC" : colors.red}
                       />
                     </TouchableOpacity>
-                    <Text style={styles.modalQuantityText}>{modalQuantity}</Text>
+                    <Text style={styles.modalQuantityText}>
+                      {modalQuantity}
+                    </Text>
                     <TouchableOpacity
                       style={[
                         styles.modalQuantityButton,
-                        modalQuantity >= (selectedVariant?.quantity || 1) && styles.modalQuantityButtonDisabled,
+                        modalQuantity >= (selectedVariant?.quantity || 1) &&
+                          styles.modalQuantityButtonDisabled,
                       ]}
                       onPress={() => {
                         const maxQty = selectedVariant?.quantity || 1;
@@ -568,12 +765,18 @@ export default function ProductDetailsScreen() {
                           setModalQuantity(modalQuantity + 1);
                         }
                       }}
-                      disabled={modalQuantity >= (selectedVariant?.quantity || 1)}
+                      disabled={
+                        modalQuantity >= (selectedVariant?.quantity || 1)
+                      }
                     >
                       <Ionicons
                         name="add"
                         size={18}
-                        color={modalQuantity >= (selectedVariant?.quantity || 1) ? "#CCC" : colors.red}
+                        color={
+                          modalQuantity >= (selectedVariant?.quantity || 1)
+                            ? "#CCC"
+                            : colors.red
+                        }
                       />
                     </TouchableOpacity>
                   </View>
@@ -585,7 +788,7 @@ export default function ProductDetailsScreen() {
                   disabled={selectedVariant.quantity === 0}
                 >
                   <Text style={styles.modalConfirmText}>
-                    {pendingAction === 'addToCart' ? 'Add to Cart' : 'Buy Now'}
+                    {pendingAction === "addToCart" ? "Add to Cart" : "Buy Now"}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -611,68 +814,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontSize: 14,
     color: "#666",
-  },
-  variantSection: {
-    backgroundColor: "#FFFFFF",
-    padding: 16,
-    marginTop: 8,
-  },
-  variantLabel: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333",
-    marginBottom: 12,
-  },
-  variantsContainer: {
-    gap: 12,
-    paddingVertical: 4,
-  },
-  variantCard: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    borderWidth: 1.5,
-    borderColor: "#E0E0E0",
-    backgroundColor: "#FFFFFF",
-    minWidth: 120,
-    position: "relative",
-  },
-  variantCardSelected: {
-    borderColor: colors.red,
-    backgroundColor: "#FFF5F6",
-  },
-  variantWeight: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#333",
-    marginBottom: 4,
-  },
-  variantFlavour: {
-    fontSize: 12,
-    color: "#666",
-    marginBottom: 6,
-  },
-  variantPrice: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: colors.red,
-  },
-  variantTextSelected: {
-    color: colors.red,
-  },
-  outOfStockBadge: {
-    position: "absolute",
-    top: 4,
-    right: 4,
-    backgroundColor: "#FF4D4F",
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  outOfStockBadgeText: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: "#FFFFFF",
   },
   header: {
     flexDirection: "row",
@@ -730,7 +871,8 @@ const styles = StyleSheet.create({
   infoSection: {
     backgroundColor: "#FFFFFF",
     padding: 16,
-    marginTop: 8,
+    borderTopColor: "#E0E0E0",
+    borderTopWidth: 1,
   },
   productName: {
     fontSize: 20,
@@ -938,50 +1080,51 @@ const styles = StyleSheet.create({
   // Variant selector button styles
   variantSection: {
     backgroundColor: "#FFFFFF",
-    padding: 16,
-    marginTop: 8,
+    padding: 12,
+    borderTopColor: "#F0F0F0",
+    borderTopWidth: 1,
   },
   variantHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: 8,
   },
   variantLabel: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "600",
     color: "#333",
   },
   viewAllText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: "600",
     color: colors.red,
   },
   variantsContainer: {
-    paddingRight: 16,
+    paddingRight: 12,
   },
   variantCard: {
-    minWidth: 100,
-    padding: 12,
-    marginRight: 12,
-    borderRadius: 8,
+    minWidth: 80,
+    padding: 8,
+    marginRight: 8,
+    borderRadius: 6,
     borderWidth: 1.5,
     borderColor: "#E0E0E0",
     backgroundColor: "#FFFFFF",
     position: "relative",
+    alignItems: "center",
   },
   variantCardSelected: {
     borderColor: colors.red,
     backgroundColor: "#FFF5F7",
   },
   variantWeight: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: "600",
     color: "#333",
-    marginBottom: 4,
   },
   variantFlavour: {
-    fontSize: 12,
+    fontSize: 11,
     color: "#666",
   },
   variantTextSelected: {
@@ -989,15 +1132,15 @@ const styles = StyleSheet.create({
   },
   outOfStockBadge: {
     position: "absolute",
-    top: 4,
-    right: 4,
+    top: 2,
+    right: 2,
     backgroundColor: "#FF4D4F",
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    borderRadius: 3,
   },
   outOfStockBadgeText: {
-    fontSize: 10,
+    fontSize: 8,
     fontWeight: "600",
     color: "#FFFFFF",
   },
@@ -1032,6 +1175,99 @@ const styles = StyleSheet.create({
   },
   modalVariantList: {
     padding: 12,
+  },
+  modalSection: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F0F0F0",
+  },
+  modalSectionTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#333",
+    marginBottom: 12,
+  },
+  modalOptionsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  modalOptionCard: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: "#E0E0E0",
+    backgroundColor: "#FFFFFF",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  modalOptionCardSelected: {
+    borderColor: colors.red,
+    backgroundColor: "#FFF5F7",
+  },
+  modalOptionCardDisabled: {
+    opacity: 0.4,
+    backgroundColor: "#F5F5F5",
+  },
+  modalOptionText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#333",
+  },
+  modalOptionTextSelected: {
+    color: colors.red,
+  },
+  modalOptionTextDisabled: {
+    color: "#999",
+  },
+  modalOptionCheck: {
+    marginLeft: 4,
+  },
+  modalOptionOutOfStock: {
+    fontSize: 10,
+    fontWeight: "600",
+    color: "#FF4D4F",
+    marginLeft: 6,
+  },
+  modalVariantPreview: {
+    flexDirection: "row",
+    padding: 16,
+    backgroundColor: "#F8F9FA",
+    marginHorizontal: 16,
+    marginVertical: 12,
+    borderRadius: 12,
+    gap: 12,
+  },
+  modalPreviewImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+    backgroundColor: "#FFF",
+  },
+  modalPreviewInfo: {
+    flex: 1,
+    justifyContent: "space-between",
+  },
+  modalPreviewName: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#333",
+  },
+  modalPreviewVariant: {
+    fontSize: 12,
+    color: "#666",
+  },
+  modalPreviewPrice: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: colors.red,
+  },
+  modalPreviewStock: {
+    fontSize: 12,
+    color: "#52C41A",
+    fontWeight: "600",
   },
   modalVariantCard: {
     flex: 1,
