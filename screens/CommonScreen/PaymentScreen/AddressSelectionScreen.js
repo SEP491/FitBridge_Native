@@ -11,18 +11,19 @@ import {
   Platform,
   FlatList,
   Keyboard,
+  KeyboardAvoidingView,
 } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import * as Location from "expo-location";
 import { useTranslation } from "../../../hooks/useTranslation";
+import addressService from "../../../services/addressService";
 import {
   GOOGLE_MAPS_CONFIG,
   buildAutocompleteUrl,
   buildPlaceDetailsUrl,
 } from "../../../config/googleMaps";
 
-console.log("GOOGLE_MAPS_CONFIG:", GOOGLE_MAPS_CONFIG);
 
 export default function AddressSelectionScreen({ navigation, route }) {
   const { t } = useTranslation();
@@ -327,7 +328,7 @@ export default function AddressSelectionScreen({ navigation, route }) {
     }
   };
 
-  const handleSaveAddress = () => {
+  const handleSaveAddress = async () => {
     // Validate inputs
     if (!recipientName.trim()) {
       Alert.alert(t("common.error"), "Please enter recipient name");
@@ -344,225 +345,308 @@ export default function AddressSelectionScreen({ navigation, route }) {
       return;
     }
 
-    // Create address object
-    const addressData = {
-      recipientName: recipientName.trim(),
-      phoneNumber: phoneNumber.trim(),
-      fullAddress: fullAddress.trim(),
-      addressDetail: addressDetail.trim(),
-      latitude: markerPosition.latitude,
-      longitude: markerPosition.longitude,
-      isDefault: isDefault,
-    };
+    try {
+      setLoading(true);
+      
+      // Parse address from fullAddress string
+      // Expected format: "street number street, ward, district, city"
+      const addressParts = fullAddress.split(',').map(part => part.trim());
+      
+      let street = "", houseNumber = "", ward = "", district = "", city = "";
+      
+      if (addressParts.length >= 4) {
+        // First part contains house number and street
+        const firstPart = addressParts[0];
+        const firstSpaceIndex = firstPart.indexOf(' ');
+        if (firstSpaceIndex > 0) {
+          houseNumber = firstPart.substring(0, firstSpaceIndex);
+          street = firstPart.substring(firstSpaceIndex + 1);
+        } else {
+          street = firstPart;
+        }
+        
+        ward = addressParts[1];
+        district = addressParts[2];
+        city = addressParts.slice(3).join(', ');
+      } else {
+        // If parsing fails, use addressDetail for street
+        street = addressDetail.trim() || fullAddress;
+      }
 
-    // Pass back to previous screen
-    if (onSelectAddress) {
-      onSelectAddress(addressData);
+      // Create address via API
+      const createAddressData = {
+        receiverName: recipientName.trim(),
+        phoneNumber: phoneNumber.trim(),
+        city: city,
+        district: district,
+        ward: ward,
+        street: street,
+        houseNumber: houseNumber,
+        note: addressDetail.trim(),
+        latitude: markerPosition.latitude,
+        longitude: markerPosition.longitude,
+        googleMapAddressString: fullAddress.trim(),
+      };
+
+      console.log("Creating address with data:", createAddressData);
+      
+      // Call API to create address
+      const response = await addressService.createAddress(createAddressData);
+      console.log("Address created successfully:", response);
+
+      // Create address object to pass back
+      const addressData = {
+        recipientName: recipientName.trim(),
+        receiverName: recipientName.trim(),
+        phoneNumber: phoneNumber.trim(),
+        fullAddress: fullAddress.trim(),
+        googleMapAddressString: fullAddress.trim(),
+        addressDetail: addressDetail.trim(),
+        city: city,
+        district: district,
+        ward: ward,
+        street: street,
+        houseNumber: houseNumber,
+        note: addressDetail.trim(),
+        latitude: markerPosition.latitude,
+        longitude: markerPosition.longitude,
+        isDefault: isDefault,
+      };
+
+      // Pass back to previous screen
+      if (onSelectAddress) {
+        onSelectAddress(addressData);
+      }
+
+      navigation.goBack();
+    } catch (error) {
+      console.error("Error creating address:", error);
+      Alert.alert(
+        t("common.error"), 
+        error.response?.data?.message || "Failed to create address. Please try again."
+      );
+    } finally {
+      setLoading(false);
     }
-
-    navigation.goBack();
   };
 
   return (
-    <View style={styles.container}>
-      {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <View style={styles.searchBar}>
-          <MaterialIcons name="search" size={20} color="#666" />
-          <TextInput
-            style={styles.searchInput}
-            placeholder={t("payment.searchAddress")}
-            value={searchQuery}
-            onChangeText={handleSearchChange}
-            onSubmitEditing={handleSearchAddress}
-            onFocus={() => {
-              if (predictions.length > 0) {
-                setShowPredictions(true);
-              }
-            }}
-          />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity
-              onPress={() => {
-                setSearchQuery("");
-                setPredictions([]);
-                setShowPredictions(false);
+    <KeyboardAvoidingView 
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 140 : 0}
+    >
+      <View style={styles.innerContainer}>
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <View style={styles.searchBar}>
+            <MaterialIcons name="search" size={20} color="#666" />
+            <TextInput
+              style={styles.searchInput}
+              placeholder={t("payment.searchAddress")}
+              value={searchQuery}
+              onChangeText={handleSearchChange}
+              onSubmitEditing={handleSearchAddress}
+              returnKeyType="search"
+              onFocus={() => {
+                if (predictions.length > 0) {
+                  setShowPredictions(true);
+                }
               }}
-            >
-              <MaterialIcons name="close" size={20} color="#666" />
-            </TouchableOpacity>
-          )}
-        </View>
-        <TouchableOpacity
-          style={styles.currentLocationButton}
-          onPress={getCurrentLocation}
-        >
-          <MaterialIcons name="my-location" size={24} color="#ED2A46" />
-        </TouchableOpacity>
-      </View>
-
-      {/* Predictions List */}
-      {showPredictions && predictions.length > 0 && (
-        <View style={styles.predictionsContainer}>
-          <Text style={styles.predictionsHeader}>
-            {predictions.length} {predictions.length === 1 ? 'result' : 'results'}
-          </Text>
-          <FlatList
-            data={predictions}
-            keyExtractor={(item) => item.place_id}
-            keyboardShouldPersistTaps="handled"
-            renderItem={({ item }) => (
+              onBlur={() => {
+                // Delay hiding to allow prediction selection
+                setTimeout(() => setShowPredictions(false), 200);
+              }}
+            />
+            {searchQuery.length > 0 && (
               <TouchableOpacity
-                style={styles.predictionItem}
-                onPress={() => handlePredictionSelect(item)}
+                onPress={() => {
+                  setSearchQuery("");
+                  setPredictions([]);
+                  setShowPredictions(false);
+                }}
               >
-                <MaterialIcons
-                  name="location-on"
-                  size={20}
-                  color="#666"
-                  style={styles.predictionIcon}
-                />
-                <View style={styles.predictionTextContainer}>
-                  <Text style={styles.predictionMainText} numberOfLines={1}>
-                    {item.structured_formatting.main_text}
-                  </Text>
-                  <Text style={styles.predictionSecondaryText} numberOfLines={1}>
-                    {item.structured_formatting.secondary_text}
-                  </Text>
-                </View>
+                <MaterialIcons name="close" size={20} color="#666" />
               </TouchableOpacity>
             )}
-            style={styles.predictionsList}
-            nestedScrollEnabled
-          />
-        </View>
-      )}
-
-      {/* Map */}
-      <View style={styles.mapContainer}>
-        <MapView
-          ref={mapRef}
-          style={styles.map}
-          initialRegion={region}
-          onPress={handleMapPress}
-          showsUserLocation={true}
-          showsMyLocationButton={false}
-          customMapStyle={MapStyle}
-          showsPointsOfInterest={false}
-        >
-          <Marker 
-            coordinate={markerPosition} 
-            draggable 
-            onDragEnd={handleMapPress}
-            tracksViewChanges={false}
+          </View>
+          <TouchableOpacity
+            style={styles.currentLocationButton}
+            onPress={getCurrentLocation}
           >
-            <View style={styles.markerContainer}>
-              <MaterialIcons name="location-on" size={40} color="#ED2A46" />
-            </View>
-          </Marker>
-        </MapView>
-
-        {/* Center Marker Hint */}
-        <View style={styles.mapHint}>
-          <MaterialIcons name="info-outline" size={16} color="#666" />
-          <Text style={styles.mapHintText}>
-            {t("payment.tapMapToSelectLocation")}
-          </Text>
+            <MaterialIcons name="my-location" size={24} color="#ED2A46" />
+          </TouchableOpacity>
         </View>
-      </View>
 
-      {/* Address Form */}
-      <ScrollView
-        style={styles.formContainer}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Selected Address Display */}
-        <View style={styles.formSection}>
-          <Text style={styles.sectionLabel}>
-            {t("payment.selectedAddress")}
-          </Text>
-          <View style={styles.addressPreview}>
-            <MaterialIcons name="location-on" size={20} color="#ED2A46" />
-            <Text style={styles.addressPreviewText} numberOfLines={2}>
-              {fullAddress || t("payment.selectLocationOnMap")}
+        {/* Predictions List */}
+        {showPredictions && predictions.length > 0 && (
+          <View style={styles.predictionsContainer}>
+            <Text style={styles.predictionsHeader}>
+              {predictions.length} {predictions.length === 1 ? 'result' : 'results'}
+            </Text>
+            <FlatList
+              data={predictions}
+              keyExtractor={(item) => item.place_id}
+              keyboardShouldPersistTaps="handled"
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.predictionItem}
+                  onPress={() => handlePredictionSelect(item)}
+                >
+                  <MaterialIcons
+                    name="location-on"
+                    size={20}
+                    color="#666"
+                    style={styles.predictionIcon}
+                  />
+                  <View style={styles.predictionTextContainer}>
+                    <Text style={styles.predictionMainText} numberOfLines={1}>
+                      {item.structured_formatting.main_text}
+                    </Text>
+                    <Text style={styles.predictionSecondaryText} numberOfLines={1}>
+                      {item.structured_formatting.secondary_text}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              )}
+              style={styles.predictionsList}
+              nestedScrollEnabled
+            />
+          </View>
+        )}
+
+       
+
+        {/* Address Form */}
+        <ScrollView
+          style={styles.formContainer}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={styles.scrollContent}
+        >
+         {/* Map */}
+        <View style={styles.mapContainer}>
+          <MapView
+            ref={mapRef}
+            style={styles.map}
+            initialRegion={region}
+            onPress={handleMapPress}
+            showsUserLocation={true}
+            showsMyLocationButton={false}
+            customMapStyle={MapStyle}
+            showsPointsOfInterest={false}
+          >
+            <Marker 
+              coordinate={markerPosition} 
+              draggable 
+              onDragEnd={handleMapPress}
+              tracksViewChanges={false}
+            >
+              <View style={styles.markerContainer}>
+                <MaterialIcons name="location-on" size={40} color="#ED2A46" />
+              </View>
+            </Marker>
+          </MapView>
+
+          {/* Center Marker Hint */}
+          <View style={styles.mapHint}>
+            <MaterialIcons name="info-outline" size={16} color="#666" />
+            <Text style={styles.mapHintText}>
+              {t("payment.tapMapToSelectLocation")}
             </Text>
           </View>
         </View>
+          {/* Selected Address Display */}
+          <View style={styles.formSection}>
+            <Text style={styles.sectionLabel}>
+              {t("payment.selectedAddress")}
+            </Text>
+            <View style={styles.addressPreview}>
+              <MaterialIcons name="location-on" size={20} color="#ED2A46" />
+              <Text style={styles.addressPreviewText} numberOfLines={2}>
+                {fullAddress || t("payment.selectLocationOnMap")}
+              </Text>
+            </View>
+          </View>
 
-        {/* Recipient Name */}
-        <View style={styles.formSection}>
-          <Text style={styles.label}>
-            {t("payment.recipientName")} <Text style={styles.required}>*</Text>
-          </Text>
-          <TextInput
-            style={styles.input}
-            placeholder={t("payment.enterRecipientName")}
-            value={recipientName}
-            onChangeText={setRecipientName}
-          />
-        </View>
+          {/* Recipient Name */}
+          <View style={styles.formSection}>
+            <Text style={styles.label}>
+              {t("payment.recipientName")} <Text style={styles.required}>*</Text>
+            </Text>
+            <TextInput
+              style={styles.input}
+              placeholder={t("payment.enterRecipientName")}
+              value={recipientName}
+              onChangeText={setRecipientName}
+              returnKeyType="next"
+            />
+          </View>
 
-        {/* Phone Number */}
-        <View style={styles.formSection}>
-          <Text style={styles.label}>
-            {t("payment.phoneNumber")} <Text style={styles.required}>*</Text>
-          </Text>
-          <TextInput
-            style={styles.input}
-            placeholder={t("payment.enterPhoneNumber")}
-            value={phoneNumber}
-            onChangeText={setPhoneNumber}
-            keyboardType="phone-pad"
-          />
-        </View>
+          {/* Phone Number */}
+          <View style={styles.formSection}>
+            <Text style={styles.label}>
+              {t("payment.phoneNumber")} <Text style={styles.required}>*</Text>
+            </Text>
+            <TextInput
+              style={styles.input}
+              placeholder={t("payment.enterPhoneNumber")}
+              value={phoneNumber}
+              onChangeText={setPhoneNumber}
+              keyboardType="phone-pad"
+              returnKeyType="next"
+            />
+          </View>
 
-        {/* Address Detail */}
-        <View style={styles.formSection}>
-          <Text style={styles.label}>{t("payment.addressDetail")}</Text>
-          <TextInput
-            style={styles.input}
-            placeholder={t("payment.enterAddressDetail")}
-            value={addressDetail}
-            onChangeText={setAddressDetail}
-          />
-        </View>
+          {/* Address Detail */}
+          <View style={styles.formSection}>
+            <Text style={styles.label}>{t("payment.addressDetail")}</Text>
+            <TextInput
+              style={styles.input}
+              placeholder={t("payment.enterAddressDetail")}
+              value={addressDetail}
+              onChangeText={setAddressDetail}
+              returnKeyType="done"
+            />
+          </View>
 
-        {/* Set as Default */}
-        <TouchableOpacity
-          style={styles.defaultCheckbox}
-          onPress={() => setIsDefault(!isDefault)}
-        >
-          <MaterialIcons
-            name={isDefault ? "check-box" : "check-box-outline-blank"}
-            size={24}
-            color="#ED2A46"
-          />
-          <Text style={styles.defaultText}>
-            {t("payment.setAsDefaultAddress")}
-          </Text>
-        </TouchableOpacity>
+          {/* Set as Default */}
+          <TouchableOpacity
+            style={styles.defaultCheckbox}
+            onPress={() => setIsDefault(!isDefault)}
+          >
+            <MaterialIcons
+              name={isDefault ? "check-box" : "check-box-outline-blank"}
+              size={24}
+              color="#ED2A46"
+            />
+            <Text style={styles.defaultText}>
+              {t("payment.setAsDefaultAddress")}
+            </Text>
+          </TouchableOpacity>
 
-        {/* Save Button */}
-        <TouchableOpacity
-          style={styles.saveButton}
-          onPress={handleSaveAddress}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.saveButtonText}>{t("payment.saveAddress")}</Text>
-          )}
-        </TouchableOpacity>
-      </ScrollView>
+          {/* Save Button */}
+          <TouchableOpacity
+            style={styles.saveButton}
+            onPress={handleSaveAddress}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.saveButtonText}>{t("payment.saveAddress")}</Text>
+            )}
+          </TouchableOpacity>
+        </ScrollView>
 
-      {/* Loading Overlay */}
-      {loading && (
-        <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color="#ED2A46" />
-        </View>
-      )}
-    </View>
+        {/* Loading Overlay */}
+        {loading && (
+          <View style={styles.loadingOverlay}>
+            <ActivityIndicator size="large" color="#ED2A46" />
+          </View>
+        )}
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -570,6 +654,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
+  },
+  innerContainer: {
+    flex: 1,
   },
   header: {
     flexDirection: "row",
@@ -679,8 +766,9 @@ const styles = StyleSheet.create({
     color: "#666",
   },
   mapContainer: {
-    height: 300,
+    height: 250,
     position: "relative",
+    marginTop: 0,
   },
   map: {
     flex: 1,
@@ -715,6 +803,11 @@ const styles = StyleSheet.create({
   formContainer: {
     flex: 1,
     paddingHorizontal: 16,
+    paddingTop: 0,
+  },
+  scrollContent: {
+    paddingBottom: 40,
+    flexGrow: 1,
   },
   formSection: {
     marginTop: 16,

@@ -1,23 +1,29 @@
-import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from "react-native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useTranslation } from "../../../../hooks/useTranslation";
 import { useNavigation } from "@react-navigation/native";
+import addressService from "../../../../services/addressService";
 
 export default function AddressSection({
-  selectedAddress,
   onSelectAddress,
   visible = true,
+  addresses,
+  loading,
 }) {
   const { t } = useTranslation();
   const navigation = useNavigation();
+  console.log("Addresses in AddressSection:", addresses);
+
+  const selectedAddress = addresses && addresses.length > 0 ? addresses[0] : null;
 
   if (!visible) return null;
 
-  const handleNavigateToAddressSelection = () => {
-    navigation.navigate("AddressSelectionScreen", {
+  const handleNavigateToAddressList = () => {
+    navigation.navigate("AddressListScreen", {
       currentAddress: selectedAddress,
       onSelectAddress: onSelectAddress,
+      addresses: addresses,
     });
   };
 
@@ -25,7 +31,7 @@ export default function AddressSection({
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>{t("payment.deliveryAddress")}</Text>
-        <TouchableOpacity onPress={handleNavigateToAddressSelection}>
+        <TouchableOpacity onPress={handleNavigateToAddressList}>
           <Text style={styles.actionText}>
             {selectedAddress ? t("payment.change") : t("payment.select")}
           </Text>
@@ -33,13 +39,18 @@ export default function AddressSection({
       </View>
 
       <View style={styles.content}>
-        {selectedAddress ? (
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="small" color="#ED2A46" />
+            <Text style={styles.loadingText}>{t("common.loading")}</Text>
+          </View>
+        ) : selectedAddress ? (
           <View style={styles.addressCard}>
             <View style={styles.addressHeader}>
               <MaterialIcons name="location-on" size={24} color="#ED2A46" />
               <View style={styles.addressInfo}>
                 <Text style={styles.addressName}>
-                  {selectedAddress.recipientName}
+                  {selectedAddress.receiverName}
                 </Text>
                 <Text style={styles.addressPhone}>
                   {selectedAddress.phoneNumber}
@@ -47,7 +58,7 @@ export default function AddressSection({
               </View>
             </View>
             <Text style={styles.addressDetail}>
-              {selectedAddress.fullAddress}
+              {selectedAddress.googleMapAddressString}
             </Text>
             {selectedAddress.isDefault && (
               <View style={styles.defaultBadge}>
@@ -60,7 +71,7 @@ export default function AddressSection({
         ) : (
           <TouchableOpacity
             style={styles.addAddressButton}
-            onPress={handleNavigateToAddressSelection}
+            onPress={handleNavigateToAddressList}
           >
             <MaterialIcons name="add-location" size={24} color="#ED2A46" />
             <Text style={styles.addAddressText}>
@@ -159,5 +170,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#ED2A46",
     fontWeight: "600",
+  },
+  loadingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 20,
+    gap: 10,
+  },
+  loadingText: {
+    fontSize: 14,
+    color: "#666",
   },
 });

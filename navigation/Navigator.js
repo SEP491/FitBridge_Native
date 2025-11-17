@@ -84,6 +84,7 @@ import { useRevenueCat } from "../context/RevenueCatContext";
 import { useUser } from "../context/UserContext";
 import EcommerceScreen from "../screens/CommonScreen/EcommerceScreen/EcommerceScreen";
 import ProductDetailsScreen from "../screens/CommonScreen/ProductDetailsScreen/ProductDetailsScreen";
+import AddressListScreen from "../screens/CommonScreen/PaymentScreen/AddressListScreen";
 import AddressSelectionScreen from "../screens/CommonScreen/PaymentScreen/AddressSelectionScreen";
 
 export default function Navigator({
@@ -730,6 +731,13 @@ export default function Navigator({
               fontSize: 20,
               color: "#ED2A46",
             },
+          }}
+        />
+        <Stack.Screen
+          name="AddressListScreen"
+          component={AddressListScreen}
+          options={{
+            headerShown: false,
           }}
         />
         <Stack.Screen

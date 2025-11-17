@@ -7,7 +7,7 @@ import {
   Linking,
   Alert,
 } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import { useCart } from "../../../context/CartContext";
 import CartCard from "../../../components/CartCard/CartCard";
 import Cart_FreelancePTCard from "../../../components/CartCard/Cart_FreelancePTCard";
@@ -23,6 +23,7 @@ import {
   VoucherSection,
   PaymentDetailsSection,
 } from "./components";
+import addressService from "../../../services/addressService";
 
 export default function PaymentScreen({ navigation, route }) {
   const {
@@ -72,11 +73,29 @@ export default function PaymentScreen({ navigation, route }) {
   const [orderToExtend, setOrderToExtend] = useState([]);
   const isExtending = displayItems.some((item) => item.toExtend === true);
   const [selectedAddress, setSelectedAddress] = useState(null);
-  
+  const [addresses, setAddresses] = useState([]);
+  const [loading, setLoading] = useState(false);
   // Check if cart contains any products
   const hasProducts = displayItems.some((item) => item.selectedVariant && !item.gymId);
 
+  useEffect(() => {
+    fetchAddresses();
+  }, []);
+
+  const fetchAddresses = async () => {
+      try {
+        setLoading(true);
+        const response = await addressService.getAllAddresses();
+        setAddresses(response.data);  
+      } catch (error) {
+        console.error("Error fetching addresses:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
   const handleAddressSelection = (addressData) => {
+    console.log("Address selected in PaymentScreen:", addressData);
     setSelectedAddress(addressData);
   };
 
@@ -167,7 +186,20 @@ export default function PaymentScreen({ navigation, route }) {
           ? customerPurchasedIdToExtend
           : null,
         shippingFee: isExtending ? orderToExtend.shippingFee : 0,
-        addressId: hasProducts && selectedAddress ? selectedAddress.id : null,
+        // Include address details if product exists and address is selected
+        ...(hasProducts && selectedAddress ? {
+          receiverName: selectedAddress.receiverName || selectedAddress.recipientName,
+          phoneNumber: selectedAddress.phoneNumber,
+          city: selectedAddress.city,
+          district: selectedAddress.district,
+          ward: selectedAddress.ward,
+          street: selectedAddress.street,
+          houseNumber: selectedAddress.houseNumber,
+          note: selectedAddress.note || "",
+          latitude: selectedAddress.latitude,
+          longitude: selectedAddress.longitude,
+          googleMapAddressString: selectedAddress.googleMapAddressString || selectedAddress.fullAddress,
+        } : {}),
         paymentMethodId:
           selectedPaymentMethod === "bank"
             ? "01997597-d188-7f12-95f4-43ef8d442612"
@@ -363,6 +395,8 @@ export default function PaymentScreen({ navigation, route }) {
           visible={hasProducts}
           selectedAddress={selectedAddress}
           onSelectAddress={handleAddressSelection}
+          addresses={addresses}
+          loading={loading}
         />
 
         {/* Payment Method Section */}

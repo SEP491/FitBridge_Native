@@ -6,6 +6,7 @@ import { useTranslation } from "../../../../hooks/useTranslation";
 export default function PaymentDetailsSection({
   subTotal,
   voucherDiscount = 0,
+  shippingFee = 0,
   finalTotal,
   showVoucherDiscount = false,
 }) {
@@ -33,6 +34,11 @@ export default function PaymentDetailsSection({
             </Text>
           </View>
         )}
+        
+        <View style={styles.row}>
+          <Text>{t("payment.shippingFee")}</Text>
+          <Text>{formatPrice(shippingFee)}</Text>
+        </View>
         
         <View style={[styles.row, styles.separator]}>
           <Text>{t("payment.additionalFees")}</Text>
