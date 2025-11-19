@@ -9,6 +9,7 @@ export default function BestSellerProductSection({ refreshTrigger, products, vie
   const navigation = useNavigation();
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
+  const [bestSellerProducts, setBestSellerProducts] = useState([]);
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -18,10 +19,10 @@ export default function BestSellerProductSection({ refreshTrigger, products, vie
         .filter(product => product.totalSoldQuantity > 0)
         .sort((a, b) => b.totalSoldQuantity - a.totalSoldQuantity);
 
-      setProducts(bestSellerProducts);
+      setBestSellerProducts(bestSellerProducts);
     } catch (error) {
       console.error("Error fetching best seller products:", error);
-      setProducts([]);
+      setBestSellerProducts([]);
     } finally {
       setLoading(false);
     }
@@ -60,14 +61,14 @@ export default function BestSellerProductSection({ refreshTrigger, products, vie
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#ED2A46" />
         </View>
-      ) : products && products.length > 0 ? (
+      ) : bestSellerProducts && bestSellerProducts.length > 0 ? (
         <PairedSwiper
-          data={products}
+          data={bestSellerProducts}
           renderItem={renderProductCard}
           showsPagination={true}
           itemsPerSlide={2}
           height={280}
-          loop={products.length > 2}
+          loop={bestSellerProducts.length > 2}
           dotStyle={styles.paginationDot}
           activeDotStyle={styles.activePaginationDot}
           containerStyle={styles.swiperContainer}

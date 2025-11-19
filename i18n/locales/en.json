@@ -1237,7 +1237,17 @@
     "selectedAddress": "Selected Address",
     "selectLocationOnMap": "Select Location on Map",
     "tapMapToSelectLocation": "Tap on the map or drag the marker to select your delivery location",
-    "pleaseSelectAddress": "Please select a delivery address before checkout"
+    "pleaseSelectAddress": "Please select a delivery address before checkout",
+    "houseNumber": "House Number",
+    "enterHouseNumber": "Enter house number (e.g., 475A)",
+    "street": "Street",
+    "enterStreet": "Enter street name",
+    "ward": "Ward",
+    "enterWard": "Enter ward name",
+    "district": "District",
+    "enterDistrict": "Enter district name",
+    "city": "City",
+    "enterCity": "Enter city name"
   },
 
   "faq": {

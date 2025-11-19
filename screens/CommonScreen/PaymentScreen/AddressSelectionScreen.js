@@ -52,6 +52,11 @@ export default function AddressSelectionScreen({ navigation, route }) {
   const [fullAddress, setFullAddress] = useState(
     currentAddress?.fullAddress || ""
   );
+  const [houseNumber, setHouseNumber] = useState("");
+  const [street, setStreet] = useState("");
+  const [ward, setWard] = useState("");
+  const [district, setDistrict] = useState("");
+  const [city, setCity] = useState("");
   const [loading, setLoading] = useState(false);
   const [isDefault, setIsDefault] = useState(
     currentAddress?.isDefault || false
@@ -160,6 +165,13 @@ export default function AddressSelectionScreen({ navigation, route }) {
         setAddressDetail(
           [address.streetNumber, address.street].filter(Boolean).join(" ")
         );
+        
+        // Set individual address components
+        setHouseNumber(address.streetNumber || "");
+        setStreet(address.street || "");
+        setDistrict(address.district || "");
+        setCity(address.city || address.region || "");
+        // Ward is not available from reverse geocoding, will be parsed from fullAddress
       }
     } catch (error) {
       console.error("Error getting address:", error);
@@ -262,6 +274,29 @@ export default function AddressSelectionScreen({ navigation, route }) {
           longitude: lng,
         });
         setFullAddress(formatted_address);
+        
+        // Parse the formatted address into components
+        const addressParts = formatted_address.split(',').map(part => part.trim());
+        if (addressParts.length >= 1) {
+          const firstPart = addressParts[0];
+          const houseNumberMatch = firstPart.match(/^([0-9]+[A-Za-z]?(?:\/[0-9]+)?)\s+(.+)$/);
+          if (houseNumberMatch) {
+            setHouseNumber(houseNumberMatch[1]);
+            setStreet(houseNumberMatch[2]);
+          } else {
+            setHouseNumber("");
+            setStreet(firstPart);
+          }
+        }
+        if (addressParts.length >= 2) {
+          setWard(addressParts[1].replace(/^(Phường|Ward|Xã)\s+/i, '').trim());
+        }
+        if (addressParts.length >= 3) {
+          setDistrict(addressParts[2].replace(/^(Quận|District|Huyện)\s+/i, '').trim());
+        }
+        if (addressParts.length >= 4) {
+          setCity(addressParts.slice(3).join(', ').replace(/^(Thành phố|Tỉnh|City|Province)\s+/i, '').trim());
+        }
 
         if (mapRef.current) {
           mapRef.current.animateToRegion(newRegion, 1000);
@@ -348,43 +383,25 @@ export default function AddressSelectionScreen({ navigation, route }) {
     try {
       setLoading(true);
       
-      // Parse address from fullAddress string
-      // Expected format: "street number street, ward, district, city"
-      const addressParts = fullAddress.split(',').map(part => part.trim());
-      
-      let street = "", houseNumber = "", ward = "", district = "", city = "";
-      
-      if (addressParts.length >= 4) {
-        // First part contains house number and street
-        const firstPart = addressParts[0];
-        const firstSpaceIndex = firstPart.indexOf(' ');
-        if (firstSpaceIndex > 0) {
-          houseNumber = firstPart.substring(0, firstSpaceIndex);
-          street = firstPart.substring(firstSpaceIndex + 1);
-        } else {
-          street = firstPart;
-        }
-        
-        ward = addressParts[1];
-        district = addressParts[2];
-        city = addressParts.slice(3).join(', ');
-      } else {
-        // If parsing fails, use addressDetail for street
-        street = addressDetail.trim() || fullAddress;
-      }
+      // Use state variables for address components
+      const noteText = addressDetail.trim() || "";
 
-      // Create address via API
+      // Ensure latitude and longitude are numbers
+      const lat = typeof markerPosition.latitude === 'number' ? markerPosition.latitude : parseFloat(markerPosition.latitude) || 0;
+      const lng = typeof markerPosition.longitude === 'number' ? markerPosition.longitude : parseFloat(markerPosition.longitude) || 0;
+
+      // Create address via API - matching exact body structure
       const createAddressData = {
         receiverName: recipientName.trim(),
         phoneNumber: phoneNumber.trim(),
-        city: city,
-        district: district,
-        ward: ward,
-        street: street,
-        houseNumber: houseNumber,
-        note: addressDetail.trim(),
-        latitude: markerPosition.latitude,
-        longitude: markerPosition.longitude,
+        city: city || "Unknown",
+        district: district || "Unknown",
+        ward: ward || "Unknown",
+        street: street || "Unknown",
+        houseNumber: houseNumber || "",
+        note: noteText,
+        latitude: lat,
+        longitude: lng,
         googleMapAddressString: fullAddress.trim(),
       };
 
@@ -394,24 +411,26 @@ export default function AddressSelectionScreen({ navigation, route }) {
       const response = await addressService.createAddress(createAddressData);
       console.log("Address created successfully:", response);
 
-      // Create address object to pass back
+      // Create address object to pass back to previous screen
       const addressData = {
         recipientName: recipientName.trim(),
         receiverName: recipientName.trim(),
         phoneNumber: phoneNumber.trim(),
         fullAddress: fullAddress.trim(),
         googleMapAddressString: fullAddress.trim(),
-        addressDetail: addressDetail.trim(),
+        addressDetail: noteText,
         city: city,
         district: district,
         ward: ward,
         street: street,
         houseNumber: houseNumber,
-        note: addressDetail.trim(),
-        latitude: markerPosition.latitude,
-        longitude: markerPosition.longitude,
+        note: noteText,
+        latitude: lat,
+        longitude: lng,
         isDefault: isDefault,
       };
+
+      console.log("Passing address back to payment screen:", addressData);
 
       // Pass back to previous screen
       if (onSelectAddress) {
@@ -421,9 +440,10 @@ export default function AddressSelectionScreen({ navigation, route }) {
       navigation.goBack();
     } catch (error) {
       console.error("Error creating address:", error);
+      console.error("Error details:", error.response?.data);
       Alert.alert(
         t("common.error"), 
-        error.response?.data?.message || "Failed to create address. Please try again."
+        error.response?.data?.message || error.message || "Failed to create address. Please try again."
       );
     } finally {
       setLoading(false);
@@ -598,14 +618,92 @@ export default function AddressSelectionScreen({ navigation, route }) {
             />
           </View>
 
+          {/* House Number and Street in one row */}
+          <View style={styles.formSection}>
+            <View style={styles.rowContainer}>
+              {/* House Number */}
+              <View style={styles.rowItem}>
+                <Text style={styles.label}>{t("payment.houseNumber")}</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder={t("payment.enterHouseNumber")}
+                  value={houseNumber}
+                  onChangeText={setHouseNumber}
+                  returnKeyType="next"
+                />
+              </View>
+
+              {/* Street */}
+              <View style={styles.rowItem}>
+                <Text style={styles.label}>
+                  {t("payment.street")} <Text style={styles.required}>*</Text>
+                </Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder={t("payment.enterStreet")}
+                  value={street}
+                  onChangeText={setStreet}
+                  returnKeyType="next"
+                />
+              </View>
+            </View>
+          </View>
+
+          {/* Ward and District in one row */}
+          <View style={styles.formSection}>
+            <View style={styles.rowContainer}>
+              {/* Ward */}
+              <View style={styles.rowItem}>
+                <Text style={styles.label}>
+                  {t("payment.ward")} <Text style={styles.required}>*</Text>
+                </Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder={t("payment.enterWard")}
+                  value={ward}
+                  onChangeText={setWard}
+                  returnKeyType="next"
+                />
+              </View>
+
+              {/* District */}
+              <View style={styles.rowItem}>
+                <Text style={styles.label}>
+                  {t("payment.district")} <Text style={styles.required}>*</Text>
+                </Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder={t("payment.enterDistrict")}
+                  value={district}
+                  onChangeText={setDistrict}
+                  returnKeyType="next"
+                />
+              </View>
+            </View>
+          </View>
+
+          {/* City in its own row */}
+          <View style={styles.formSection}>
+            <Text style={styles.label}>
+              {t("payment.city")} <Text style={styles.required}>*</Text>
+            </Text>
+            <TextInput
+              style={styles.input}
+              placeholder={t("payment.enterCity")}
+              value={city}
+              onChangeText={setCity}
+              returnKeyType="next"
+            />
+          </View>
+
           {/* Address Detail */}
           <View style={styles.formSection}>
             <Text style={styles.label}>{t("payment.addressDetail")}</Text>
             <TextInput
               style={styles.input}
               placeholder={t("payment.enterAddressDetail")}
-              value={addressDetail}
-              onChangeText={setAddressDetail}
+              value={fullAddress}
+              onChangeText={setFullAddress}
               returnKeyType="done"
             />
           </View>
@@ -811,6 +909,13 @@ const styles = StyleSheet.create({
   },
   formSection: {
     marginTop: 16,
+  },
+  rowContainer: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  rowItem: {
+    flex: 1,
   },
   sectionLabel: {
     fontSize: 14,

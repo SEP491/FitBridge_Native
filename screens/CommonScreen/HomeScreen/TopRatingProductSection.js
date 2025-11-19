@@ -9,19 +9,19 @@ export default function TopRatingProductSection({ refreshTrigger, products, view
   const navigation = useNavigation();
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
-
+  const [topProducts, setTopProducts] = useState([]);
   const fetchProducts = async () => {
     setLoading(true);
     try {
       // Sort by rating (highest first) and filter products with rating >= 4.0
       const topRatedProducts = products
-        .filter(product => product.rating >= 4.0)
+        .filter(product => product.rating >= 0)
         .sort((a, b) => b.rating - a.rating);
 
-      setProducts(topRatedProducts);
+      setTopProducts(topRatedProducts);
     } catch (error) {
       console.error("Error fetching top rated products:", error);
-      setProducts([]);
+      setTopProducts([]);
     } finally {
       setLoading(false);
     }
@@ -60,14 +60,14 @@ export default function TopRatingProductSection({ refreshTrigger, products, view
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#ED2A46" />
         </View>
-      ) : products && products.length > 0 ? (
+      ) : topProducts && topProducts.length > 0 ? (
         <PairedSwiper
-          data={products}
+          data={topProducts}
           renderItem={renderProductCard}
           showsPagination={true}
           itemsPerSlide={2}
           height={280}
-          loop={products.length > 2}
+          loop={topProducts.length > 2}
           dotStyle={styles.paginationDot}
           activeDotStyle={styles.activePaginationDot}
           containerStyle={styles.swiperContainer}

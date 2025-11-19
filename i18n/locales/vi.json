@@ -1363,7 +1363,17 @@
     "selectedAddress": "Địa Chỉ Đã Chọn",
     "selectLocationOnMap": "Chọn Vị Trí Trên Bản Đồ",
     "tapMapToSelectLocation": "Chạm vào bản đồ hoặc kéo điểm đánh dấu để chọn vị trí giao hàng của bạn",
-    "pleaseSelectAddress": "Vui lòng chọn địa chỉ giao hàng trước khi thanh toán"
+    "pleaseSelectAddress": "Vui lòng chọn địa chỉ giao hàng trước khi thanh toán",
+    "houseNumber": "Số Nhà",
+    "enterHouseNumber": "Nhập số nhà (vd: 475A)",
+    "street": "Đường",
+    "enterStreet": "Nhập tên đường",
+    "ward": "Phường/Xã",
+    "enterWard": "Nhập tên phường/xã",
+    "district": "Quận/Huyện",
+    "enterDistrict": "Nhập tên quận/huyện",
+    "city": "Tỉnh/Thành phố",
+    "enterCity": "Nhập tên tỉnh/thành phố"
   },
 
   "deleteAccount": {
