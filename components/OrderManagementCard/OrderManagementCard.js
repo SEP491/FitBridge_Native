@@ -1,0 +1,464 @@
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  Linking,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+
+const OrderManagementCard = ({ order }) => {
+  const navigation = useNavigation();
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "Created":
+        return "#9E9E9E";
+      case "Pending":
+        return "#FF9800";
+      case "Processing":
+        return "#2196F3";
+      case "Assigning":
+        return "#9C27B0";
+      case "Shipping":
+        return "#00BCD4";
+      case "Finished":
+        return "#4CAF50";
+      case "Cancelled":
+        return "#F44336";
+      default:
+        return "#9E9E9E";
+    }
+  };
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case "Created":
+        return "document-text-outline";
+      case "Pending":
+        return "time-outline";
+      case "Processing":
+        return "construct-outline";
+      case "Assigning":
+        return "people-outline";
+      case "Shipping":
+        return "car-outline";
+      case "Finished":
+        return "checkmark-circle-outline";
+      case "Cancelled":
+        return "close-circle-outline";
+      default:
+        return "document-outline";
+    }
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(price);
+  };
+
+  const handleViewDetails = () => {
+    navigation.navigate("OrderDetailScreen", { orderId: order.id });
+  };
+
+  const handleCheckoutAgain = () => {
+    if (order.checkOutUrl) {
+      Linking.openURL(order.checkOutUrl);
+    }
+  };
+
+  return (
+    <TouchableOpacity
+      style={styles.card}
+      onPress={handleViewDetails}
+      activeOpacity={0.7}
+    >
+      {/* Status Header */}
+      <View
+        style={[
+          styles.statusHeader,
+          { backgroundColor: getStatusColor(order.currentStatus) },
+        ]}
+      >
+        <View style={styles.statusLeft}>
+          <Ionicons
+            name={getStatusIcon(order.currentStatus)}
+            size={20}
+            color="#fff"
+          />
+          <Text style={styles.statusText}>{order.currentStatus}</Text>
+        </View>
+        <Text style={styles.dateText}>{formatDate(order.createdAt)}</Text>
+      </View>
+
+      {/* Order Info */}
+      <View style={styles.orderInfo}>
+        <View style={styles.orderIdRow}>
+          <Text style={styles.orderIdLabel}>Order ID:</Text>
+          <Text style={styles.orderIdValue} numberOfLines={1}>
+            {order.id.slice(0, 8)}...
+          </Text>
+        </View>
+
+        {/* Order Items Preview */}
+        <View style={styles.itemsContainer}>
+          <Text style={styles.itemsLabel}>
+            {order.orderItems.length} item(s)
+          </Text>
+          {order.orderItems.slice(0, 2).map((item, index) => (
+            <View key={index} style={styles.itemRow}>
+              {item.productDetail && (
+                <>
+                  {item.productDetail.imageUrl && (
+                    <Image
+                      source={{ uri: item.productDetail.imageUrl }}
+                      style={styles.itemImage}
+                      resizeMode="cover"
+                    />
+                  )}
+                  <View style={styles.itemInfo}>
+                    <Text style={styles.itemName} numberOfLines={1}>
+                      {item.productDetail.flavourName || "Product"}
+                      {item.productDetail.weightValue > 0 &&
+                        ` - ${item.productDetail.weightValue}${item.productDetail.weightUnit || ""}`}
+                    </Text>
+                    <View style={styles.itemDetails}>
+                      <Text style={styles.itemQuantity}>
+                        Qty: {item.quantity}
+                      </Text>
+                      <Text style={styles.itemPrice}>
+                        {formatPrice(item.price)}
+                      </Text>
+                    </View>
+                    {item.productDetail.proteinPerServingGrams > 0 && (
+                      <Text style={styles.itemNutrition}>
+                        Protein: {item.productDetail.proteinPerServingGrams}g |
+                        Calories: {item.productDetail.caloriesPerServingKcal}
+                        kcal
+                      </Text>
+                    )}
+                  </View>
+                </>
+              )}
+              {!item.productDetail && (
+                <Text style={styles.itemText} numberOfLines={1}>
+                  • Quantity: {item.quantity} - {formatPrice(item.price)}
+                </Text>
+              )}
+            </View>
+          ))}
+          {order.orderItems.length > 2 && (
+            <Text style={styles.moreItems}>
+              +{order.orderItems.length - 2} more
+            </Text>
+          )}
+        </View>
+
+        {/* Price Section */}
+        <View style={styles.priceSection}>
+          <View style={styles.priceRow}>
+            <Text style={styles.priceLabel}>Subtotal:</Text>
+            <Text style={styles.priceValue}>
+              {formatPrice(order.subTotalPrice)}
+            </Text>
+          </View>
+          {order.shippingFee > 0 && (
+            <View style={styles.priceRow}>
+              <Text style={styles.priceLabel}>Shipping:</Text>
+              <Text style={styles.priceValue}>
+                {formatPrice(order.shippingFee)}
+              </Text>
+            </View>
+          )}
+          <View style={styles.totalRow}>
+            <Text style={styles.totalLabel}>Total:</Text>
+            <Text style={styles.totalValue}>
+              {formatPrice(order.totalAmount)}
+            </Text>
+          </View>
+        </View>
+
+        {/* Action Buttons */}
+        <View style={styles.actionButtons}>
+          {order.currentStatus === "Created" && order.checkOutUrl && (
+            <TouchableOpacity
+              style={[styles.actionButton, styles.checkoutButton]}
+              onPress={handleCheckoutAgain}
+            >
+              <Ionicons name="card-outline" size={18} color="#4CAF50" />
+              <Text style={styles.checkoutButtonText}>Complete Payment</Text>
+            </TouchableOpacity>
+          )}
+
+          {order.currentStatus === "Finished" &&
+            order.orderItems.some((item) => !item.isFeedback) && (
+              <TouchableOpacity
+                style={[styles.actionButton, styles.feedbackButton]}
+                onPress={() =>
+                  navigation.navigate("FeedbackScreen", { orderId: order.id })
+                }
+              >
+                <Ionicons name="star-outline" size={18} color="#FF9800" />
+                <Text style={styles.feedbackButtonText}>Leave Feedback</Text>
+              </TouchableOpacity>
+            )}
+
+          {order.currentStatus === "Shipping" && order.shippingTrackingId && (
+            <TouchableOpacity
+              style={[styles.actionButton, styles.trackButton]}
+              onPress={() =>
+                navigation.navigate("TrackingScreen", {
+                  trackingId: order.shippingTrackingId,
+                })
+              }
+            >
+              <Ionicons name="location-outline" size={18} color="#00BCD4" />
+              <Text style={styles.trackButtonText}>Track Order</Text>
+            </TouchableOpacity>
+          )}
+
+          <TouchableOpacity
+            style={[styles.actionButton, styles.detailsButton]}
+            onPress={handleViewDetails}
+          >
+            <Ionicons name="eye-outline" size={18} color="#ED2A46" />
+            <Text style={styles.detailsButtonText}>View Details</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+};
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    overflow: "hidden",
+  },
+  statusHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  statusLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  statusText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "700",
+    textTransform: "uppercase",
+  },
+  dateText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "500",
+  },
+  orderInfo: {
+    padding: 16,
+  },
+  orderIdRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+    gap: 8,
+  },
+  orderIdLabel: {
+    fontSize: 13,
+    color: "#666",
+    fontWeight: "500",
+  },
+  orderIdValue: {
+    fontSize: 13,
+    color: "#333",
+    fontWeight: "600",
+    flex: 1,
+  },
+  itemsContainer: {
+    backgroundColor: "#F8F9FA",
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 12,
+  },
+  itemsLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 8,
+  },
+  itemRow: {
+    flexDirection: "row",
+    marginBottom: 8,
+    alignItems: "center",
+  },
+  itemImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    backgroundColor: "#E0E0E0",
+    marginRight: 12,
+  },
+  itemInfo: {
+    flex: 1,
+  },
+  itemName: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 4,
+  },
+  itemDetails: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 2,
+  },
+  itemQuantity: {
+    fontSize: 12,
+    color: "#666",
+  },
+  itemPrice: {
+    fontSize: 13,
+    color: "#ED2A46",
+    fontWeight: "600",
+  },
+  itemNutrition: {
+    fontSize: 11,
+    color: "#999",
+    marginTop: 2,
+  },
+  itemText: {
+    fontSize: 13,
+    color: "#666",
+  },
+  moreItems: {
+    fontSize: 12,
+    color: "#ED2A46",
+    fontWeight: "600",
+    marginTop: 4,
+  },
+  priceSection: {
+    borderTopWidth: 1,
+    borderTopColor: "#E0E0E0",
+    paddingTop: 12,
+    marginBottom: 12,
+  },
+  priceRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 6,
+  },
+  priceLabel: {
+    fontSize: 13,
+    color: "#666",
+  },
+  priceValue: {
+    fontSize: 13,
+    color: "#333",
+    fontWeight: "500",
+  },
+  totalRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: "#E0E0E0",
+  },
+  totalLabel: {
+    fontSize: 15,
+    color: "#333",
+    fontWeight: "700",
+  },
+  totalValue: {
+    fontSize: 16,
+    color: "#ED2A46",
+    fontWeight: "700",
+  },
+  actionButtons: {
+    flexDirection: "row",
+    gap: 8,
+    flexWrap: "wrap",
+  },
+  actionButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    gap: 6,
+    flex: 1,
+    justifyContent: "center",
+    minWidth: "45%",
+  },
+  feedbackButton: {
+    backgroundColor: "#FFF3E0",
+    borderWidth: 1,
+    borderColor: "#FF9800",
+  },
+  feedbackButtonText: {
+    fontSize: 13,
+    color: "#FF9800",
+    fontWeight: "600",
+  },
+  checkoutButton: {
+    backgroundColor: "#E8F5E9",
+    borderWidth: 1,
+    borderColor: "#4CAF50",
+  },
+  checkoutButtonText: {
+    fontSize: 13,
+    color: "#4CAF50",
+    fontWeight: "600",
+  },
+  trackButton: {
+    backgroundColor: "#E0F7FA",
+    borderWidth: 1,
+    borderColor: "#00BCD4",
+  },
+  trackButtonText: {
+    fontSize: 13,
+    color: "#00BCD4",
+    fontWeight: "600",
+  },
+  detailsButton: {
+    backgroundColor: "#FFEBEE",
+    borderWidth: 1,
+    borderColor: "#ED2A46",
+  },
+  detailsButtonText: {
+    fontSize: 13,
+    color: "#ED2A46",
+    fontWeight: "600",
+  },
+});
+
+export default OrderManagementCard;

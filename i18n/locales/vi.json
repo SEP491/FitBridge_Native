@@ -628,7 +628,9 @@
     "manageTransaction": "Quản lý Giao dịch",
     "myCustomer": "Khách hàng của tôi",
     "customerDetail": "Chi tiết khách hàng",
-    "myReports": "Báo cáo của tôi"
+    "myReports": "Báo cáo của tôi",
+    "myOrders": "Đơn Hàng Của Tôi",
+    "manageOrders": "Quản Lý Đơn Hàng"
   },
 
   "updatePassword": {
@@ -1818,5 +1820,33 @@
     "productsFound": "sản phẩm được tìm thấy",
     "noProductsFound": "Không tìm thấy sản phẩm",
     "tryDifferentKeywords": "Thử tìm kiếm với từ khóa khác"
+  },
+  "orders": {
+    "pending": "Chờ Xác Nhận",
+    "processing": "Đang Xử Lý",
+    "shipping": "Đang Giao",
+    "feedback": "Đánh Giá",
+    "viewAll": "Xem Tất Cả Đơn Hàng",
+    "finished": "Hoàn Thành",
+    "cancelled": "Đã Hủy",
+    "created": "Đã Tạo",
+    "assigning": "Đang Phân Công",
+    "manageOrders": "Quản Lý Đơn Hàng",
+    "filterByStatus": "Lọc theo trạng thái",
+    "all": "Tất Cả",
+    "noOrdersFound": "Không Tìm Thấy Đơn Hàng",
+    "noOrdersMessage": "Bạn chưa đặt đơn hàng nào",
+    "noStatusOrders": "Không có đơn hàng {{status}}",
+    "loadingOrders": "Đang tải đơn hàng...",
+    "orderDetails": "Chi Tiết Đơn Hàng",
+    "orderId": "Mã Đơn Hàng",
+    "items": "sản phẩm",
+    "subtotal": "Tạm Tính",
+    "shippingFee": "Phí Vận Chuyển",
+    "total": "Tổng Cộng",
+    "leaveFeedback": "Đánh Giá",
+    "trackOrder": "Theo Dõi Đơn Hàng",
+    "viewDetails": "Xem Chi Tiết",
+    "orderDate": "Ngày Đặt Hàng"
   }
 }

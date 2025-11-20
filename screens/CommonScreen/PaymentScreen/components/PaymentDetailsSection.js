@@ -9,6 +9,7 @@ export default function PaymentDetailsSection({
   shippingFee = 0,
   finalTotal,
   showVoucherDiscount = false,
+  showShippingFee = false,
 }) {
   const { t } = useTranslation();
 
@@ -35,10 +36,12 @@ export default function PaymentDetailsSection({
           </View>
         )}
         
-        <View style={styles.row}>
-          <Text>{t("payment.shippingFee")}</Text>
-          <Text>{formatPrice(shippingFee)}</Text>
-        </View>
+        {showShippingFee && (
+          <View style={styles.row}>
+            <Text>{t("payment.shippingFee")}</Text>
+            <Text>{formatPrice(shippingFee)}</Text>
+          </View>
+        )}
         
         <View style={[styles.row, styles.separator]}>
           <Text>{t("payment.additionalFees")}</Text>

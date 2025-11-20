@@ -24,6 +24,7 @@ import {
   PaymentDetailsSection,
 } from "./components";
 import addressService from "../../../services/addressService";
+import orderService from "../../../services/orderService";
 
 export default function PaymentScreen({ navigation, route }) {
   const {
@@ -82,11 +83,41 @@ export default function PaymentScreen({ navigation, route }) {
     fetchAddresses();
   }, []);
 
+  const estimateShippingPrice = async (addressId) => {
+    try {
+      const response = await orderService.orderShippingPriceEstimate({
+        addressId: addressId,
+      });
+      console.log("Estimated shipping price:", response);
+      return response.data;
+    } catch (error) {
+      console.error("Error estimating shipping price:", error);
+      return 0;
+    }
+  };
+
+  const [shippingFee, setShippingFee] = useState(0);
+
+  useEffect(() => {
+    const loadShippingFee = async () => {
+      if (selectedAddress && hasProducts) {
+        const fee = await estimateShippingPrice(selectedAddress.id);
+        setShippingFee(fee);
+      } else {
+        setShippingFee(0);
+      }
+    };
+    loadShippingFee();
+  }, [selectedAddress, hasProducts]);
+  
   const fetchAddresses = async () => {
       try {
         setLoading(true);
         const response = await addressService.getAllAddresses();
         setAddresses(response.data);  
+        if (selectedAddress === null && response.data.length > 0) {
+          setSelectedAddress(response.data[0]);
+        }
       } catch (error) {
         console.error("Error fetching addresses:", error);
       } finally {
@@ -178,91 +209,75 @@ export default function PaymentScreen({ navigation, route }) {
     // Use displayItems (either direct purchase or cart items)
     console.log("Processing payment for:", displayItems);
     console.log("Is direct purchase:", isDirectPurchase);
-    let requestData = {};
-    requestData = {
-      request: {
-        couponId: selectedVoucher?.id || null,
-        customerPurchasedIdToExtend: isExtending
-          ? customerPurchasedIdToExtend
-          : null,
-        shippingFee: isExtending ? orderToExtend.shippingFee : 0,
-        // Include address details if product exists and address is selected
-        ...(hasProducts && selectedAddress ? {
-          receiverName: selectedAddress.receiverName || selectedAddress.recipientName,
-          phoneNumber: selectedAddress.phoneNumber,
-          city: selectedAddress.city,
-          district: selectedAddress.district,
-          ward: selectedAddress.ward,
-          street: selectedAddress.street,
-          houseNumber: selectedAddress.houseNumber,
-          note: selectedAddress.note || "",
-          latitude: selectedAddress.latitude,
-          longitude: selectedAddress.longitude,
-          googleMapAddressString: selectedAddress.googleMapAddressString || selectedAddress.fullAddress,
-        } : {}),
-        paymentMethodId:
-          selectedPaymentMethod === "bank"
-            ? "01997597-d188-7f12-95f4-43ef8d442612"
-            : "01997597-d188-7f12-95f4-43ef8d412633",
-        // voucherId: null,
-
-        orderItems: isExtending
-          ? orderToExtend.orderItems
-          : displayItems.map((item) => {
-              // Product with variant
-              if (item.selectedVariant && !item.gymId) {
-                return {
-                  quantity: item.quantity || 1,
-                  productDetailId: item.selectedVariant.id,
-                  gymCourseId: null,
-                  gymPtId: null,
-                  serviceInformationId: null,
-                  freelancePTPackageId: null,
-                };
-              }
-              // Freelance PT
-              if (item.type === "FreelancePT") {
-                return {
-                  quantity: 1,
-                  productDetailId: null,
-                  gymCourseId: null,
-                  gymPtId: null,
-                  serviceInformationId: null,
-                  freelancePTPackageId: item.id,
-                };
-              }
-              // Gym course with PT
-              if (item.type === "WithPt") {
-                return {
-                  quantity: item.quantity,
-                  productDetailId: null,
-                  gymCourseId: item.id,
-                  gymPtId: item.pt ? item.pt.id : null,
-                  serviceInformationId: null,
-                  freelancePTPackageId: null,
-                };
-              }
-              // Normal gym course
-              if (item.type === "Normal") {
-                return {
-                  quantity: item.quantity,
-                  productDetailId: null,
-                  gymCourseId: item.id,
-                  gymPtId: null,
-                  serviceInformationId: null,
-                  freelancePTPackageId: null,
-                };
-              }
-              return {};
-            }),
-      },
-    };
-    console.log("Checkout request:", requestData);
-
+    
     try {
-      let response;
+      let requestData = {
+        request: {
+          couponId: selectedVoucher?.id || null,
+          customerPurchasedIdToExtend: isExtending
+            ? customerPurchasedIdToExtend
+            : null,
+          shippingFee: hasProducts ? shippingFee : (isExtending ? orderToExtend.shippingFee : 0),
+          addressId: hasProducts && selectedAddress ? selectedAddress.id : null,
+          paymentMethodId:
+            selectedPaymentMethod === "bank"
+              ? "01997597-d188-7f12-95f4-43ef8d442612"
+              : "01997597-d188-7f12-95f4-43ef8d412633",
+          orderItems: isExtending
+            ? orderToExtend.orderItems
+            : displayItems.map((item) => {
+                // Product with variant
+                if (item.selectedVariant && !item.gymId) {
+                  return {
+                    quantity: item.quantity || 1,
+                    productDetailId: item.selectedVariant.id,
+                    gymCourseId: null,
+                    gymPtId: null,
+                    subscriptionPlansInformationId: null,
+                    freelancePTPackageId: null,
+                  };
+                }
+                // Freelance PT
+                if (item.type === "FreelancePT") {
+                  return {
+                    quantity: 1,
+                    productDetailId: null,
+                    gymCourseId: null,
+                    gymPtId: null,
+                    subscriptionPlansInformationId: null,
+                    freelancePTPackageId: item.id,
+                  };
+                }
+                // Gym course with PT
+                if (item.type === "WithPt") {
+                  return {
+                    quantity: item.quantity,
+                    productDetailId: null,
+                    gymCourseId: item.id,
+                    gymPtId: item.pt ? item.pt.id : null,
+                    subscriptionPlansInformationId: null,
+                    freelancePTPackageId: null,
+                  };
+                }
+                // Normal gym course
+                if (item.type === "Normal") {
+                  return {
+                    quantity: item.quantity,
+                    productDetailId: null,
+                    gymCourseId: item.id,
+                    gymPtId: null,
+                    subscriptionPlansInformationId: null,
+                    freelancePTPackageId: null,
+                  };
+                }
+                return {};
+              }),
+        },
+      };
+      
+      console.log("Processing checkout:", requestData);
 
-      response = await cartService.processCart(requestData);
+      const response = await cartService.processCart(requestData);
       console.log("Cart processed successfully:", response);
 
       if (
@@ -280,14 +295,7 @@ export default function PaymentScreen({ navigation, route }) {
           }, 500);
         }
       } else {
-        console.error(
-          "Invalid or missing checkoutUrl:",
-          response &&
-            response.data &&
-            response.data.data &&
-            response.data.data.checkoutUrl
-        );
-        showErrorAlert(t("errors.cannotLoadPaymentLink"));
+        throw new Error("Invalid response - missing checkout URL");
       }
     } catch (error) {
       console.error("Error processing payment:", error.response?.data || error);
@@ -421,9 +429,11 @@ export default function PaymentScreen({ navigation, route }) {
         {/* Payment Details Section */}
         <PaymentDetailsSection
           subTotal={isExtending ? orderToExtend.totalAmount : subTotal}
+          shippingFee={hasProducts ? shippingFee : 0}
           voucherDiscount={voucherDiscount}
-          finalTotal={finalTotal}
+          finalTotal={hasProducts ? finalTotal + shippingFee : finalTotal}
           showVoucherDiscount={selectedVoucher && voucherDiscount > 0}
+          showShippingFee={hasProducts}
         />
       </ScrollView>
 
@@ -439,7 +449,7 @@ export default function PaymentScreen({ navigation, route }) {
             <Text
               style={{ fontSize: 20, fontWeight: "bold", color: "#ED2A46" }}
             >
-              {formatPrice(finalTotal)}
+              {formatPrice(hasProducts ? finalTotal + shippingFee : finalTotal)}
             </Text>
           </View>
           <TouchableOpacity

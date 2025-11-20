@@ -14,14 +14,12 @@ import addressService from "../../../services/addressService";
 
 export default function AddressListScreen({ navigation, route }) {
   const { t } = useTranslation();
-  const { onSelectAddress, currentAddress, addresses } = route.params || {};
+  const { onSelectAddress, currentAddress } = route.params || {};
   
+  const [addresses, setAddresses] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
 
-  useEffect(() => {
-    fetchAddresses();
-  }, []);
 
   useEffect(() => {
     // Listen for new address from AddressSelectionScreen
@@ -37,20 +35,21 @@ export default function AddressListScreen({ navigation, route }) {
     try {
       setLoading(true);
       const response = await addressService.getAllAddresses();
-      
-      if (response.status === 200 && response.data) {
-        setAddresses(response.data);
+      setAddresses(response.data);
+        console.log("Fetched addresses:", response.data);
+        console.log("Current address to match:", currentAddress);
         
         // Set selected address based on current address
         if (currentAddress) {
           const matchedAddress = response.data.find(
-            addr => addr.googleMapAddressString === currentAddress.fullAddress
+            addr => addr.id === currentAddress.id || 
+                   addr.id === currentAddress.id
           );
+          console.log("Matched address:", matchedAddress);
           if (matchedAddress) {
-            setSelectedAddressId(matchedAddress.customerId);
+            setSelectedAddressId(matchedAddress.id);
           }
         }
-      }
     } catch (error) {
       console.error("Error fetching addresses:", error);
       Alert.alert(t("common.error"), "Failed to fetch addresses");
@@ -59,13 +58,18 @@ export default function AddressListScreen({ navigation, route }) {
     }
   };
 
+  useEffect(() => {
+    fetchAddresses();
+  }, [navigation]);
+  
   const handleSelectAddress = (address) => {
     const formattedAddress = {
+      id: address.id,
       recipientName: address.receiverName,
       phoneNumber: address.phoneNumber,
       fullAddress: address.googleMapAddressString || 
         `${address.houseNumber} ${address.street}, ${address.ward}, ${address.district}, ${address.city}`,
-      isDefault: selectedAddressId === address.customerId,
+      isDefault: selectedAddressId === address.id,
       city: address.city,
       district: address.district,
       ward: address.ward,
@@ -98,7 +102,7 @@ export default function AddressListScreen({ navigation, route }) {
   };
 
   const renderAddressItem = ({ item }) => {
-    const isSelected = selectedAddressId === item.customerId;
+    const isSelected = selectedAddressId === item.id;
     const fullAddress = item.googleMapAddressString || 
       `${item.houseNumber} ${item.street}, ${item.ward}, ${item.district}, ${item.city}`;
 
@@ -163,7 +167,7 @@ export default function AddressListScreen({ navigation, route }) {
       ) : (
         <FlatList
           data={addresses}
-          keyExtractor={(item, index) => `${item.customerId}-${index}`}
+          keyExtractor={(item, index) => `${item.id}-${index}`}
           renderItem={renderAddressItem}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}

@@ -22,14 +22,18 @@ import signalR_webrtcService from "../../../services/signalR/signalR-webrtcServi
 import Purchases from "react-native-purchases";
 import { useRevenueCat } from "../../../context/RevenueCatContext";
 import { useUser } from "../../../context/UserContext";
+import orderService from "../../../services/orderService";
 
 export default function UserMenuScreen() {
   const [user, setUser] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [orders, setOrders] = useState([]);
+  const [loadingOrders, setLoadingOrders] = useState(false);
   const { clearCart } = useCart(); // Assuming useCart is defined in your context or service
   const { t } = useTranslation();
   const { logoutRevenueCatUser } = useRevenueCat();
   const { avatarUrl, clearAvatarUrl } = useUser();
+  
   useEffect(() => {
     const fetchUser = async () => {
       const userData = await AsyncStorage.getItem("user");
@@ -39,6 +43,42 @@ export default function UserMenuScreen() {
     };
     fetchUser();
   }, []);
+
+  useEffect(() => {
+    if (user && user.role === "Customer") {
+      fetchOrders();
+    }
+  }, [user]);
+
+  const fetchOrders = async () => {
+    try {
+      setLoadingOrders(true);
+      const response = await orderService.getProductOrder({sortOrder:"dsc"});
+
+      if (response.status === "200" && response.data) {
+        const fetchedOrders = response.data.items || [];
+        setOrders(fetchedOrders);
+      }
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+    } finally {
+      setLoadingOrders(false);
+    }
+  };
+
+  const getOrderCountByStatus = (status) => {
+    if (status === "All") {
+      return orders.length;
+    } else if (status === "Feedback") {
+      return orders.filter(
+        (order) =>
+          order.currentStatus === "Finished" &&
+          order.orderItems.some((item) => !item.isFeedback)
+      ).length;
+    } else {
+      return orders.filter((order) => order.currentStatus === status).length;
+    }
+  };
 
   const navigation = useNavigation();
 
@@ -54,12 +94,6 @@ export default function UserMenuScreen() {
       icon: <Ionicons name="document-text-outline" size={28} color="#ED2A46" />,
       label: t("userMenu.profile"),
       navigation: "ProfileScreen",
-      category: "account",
-    },
-    {
-      label: "Join Call Video",
-      icon: <Ionicons name="videocam-outline" size={28} color="#ED2A46" />,
-      navigation: "VideoCallPrep",
       category: "account",
     },
     {
@@ -257,6 +291,132 @@ export default function UserMenuScreen() {
                 <MenuItem key={index} item={item} index={index} />
               ))}
           </View>
+
+          {/* Manage Orders Section (only for customers) */}
+          {user && user.role === "Customer" && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>
+                {t("userMenu.myOrders") || "My Orders"}
+              </Text>
+              <View style={styles.ordersContainer}>
+                <TouchableOpacity
+                  style={styles.orderStatusButton}
+                  onPress={() =>
+                    navigation.navigate("ManageOrderScreen", {
+                      initialStatus: "Pending",
+                      orders: orders,
+                    })
+                  }
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.orderIconContainer}>
+                    <Ionicons name="time-outline" size={28} color="#FF9800" />
+                    {getOrderCountByStatus("Pending") > 0 && (
+                      <View style={styles.orderBadge}>
+                        <Text style={styles.orderBadgeText}>
+                          {getOrderCountByStatus("Pending")}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text style={styles.orderStatusText}>
+                    {t("orders.pending") || "Pending"}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.orderStatusButton}
+                  onPress={() =>
+                    navigation.navigate("ManageOrderScreen", {
+                      initialStatus: "Processing",
+                      orders: orders,
+                    })
+                  }
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.orderIconContainer}>
+                    <Ionicons
+                      name="construct-outline"
+                      size={28}
+                      color="#2196F3"
+                    />
+                    {getOrderCountByStatus("Processing") > 0 && (
+                      <View style={styles.orderBadge}>
+                        <Text style={styles.orderBadgeText}>
+                          {getOrderCountByStatus("Processing")}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text style={styles.orderStatusText}>
+                    {t("orders.processing") || "Processing"}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.orderStatusButton}
+                  onPress={() =>
+                    navigation.navigate("ManageOrderScreen", {
+                      initialStatus: "Shipping",
+                      orders: orders,
+                    })
+                  }
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.orderIconContainer}>
+                    <Ionicons name="car-outline" size={28} color="#00BCD4" />
+                    {getOrderCountByStatus("Shipping") > 0 && (
+                      <View style={styles.orderBadge}>
+                        <Text style={styles.orderBadgeText}>
+                          {getOrderCountByStatus("Shipping")}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text style={styles.orderStatusText}>
+                    {t("orders.shipping") || "Shipping"}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.orderStatusButton}
+                  onPress={() =>
+                    navigation.navigate("ManageOrderScreen", {
+                      initialStatus: "Finished",
+                      filterFeedback: true,
+                      orders: orders,
+                    })
+                  }
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.orderIconContainer}>
+                    <Ionicons name="star-outline" size={28} color="#FF9800" />
+                    {getOrderCountByStatus("Feedback") > 0 && (
+                      <View style={styles.orderBadge}>
+                        <Text style={styles.orderBadgeText}>
+                          {getOrderCountByStatus("Feedback")}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text style={styles.orderStatusText}>
+                    {t("orders.feedback") || "Feedback"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              <TouchableOpacity
+                style={styles.viewAllOrdersButton}
+                onPress={() => navigation.navigate("ManageOrderScreen", { orders: orders })}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.viewAllOrdersText}>
+                  {t("orders.viewAll") || "View All Orders"}
+                </Text>
+                <Ionicons name="chevron-forward" size={20} color="#ED2A46" />
+              </TouchableOpacity>
+            </View>
+          )}
 
           {/* Services Section (only for users) */}
           {user && user.role === "Customer" && (
@@ -547,5 +707,84 @@ const styles = {
     color: "#2C3E50",
     textAlign: "center",
     lineHeight: 18,
+  },
+  ordersContainer: {
+    flexDirection: "row",
+    backgroundColor: "white",
+    borderRadius: 16,
+    padding: 16,
+    justifyContent: "space-between",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+    marginBottom: 12,
+  },
+  orderStatusButton: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: 8,
+  },
+  orderIconContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "#F8F9FA",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 8,
+    position: "relative",
+  },
+  orderBadge: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    backgroundColor: "#FF6B6B",
+    minWidth: 20,
+    height: 20,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 5,
+    borderWidth: 2,
+    borderColor: "#fff",
+  },
+  orderBadgeText: {
+    color: "white",
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  orderStatusText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#2C3E50",
+    textAlign: "center",
+  },
+  viewAllOrdersButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "white",
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  viewAllOrdersText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#ED2A46",
+    marginRight: 8,
   },
 };

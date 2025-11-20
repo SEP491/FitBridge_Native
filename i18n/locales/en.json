@@ -703,7 +703,9 @@
     "managePackage": "Manage Package",
     "manageTransaction": "Manage Transaction",
     "myCustomer": "My Customer",
-    "customerDetail": "Customer Detail"
+    "customerDetail": "Customer Detail",
+    "myOrders": "My Orders",
+    "manageOrders": "Manage Orders"
   },
 
   "updatePassword": {
@@ -1858,5 +1860,33 @@
     "productsFound": "products found",
     "noProductsFound": "No products found",
     "tryDifferentKeywords": "Try searching with different keywords"
+  },
+  "orders": {
+    "pending": "Pending",
+    "processing": "Processing",
+    "shipping": "Shipping",
+    "feedback": "Feedback",
+    "viewAll": "View All Orders",
+    "finished": "Finished",
+    "cancelled": "Cancelled",
+    "created": "Created",
+    "assigning": "Assigning",
+    "manageOrders": "Manage Orders",
+    "filterByStatus": "Filter by Status",
+    "all": "All",
+    "noOrdersFound": "No Orders Found",
+    "noOrdersMessage": "You haven't placed any orders yet",
+    "noStatusOrders": "No {{status}} orders",
+    "loadingOrders": "Loading orders...",
+    "orderDetails": "Order Details",
+    "orderId": "Order ID",
+    "items": "item(s)",
+    "subtotal": "Subtotal",
+    "shippingFee": "Shipping Fee",
+    "total": "Total",
+    "leaveFeedback": "Leave Feedback",
+    "trackOrder": "Track Order",
+    "viewDetails": "View Details",
+    "orderDate": "Order Date"
   }
 }

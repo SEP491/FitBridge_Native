@@ -53,6 +53,7 @@ import TransactionHistoryScreen from "../screens/CustomerScreen/TransactionHisto
 import MyPackageScreen from "../screens/CustomerScreen/MyPackageScreen/MyPackageScreen";
 import MyReportsScreen from "../screens/CustomerScreen/MyReportsScreen/MyReportsScreen";
 import VoucherScreen from "../screens/CustomerScreen/VoucherScreen/VoucherScreen";
+import ManageOrderScreen from "../screens/CustomerScreen/ManageOrderScreen/ManageOrderScreen";
 import FAQScreen from "../screens/CommonScreen/FAQScreen/FAQScreen";
 import ManageVoucherScreen from "./../screens/FreelancePTScreen/ManageVoucherScreen/ManageVoucherScreen";
 import ManagePackageScreen from "./../screens/FreelancePTScreen/ManagePackageScreen/ManagePackageScreen";
@@ -1312,6 +1313,13 @@ export default function Navigator({
               fontSize: 20,
               color: "#ED2A46",
             },
+          }}
+        />
+        <Stack.Screen
+          name="ManageOrderScreen"
+          component={ManageOrderScreen}
+          options={{
+            headerShown: false,
           }}
         />
         <Stack.Screen
