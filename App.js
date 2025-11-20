@@ -26,7 +26,6 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [authCheckComplete, setAuthCheckComplete] = useState(false);
-
   useEffect(() => {
     async function prepare() {
       try {

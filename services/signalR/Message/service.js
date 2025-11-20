@@ -108,8 +108,7 @@ class SignalRService {
     try {
       // Build connection with authentication
       // Use a factory function that retrieves fresh token each time
-      const token =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxMjZlYzNkNC00ZDM0LTQ1ZjItYmJmNy05OGI5YTNkZmMzMWMiLCJ1bmlxdWVfbmFtZSI6ImpvaG4iLCJyb2xlIjoiQ3VzdG9tZXIiLCJBdmF0YXJVcmwiOiJodHRwczovL3N0YXRpYy53aWtpYS5ub2Nvb2tpZS5uZXQvZ29rdXJha3VnYWkvaW1hZ2VzLzAvMGEvVGFvX1Nhb3RvbWVfUG9ydHJhaXQucG5nL3JldmlzaW9uL2xhdGVzdD9jYj0yMDI0MDYwODAzMTE0MCIsIm5iZiI6MTc2MzEzMDk3MSwiZXhwIjoxNzYzMTM0NTcxLCJpYXQiOjE3NjMxMzA5NzF9.ix1Fax1BDbqlEic8031pUNnPWJbrUJXUHvreyyYzq6s";
+      const token = await AsyncStorage.getItem("token");
       console.log("token", token);
       this.#connection = new HubConnectionBuilder()
         .withUrl(this.#url, {

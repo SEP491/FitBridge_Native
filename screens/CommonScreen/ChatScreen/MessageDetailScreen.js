@@ -6,7 +6,6 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  SafeAreaView,
   KeyboardAvoidingView,
   Platform,
   StatusBar,
@@ -16,6 +15,7 @@ import {
   Alert,
   Linking,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -32,9 +32,10 @@ import {
   HUB_METHODS,
 } from "../../../services/signalR/Message/constants/hubMethods";
 import { LIFECYCLE_METHODS } from "../../../services/signalR/Message/constants/lifecycleMethods";
+import { fetchUserFromStorage } from "../../../lib";
 
 export default function MessageDetailScreen({ route, navigation }) {
-  const { conversationId, conversationTitle, conversationImg } =
+  const { conversationId, conversationTitle, conversationImg, members } =
     route.params || {};
 
   const [messages, setMessages] = useState([]);
@@ -81,7 +82,6 @@ export default function MessageDetailScreen({ route, navigation }) {
   const [userPresence, setUserPresence] = useState(null);
 
   const flatListRef = useRef(null);
-  const currentUserId = "126ec3d4-4d34-45f2-bbf7-98b9a3dfc31c";
   const typingTimeoutRef = useRef(null);
 
   // Get messaging state context
@@ -90,6 +90,23 @@ export default function MessageDetailScreen({ route, navigation }) {
 
   const isConnected = connectionStatus === "connected";
 
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const [currentUserRole, setCurrentUserRole] = useState(null);
+
+  useEffect(() => {
+    // Fetch current user ID from your auth context or service
+    const fetchCurrentUser = async () => {
+      try {
+        const userData = await fetchUserFromStorage();
+        console.log("Fetched user data:", userData);
+        setCurrentUserId(userData.id);
+        setCurrentUserRole(userData.role);
+      } catch (error) {
+        console.error("Error fetching current user", error);
+      }
+    };
+    fetchCurrentUser();
+  }, []);
   // Debug connection status
   useEffect(() => {
     console.log(
@@ -382,7 +399,7 @@ export default function MessageDetailScreen({ route, navigation }) {
           conversationId,
           params
         );
-        const allMessages = response.items || response || [];
+        const allMessages = response.data || [];
         // Replace content for deleted messages
         const newMessages = allMessages.map((msg) => {
           if (msg.isDeleted) {
@@ -917,13 +934,20 @@ export default function MessageDetailScreen({ route, navigation }) {
       if (!selectedMessage) return;
 
       const reactToMessage = async () => {
+        const removeReaction = selectedMessage.reaction === reaction;
+
         try {
           const removeReaction = selectedMessage.reaction === reaction;
-          await messageService.reactMessage(selectedMessage.id, {
+
+          const payload = {
+            messageId: selectedMessage.id,
+            conversationId: conversationId,
             reaction: reaction,
             removeReaction: removeReaction,
-          });
-
+          };
+          console.log("Reacting to message:", payload);
+          const response = await messageService.reactMessage(payload);
+          console.log("Reaction response:", response);
           // Update local state
           setMessages((prev) =>
             prev.map((msg) =>
@@ -945,7 +969,7 @@ export default function MessageDetailScreen({ route, navigation }) {
 
       reactToMessage();
     },
-    [selectedMessage]
+    [selectedMessage, conversationId]
   );
 
   // Handle reply to message
@@ -1016,28 +1040,40 @@ export default function MessageDetailScreen({ route, navigation }) {
     try {
       setSending(true);
       setShowBookingRequestModal(false);
+      const ptId = members.find(
+        (member) => member.role === "FreelancePT"
+      )?.userId;
+      const userId = members.find(
+        (member) => member.role === "Customer"
+      )?.userId;
+      const responseCheck = await messageService.checkCustomerPurchased({
+        ptId: ptId,
+      });
+      console.log("response check:", responseCheck);
+      if (!responseCheck || !responseCheck.data) {
+        Alert.alert(
+          "Error",
+          "You need to purchase a session with the PT before sending a booking request."
+        );
+        setSending(false);
+        return;
+      }
 
       const messageData = {
         conversationId,
         content: `Booking request: ${bookingFormData.bookingName}`,
-        message: `Booking request for ${bookingFormData.bookingName} on ${bookingFormData.bookingDate}`,
-        replyToMessageId: null,
-        replyToMessageMediaType: null,
-        replyToMessageContent: null,
         mediaType: "BookingRequest",
+        customerPurchasedId: responseCheck.data,
         createBookingRequest: {
-          customerId: currentUserId,
-          ptId: "126ec3d4-4d34-45f2-bbf7-98b9a3dfc31d",
-          requestBookingDto: {
-            bookingName: bookingFormData.bookingName,
-            bookingDate: bookingFormData.bookingDate,
-            ptFreelanceStartTime: bookingFormData.startTime,
-            ptFreelanceEndTime: bookingFormData.endTime,
-          },
+          bookingName: bookingFormData.bookingName,
+          bookingDate: bookingFormData.bookingDate,
+          ptFreelanceStartTime: bookingFormData.startTime,
+          ptFreelanceEndTime: bookingFormData.endTime,
         },
       };
       console.log("Sending booking request:", messageData);
-      await messageService.sendMessage(messageData);
+      const response = await messageService.sendMessage(messageData);
+      console.log("Booking request sent:", response);
 
       // Reset form with current time
       const now = new Date();
@@ -1065,129 +1101,128 @@ export default function MessageDetailScreen({ route, navigation }) {
   }, [bookingFormData, conversationId, currentUserId]);
 
   // Handle edit booking request
-  const handleEditBookingRequest = useCallback(async () => {
-    if (!editingBookingRequest || !bookingFormData.bookingName.trim()) {
-      Alert.alert("Error", "Please enter a booking name");
-      return;
-    }
+  // const handleEditBookingRequest = useCallback(async () => {
+  //   if (!editingBookingRequest || !bookingFormData.bookingName.trim()) {
+  //     Alert.alert("Error", "Please enter a booking name");
+  //     return;
+  //   }
 
-    // Validate date is not in the past
-    const selectedDate = new Date(bookingFormData.bookingDate);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    selectedDate.setHours(0, 0, 0, 0);
+  //   // Validate date is not in the past
+  //   const selectedDate = new Date(bookingFormData.bookingDate);
+  //   const today = new Date();
+  //   today.setHours(0, 0, 0, 0);
+  //   selectedDate.setHours(0, 0, 0, 0);
 
-    if (selectedDate < today) {
-      Alert.alert("Invalid Date", "Booking date cannot be in the past.");
-      return;
-    }
+  //   if (selectedDate < today) {
+  //     Alert.alert("Invalid Date", "Booking date cannot be in the past.");
+  //     return;
+  //   }
 
-    // Validate time if booking is today
-    const isToday =
-      bookingFormData.bookingDate === new Date().toISOString().split("T")[0];
-    if (isToday) {
-      const [startHours, startMinutes] = bookingFormData.startTime
-        .split(":")
-        .map(Number);
-      const now = new Date();
-      const currentHours = now.getHours();
-      const currentMinutes = now.getMinutes();
+  //   // Validate time if booking is today
+  //   const isToday =
+  //     bookingFormData.bookingDate === new Date().toISOString().split("T")[0];
+  //   if (isToday) {
+  //     const [startHours, startMinutes] = bookingFormData.startTime
+  //       .split(":")
+  //       .map(Number);
+  //     const now = new Date();
+  //     const currentHours = now.getHours();
+  //     const currentMinutes = now.getMinutes();
 
-      const startTotalMinutes = startHours * 60 + startMinutes;
-      const currentTotalMinutes = currentHours * 60 + currentMinutes;
+  //     const startTotalMinutes = startHours * 60 + startMinutes;
+  //     const currentTotalMinutes = currentHours * 60 + currentMinutes;
 
-      if (startTotalMinutes <= currentTotalMinutes) {
-        Alert.alert("Invalid Time", "Start time must be in the future.");
-        return;
-      }
-    }
+  //     if (startTotalMinutes <= currentTotalMinutes) {
+  //       Alert.alert("Invalid Time", "Start time must be in the future.");
+  //       return;
+  //     }
+  //   }
 
-    // Validate end time is at least 1 hour after start time
-    const [startHours, startMinutes] = bookingFormData.startTime
-      .split(":")
-      .map(Number);
-    const [endHours, endMinutes] = bookingFormData.endTime
-      .split(":")
-      .map(Number);
+  //   // Validate end time is at least 1 hour after start time
+  //   const [startHours, startMinutes] = bookingFormData.startTime
+  //     .split(":")
+  //     .map(Number);
+  //   const [endHours, endMinutes] = bookingFormData.endTime
+  //     .split(":")
+  //     .map(Number);
 
-    const startTotalMinutes = startHours * 60 + startMinutes;
-    const endTotalMinutes = endHours * 60 + endMinutes;
+  //   const startTotalMinutes = startHours * 60 + startMinutes;
+  //   const endTotalMinutes = endHours * 60 + endMinutes;
 
-    if (endTotalMinutes < startTotalMinutes + 60) {
-      Alert.alert(
-        "Invalid Time",
-        "End time must be at least 1 hour after start time."
-      );
-      return;
-    }
+  //   if (endTotalMinutes < startTotalMinutes + 60) {
+  //     Alert.alert(
+  //       "Invalid Time",
+  //       "End time must be at least 1 hour after start time."
+  //     );
+  //     return;
+  //   }
 
-    try {
-      setSending(true);
-      setShowBookingRequestModal(false);
+  //   try {
+  //     setSending(true);
+  //     setShowBookingRequestModal(false);
 
-      await messageService.updateBookingRequest({
-        id: editingBookingRequest.bookingRequestId,
-        requestBookingDto: {
-          bookingName: bookingFormData.bookingName,
-          bookingDate: bookingFormData.bookingDate,
-          ptFreelanceStartTime: bookingFormData.startTime,
-          ptFreelanceEndTime: bookingFormData.endTime,
-        },
-      });
+  //     await messageService.updateBookingRequest({
+  //       targetBookingId: editingBookingRequest.bookingRequestId,
+  //       bookingName: bookingFormData.bookingName,
+  //       bookingDate: bookingFormData.bookingDate,
+  //       startTime: bookingFormData.startTime,
+  //       endTime: bookingFormData.endTime,
+  //       note: "",
+  //     });
 
-      // Update the message with the updated booking request from form data
-      setMessages((prev) =>
-        prev.map((msg) => {
-          if (
-            msg.bookingRequest?.bookingRequestId ===
-            editingBookingRequest.bookingRequestId
-          ) {
-            return {
-              ...msg,
-              bookingRequest: {
-                ...msg.bookingRequest,
-                bookingName: bookingFormData.bookingName,
-                bookingDate: bookingFormData.bookingDate,
-                startTime: bookingFormData.startTime,
-                endTime: bookingFormData.endTime,
-                ptFreelanceStartTime: bookingFormData.startTime,
-                ptFreelanceEndTime: bookingFormData.endTime,
-              },
-            };
-          }
-          return msg;
-        })
-      );
+  //     // Update the message with the updated booking request from form data
+  //     setMessages((prev) =>
+  //       prev.map((msg) => {
+  //         if (
+  //           msg.bookingRequest?.bookingRequestId ===
+  //           editingBookingRequest.bookingRequestId
+  //         ) {
+  //           return {
+  //             ...msg,
+  //             bookingRequest: {
+  //               ...msg.bookingRequest,
+  //               bookingName: bookingFormData.bookingName,
+  //               bookingDate: bookingFormData.bookingDate,
+  //               startTime: bookingFormData.startTime,
+  //               endTime: bookingFormData.endTime,
+  //               ptFreelanceStartTime: bookingFormData.startTime,
+  //               ptFreelanceEndTime: bookingFormData.endTime,
+  //             },
+  //           };
+  //         }
+  //         return msg;
+  //       })
+  //     );
 
-      // Reset form and editing state with current time
-      setEditingBookingRequest(null);
+  //     // Reset form and editing state with current time
+  //     setEditingBookingRequest(null);
 
-      const now = new Date();
-      const currentHour = now.getHours();
-      const currentMinute = now.getMinutes();
-      const startHour = currentHour + 1;
-      const endHour = currentHour + 2;
+  //     const now = new Date();
+  //     const currentHour = now.getHours();
+  //     const currentMinute = now.getMinutes();
+  //     const startHour = currentHour + 1;
+  //     const endHour = currentHour + 2;
 
-      setBookingFormData({
-        bookingName: "",
-        bookingDate: now.toISOString().split("T")[0],
-        startTime: `${startHour.toString().padStart(2, "0")}:${currentMinute
-          .toString()
-          .padStart(2, "0")}:00`,
-        endTime: `${endHour.toString().padStart(2, "0")}:${currentMinute
-          .toString()
-          .padStart(2, "0")}:00`,
-      });
-    } catch (error) {
-      console.error("Error updating booking request:", error);
-      Alert.alert(
-        "Error",
-        "Failed to update booking request. Please try again."
-      );
-    } finally {
-      setSending(false);
-    }
-  }, [editingBookingRequest, bookingFormData]);
+  //     setBookingFormData({
+  //       bookingName: "",
+  //       bookingDate: now.toISOString().split("T")[0],
+  //       startTime: `${startHour.toString().padStart(2, "0")}:${currentMinute
+  //         .toString()
+  //         .padStart(2, "0")}:00`,
+  //       endTime: `${endHour.toString().padStart(2, "0")}:${currentMinute
+  //         .toString()
+  //         .padStart(2, "0")}:00`,
+  //     });
+  //   } catch (error) {
+  //     console.error("Error updating booking request:", error);
+  //     Alert.alert(
+  //       "Error",
+  //       "Failed to update booking request. Please try again."
+  //     );
+  //   } finally {
+  //     setSending(false);
+  //   }
+  // }, [editingBookingRequest, bookingFormData]);
 
   // Render message item
   const renderMessage = useCallback(
@@ -1200,58 +1235,59 @@ export default function MessageDetailScreen({ route, navigation }) {
           <BookingRequestCard
             bookingRequest={item.bookingRequest}
             isCurrentUser={isCurrentUser}
+            currentUserRole={currentUserRole}
             onAction={handleBookingAction}
-            onEdit={(bookingRequest) => {
-              setEditingBookingRequest(bookingRequest);
+            // onEdit={(bookingRequest) => {
+            //   setEditingBookingRequest(bookingRequest);
 
-              // Parse the existing data safely
-              const now = new Date();
-              const currentHour = now.getHours();
-              const currentMinute = now.getMinutes();
+            //   // Parse the existing data safely
+            //   const now = new Date();
+            //   const currentHour = now.getHours();
+            //   const currentMinute = now.getMinutes();
 
-              let startDate = now.toISOString().split("T")[0];
-              let startTime = `${(currentHour + 1)
-                .toString()
-                .padStart(2, "0")}:${currentMinute
-                .toString()
-                .padStart(2, "0")}:00`;
-              let endTime = `${(currentHour + 2)
-                .toString()
-                .padStart(2, "0")}:${currentMinute
-                .toString()
-                .padStart(2, "0")}:00`;
+            //   let startDate = now.toISOString().split("T")[0];
+            //   let startTime = `${(currentHour + 1)
+            //     .toString()
+            //     .padStart(2, "0")}:${currentMinute
+            //     .toString()
+            //     .padStart(2, "0")}:00`;
+            //   let endTime = `${(currentHour + 2)
+            //     .toString()
+            //     .padStart(2, "0")}:${currentMinute
+            //     .toString()
+            //     .padStart(2, "0")}:00`;
 
-              try {
-                // Try to parse start date/time
-                if (bookingRequest.startTime) {
-                  const parts = bookingRequest.startTime.split("T");
-                  if (parts.length === 2) {
-                    startDate = parts[0];
-                    startTime = parts[1].slice(0, 8);
-                  }
-                } else if (bookingRequest.bookingDate) {
-                  startDate = bookingRequest.bookingDate.split("T")[0];
-                }
+            //   try {
+            //     // Try to parse start date/time
+            //     if (bookingRequest.startTime) {
+            //       const parts = bookingRequest.startTime.split("T");
+            //       if (parts.length === 2) {
+            //         startDate = parts[0];
+            //         startTime = parts[1].slice(0, 8);
+            //       }
+            //     } else if (bookingRequest.bookingDate) {
+            //       startDate = bookingRequest.bookingDate.split("T")[0];
+            //     }
 
-                // Try to parse end time
-                if (bookingRequest.endTime) {
-                  const parts = bookingRequest.endTime.split("T");
-                  if (parts.length === 2) {
-                    endTime = parts[1].slice(0, 8);
-                  }
-                }
-              } catch (error) {
-                console.error("Error parsing booking request data:", error);
-              }
+            //     // Try to parse end time
+            //     if (bookingRequest.endTime) {
+            //       const parts = bookingRequest.endTime.split("T");
+            //       if (parts.length === 2) {
+            //         endTime = parts[1].slice(0, 8);
+            //       }
+            //     }
+            //   } catch (error) {
+            //     console.error("Error parsing booking request data:", error);
+            //   }
 
-              setBookingFormData({
-                bookingName: bookingRequest.bookingName || "",
-                bookingDate: startDate,
-                startTime: startTime,
-                endTime: endTime,
-              });
-              setShowBookingRequestModal(true);
-            }}
+            //   setBookingFormData({
+            //     bookingName: bookingRequest.bookingName || "",
+            //     bookingDate: startDate,
+            //     startTime: startTime,
+            //     endTime: endTime,
+            //   });
+            //   setShowBookingRequestModal(true);
+            // }}
             senderAvatarUrl={item.senderAvatarUrl}
           />
         );
@@ -1688,9 +1724,11 @@ export default function MessageDetailScreen({ route, navigation }) {
         <View style={styles.bookingRequestSheet}>
           <View style={styles.bookingRequestHeader}>
             <Text style={styles.bookingRequestTitle}>
-              {editingBookingRequest
-                ? "Edit Booking Request"
-                : "Create Booking Request"}
+              {
+                // editingBookingRequest
+                // ? "Edit Booking Request" :
+                "Create Booking Request"
+              }
             </Text>
             <TouchableOpacity
               onPress={() => {

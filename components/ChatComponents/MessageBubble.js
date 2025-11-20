@@ -195,7 +195,7 @@ const MessageBubble = ({
 
             {/* Message info (time, status, edited) */}
             <View style={styles.messageInfo}>
-              {status === "Edited" && (
+              {(status === "Edited" || status === "Updated") && (
                 <Text
                   style={
                     (styles.editedText,

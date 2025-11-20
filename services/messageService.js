@@ -1,3 +1,4 @@
+import { request } from "./request";
 import { requestMessage } from "./requestMessage";
 
 const messageService = {
@@ -22,26 +23,39 @@ const messageService = {
       params
     ),
 
-  sendMessage: (data) => requestMessage("POST", `/messages/send`, data),
-  reactMessage: (messageId, data) =>
-    requestMessage("PUT", `/messages/${messageId}/reaction`, data),
+  sendMessage: (data) => requestMessage("POST", `/messages`, data),
+  reactMessage: (data) => requestMessage("POST", `/messages/react`, data),
   deleteMessage: (messageId) =>
-    requestMessage("PUT", `/messages/${messageId}/delete`),
+    requestMessage("DELETE", `/messages/${messageId}`),
 
-  updateMessage: (data) => requestMessage("PUT", `/messages`, data),
+  updateMessage: (data) =>
+    requestMessage("PUT", `/messages/${data.messageId}`, {
+      conversationId: data.conversationId,
+      newContent: data.newContent,
+    }),
   createConversation: (data) => requestMessage("POST", `/conversations`, data),
-  createBookingRequest: (data) =>
-    requestMessage("POST", `/booking-request`, data),
   updateBookingRequest: (data) =>
-    requestMessage("PUT", `/booking-request`, data),
+    request("POST", `v1/bookings/request-edit-booking`, data, {
+      "Content-Type": "application/json",
+    }),
   approveBookingRequest: (requestId) =>
-    requestMessage("PUT", `/booking-request/approve`, `"${requestId}"`, {
-      "Content-Type": "application/json",
-    }),
+    request(
+      "POST",
+      `v1/bookings/accept-booking-request`,
+      { bookingRequestId: requestId },
+      {
+        "Content-Type": "application/json",
+      }
+    ),
   rejectBookingRequest: (requestId) =>
-    requestMessage("PUT", `/booking-request/reject`, `"${requestId}"`, {
-      "Content-Type": "application/json",
-    }),
+    request(
+      "POST",
+      `v1/bookings/reject-booking-request`,
+      { bookingRequestId: requestId },
+      {
+        "Content-Type": "application/json",
+      }
+    ),
 
   markAsRead: (data) => requestMessage("POST", `/messages/read`, data),
 
@@ -51,6 +65,8 @@ const messageService = {
     requestMessage("GET", `/conversation/${userId}`),
 
   uploadImage: (data) => requestMessage("POST", `/upload`, data),
+  checkCustomerPurchased: (params) =>
+    request("GET", `v1/customer-purchased/check`, null, {}, params),
 };
 
 export default messageService;

@@ -18,6 +18,7 @@ const BookingRequestCard = ({
   onAction,
   onEdit,
   senderAvatarUrl,
+  currentUserRole,
 }) => {
   const {
     bookingRequestId,
@@ -93,6 +94,8 @@ const BookingRequestCard = ({
     switch (requestType) {
       case "CustomerCreate":
         return "Customer Created";
+      case "PtCreate":
+        return "PT Created";
       case "PtUpdate":
         return "PT Updated";
       case "CustomerUpdate":
@@ -100,6 +103,29 @@ const BookingRequestCard = ({
       default:
         return requestType;
     }
+  };
+
+  // Determine if current user should see approve/reject buttons
+  const shouldShowApproveReject = () => {
+    if (requestStatus !== "Pending" || isCurrentUser) return false;
+
+    // Customer sees approve/reject for PT updates/creates
+    if (
+      currentUserRole === "Customer" &&
+      (requestType === "PtUpdate" || requestType === "PtCreate")
+    ) {
+      return true;
+    }
+
+    // FreelancePT sees approve/reject for Customer updates/creates
+    if (
+      currentUserRole === "FreelancePT" &&
+      (requestType === "CustomerUpdate" || requestType === "CustomerCreate")
+    ) {
+      return true;
+    }
+
+    return false;
   };
 
   const statusInfo = getStatusInfo();
@@ -303,7 +329,7 @@ const BookingRequestCard = ({
                   </TouchableOpacity>
                 </View>
               )}
-              {onAction && (
+              {onAction && shouldShowApproveReject() && (
                 <View style={styles.actionButtons}>
                   <TouchableOpacity
                     style={[styles.actionButton, styles.rejectButton]}
@@ -325,7 +351,7 @@ const BookingRequestCard = ({
           )}
 
           {/* Edit Button (for sent pending requests) */}
-          {isCurrentUser && requestStatus === "Pending" && onEdit && (
+          {/* {isCurrentUser && requestStatus === "Pending" && onEdit && (
             <View style={styles.actionButtons}>
               <TouchableOpacity
                 style={[styles.actionButton, styles.editButton]}
@@ -335,7 +361,7 @@ const BookingRequestCard = ({
                 <Text style={styles.editButtonText}>Edit Request</Text>
               </TouchableOpacity>
             </View>
-          )}
+          )} */}
         </View>
       </View>
 

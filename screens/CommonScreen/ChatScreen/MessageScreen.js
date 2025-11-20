@@ -6,18 +6,19 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  SafeAreaView,
   RefreshControl,
   StatusBar,
   ActivityIndicator,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { SafeAreaView } from "react-native-safe-area-context";
 import ConversationCard from "../../../components/ChatComponents/ConversationCard";
 import colors from "../../../constants/color";
 import messageService from "../../../services/messageService";
 import { useMessagingState } from "../../../context/messagingStateContext";
 import { CLIENT_METHODS } from "../../../services/signalR/Message/constants/hubMethods";
 import { LIFECYCLE_METHODS } from "../../../services/signalR/Message/constants/lifecycleMethods";
+import { fetchUserFromStorage } from "../../../lib";
 
 export default function MessageScreen({ navigation }) {
   const [conversations, setConversations] = useState([]);
@@ -28,8 +29,23 @@ export default function MessageScreen({ navigation }) {
   const [pageNumber, setPageNumber] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [userPresences, setUserPresences] = useState({});
-  const currentUserId = "126ec3d4-4d34-45f2-bbf7-98b9a3dfc31c";
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const [currentUserRole, setCurrentUserRole] = useState(null);
 
+  useEffect(() => {
+    // Fetch current user ID from your auth context or service
+    const fetchCurrentUser = async () => {
+      try {
+        const userData = await fetchUserFromStorage();
+        console.log("Fetched user data:", userData);
+        setCurrentUserId(userData.id);
+        setCurrentUserRole(userData.role);
+      } catch (error) {
+        console.error("Error fetching current user", error);
+      }
+    };
+    fetchCurrentUser();
+  }, []);
   // Get messaging state context
   const { messagingService, connectionStatus } = useMessagingState();
 
@@ -327,7 +343,7 @@ export default function MessageScreen({ navigation }) {
         };
 
         const response = await messageService.getConversations(params); // Handle paginated response
-        const fetchedConversations = response.items || response || [];
+        const fetchedConversations = response.data.items || [];
 
         // Process conversations to handle deleted messages
         const newConversations = fetchedConversations.map((conv) => {
@@ -413,10 +429,13 @@ export default function MessageScreen({ navigation }) {
   const handleConversationPress = async (conversation) => {
     if (!conversation.isRead) {
       try {
-        await messageService.markAsRead({
+        console.log("Marking conversation as read:", conversation.id);
+        const response = await messageService.markAsRead({
           conversationId: conversation.id,
           messageIds: [],
         });
+
+        console.log("Marked conversation as read:", response);
 
         // Update local state
         setConversations((prev) =>
@@ -440,6 +459,7 @@ export default function MessageScreen({ navigation }) {
       conversationId: conversation.id,
       conversationTitle: conversation.title,
       conversationImg: conversation.conversationImg,
+      members: conversation.members,
     });
   };
 
