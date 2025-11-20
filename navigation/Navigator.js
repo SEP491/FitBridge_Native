@@ -37,7 +37,7 @@ import BookingHistoryScreen from "../screens/CustomerScreen/BookingHistoryScreen
 import SchedulePTScreen from "../screens/GymPTScreen/SchedulePTScreen/SchedulePTScreen";
 import SlotsPTScreen from "../screens/GymPTScreen/SlotsPTScreen/SlotsPTScreen";
 import PTBookingHistoryScreen from "../screens/GymPTScreen/PTBookingHistoryScreen/PTBookingHistoryScreen";
-import ChatScreen from "../screens/CommonScreen/ChatScreen/ChatScreen";
+import ChatbotScreen from "../screens/CommonScreen/ChatScreen/ChatbotScreen";
 import WithdrawalScreen from "../screens/FreelancePTScreen/WithdrawalScreen/WithdrawalScreen";
 import FreelancePTDashboard from "./../screens/FreelancePTScreen/FreelancePTDashboard/FreelancePTDashboard";
 import FreelancePTSchedule from "./../screens/FreelancePTScreen/FreelancePTSchedule/FreelancePTSchedule";
@@ -87,6 +87,8 @@ import { useUser } from "../context/UserContext";
 import CalendarPTScreen from "../screens/GymPTScreen/CalendarPTScreen/CalendarPTScreen";
 import EcommerceScreen from "../screens/CommonScreen/EcommerceScreen/EcommerceScreen";
 import ProductDetailsScreen from "../screens/CommonScreen/ProductDetailsScreen/ProductDetailsScreen";
+import MessageScreen from "../screens/CommonScreen/ChatScreen/MessageScreen";
+import MessageDetailScreen from "../screens/CommonScreen/ChatScreen/MessageDetailScreen";
 
 export default function Navigator({
   isAuthenticated: propIsAuthenticated,
@@ -504,7 +506,7 @@ export default function Navigator({
             },
           }}
         />
-        
+
         {/* Booking Screens - moved from BookingStack */}
         <Stack.Screen
           name="ChoosingCourseScreen"
@@ -691,9 +693,24 @@ export default function Navigator({
         })}
       >
         <Stack.Screen
-          name="ChatScreen"
-          component={ChatScreen}
+          name="MessageScreen"
+          component={MessageScreen}
           options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="MessageDetailScreen"
+          component={MessageDetailScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+
+        <Stack.Screen
+          name="ChatbotScreen"
+          component={ChatbotScreen}
+          options={({ navigation, route }) => ({
             headerShown: true,
             title: t("screenTitles.aiChatbox"),
             headerTitleAlign: "center",
@@ -702,7 +719,13 @@ export default function Navigator({
               fontSize: 20,
               color: "#ED2A46",
             },
-          }}
+            headerLeft: (props) =>
+              navigation.canGoBack() ? (
+                <TouchableOpacity onPress={() => navigation.goBack()}>
+                  <Ionicons name="caret-back" size={30} color="#ED2A46" />
+                </TouchableOpacity>
+              ) : null,
+          })}
         />
         <Stack.Screen
           name="VideoCallScreen"
@@ -1153,7 +1176,7 @@ export default function Navigator({
           headerTintColor: "#ED2A46",
         })}
       >
-        <Stack.Screen
+        {/* <Stack.Screen
           name="FreelancePTChatScreen"
           component={FreelancePTChatScreen}
           options={{
@@ -1165,6 +1188,20 @@ export default function Navigator({
               fontSize: 20,
               color: "#ED2A46",
             },
+          }}
+        /> */}
+        <Stack.Screen
+          name="MessageScreen"
+          component={MessageScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="MessageDetailScreen"
+          component={MessageDetailScreen}
+          options={{
+            headerShown: false,
           }}
         />
         <Stack.Screen
@@ -1568,7 +1605,6 @@ export default function Navigator({
             }}
           />
         )}
-        
 
         {/* Role-specific tabs */}
         {user?.role === "Customer" && (
@@ -1591,10 +1627,9 @@ export default function Navigator({
           />
         )}
 
-
         {user?.role === "Customer" && (
           <Tab.Screen
-            name={t("navigation.aiChatbox")}
+            name={t("navigation.message")}
             component={ChatStack}
             options={{
               headerShown: false,

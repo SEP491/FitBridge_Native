@@ -34,6 +34,7 @@
     "map": "Map",
     "schedule": "Schedule",
     "aiChatbox": "AI Chatbox",
+    "message": "Message",
     "me": "Me",
     "ptSchedule": "Schedule",
 
@@ -66,6 +67,7 @@
     "viewBookedSlots": "View Booked Slots",
     "ptBookingHistory": "PT Booking History",
     "aiChatbox": "AI Chatbox",
+    "message": "Message",
     "settings": "Settings",
     "chooseLanguage": "Choose Language",
     "profile": "Profile",
@@ -508,7 +510,8 @@
     "completed": "Completed",
     "viewAll": "View All",
     "comingSoon": "Coming Soon",
-    "loadMore": "Load More"
+    "loadMore": "Load More",
+    "no": "No"
   },
 
   "freelancePT": {
@@ -1268,6 +1271,39 @@
     "yearsOld": "years old",
     "yearsExp": "years exp",
     "specializations": "Specializations"
+  },
+
+  "messageScreen": {
+    "searchPlaceholder": "Search conversations...",
+    "noConversations": "No conversations found",
+    "noMessages": "No messages yet",
+    "tryDifferentName": "Try searching with a different name",
+    "startConversation": "Start a conversation to connect with others",
+    "startConversationButton": "Start Conversation",
+    "reconnecting": "Reconnecting...",
+    "offline": "Offline - Messages won't update",
+    "aiChatbot": "AI Fitness Assistant",
+    "aiChatbotDesc": "Get instant answers to your fitness questions",
+    "bookingRequest": "Booking Request",
+    "editingMessage": "Editing message",
+    "replyingTo": "Replying to",
+    "thisMessageDeleted": "This message was deleted",
+    "reply": "Reply",
+    "edit": "Edit",
+    "chooseReaction": "Choose a Reaction",
+    "createBookingRequest": "Create Booking Request",
+    "editBookingRequest": "Edit Booking Request",
+    "bookingName": "Booking Name",
+    "enterBookingName": "Enter booking name",
+    "date": "Date",
+    "startTime": "Start Time",
+    "endTime": "End Time",
+    "sendRequest": "Send Request",
+    "updateRequest": "Update Request",
+    "confirm": "Confirm",
+    "selectDate": "Select Date",
+    "selectStartTime": "Select Start Time",
+    "selectEndTime": "Select End Time"
   },
 
   "ptScreen": {

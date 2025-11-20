@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo } from "react";
 import signalrService from "../services/signalR/signalRService";
 import { AppState } from "react-native";
+import authService from "../services/authService";
 
 // Create the context
 const SignalRContext = createContext();
@@ -25,13 +26,24 @@ export const SignalRProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    const handleAppStateChange = (nextAppState) => {
+    const handleAppStateChange = async (nextAppState) => {
       if (nextAppState === "background") {
         console.log("App went to background - pausing SignalR connection");
-        service.pauseConnection();
+        await service.pauseConnection();
       } else if (nextAppState === "active") {
-        console.log("App became active - starting SignalR connection");
-        service.startConnection();
+        console.log("App became active - checking authentication");
+
+        // Validate if user is authenticated before starting connection
+        const authResult = await authService.validateToken();
+
+        if (authResult.isValid) {
+          console.log("User is authenticated - starting SignalR connection");
+          service.resumeConnection();
+        } else {
+          console.log(
+            "User is not authenticated - skipping SignalR connection"
+          );
+        }
       }
     };
 

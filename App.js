@@ -16,6 +16,7 @@ import { MeetingStateProvider } from "./context/meetingStateContext";
 import { SignalR_WebRTCProvider } from "./context/signalrContext_webrtc";
 import { RevenueCatProvider } from "./context/RevenueCatContext";
 import { UserProvider } from "./context/UserContext";
+import { MessagingStateProvider } from "./context/messagingStateContext";
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
 
@@ -25,21 +26,20 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [authCheckComplete, setAuthCheckComplete] = useState(false);
-
   useEffect(() => {
     async function prepare() {
       try {
-        console.log("Starting app initialization");
+        // console.log("Starting app initialization");
 
         // Check authentication status
-        console.log("Checking authentication");
+        // console.log("Checking authentication");
         const authResult = await authService.validateToken();
 
         if (authResult.isValid) {
-          console.log(
-            "User authenticated:",
-            authResult.user?.email || "unknown"
-          );
+          // console.log(
+          //   "User authenticated:",
+          //   authResult.user?.email || "unknown"
+          // );
           setIsAuthenticated(true);
           setUser(authResult.user);
         } else {
@@ -50,7 +50,7 @@ export default function App() {
 
         setAuthCheckComplete(true);
 
-        console.log("App initialization complete");
+        // console.log("App initialization complete");
       } catch (e) {
         console.error("App initialization error:", e.message);
         // Even if there's an error, we should continue with unauthenticated state
@@ -87,22 +87,24 @@ export default function App() {
           <SignalR_WebRTCProvider>
             <WebRTCProvider>
               <MeetingStateProvider>
-                <NotificationProvider>
-                  <RevenueCatProvider>
-                    <LocationProvider>
-                      <FitnessProvider>
-                        <CartProvider>
-                          <UserProvider>
-                            <Navigator
-                              isAuthenticated={isAuthenticated}
-                              user={user}
-                            />
-                          </UserProvider>
-                        </CartProvider>
-                      </FitnessProvider>
-                    </LocationProvider>
-                  </RevenueCatProvider>
-                </NotificationProvider>
+                <MessagingStateProvider>
+                  <NotificationProvider>
+                    <RevenueCatProvider>
+                      <LocationProvider>
+                        <FitnessProvider>
+                          <CartProvider>
+                            <UserProvider>
+                              <Navigator
+                                isAuthenticated={isAuthenticated}
+                                user={user}
+                              />
+                            </UserProvider>
+                          </CartProvider>
+                        </FitnessProvider>
+                      </LocationProvider>
+                    </RevenueCatProvider>
+                  </NotificationProvider>
+                </MessagingStateProvider>
               </MeetingStateProvider>
             </WebRTCProvider>
           </SignalR_WebRTCProvider>

@@ -282,7 +282,7 @@ const FloatingClearButton = ({ onPress, isVisible }) => {
   );
 };
 
-export default function ChatScreen({ navigation }) {
+export default function ChatbotScreen({ navigation }) {
   const { location, hasLocation, coordinates } = useLocationContext();
   const { t } = useTranslation();
   const [coords, setCoords] = useState({});

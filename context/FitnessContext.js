@@ -101,7 +101,7 @@ export const FitnessProvider = ({ children }) => {
       setIsLoading(true);
       setError(null);
 
-      console.log("Initializing fitness tracking...");
+      // console.log("Initializing fitness tracking...");
 
       // Initialize the service
       const success = await fitnessTrackingService.initialize();
