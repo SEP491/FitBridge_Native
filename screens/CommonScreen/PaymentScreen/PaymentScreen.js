@@ -6,10 +6,8 @@ import {
   TouchableOpacity,
   Linking,
   Alert,
-  TextInput,
-  ActivityIndicator,
 } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import { useCart } from "../../../context/CartContext";
 import CartCard from "../../../components/CartCard/CartCard";
 import Cart_FreelancePTCard from "../../../components/CartCard/Cart_FreelancePTCard";
@@ -18,6 +16,14 @@ import cartService from "../../../services/cartService";
 import { formatPrice, showErrorAlert, showSuccessAlert } from "../../../lib";
 import { useTranslation } from "../../../hooks/useTranslation";
 import CartCard_Extend from "../../../components/CartCard_Extend/CartCard_Extend";
+import {
+  ProductPaymentCard,
+  AddressSection,
+  PaymentMethodSection,
+  VoucherSection,
+  PaymentDetailsSection,
+} from "./components";
+import addressService from "../../../services/addressService";
 
 export default function PaymentScreen({ navigation, route }) {
   const {
@@ -53,12 +59,45 @@ export default function PaymentScreen({ navigation, route }) {
   const voucherDiscount = selectedVoucher?.discountAmount || 0;
   const [subTotal, setSubTotal] = useState(totalPrice);
 
+  // Update subtotal when displayItems or totalPrice changes
+  useEffect(() => {
+    if (!isExtending) {
+      setSubTotal(totalPrice);
+    }
+  }, [totalPrice, isExtending]);
+
   const finalTotal = Math.max(0, subTotal - voucherDiscount);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("bank");
   const [voucherCode, setVoucherCode] = useState("");
   const [isApplyingVoucher, setIsApplyingVoucher] = useState(false);
   const [orderToExtend, setOrderToExtend] = useState([]);
   const isExtending = displayItems.some((item) => item.toExtend === true);
+  const [selectedAddress, setSelectedAddress] = useState(null);
+  const [addresses, setAddresses] = useState([]);
+  const [loading, setLoading] = useState(false);
+  // Check if cart contains any products
+  const hasProducts = displayItems.some((item) => item.selectedVariant && !item.gymId);
+
+  useEffect(() => {
+    fetchAddresses();
+  }, []);
+
+  const fetchAddresses = async () => {
+      try {
+        setLoading(true);
+        const response = await addressService.getAllAddresses();
+        setAddresses(response.data);  
+      } catch (error) {
+        console.error("Error fetching addresses:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+  const handleAddressSelection = (addressData) => {
+    console.log("Address selected in PaymentScreen:", addressData);
+    setSelectedAddress(addressData);
+  };
 
   useEffect(() => {
     const fetchOrderItemsToExtend = async () => {
@@ -130,6 +169,12 @@ export default function PaymentScreen({ navigation, route }) {
   };
 
   const handleCheckout = async () => {
+    // Validate address for products
+    if (hasProducts && !selectedAddress) {
+      showErrorAlert(t("payment.pleaseSelectAddress"));
+      return;
+    }
+
     // Use displayItems (either direct purchase or cart items)
     console.log("Processing payment for:", displayItems);
     console.log("Is direct purchase:", isDirectPurchase);
@@ -141,7 +186,20 @@ export default function PaymentScreen({ navigation, route }) {
           ? customerPurchasedIdToExtend
           : null,
         shippingFee: isExtending ? orderToExtend.shippingFee : 0,
-        addressId: null,
+        // Include address details if product exists and address is selected
+        ...(hasProducts && selectedAddress ? {
+          receiverName: selectedAddress.receiverName || selectedAddress.recipientName,
+          phoneNumber: selectedAddress.phoneNumber,
+          city: selectedAddress.city,
+          district: selectedAddress.district,
+          ward: selectedAddress.ward,
+          street: selectedAddress.street,
+          houseNumber: selectedAddress.houseNumber,
+          note: selectedAddress.note || "",
+          latitude: selectedAddress.latitude,
+          longitude: selectedAddress.longitude,
+          googleMapAddressString: selectedAddress.googleMapAddressString || selectedAddress.fullAddress,
+        } : {}),
         paymentMethodId:
           selectedPaymentMethod === "bank"
             ? "01997597-d188-7f12-95f4-43ef8d442612"
@@ -150,36 +208,53 @@ export default function PaymentScreen({ navigation, route }) {
 
         orderItems: isExtending
           ? orderToExtend.orderItems
-          : displayItems.map((item) =>
-              item.type === "FreelancePT"
-                ? {
-                    quantity: 1,
-                    productDetailId: null,
-                    gymCourseId: null,
-                    gymPtId: null,
-                    serviceInformationId: null,
-                    freelancePTPackageId: item.id, // Use actual item ID
-                  }
-                : item.type === "WithPt"
-                ? {
-                    quantity: item.quantity,
-                    productDetailId: null,
-                    gymCourseId: item.id,
-                    gymPtId: item.pt ? item.pt.id : null,
-                    serviceInformationId: null,
-                    freelancePTPackageId: null,
-                  }
-                : item.type === "Normal"
-                ? {
-                    quantity: item.quantity,
-                    productDetailId: null,
-                    gymCourseId: item.id,
-                    gymPtId: null,
-                    serviceInformationId: null,
-                    freelancePTPackageId: null,
-                  }
-                : {}
-            ),
+          : displayItems.map((item) => {
+              // Product with variant
+              if (item.selectedVariant && !item.gymId) {
+                return {
+                  quantity: item.quantity || 1,
+                  productDetailId: item.selectedVariant.id,
+                  gymCourseId: null,
+                  gymPtId: null,
+                  serviceInformationId: null,
+                  freelancePTPackageId: null,
+                };
+              }
+              // Freelance PT
+              if (item.type === "FreelancePT") {
+                return {
+                  quantity: 1,
+                  productDetailId: null,
+                  gymCourseId: null,
+                  gymPtId: null,
+                  serviceInformationId: null,
+                  freelancePTPackageId: item.id,
+                };
+              }
+              // Gym course with PT
+              if (item.type === "WithPt") {
+                return {
+                  quantity: item.quantity,
+                  productDetailId: null,
+                  gymCourseId: item.id,
+                  gymPtId: item.pt ? item.pt.id : null,
+                  serviceInformationId: null,
+                  freelancePTPackageId: null,
+                };
+              }
+              // Normal gym course
+              if (item.type === "Normal") {
+                return {
+                  quantity: item.quantity,
+                  productDetailId: null,
+                  gymCourseId: item.id,
+                  gymPtId: null,
+                  serviceInformationId: null,
+                  freelancePTPackageId: null,
+                };
+              }
+              return {};
+            }),
       },
     };
     console.log("Checkout request:", requestData);
@@ -246,6 +321,18 @@ export default function PaymentScreen({ navigation, route }) {
         {displayItems.length > 0 ? (
           <View style={styles.itemsContainer}>
             {displayItems.map((item, index) => {
+              // Check if item is a product (has selectedVariant)
+              if (item.selectedVariant && !item.gymId) {
+                return (
+                  <ProductPaymentCard
+                    key={item.cartItemId || item.id || index}
+                    item={item}
+                    onRemove={() => handleRemoveItem(item.cartItemId)}
+                    showRemove={!isDirectPurchase}
+                  />
+                );
+              }
+              
               // Check if item type is FreelancePT
               if (item.type === "FreelancePT") {
                 return (
@@ -303,142 +390,41 @@ export default function PaymentScreen({ navigation, route }) {
           </View>
         )}
 
-        <View style={styles.paymentMethod}>
-          <View style={styles.cartUpper}>
-            <Text style={{ fontSize: 15, color: "#ED2A46" }}>
-              {t("payment.paymentMethods")}
-            </Text>
-            <Text style={{ fontSize: 10 }}>{t("payment.seeAll")}</Text>
-          </View>
+        {/* Address Section - Only shown when there are products */}
+        <AddressSection
+          visible={hasProducts}
+          selectedAddress={selectedAddress}
+          onSelectAddress={handleAddressSelection}
+          addresses={addresses}
+          loading={loading}
+        />
 
-          <View style={styles.cardUnder}>
-            <TouchableOpacity
-              style={styles.paymentOption}
-              onPress={() => setSelectedPaymentMethod("bank")}
-            >
-              <View style={styles.paymentLeft}>
-                <MaterialIcons name="payment" size={30} color="#ED2A46" />
-                <Text>{t("payment.bankTransfer")}</Text>
-              </View>
-              {selectedPaymentMethod === "bank" && (
-                <MaterialIcons name="check-circle" size={24} color="#ED2A46" />
-              )}
-            </TouchableOpacity>
+        {/* Payment Method Section */}
+        <PaymentMethodSection
+          selectedMethod={selectedPaymentMethod}
+          onSelectMethod={setSelectedPaymentMethod}
+        />
 
-            <TouchableOpacity
-              style={styles.paymentOption}
-              onPress={() => setSelectedPaymentMethod("qr")}
-            >
-              <View style={styles.paymentLeft}>
-                <MaterialIcons name="qr-code" size={30} color="#ED2A46" />
-                <Text>{t("payment.qrCode")}</Text>
-              </View>
-              {selectedPaymentMethod === "qr" && (
-                <MaterialIcons name="check-circle" size={24} color="#ED2A46" />
-              )}
-            </TouchableOpacity>
-          </View>
-        </View>
+        {/* Voucher Section */}
+        <VoucherSection
+          voucherCode={voucherCode}
+          onVoucherCodeChange={setVoucherCode}
+          selectedVoucher={selectedVoucher}
+          onApplyVoucher={handleApplyVoucher}
+          onRemoveVoucher={() => {
+            setVoucherCode("");
+            setSelectedVoucher(null);
+          }}
+          isApplying={isApplyingVoucher}
+        />
 
-        {/* Voucher Section - Modified to inline input */}
-        <View style={styles.paymentMethod}>
-          <View style={styles.cartUpper}>
-            <Text style={{ fontSize: 15, color: "#ED2A46" }}>
-              {t("payment.voucher")}
-            </Text>
-          </View>
-
-          <View style={styles.voucherSection}>
-            {selectedVoucher ? (
-              <View style={styles.voucherApplied}>
-                <View style={styles.voucherInfo}>
-                  <MaterialIcons name="local-offer" size={24} color="#4CAF50" />
-                  <View style={styles.voucherTextContainer}>
-                    <Text style={styles.voucherCodeText}>
-                      {selectedVoucher.couponCode || voucherCode}
-                    </Text>
-                    <Text style={styles.voucherDiscountText}>
-                      -{formatPrice(voucherDiscount)}
-                    </Text>
-                  </View>
-                </View>
-                <TouchableOpacity
-                  onPress={() => {
-                    setVoucherCode("");
-                    setSelectedVoucher(null);
-                  }}
-                >
-                  <MaterialIcons name="close" size={24} color="#666" />
-                </TouchableOpacity>
-              </View>
-            ) : (
-              <View style={styles.voucherInputContainer}>
-                <TextInput
-                  style={styles.voucherInput}
-                  placeholder={t("payment.enterVoucherCode")}
-                  value={voucherCode}
-                  onChangeText={setVoucherCode}
-                  autoCapitalize="characters"
-                  editable={!isApplyingVoucher}
-                />
-                <TouchableOpacity
-                  style={[
-                    styles.applyButton,
-                    isApplyingVoucher && styles.applyButtonDisabled,
-                  ]}
-                  onPress={handleApplyVoucher}
-                  disabled={isApplyingVoucher || !voucherCode.trim()}
-                >
-                  {isApplyingVoucher ? (
-                    <ActivityIndicator size="small" color="#fff" />
-                  ) : (
-                    <Text style={styles.applyButtonText}>
-                      {t("payment.apply")}
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
-        </View>
-
-        <View style={styles.paymentMethod}>
-          <View style={styles.cartUpper}>
-            <Text style={{ fontSize: 15, color: "#ED2A46" }}>
-              {t("payment.paymentDetails")}
-            </Text>
-          </View>
-
-          <View style={styles.cardUnder}>
-            <View style={styles.row}>
-              <Text>{t("payment.totalServiceAmount")}</Text>
-              <Text>
-                {" "}
-                {isExtending
-                  ? formatPrice(orderToExtend.totalAmount)
-                  : formatPrice(subTotal)}
-              </Text>
-            </View>
-            {selectedVoucher && voucherDiscount > 0 && (
-              <View style={[styles.row]}>
-                <Text style={styles.discountText}>
-                  {t("payment.voucherDiscount")}
-                </Text>
-                <Text style={styles.discountAmount}>
-                  -{formatPrice(voucherDiscount)}
-                </Text>
-              </View>
-            )}
-            <View style={[styles.row, styles.separator]}>
-              <Text>{t("payment.additionalFees")}</Text>
-              <Text>0 đ</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.totalText}>{t("payment.total")}</Text>
-              <Text style={styles.totalAmount}>{formatPrice(finalTotal)}</Text>
-            </View>
-          </View>
-        </View>
+        {/* Payment Details Section */}
+        <PaymentDetailsSection
+          subTotal={isExtending ? orderToExtend.totalAmount : subTotal}
+          voucherDiscount={voucherDiscount}
+          finalTotal={finalTotal}
+          showVoucherDiscount={selectedVoucher && voucherDiscount > 0}
+        />
       </ScrollView>
 
       <View style={styles.orderSummary}>
@@ -515,34 +501,6 @@ const styles = StyleSheet.create({
   itemsContainer: {
     paddingVertical: 20,
   },
-  paymentMethod: {
-    width: "100%",
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    marginTop: 20,
-    padding: 15,
-    shadowColor: "#000",
-    shadowOpacity: 0.25,
-    shadowRadius: 3,
-    elevation: 6,
-  },
-  cartUpper: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  cardUnder: {
-    marginTop: 10,
-  },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 10,
-  },
-  separator: {
-    borderBottomWidth: 1,
-    borderBottomColor: "#DDD9D9",
-  },
   orderSummary: {
     paddingVertical: 35,
     borderTopLeftRadius: 20,
@@ -575,104 +533,5 @@ const styles = StyleSheet.create({
   checkoutText: {
     color: "#FFFFFF",
     fontSize: 16,
-  },
-  paymentOption: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 10,
-    borderTopWidth: 1,
-    borderTopColor: "#DDD9D9",
-  },
-  paymentLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  voucherSection: {
-    marginTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: "#DDD9D9",
-    paddingTop: 10,
-  },
-  voucherInputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  voucherInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: "#DDD9D9",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
-    backgroundColor: "#F9F9F9",
-  },
-  applyButton: {
-    backgroundColor: "#ED2A46",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
-    minWidth: 80,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  applyButtonDisabled: {
-    backgroundColor: "#CCCCCC",
-  },
-  applyButtonText: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  voucherApplied: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 8,
-    // backgroundColor: "#F1F8F4",
-    paddingHorizontal: 12,
-    borderRadius: 8,
-  },
-  voucherInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
-  },
-  voucherTextContainer: {
-    marginLeft: 12,
-    flex: 1,
-  },
-  voucherCodeText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#1A1A1A",
-  },
-  voucherDiscountText: {
-    fontSize: 12,
-    color: "#4CAF50",
-    fontWeight: "600",
-    marginTop: 2,
-  },
-
-  discountText: {
-    color: "#4CAF50",
-    fontWeight: "600",
-  },
-  discountAmount: {
-    color: "#4CAF50",
-    fontWeight: "600",
-  },
-  totalText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#1A1A1A",
-  },
-  totalAmount: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#ED2A46",
   },
 });

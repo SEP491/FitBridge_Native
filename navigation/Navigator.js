@@ -89,6 +89,8 @@ import EcommerceScreen from "../screens/CommonScreen/EcommerceScreen/EcommerceSc
 import ProductDetailsScreen from "../screens/CommonScreen/ProductDetailsScreen/ProductDetailsScreen";
 import MessageScreen from "../screens/CommonScreen/ChatScreen/MessageScreen";
 import MessageDetailScreen from "../screens/CommonScreen/ChatScreen/MessageDetailScreen";
+import AddressListScreen from "../screens/CommonScreen/PaymentScreen/AddressListScreen";
+import AddressSelectionScreen from "../screens/CommonScreen/PaymentScreen/AddressSelectionScreen";
 
 export default function Navigator({
   isAuthenticated: propIsAuthenticated,
@@ -795,6 +797,41 @@ export default function Navigator({
           options={{
             headerShown: true,
             title: t("screenTitles.cart"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="PaymentScreen"
+          component={PaymentScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.payment"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="AddressListScreen"
+          component={AddressListScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="AddressSelectionScreen"
+          component={AddressSelectionScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.addressSelection"),
             headerTitleAlign: "center",
             headerTitleStyle: {
               fontWeight: "bold",

@@ -5,116 +5,23 @@ import PairedSwiper from "../../../components/PairSwiper/PairSwiper";
 import ProductCard from "../../../components/ProductCard/ProductCard";
 import { useTranslation } from "../../../hooks/useTranslation";
 
-export default function TopRatingProductSection({ refreshTrigger, viewMore = true }) {
+export default function TopRatingProductSection({ refreshTrigger, products, viewMore = true }) {
   const navigation = useNavigation();
   const { t } = useTranslation();
-  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
-
+  const [topProducts, setTopProducts] = useState([]);
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      // TODO: Replace with actual API call when products API is ready
-      // const response = await productService.getTopRatedProducts({ page: 1, size: 10 });
-      // const productsData = response.data?.items || [];
-      
-      // For now, use mocked data with high ratings
-      const mockedProducts = [
-        {
-          id: "019a72dc-6e8b-7fcd-ad00-bccda42ae18f",
-          name: "Super Whey Protein Powder",
-          description: "Premium quality whey protein for muscle building and recovery. Contains 25g protein per serving.",
-          displayPrice: 200000,
-          salePrice: 165000,
-          quantity: 20,
-          totalSoldQuantity: 150,
-          imageUrl: "https://cloud.appwrite.io/v1/storage/buckets/68ed0ff4001069f7a10f/files/97f44267-a909-473c-82ec-3fff91b4af80/view?project=68ed0fdd0037253031b8",
-          priceFrom: 165000,
-          rating: 4.8,
-          totalReviews: 203,
-          countryOfOrigin: "USA",
-        },
-        {
-          id: "219a72dc-6e8b-7fcd-ad00-bccda42ae18f",
-          name: "BCAA Energy Drink",
-          description: "Branched-chain amino acids for enhanced workout performance and recovery.",
-          displayPrice: 180000,
-          salePrice: 150000,
-          quantity: 30,
-          totalSoldQuantity: 200,
-          imageUrl: "https://cloud.appwrite.io/v1/storage/buckets/68ed0ff4001069f7a10f/files/97f44267-a909-473c-82ec-3fff91b4af80/view?project=68ed0fdd0037253031b8",
-          priceFrom: 150000,
-          rating: 4.7,
-          totalReviews: 145,
-          countryOfOrigin: "Germany",
-        },
-        {
-          id: "119a72dc-6e8b-7fcd-ad00-bccda42ae18f",
-          name: "Mega Mass Gainer",
-          description: "High-calorie mass gainer supplement for athletes looking to gain muscle mass quickly.",
-          displayPrice: 350000,
-          salePrice: 299000,
-          quantity: 15,
-          totalSoldQuantity: 87,
-          imageUrl: "https://cloud.appwrite.io/v1/storage/buckets/68ed0ff4001069f7a10f/files/97f44267-a909-473c-82ec-3fff91b4af80/view?project=68ed0fdd0037253031b8",
-          priceFrom: 299000,
-          rating: 4.5,
-          totalReviews: 89,
-          countryOfOrigin: "USA",
-        },
-        {
-          id: "319a72dc-6e8b-7fcd-ad00-bccda42ae18f",
-          name: "Pre-Workout Booster",
-          description: "Explosive energy formula to maximize your training intensity and focus.",
-          displayPrice: 250000,
-          salePrice: 220000,
-          quantity: 25,
-          totalSoldQuantity: 320,
-          imageUrl: "https://cloud.appwrite.io/v1/storage/buckets/68ed0ff4001069f7a10f/files/97f44267-a909-473c-82ec-3fff91b4af80/view?project=68ed0fdd0037253031b8",
-          priceFrom: 220000,
-          rating: 4.6,
-          totalReviews: 156,
-          countryOfOrigin: "UK",
-        },
-        {
-          id: "419a72dc-6e8b-7fcd-ad00-bccda42ae18f",
-          name: "Creatine Monohydrate",
-          description: "Pure creatine monohydrate for strength and power enhancement.",
-          displayPrice: 220000,
-          salePrice: 185000,
-          quantity: 40,
-          totalSoldQuantity: 280,
-          imageUrl: "https://cloud.appwrite.io/v1/storage/buckets/68ed0ff4001069f7a10f/files/97f44267-a909-473c-82ec-3fff91b4af80/view?project=68ed0fdd0037253031b8",
-          priceFrom: 185000,
-          rating: 4.9,
-          totalReviews: 267,
-          countryOfOrigin: "Germany",
-        },
-        {
-          id: "519a72dc-6e8b-7fcd-ad00-bccda42ae18f",
-          name: "Glutamine Recovery",
-          description: "Essential amino acid for muscle recovery and immune support.",
-          displayPrice: 190000,
-          salePrice: 160000,
-          quantity: 35,
-          totalSoldQuantity: 175,
-          imageUrl: "https://cloud.appwrite.io/v1/storage/buckets/68ed0ff4001069f7a10f/files/97f44267-a909-473c-82ec-3fff91b4af80/view?project=68ed0fdd0037253031b8",
-          priceFrom: 160000,
-          rating: 4.4,
-          totalReviews: 98,
-          countryOfOrigin: "USA",
-        },
-      ];
-
       // Sort by rating (highest first) and filter products with rating >= 4.0
-      const topRatedProducts = mockedProducts
-        .filter(product => product.rating >= 4.0)
+      const topRatedProducts = products
+        .filter(product => product.rating >= 0)
         .sort((a, b) => b.rating - a.rating);
 
-      setProducts(topRatedProducts);
+      setTopProducts(topRatedProducts);
     } catch (error) {
       console.error("Error fetching top rated products:", error);
-      setProducts([]);
+      setTopProducts([]);
     } finally {
       setLoading(false);
     }
@@ -153,14 +60,14 @@ export default function TopRatingProductSection({ refreshTrigger, viewMore = tru
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#ED2A46" />
         </View>
-      ) : products && products.length > 0 ? (
+      ) : topProducts && topProducts.length > 0 ? (
         <PairedSwiper
-          data={products}
+          data={topProducts}
           renderItem={renderProductCard}
           showsPagination={true}
           itemsPerSlide={2}
           height={280}
-          loop={products.length > 2}
+          loop={topProducts.length > 2}
           dotStyle={styles.paginationDot}
           activeDotStyle={styles.activePaginationDot}
           containerStyle={styles.swiperContainer}

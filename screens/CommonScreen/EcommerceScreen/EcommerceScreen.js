@@ -13,13 +13,11 @@ import { useTranslation } from "../../../hooks/useTranslation";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import colors from "../../../constants/color";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import FullScreenSearch from "../../../components/FullScreenSearch/FullScreenSearch";
 import { useCart } from "../../../context/CartContext";
 import AllTab from "./AllTab";
-import GymsTab from "./GymsTab";
-import FreelancePTsTab from "./FreelancePTsTab";
-import ProductsTab from "./ProductsTab";
 import CarouselBannerSection from "./CarouselBannerSection";
+import productService from "../../../services/productService";
+import ProductSearch from "../../../components/ProductSearch/ProductSearch";
 
 export default function EcommerceScreen() {
   const { t } = useTranslation();
@@ -27,19 +25,22 @@ export default function EcommerceScreen() {
   const route = useRoute();
   const { getCartCount } = useCart();
   const [showSearch, setShowSearch] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState("all");
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+  const [products, setProducts] = useState([]);
 
-  // Handle navigation params to open search with specific category
-  useEffect(() => {
-    if (route.params?.category) {
-      const category = route.params.category;
-      setSelectedCategory(category);
-      // Clear the params after handling
-      navigation.setParams({ category: undefined });
+  const fetchProducts = async () => { 
+    try {
+      const response = await productService.searchProducts();
+      setProducts(response.data.items);
+    } catch (error) {
+      console.error("Error fetching products:", error);
     }
-  }, [route.params?.category]);
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, [refreshTrigger]);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -48,32 +49,12 @@ export default function EcommerceScreen() {
     setTimeout(() => setRefreshing(false), 500);
   };
 
-  const handleOpenSearch = (tab = "gyms") => {
+  const handleOpenSearch = () => {
     setShowSearch(true);
-  };
-
-  const handleCategorySelect = (category) => {
-    setSelectedCategory(category);
   };
 
   const handleCloseSearch = () => {
     setShowSearch(false);
-  };
-
-  // Render the active tab component
-  const renderActiveTab = () => {
-    switch (selectedCategory) {
-      case "all":
-        return <AllTab refreshTrigger={refreshTrigger} />;
-      case "gyms":
-        return <GymsTab refreshTrigger={refreshTrigger} />;
-      case "freelancePts":
-        return <FreelancePTsTab refreshTrigger={refreshTrigger} />;
-      case "products":
-        return <ProductsTab />;
-      default:
-        return <AllTab refreshTrigger={refreshTrigger} />;
-    }
   };
 
   return (
@@ -89,7 +70,7 @@ export default function EcommerceScreen() {
         >
           <Ionicons name="search" size={20} color="#999" />
           <Text style={styles.searchPlaceholder}>
-            {t("search.searchGymsAndPTs")}
+            {t("search.searchProducts")}
           </Text>
         </TouchableOpacity>
 
@@ -106,97 +87,6 @@ export default function EcommerceScreen() {
           )}
         </TouchableOpacity>
       </View>
-      {/* Categories Section */}
-        {/* <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            {t("ecommerce.categories")}
-          </Text>
-          <View style={styles.categoriesGrid}>
-            <TouchableOpacity 
-              style={[
-                styles.categoryCard,
-                selectedCategory === "all" && styles.categoryCardSelected
-              ]}
-              onPress={() => handleCategorySelect("all")}
-            >
-              <View style={[
-                styles.categoryIcon,
-                selectedCategory === "all" && styles.categoryIconSelected
-              ]}>
-                <Ionicons name="apps" size={32} color={selectedCategory === "all" ? "#FFFFFF" : colors.red} />
-              </View>
-              <Text style={[
-                styles.categoryText,
-                selectedCategory === "all" && styles.categoryTextSelected
-              ]}>
-                {t("ecommerce.all")}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={[
-                styles.categoryCard,
-                selectedCategory === "gyms" && styles.categoryCardSelected
-              ]}
-              onPress={() => handleCategorySelect("gyms")}
-            >
-              <View style={[
-                styles.categoryIcon,
-                selectedCategory === "gyms" && styles.categoryIconSelected
-              ]}>
-                <Ionicons name="fitness" size={32} color={selectedCategory === "gyms" ? "#FFFFFF" : colors.red} />
-              </View>
-              <Text style={[
-                styles.categoryText,
-                selectedCategory === "gyms" && styles.categoryTextSelected
-              ]}>
-                {t("ecommerce.gyms")}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={[
-                styles.categoryCard,
-                selectedCategory === "freelancePts" && styles.categoryCardSelected
-              ]}
-              onPress={() => handleCategorySelect("freelancePts")}
-            >
-              <View style={[
-                styles.categoryIcon,
-                selectedCategory === "freelancePts" && styles.categoryIconSelected
-              ]}>
-                <Ionicons name="person" size={32} color={selectedCategory === "freelancePts" ? "#FFFFFF" : colors.red} />
-              </View>
-              <Text style={[
-                styles.categoryText,
-                selectedCategory === "freelancePts" && styles.categoryTextSelected
-              ]}>
-                {t("ecommerce.personalTrainers")}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={[
-                styles.categoryCard,
-                selectedCategory === "products" && styles.categoryCardSelected
-              ]}
-              onPress={() => handleCategorySelect("products")}
-            >
-              <View style={[
-                styles.categoryIcon,
-                selectedCategory === "products" && styles.categoryIconSelected
-              ]}>
-                <Ionicons name="cube" size={32} color={selectedCategory === "products" ? "#FFFFFF" : colors.red} />
-              </View>
-              <Text style={[
-                styles.categoryText,
-                selectedCategory === "products" && styles.categoryTextSelected
-              ]}>
-                {t("ecommerce.products")}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View> */}
 
       {/* Main Content */}
       <ScrollView 
@@ -210,17 +100,16 @@ export default function EcommerceScreen() {
           />
         }
       >
-      <CarouselBannerSection />
+        <CarouselBannerSection />
 
-        {/* Active Tab Content */}
-        {renderActiveTab()}
+        {/* Products Content */}
+        <AllTab refreshTrigger={refreshTrigger} />
       </ScrollView>
 
-      {/* Full Screen Search */}
-      <FullScreenSearch
+      {/* Product Search */}
+      <ProductSearch
         visible={showSearch}
         onClose={handleCloseSearch}
-        autoSearchOnOpen={true}
       />
     </SafeAreaView>
   );

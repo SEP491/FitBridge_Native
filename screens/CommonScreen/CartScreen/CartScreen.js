@@ -10,7 +10,8 @@ import {
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import CartCard from "../../../components/CartCard/CartCard";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
-import { useNavigation } from "@react-navigation/native";
+import { Image } from "react-native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { useCart } from "../../../context/CartContext"; // Import the cart context
 import { SafeAreaView } from "react-native-safe-area-context";
 import { showConfirmAlert, showAlert, formatPrice } from "../../../lib";
@@ -20,10 +21,15 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export default function CartScreen() {
   const navigation = useNavigation();
+  const route = useRoute();
   const { cart, removeFromCart, getTotalPrice, clearCart, updateQuantity } =
     useCart(); // Use the cart context
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState("gym"); // gym, freelance, product
+  
+  // Set initial tab based on route params, default to gym
+  const [activeTab, setActiveTab] = useState(
+    route.params?.initialTab || "gym"
+  ); // gym, freelance, product
 
   console.log("Cart items:", cart);
 
@@ -38,14 +44,14 @@ export default function CartScreen() {
 
     return cart.filter((item) => {
       if (activeTab === "gym") {
-        // Gym courses: items with gymId but not freelance PT (no pt or type !== "WithPt")
-        return item.gymName;
+        // Gym courses: items with gymId
+        return item.gymId && !item.selectedVariant;
       } else if (activeTab === "freelance") {
         // Freelance PT courses: items with pt and type "WithPt"
-        return item;
+        return item.pt && item.type === "WithPt";
       } else if (activeTab === "product") {
-        // Products: items without gymId (future implementation)
-        return item;
+        // Products: items with selectedVariant (product structure)
+        return item.selectedVariant && !item.gymId;
       }
       return false;
     });
@@ -60,11 +66,11 @@ export default function CartScreen() {
     };
 
     cart.forEach((item) => {
-      if (item.gymId && (!item.pt || item.type !== "WithPt")) {
+      if (item.gymId && !item.selectedVariant) {
         counts.gym++;
       } else if (item.pt && item.type === "WithPt") {
         counts.freelance++;
-      } else if (!item.gymId && item.productId) {
+      } else if (item.selectedVariant && !item.gymId) {
         counts.product++;
       }
     });
@@ -74,10 +80,11 @@ export default function CartScreen() {
 
   // Calculate total price for active tab
   const tabTotalPrice = useMemo(() => {
-    return filteredCart.reduce(
-      (total, item) => total + item.price * (item.quantity || 1),
-      0
-    );
+    return filteredCart.reduce((total, item) => {
+      // For products, use selectedVariant price if available
+      const itemPrice = item.selectedVariant?.salePrice || item.price || item.salePrice;
+      return total + itemPrice * (item.quantity || 1);
+    }, 0);
   }, [filteredCart]);
 
   // Function to handle quantity change
@@ -164,39 +171,109 @@ export default function CartScreen() {
         <>
           <View style={{ flex: 1 }}>
             <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
-              {filteredCart.map((item, index) => (
-                <CartCard
-                  key={item.cartItemId || index}
-                  product={{
-                    gymId: item.gymId,
-                    gymName: item.gymName,
-                    rating: 5, // Default since we don't have ratings in cart items
-                    address: item.gymAddress,
-                    image: item?.gymImage,
-                    quantity: item.quantity || 1, // Add quantity to product object
-                    selectedPackage: {
-                      packageId: item.id,
-                      packageName: item.name,
-                      packagePrice: item.price,
-                      type: item.type,
-                    },
-                    // Include PT information if it exists
-                    pt: item.pt
-                      ? {
-                          id: item.pt.id,
-                          fullName: item.pt.fullName,
-                          avatar: item.pt.avatar,
-                          gender: item.pt.gender,
-                          goalTraining: item.pt.goalTraining,
-                        }
-                      : null,
-                  }}
-                  onQuantityChange={(newQuantity) =>
-                    handleQuantityChange(item.cartItemId, newQuantity)
-                  }
-                  onRemove={() => handleRemoveItem(item.cartItemId)}
-                />
-              ))}
+              {filteredCart.map((item, index) => {
+                // Render product items differently from gym/PT courses
+                if (activeTab === "product") {
+                  const variantImage = item.selectedVariant?.imageUrl;
+                  const productImage = item.imageUrl;
+                  const displayImage = (variantImage && variantImage !== null) ? variantImage : productImage;
+                  
+                  return (
+                    <View key={item.cartItemId || index} style={styles.productCartItem}>
+                      <Image
+                        source={{ uri: displayImage }}
+                        style={styles.productCartImage}
+                        resizeMode="cover"
+                      />
+                      <View style={styles.productCartInfo}>
+                        <Text style={styles.productCartName} numberOfLines={2}>
+                          {item.name}
+                        </Text>
+                        {item.selectedVariant && (
+                          <Text style={styles.productCartVariant}>
+                            {item.selectedVariant.weightValue} {item.selectedVariant.weightUnit} - {item.selectedVariant.flavourName}
+                          </Text>
+                        )}
+                        <Text style={styles.productCartPrice}>
+                          {formatPrice(item.selectedVariant?.salePrice || item.salePrice)}
+                        </Text>
+                        
+                        <View style={styles.productCartActions}>
+                          <View style={styles.productQuantityControls}>
+                            <TouchableOpacity
+                              style={styles.productQuantityButton}
+                              onPress={() => handleQuantityChange(item.cartItemId, (item.quantity || 1) - 1)}
+                              disabled={(item.quantity || 1) <= 1}
+                            >
+                              <FontAwesome5 name="minus" size={12} color={(item.quantity || 1) <= 1 ? "#CCC" : "#666"} />
+                            </TouchableOpacity>
+                            <Text style={styles.productQuantityText}>{item.quantity || 1}</Text>
+                            <TouchableOpacity
+                              style={styles.productQuantityButton}
+                              onPress={() => {
+                                const maxQty = item.selectedVariant?.quantity || 99;
+                                const currentQty = item.quantity || 1;
+                                if (currentQty < maxQty) {
+                                  handleQuantityChange(item.cartItemId, currentQty + 1);
+                                }
+                              }}
+                              disabled={(item.quantity || 1) >= (item.selectedVariant?.quantity || 99)}
+                            >
+                              <FontAwesome5 
+                                name="plus" 
+                                size={12} 
+                                color={(item.quantity || 1) >= (item.selectedVariant?.quantity || 99) ? "#CCC" : "#666"} 
+                              />
+                            </TouchableOpacity>
+                          </View>
+                          
+                          <TouchableOpacity
+                            style={styles.productRemoveButton}
+                            onPress={() => handleRemoveItem(item.cartItemId)}
+                          >
+                            <FontAwesome5 name="trash-alt" size={16} color="#FF4D4F" />
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    </View>
+                  );
+                }
+                
+                // Render gym/PT courses using CartCard
+                return (
+                  <CartCard
+                    key={item.cartItemId || index}
+                    product={{
+                      gymId: item.gymId,
+                      gymName: item.gymName,
+                      rating: 5, // Default since we don't have ratings in cart items
+                      address: item.gymAddress,
+                      image: item?.gymImage,
+                      quantity: item.quantity || 1, // Add quantity to product object
+                      selectedPackage: {
+                        packageId: item.id,
+                        packageName: item.name,
+                        packagePrice: item.price,
+                        type: item.type,
+                      },
+                      // Include PT information if it exists
+                      pt: item.pt
+                        ? {
+                            id: item.pt.id,
+                            fullName: item.pt.fullName,
+                            avatar: item.pt.avatar,
+                            gender: item.pt.gender,
+                            goalTraining: item.pt.goalTraining,
+                          }
+                        : null,
+                    }}
+                    onQuantityChange={(newQuantity) =>
+                      handleQuantityChange(item.cartItemId, newQuantity)
+                    }
+                    onRemove={() => handleRemoveItem(item.cartItemId)}
+                  />
+                );
+              })}
             </ScrollView>
           </View>
 
@@ -392,5 +469,76 @@ const styles = StyleSheet.create({
   checkoutText: {
     color: "#FFFFFF",
     fontSize: 16,
+  },
+  // Product cart item styles
+  productCartItem: {
+    flexDirection: "row",
+    backgroundColor: "#FFFFFF",
+    marginHorizontal: 16,
+    marginVertical: 8,
+    borderRadius: 12,
+    padding: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  productCartImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
+    backgroundColor: "#F5F5F5",
+  },
+  productCartInfo: {
+    flex: 1,
+    marginLeft: 12,
+    justifyContent: "space-between",
+  },
+  productCartName: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 4,
+  },
+  productCartVariant: {
+    fontSize: 13,
+    color: "#666",
+    marginBottom: 4,
+  },
+  productCartPrice: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#ED2A46",
+    marginBottom: 8,
+  },
+  productCartActions: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  productQuantityControls: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F5F5F5",
+    borderRadius: 20,
+    paddingHorizontal: 4,
+  },
+  productQuantityButton: {
+    width: 32,
+    height: 32,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  productQuantityText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
+    marginHorizontal: 12,
+    minWidth: 30,
+    textAlign: "center",
+  },
+  productRemoveButton: {
+    padding: 8,
   },
 });

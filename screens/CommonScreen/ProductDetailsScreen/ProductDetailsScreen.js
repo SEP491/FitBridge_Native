@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,12 +9,16 @@ import {
   SafeAreaView,
   StatusBar,
   Alert,
+  ActivityIndicator,
+  Modal,
+  FlatList,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useTranslation } from "../../../hooks/useTranslation";
 import { useCart } from "../../../context/CartContext";
 import colors from "../../../constants/color";
+import productService from "../../../services/productService";
 
 export default function ProductDetailsScreen() {
   const navigation = useNavigation();
@@ -25,6 +29,80 @@ export default function ProductDetailsScreen() {
 
   const [quantity, setQuantity] = useState(1);
   const [selectedTab, setSelectedTab] = useState("description");
+  const [productDetails, setProductDetails] = useState(null);
+  const [selectedVariant, setSelectedVariant] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [variantModalVisible, setVariantModalVisible] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null); // 'addToCart' or 'buyNow'
+  const [modalQuantity, setModalQuantity] = useState(1); // Quantity in modal
+  const [selectedWeight, setSelectedWeight] = useState(null);
+  const [selectedFlavour, setSelectedFlavour] = useState(null);
+  const [availableWeights, setAvailableWeights] = useState([]);
+  const [availableFlavours, setAvailableFlavours] = useState([]);
+
+  useEffect(() => {
+    fetchProductDetails();
+  }, [product.id]);
+
+  const fetchProductDetails = async () => {
+    try {
+      setLoading(true);
+      const response = await productService.getProductDetails(product.id);
+      setProductDetails(response.data);
+
+      if (
+        response.data?.productDetails &&
+        response.data.productDetails.length > 0
+      ) {
+        const variants = response.data.productDetails;
+
+        // Extract unique weights
+        const weightsMap = new Map();
+        variants.forEach((v) => {
+          const key = `${v.weightValue}-${v.weightUnit}`;
+          if (!weightsMap.has(key)) {
+            weightsMap.set(key, {
+              weightId: v.weightId,
+              weightValue: v.weightValue,
+              weightUnit: v.weightUnit,
+            });
+          }
+        });
+        const weights = Array.from(weightsMap.values());
+        setAvailableWeights(weights);
+
+        // Extract unique flavours
+        const flavoursMap = new Map();
+        variants.forEach((v) => {
+          if (!flavoursMap.has(v.flavourId)) {
+            flavoursMap.set(v.flavourId, {
+              flavourId: v.flavourId,
+              flavourName: v.flavourName,
+            });
+          }
+        });
+        const flavours = Array.from(flavoursMap.values());
+        setAvailableFlavours(flavours);
+
+        // Set default selections
+        setSelectedWeight(weights[0]);
+        setSelectedFlavour(flavours[0]);
+
+        // Find matching variant
+        const matchingVariant = variants.find(
+          (v) =>
+            v.weightId === weights[0].weightId &&
+            v.flavourId === flavours[0].flavourId
+        );
+        setSelectedVariant(matchingVariant || variants[0]);
+      }
+    } catch (error) {
+      console.error("Error fetching product details:", error);
+      Alert.alert(t("common.error"), "Failed to load product details");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat("vi-VN", {
@@ -33,16 +111,70 @@ export default function ProductDetailsScreen() {
     }).format(price);
   };
 
-  const discountPercentage =
-    product.displayPrice > product.salePrice
+  const findVariantBySelection = (weightId, flavourId) => {
+    if (!productDetails?.productDetails) return null;
+    return productDetails.productDetails.find(
+      (v) => v.weightId === weightId && v.flavourId === flavourId
+    );
+  };
+
+  const handleWeightChange = (weight) => {
+    setSelectedWeight(weight);
+    
+    // Check if current flavour is available for this weight
+    const currentVariant = findVariantBySelection(
+      weight.weightId,
+      selectedFlavour?.flavourId
+    );
+    
+    if (currentVariant && currentVariant.quantity > 0) {
+      // Current flavour is available, use it
+      setSelectedVariant(currentVariant);
+      setQuantity(1);
+    } else {
+      // Find first available flavour for this weight
+      const availableVariant = productDetails?.productDetails?.find(
+        (v) => v.weightId === weight.weightId && v.quantity > 0
+      );
+      
+      if (availableVariant) {
+        const newFlavour = availableFlavours.find(
+          (f) => f.flavourId === availableVariant.flavourId
+        );
+        setSelectedFlavour(newFlavour);
+        setSelectedVariant(availableVariant);
+        setQuantity(1);
+      }
+    }
+  };
+
+  const handleFlavourChange = (flavour) => {
+    setSelectedFlavour(flavour);
+    if (selectedWeight) {
+      const variant = findVariantBySelection(
+        selectedWeight.weightId,
+        flavour.flavourId
+      );
+      if (variant) {
+        setSelectedVariant(variant);
+        setQuantity(1);
+      }
+    }
+  };
+
+  const discountPercentage = selectedVariant
+    ? selectedVariant.displayPrice > selectedVariant.salePrice
       ? Math.round(
-          ((product.displayPrice - product.salePrice) / product.displayPrice) *
+          ((selectedVariant.displayPrice - selectedVariant.salePrice) /
+            selectedVariant.displayPrice) *
             100
         )
-      : 0;
+      : 0
+    : 0;
 
   const handleIncreaseQuantity = () => {
-    if (quantity < product.quantity) {
+    const maxQuantity = selectedVariant?.quantity || product.quantity;
+    if (quantity < maxQuantity) {
       setQuantity(quantity + 1);
     }
   };
@@ -53,54 +185,100 @@ export default function ProductDetailsScreen() {
     }
   };
 
-  const handleAddToCart = () => {
-    if (product.quantity === 0) {
-      Alert.alert(
-        t("product.outOfStock"),
-        t("product.productOutOfStock"),
-        [{ text: t("common.ok") }]
-      );
+  const handleVariantConfirm = (variant) => {
+    setSelectedVariant(variant);
+    setQuantity(modalQuantity);
+    setVariantModalVisible(false);
+
+    // Execute the pending action
+    if (pendingAction === "addToCart") {
+      executeAddToCart(variant, modalQuantity);
+    } else if (pendingAction === "buyNow") {
+      executeBuyNow(variant, modalQuantity);
+    }
+    setPendingAction(null);
+    setModalQuantity(1); // Reset modal quantity
+  };
+
+  const executeAddToCart = (variant, qty) => {
+    const currentQuantity = variant?.quantity || product.quantity;
+    if (currentQuantity === 0) {
+      Alert.alert(t("product.outOfStock"), t("product.productOutOfStock"), [
+        { text: t("common.ok") },
+      ]);
       return;
     }
 
     addToCart({
       ...product,
-      quantity: quantity,
+      selectedVariant: variant,
+      quantity: qty,
     });
 
-    Alert.alert(
-      t("cart.addedToCart"),
-      t("cart.productAddedSuccessfully"),
-      [
-        {
-          text: t("common.continueShopping"),
-          style: "cancel",
-        },
-        {
-          text: t("cart.viewCart"),
-          onPress: () => navigation.navigate("CartScreen"),
-        },
-      ]
-    );
+    Alert.alert(t("cart.addedToCart"), t("cart.productAddedSuccessfully"), [
+      {
+        text: t("common.continueShopping"),
+        style: "cancel",
+      },
+      {
+        text: t("cart.viewCart"),
+        onPress: () =>
+          navigation.navigate("CartScreen", { initialTab: "product" }),
+      },
+    ]);
+  };
+
+  const executeBuyNow = (variant, qty) => {
+    const currentQuantity = variant?.quantity || product.quantity;
+    if (currentQuantity === 0) {
+      Alert.alert(t("product.outOfStock"), t("product.productOutOfStock"), [
+        { text: t("common.ok") },
+      ]);
+      return;
+    }
+
+    addToCart({
+      ...product,
+      selectedVariant: variant,
+      quantity: qty,
+    });
+
+    navigation.navigate("CartScreen", { initialTab: "product" });
+  };
+
+  const handleAddToCart = () => {
+    setPendingAction("addToCart");
+    setModalQuantity(1);
+    setVariantModalVisible(true);
   };
 
   const handleBuyNow = () => {
-    if (product.quantity === 0) {
-      Alert.alert(
-        t("product.outOfStock"),
-        t("product.productOutOfStock"),
-        [{ text: t("common.ok") }]
-      );
-      return;
-    }
-
-    addToCart({
-      ...product,
-      quantity: quantity,
-    });
-
-    navigation.navigate("CartScreen");
+    setPendingAction("buyNow");
+    setModalQuantity(1);
+    setVariantModalVisible(true);
   };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar backgroundColor={colors.red} barStyle="light-content" />
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="arrow-back" size={24} color="#333" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>{t("product.productDetails")}</Text>
+          <View style={styles.cartButton} />
+        </View>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.red} />
+          <Text style={styles.loadingText}>{t("common.loading")}</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -127,9 +305,9 @@ export default function ProductDetailsScreen() {
         {/* Product Image */}
         <View style={styles.imageContainer}>
           <Image
-            source={{ uri: product.imageUrl }}
+            source={{ uri: selectedVariant?.imageUrl || product.imageUrl }}
             style={styles.productImage}
-            resizeMode="cover"
+            resizeMode="contain"
           />
           {discountPercentage > 0 && (
             <View style={styles.discountBadge}>
@@ -137,7 +315,6 @@ export default function ProductDetailsScreen() {
             </View>
           )}
         </View>
-
         {/* Product Info */}
         <View style={styles.infoSection}>
           <Text style={styles.productName}>{product.name}</Text>
@@ -160,10 +337,14 @@ export default function ProductDetailsScreen() {
           </View>
 
           <View style={styles.priceRow}>
-            <Text style={styles.salePrice}>{formatPrice(product.salePrice)}</Text>
+            <Text style={styles.salePrice}>
+              {formatPrice(selectedVariant?.salePrice || product.salePrice)}
+            </Text>
             {discountPercentage > 0 && (
               <Text style={styles.originalPrice}>
-                {formatPrice(product.displayPrice)}
+                {formatPrice(
+                  selectedVariant?.displayPrice || product.displayPrice
+                )}
               </Text>
             )}
           </View>
@@ -179,58 +360,127 @@ export default function ProductDetailsScreen() {
           {/* Stock Status */}
           <View style={styles.stockRow}>
             <Ionicons
-              name={product.quantity > 0 ? "checkmark-circle" : "close-circle"}
+              name={
+                (selectedVariant?.quantity || product.quantity) > 0
+                  ? "checkmark-circle"
+                  : "close-circle"
+              }
               size={20}
-              color={product.quantity > 0 ? "#52C41A" : "#FF4D4F"}
+              color={
+                (selectedVariant?.quantity || product.quantity) > 0
+                  ? "#52C41A"
+                  : "#FF4D4F"
+              }
             />
             <Text
               style={[
                 styles.stockText,
-                { color: product.quantity > 0 ? "#52C41A" : "#FF4D4F" },
+                {
+                  color:
+                    (selectedVariant?.quantity || product.quantity) > 0
+                      ? "#52C41A"
+                      : "#FF4D4F",
+                },
               ]}
             >
-              {product.quantity > 0
-                ? `${t("product.inStock")} (${product.quantity} ${t("product.available")})`
+              {(selectedVariant?.quantity || product.quantity) > 0
+                ? `${t("product.inStock")} (${
+                    selectedVariant?.quantity || product.quantity
+                  } ${t("product.available")})`
                 : t("product.outOfStock")}
             </Text>
           </View>
         </View>
 
-        {/* Quantity Selector */}
-        {product.quantity > 0 && (
-          <View style={styles.quantitySection}>
-            <Text style={styles.sectionLabel}>{t("product.quantity")}</Text>
-            <View style={styles.quantityControls}>
-              <TouchableOpacity
-                style={[
-                  styles.quantityButton,
-                  quantity === 1 && styles.quantityButtonDisabled,
-                ]}
-                onPress={handleDecreaseQuantity}
-                disabled={quantity === 1}
-              >
-                <Ionicons
-                  name="remove"
-                  size={20}
-                  color={quantity === 1 ? "#CCC" : colors.red}
-                />
-              </TouchableOpacity>
-              <Text style={styles.quantityText}>{quantity}</Text>
-              <TouchableOpacity
-                style={[
-                  styles.quantityButton,
-                  quantity === product.quantity && styles.quantityButtonDisabled,
-                ]}
-                onPress={handleIncreaseQuantity}
-                disabled={quantity === product.quantity}
-              >
-                <Ionicons
-                  name="add"
-                  size={20}
-                  color={quantity === product.quantity ? "#CCC" : colors.red}
-                />
+        {/* Weight Selector */}
+        {availableWeights.length > 0 && (
+          <View style={styles.variantSection}>
+            <View style={styles.variantHeader}>
+              <Text style={styles.variantLabel}>Select Weight:</Text>
+              <TouchableOpacity onPress={() => setVariantModalVisible(true)}>
+                <Text style={styles.viewAllText}>View All</Text>
               </TouchableOpacity>
             </View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.variantsContainer}
+            >
+              {availableWeights.map((weight) => (
+                <TouchableOpacity
+                  key={weight.weightId}
+                  style={[
+                    styles.variantCard,
+                    selectedWeight?.weightId === weight.weightId &&
+                      styles.variantCardSelected,
+                  ]}
+                  onPress={() => handleWeightChange(weight)}
+                >
+                  <Text
+                    style={[
+                      styles.variantWeight,
+                      selectedWeight?.weightId === weight.weightId &&
+                        styles.variantTextSelected,
+                    ]}
+                  >
+                    {weight.weightValue} {weight.weightUnit}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
+        {/* Flavour Selector */}
+        {availableFlavours.length > 0 && (
+          <View style={styles.variantSection}>
+            <View style={styles.variantHeader}>
+              <Text style={styles.variantLabel}>Select Flavour:</Text>
+            </View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.variantsContainer}
+            >
+              {availableFlavours.map((flavour) => {
+                // Check if this flavour is available for selected weight
+                const variant = findVariantBySelection(
+                  selectedWeight?.weightId,
+                  flavour.flavourId
+                );
+                const isAvailable = variant && variant.quantity > 0;
+
+                return (
+                  <TouchableOpacity
+                    key={flavour.flavourId}
+                    style={[
+                      styles.variantCard,
+                      selectedFlavour?.flavourId === flavour.flavourId &&
+                        styles.variantCardSelected,
+                      !isAvailable && styles.variantCardDisabled,
+                    ]}
+                    onPress={() => isAvailable && handleFlavourChange(flavour)}
+                    disabled={!isAvailable}
+                  >
+                    <Text
+                      style={[
+                        styles.variantFlavour,
+                        selectedFlavour?.flavourId === flavour.flavourId &&
+                          styles.variantTextSelected,
+                        !isAvailable && styles.variantTextDisabled,
+                      ]}
+                    >
+                      {flavour.flavourName}
+                    </Text>
+                    {!isAvailable && (
+                      <View style={styles.outOfStockBadge}>
+                        <Text style={styles.outOfStockBadgeText}>Out</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
           </View>
         )}
 
@@ -297,6 +547,255 @@ export default function ProductDetailsScreen() {
           <Text style={styles.buyNowText}>{t("product.buyNow")}</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Variant Selection Modal */}
+      <Modal
+        visible={variantModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => {
+          setVariantModalVisible(false);
+          setPendingAction(null);
+        }}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Select Variant</Text>
+              <TouchableOpacity
+                onPress={() => {
+                  setVariantModalVisible(false);
+                  setPendingAction(null);
+                }}
+                style={styles.modalCloseButton}
+              >
+                <Ionicons name="close" size={24} color="#333" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {/* Weight Selection in Modal */}
+              <View style={styles.modalSection}>
+                <Text style={styles.modalSectionTitle}>Weight</Text>
+                <View style={styles.modalOptionsGrid}>
+                  {availableWeights.map((weight) => (
+                    <TouchableOpacity
+                      key={weight.weightId}
+                      style={[
+                        styles.modalOptionCard,
+                        selectedWeight?.weightId === weight.weightId &&
+                          styles.modalOptionCardSelected,
+                      ]}
+                      onPress={() => {
+                        setSelectedWeight(weight);
+                        // Find a valid flavour for this weight
+                        const variant = findVariantBySelection(
+                          weight.weightId,
+                          selectedFlavour?.flavourId
+                        );
+                        if (!variant || variant.quantity === 0) {
+                          // Find first available flavour for this weight
+                          const availableVariant =
+                            productDetails.productDetails.find(
+                              (v) =>
+                                v.weightId === weight.weightId && v.quantity > 0
+                            );
+                          if (availableVariant) {
+                            const newFlavour = availableFlavours.find(
+                              (f) => f.flavourId === availableVariant.flavourId
+                            );
+                            setSelectedFlavour(newFlavour);
+                            setSelectedVariant(availableVariant);
+                          }
+                        } else {
+                          setSelectedVariant(variant);
+                        }
+                        setModalQuantity(1);
+                      }}
+                    >
+                      <Text
+                        style={[
+                          styles.modalOptionText,
+                          selectedWeight?.weightId === weight.weightId &&
+                            styles.modalOptionTextSelected,
+                        ]}
+                      >
+                        {weight.weightValue} {weight.weightUnit}
+                      </Text>
+                      {selectedWeight?.weightId === weight.weightId && (
+                        <Ionicons
+                          name="checkmark-circle"
+                          size={18}
+                          color={colors.red}
+                          style={styles.modalOptionCheck}
+                        />
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              {/* Flavour Selection in Modal */}
+              <View style={styles.modalSection}>
+                <Text style={styles.modalSectionTitle}>Flavour</Text>
+                <View style={styles.modalOptionsGrid}>
+                  {availableFlavours.map((flavour) => {
+                    const variant = findVariantBySelection(
+                      selectedWeight?.weightId,
+                      flavour.flavourId
+                    );
+                    const isAvailable = variant && variant.quantity > 0;
+                    const isSelected =
+                      selectedFlavour?.flavourId === flavour.flavourId;
+
+                    return (
+                      <TouchableOpacity
+                        key={flavour.flavourId}
+                        style={[
+                          styles.modalOptionCard,
+                          isSelected && styles.modalOptionCardSelected,
+                          !isAvailable && styles.modalOptionCardDisabled,
+                        ]}
+                        onPress={() => {
+                          if (isAvailable) {
+                            setSelectedFlavour(flavour);
+                            setSelectedVariant(variant);
+                            setModalQuantity(1);
+                          }
+                        }}
+                        disabled={!isAvailable}
+                      >
+                        <Text
+                          style={[
+                            styles.modalOptionText,
+                            isSelected && styles.modalOptionTextSelected,
+                            !isAvailable && styles.modalOptionTextDisabled,
+                          ]}
+                        >
+                          {flavour.flavourName}
+                        </Text>
+                        {isSelected && isAvailable && (
+                          <Ionicons
+                            name="checkmark-circle"
+                            size={18}
+                            color={colors.red}
+                            style={styles.modalOptionCheck}
+                          />
+                        )}
+                        {!isAvailable && (
+                          <Text style={styles.modalOptionOutOfStock}>Out</Text>
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+
+              {/* Selected Variant Preview */}
+              {selectedVariant && (
+                <View style={styles.modalVariantPreview}>
+                  <Image
+                    source={{
+                      uri: selectedVariant.imageUrl || product.imageUrl,
+                    }}
+                    style={styles.modalPreviewImage}
+                    resizeMode="cover"
+                  />
+                  <View style={styles.modalPreviewInfo}>
+                    <Text style={styles.modalPreviewName} numberOfLines={2}>
+                      {product.name}
+                    </Text>
+                    <Text style={styles.modalPreviewVariant}>
+                      {selectedVariant.weightValue} {selectedVariant.weightUnit}{" "}
+                      - {selectedVariant.flavourName}
+                    </Text>
+                    <Text style={styles.modalPreviewPrice}>
+                      {formatPrice(selectedVariant.salePrice)}
+                    </Text>
+                    <Text style={styles.modalPreviewStock}>
+                      {selectedVariant.quantity > 0
+                        ? `${selectedVariant.quantity} ${t(
+                            "product.available"
+                          )}`
+                        : t("product.outOfStock")}
+                    </Text>
+                  </View>
+                </View>
+              )}
+            </ScrollView>
+
+            {/* Confirm Button */}
+            {pendingAction && selectedVariant && (
+              <View style={styles.modalFooter}>
+                {/* Quantity Selector */}
+                <View style={styles.modalQuantitySection}>
+                  <Text style={styles.modalQuantityLabel}>Quantity</Text>
+                  <View style={styles.modalQuantityControls}>
+                    <TouchableOpacity
+                      style={[
+                        styles.modalQuantityButton,
+                        modalQuantity === 1 &&
+                          styles.modalQuantityButtonDisabled,
+                      ]}
+                      onPress={() => {
+                        if (modalQuantity > 1) {
+                          setModalQuantity(modalQuantity - 1);
+                        }
+                      }}
+                      disabled={modalQuantity === 1}
+                    >
+                      <Ionicons
+                        name="remove"
+                        size={18}
+                        color={modalQuantity === 1 ? "#CCC" : colors.red}
+                      />
+                    </TouchableOpacity>
+                    <Text style={styles.modalQuantityText}>
+                      {modalQuantity}
+                    </Text>
+                    <TouchableOpacity
+                      style={[
+                        styles.modalQuantityButton,
+                        modalQuantity >= (selectedVariant?.quantity || 1) &&
+                          styles.modalQuantityButtonDisabled,
+                      ]}
+                      onPress={() => {
+                        const maxQty = selectedVariant?.quantity || 1;
+                        if (modalQuantity < maxQty) {
+                          setModalQuantity(modalQuantity + 1);
+                        }
+                      }}
+                      disabled={
+                        modalQuantity >= (selectedVariant?.quantity || 1)
+                      }
+                    >
+                      <Ionicons
+                        name="add"
+                        size={18}
+                        color={
+                          modalQuantity >= (selectedVariant?.quantity || 1)
+                            ? "#CCC"
+                            : colors.red
+                        }
+                      />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                <TouchableOpacity
+                  style={styles.modalConfirmButton}
+                  onPress={() => handleVariantConfirm(selectedVariant)}
+                  disabled={selectedVariant.quantity === 0}
+                >
+                  <Text style={styles.modalConfirmText}>
+                    {pendingAction === "addToCart" ? "Add to Cart" : "Buy Now"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -305,6 +804,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F8F9FA",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: "#666",
   },
   header: {
     flexDirection: "row",
@@ -362,7 +871,8 @@ const styles = StyleSheet.create({
   infoSection: {
     backgroundColor: "#FFFFFF",
     padding: 16,
-    marginTop: 8,
+    borderTopColor: "#E0E0E0",
+    borderTopWidth: 1,
   },
   productName: {
     fontSize: 20,
@@ -458,23 +968,76 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   quantityButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.red,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#F5F5F5",
     justifyContent: "center",
     alignItems: "center",
   },
   quantityButtonDisabled: {
-    borderColor: "#E0E0E0",
+    opacity: 0.5,
   },
   quantityText: {
-    fontSize: 18,
-    fontWeight: "700",
+    fontSize: 16,
+    fontWeight: "600",
     color: "#333",
     minWidth: 40,
     textAlign: "center",
+  },
+  descriptionSection: {
+    backgroundColor: "#FFFFFF",
+    padding: 16,
+    marginTop: 8,
+  },
+  descriptionText: {
+    fontSize: 14,
+    color: "#666",
+    lineHeight: 22,
+    marginTop: 12,
+  },
+  bottomActions: {
+    flexDirection: "row",
+    padding: 16,
+    backgroundColor: "#FFFFFF",
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    gap: 12,
+    borderTopWidth: 1,
+    borderTopColor: "#F0F0F0",
+  },
+  addToCartButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 14,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: colors.red,
+    backgroundColor: "#FFFFFF",
+    gap: 8,
+  },
+  addToCartText: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: colors.red,
+  },
+  buyNowButton: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 14,
+    borderRadius: 8,
+    backgroundColor: colors.red,
+  },
+  buyNowText: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#FFFFFF",
   },
   tabsContainer: {
     flexDirection: "row",
@@ -504,11 +1067,6 @@ const styles = StyleSheet.create({
     padding: 16,
     minHeight: 200,
   },
-  descriptionText: {
-    fontSize: 14,
-    color: "#666",
-    lineHeight: 22,
-  },
   reviewsEmpty: {
     alignItems: "center",
     justifyContent: "center",
@@ -519,43 +1077,333 @@ const styles = StyleSheet.create({
     color: "#999",
     marginTop: 12,
   },
-  bottomActions: {
-    flexDirection: "row",
-    padding: 16,
+  // Variant selector button styles
+  variantSection: {
     backgroundColor: "#FFFFFF",
-    elevation: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    gap: 12,
+    padding: 12,
+    borderTopColor: "#F0F0F0",
+    borderTopWidth: 1,
   },
-  addToCartButton: {
-    flex: 1,
+  variantHeader: {
     flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 14,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.red,
+    marginBottom: 8,
+  },
+  variantLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#333",
+  },
+  viewAllText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: colors.red,
+  },
+  variantsContainer: {
+    paddingRight: 12,
+  },
+  variantCard: {
+    minWidth: 80,
+    padding: 8,
+    marginRight: 8,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    borderColor: "#E0E0E0",
     backgroundColor: "#FFFFFF",
+    position: "relative",
+    alignItems: "center",
+  },
+  variantCardSelected: {
+    borderColor: colors.red,
+    backgroundColor: "#FFF5F7",
+  },
+  variantWeight: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#333",
+  },
+  variantFlavour: {
+    fontSize: 11,
+    color: "#666",
+  },
+  variantTextSelected: {
+    color: colors.red,
+  },
+  outOfStockBadge: {
+    position: "absolute",
+    top: 2,
+    right: 2,
+    backgroundColor: "#FF4D4F",
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    borderRadius: 3,
+  },
+  outOfStockBadgeText: {
+    fontSize: 8,
+    fontWeight: "600",
+    color: "#FFFFFF",
+  },
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: "80%",
+    paddingBottom: 20,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F0F0F0",
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#333",
+  },
+  modalCloseButton: {
+    padding: 4,
+  },
+  modalVariantList: {
+    padding: 12,
+  },
+  modalSection: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F0F0F0",
+  },
+  modalSectionTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#333",
+    marginBottom: 12,
+  },
+  modalOptionsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 8,
   },
-  addToCartText: {
+  modalOptionCard: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: "#E0E0E0",
+    backgroundColor: "#FFFFFF",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  modalOptionCardSelected: {
+    borderColor: colors.red,
+    backgroundColor: "#FFF5F7",
+  },
+  modalOptionCardDisabled: {
+    opacity: 0.4,
+    backgroundColor: "#F5F5F5",
+  },
+  modalOptionText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#333",
+  },
+  modalOptionTextSelected: {
+    color: colors.red,
+  },
+  modalOptionTextDisabled: {
+    color: "#999",
+  },
+  modalOptionCheck: {
+    marginLeft: 4,
+  },
+  modalOptionOutOfStock: {
+    fontSize: 10,
+    fontWeight: "600",
+    color: "#FF4D4F",
+    marginLeft: 6,
+  },
+  modalVariantPreview: {
+    flexDirection: "row",
+    padding: 16,
+    backgroundColor: "#F8F9FA",
+    marginHorizontal: 16,
+    marginVertical: 12,
+    borderRadius: 12,
+    gap: 12,
+  },
+  modalPreviewImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+    backgroundColor: "#FFF",
+  },
+  modalPreviewInfo: {
+    flex: 1,
+    justifyContent: "space-between",
+  },
+  modalPreviewName: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#333",
+  },
+  modalPreviewVariant: {
+    fontSize: 12,
+    color: "#666",
+  },
+  modalPreviewPrice: {
     fontSize: 16,
     fontWeight: "700",
     color: colors.red,
   },
-  buyNowButton: {
+  modalPreviewStock: {
+    fontSize: 12,
+    color: "#52C41A",
+    fontWeight: "600",
+  },
+  modalVariantCard: {
     flex: 1,
-    alignItems: "center",
+    margin: 4,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: "#E0E0E0",
+    overflow: "hidden",
+    maxWidth: "31%",
+  },
+  modalVariantCardSelected: {
+    borderColor: colors.red,
+    borderWidth: 2,
+  },
+  modalVariantImageContainer: {
+    width: "100%",
+    aspectRatio: 1,
+    backgroundColor: "#F5F5F5",
+    position: "relative",
+  },
+  modalVariantImage: {
+    width: "100%",
+    height: "100%",
+  },
+  modalOutOfStockOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
     justifyContent: "center",
+    alignItems: "center",
+  },
+  modalOutOfStockText: {
+    color: "#FFFFFF",
+    fontSize: 12,
+    fontWeight: "700",
+    textAlign: "center",
+  },
+  modalDiscountBadge: {
+    position: "absolute",
+    top: 4,
+    left: 4,
+    backgroundColor: "#FF4D4F",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  modalDiscountText: {
+    color: "#FFFFFF",
+    fontSize: 10,
+    fontWeight: "700",
+  },
+  modalVariantInfo: {
+    padding: 8,
+  },
+  modalVariantWeight: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#333",
+    marginBottom: 2,
+  },
+  modalVariantFlavour: {
+    fontSize: 11,
+    color: "#666",
+    marginBottom: 4,
+  },
+  modalVariantSalePrice: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: colors.red,
+  },
+  modalVariantDisplayPrice: {
+    fontSize: 10,
+    color: "#999",
+    textDecorationLine: "line-through",
+    marginTop: 2,
+  },
+  modalSelectedIndicator: {
+    position: "absolute",
+    top: 4,
+    right: 4,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 10,
+  },
+  modalFooter: {
+    padding: 16,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: "#F0F0F0",
+  },
+  modalQuantitySection: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+    paddingVertical: 8,
+  },
+  modalQuantityLabel: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
+  },
+  modalQuantityControls: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+  },
+  modalQuantityButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#F5F5F5",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalQuantityButtonDisabled: {
+    opacity: 0.5,
+  },
+  modalQuantityText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
+    minWidth: 40,
+    textAlign: "center",
+  },
+  modalConfirmButton: {
+    backgroundColor: colors.red,
     paddingVertical: 14,
     borderRadius: 8,
-    backgroundColor: colors.red,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  buyNowText: {
+  modalConfirmText: {
     fontSize: 16,
     fontWeight: "700",
     color: "#FFFFFF",

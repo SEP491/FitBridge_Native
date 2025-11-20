@@ -15,74 +15,16 @@ import FeaturedGymsSection from "../HomeScreen/FeaturedGymsSection";
 import FreelancePTTrainersSection from "../HomeScreen/FreelancePTTrainersSection";
 import TopRatingProductSection from "../HomeScreen/TopRatingProductSection";
 import BestSellerProductSection from "../HomeScreen/BestSellerProductSection";
+import productService from "../../../services/productService";
 
 export default function AllTab({ refreshTrigger }) {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState([]);
   const [productsPage, setProductsPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [hasMoreProducts, setHasMoreProducts] = useState(false);
   const [loadingMoreProducts, setLoadingMoreProducts] = useState(false);
-
-  // Mocked products data - Replace with actual API call when available
-  const mockedProducts = [
-    {
-      id: "019a72dc-6e8b-7fcd-ad00-bccda42ae18f",
-      name: "Super Whey Protein Powder",
-      description: "Premium quality whey protein for muscle building and recovery. Contains 25g protein per serving.",
-      displayPrice: 200000,
-      salePrice: 165000,
-      quantity: 20,
-      totalSoldQuantity: 150,
-      imageUrl: "https://cloud.appwrite.io/v1/storage/buckets/68ed0ff4001069f7a10f/files/97f44267-a909-473c-82ec-3fff91b4af80/view?project=68ed0fdd0037253031b8",
-      priceFrom: 165000,
-      rating: 4.5,
-      totalReviews: 89,
-      countryOfOrigin: "USA",
-    },
-    {
-      id: "119a72dc-6e8b-7fcd-ad00-bccda42ae18f",
-      name: "Mega Mass Gainer",
-      description: "High-calorie mass gainer supplement for athletes looking to gain muscle mass quickly.",
-      displayPrice: 350000,
-      salePrice: 299000,
-      quantity: 15,
-      totalSoldQuantity: 87,
-      imageUrl: "https://cloud.appwrite.io/v1/storage/buckets/68ed0ff4001069f7a10f/files/97f44267-a909-473c-82ec-3fff91b4af80/view?project=68ed0fdd0037253031b8",
-      priceFrom: 299000,
-      rating: 4.2,
-      totalReviews: 56,
-      countryOfOrigin: "USA",
-    },
-    {
-      id: "219a72dc-6e8b-7fcd-ad00-bccda42ae18f",
-      name: "BCAA Energy Drink",
-      description: "Branched-chain amino acids for enhanced workout performance and recovery.",
-      displayPrice: 180000,
-      salePrice: 150000,
-      quantity: 30,
-      totalSoldQuantity: 200,
-      imageUrl: "https://cloud.appwrite.io/v1/storage/buckets/68ed0ff4001069f7a10f/files/97f44267-a909-473c-82ec-3fff91b4af80/view?project=68ed0fdd0037253031b8",
-      priceFrom: 150000,
-      rating: 4.7,
-      totalReviews: 145,
-      countryOfOrigin: "Germany",
-    },
-    {
-      id: "319a72dc-6e8b-7fcd-ad00-bccda42ae18f",
-      name: "Pre-Workout Booster",
-      description: "Explosive energy formula to maximize your training intensity and focus.",
-      displayPrice: 250000,
-      salePrice: 220000,
-      quantity: 0,
-      totalSoldQuantity: 320,
-      imageUrl: "https://cloud.appwrite.io/v1/storage/buckets/68ed0ff4001069f7a10f/files/97f44267-a909-473c-82ec-3fff91b4af80/view?project=68ed0fdd0037253031b8",
-      priceFrom: 220000,
-      rating: 4.8,
-      totalReviews: 203,
-      countryOfOrigin: "UK",
-    },
-  ];
 
   useEffect(() => {
     fetchData();
@@ -92,16 +34,18 @@ export default function AllTab({ refreshTrigger }) {
     try {
       setLoading(true);
 
-      // TODO: Replace with actual API call when products API is ready
-      // const response = await productService.getAllProducts({ page: 1, size: 10 });
-      // setProducts(response.data.items);
+      // Fetch products from API
+      const response = await productService.searchProducts({ page: 1, size: 20 });
       
-      // For now, use mocked data
-      setProducts(mockedProducts);
-      setProductsPage(1);
-      setHasMoreProducts(false); // Set to true when pagination is implemented
+      if (response.data && response.data.items) {
+        setProducts(response.data.items);
+        setProductsPage(1);
+        setTotalPages(response.data.totalPages);
+        setHasMoreProducts(1 < response.data.totalPages);
+      }
     } catch (error) {
       console.error("Error fetching products:", error);
+      setProducts([]);
     } finally {
       setLoading(false);
     }
@@ -114,12 +58,14 @@ export default function AllTab({ refreshTrigger }) {
       setLoadingMoreProducts(true);
       const nextPage = productsPage + 1;
 
-      // TODO: Replace with actual API call
-      // const response = await productService.getAllProducts({ page: nextPage, size: 10 });
-      // setProducts((prev) => [...prev, ...response.data.items]);
+      // Fetch more products from API
+      const response = await productService.searchProducts({ page: nextPage, size: 20 });
       
-      setProductsPage(nextPage);
-      // setHasMoreProducts(nextPage < response.data.totalPages);
+      if (response.data && response.data.items) {
+        setProducts((prev) => [...prev, ...response.data.items]);
+        setProductsPage(nextPage);
+        setHasMoreProducts(nextPage < response.data.totalPages);
+      }
     } catch (error) {
       console.error("Error loading more products:", error);
     } finally {
@@ -140,11 +86,10 @@ export default function AllTab({ refreshTrigger }) {
     <View style={styles.container}>
 
       {/* Best Seller Product Section */}
-      <BestSellerProductSection refreshTrigger={refreshTrigger} viewMore={false} />
+      <BestSellerProductSection refreshTrigger={refreshTrigger} products={products} viewMore={false} />
 
       {/* Top Rating Product Section */}
-      <TopRatingProductSection refreshTrigger={refreshTrigger} viewMore={false} />
-
+      <TopRatingProductSection refreshTrigger={refreshTrigger} products={products} viewMore={false} />
 
       {/* Products FlatList */}
       {products.length > 0 && (

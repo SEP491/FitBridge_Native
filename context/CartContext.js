@@ -16,7 +16,42 @@ export const CartProvider = ({ children }) => {
 
   const addToCart = (gymPackage) => {
     setCart((prevCart) => {
-      // Create unique identifier for cart item
+      // For products with variants
+      if (gymPackage.selectedVariant && !gymPackage.gymId) {
+        const cartItemId = `${gymPackage.id}-${gymPackage.selectedVariant.id}`;
+        
+        // Check if same product with same variant exists
+        const existingItemIndex = prevCart.findIndex(
+          (item) =>
+            item.id === gymPackage.id &&
+            item.selectedVariant?.id === gymPackage.selectedVariant.id
+        );
+
+        if (existingItemIndex !== -1) {
+          // Update quantity if item exists
+          const updatedCart = [...prevCart];
+          const newQuantity = updatedCart[existingItemIndex].quantity + (gymPackage.quantity || 1);
+          const maxQuantity = gymPackage.selectedVariant.quantity;
+          
+          updatedCart[existingItemIndex] = {
+            ...updatedCart[existingItemIndex],
+            quantity: Math.min(newQuantity, maxQuantity),
+          };
+          return updatedCart;
+        }
+
+        // Add new product item to cart
+        const newCartItem = {
+          ...gymPackage,
+          cartItemId,
+          quantity: gymPackage.quantity || 1,
+          dateAdded: new Date().toISOString(),
+        };
+
+        return [...prevCart, newCartItem];
+      }
+
+      // For gym/PT packages (legacy support)
       const cartItemId =
         gymPackage.type === "WithPt" && gymPackage.pt
           ? `${gymPackage.gymId}-${gymPackage.id}-${gymPackage.pt.id}`
@@ -78,10 +113,11 @@ export const CartProvider = ({ children }) => {
   };
 
   const getTotalPrice = () => {
-    return cart.reduce(
-      (total, item) => total + item.price * (item.quantity || 1),
-      0
-    );
+    return cart.reduce((total, item) => {
+      // For products with variants, use selectedVariant price
+      const itemPrice = item.selectedVariant?.salePrice || item.price || item.salePrice;
+      return total + itemPrice * (item.quantity || 1);
+    }, 0);
   };
 
   // Check if a specific package is in cart
