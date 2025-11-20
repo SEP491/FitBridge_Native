@@ -643,7 +643,7 @@ export default function Navigator({
         <Stack.Screen
           name="ChatbotScreen"
           component={ChatbotScreen}
-          options={{
+          options={({ navigation, route }) => ({
             headerShown: true,
             title: t("screenTitles.aiChatbox"),
             headerTitleAlign: "center",
@@ -652,7 +652,13 @@ export default function Navigator({
               fontSize: 20,
               color: "#ED2A46",
             },
-          }}
+            headerLeft: (props) =>
+              navigation.canGoBack() ? (
+                <TouchableOpacity onPress={() => navigation.goBack()}>
+                  <Ionicons name="caret-back" size={30} color="#ED2A46" />
+                </TouchableOpacity>
+              ) : null,
+          })}
         />
         <Stack.Screen
           name="VideoCallScreen"

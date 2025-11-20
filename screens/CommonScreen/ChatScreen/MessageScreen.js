@@ -9,6 +9,7 @@ import {
   RefreshControl,
   StatusBar,
   ActivityIndicator,
+  Image,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -19,8 +20,10 @@ import { useMessagingState } from "../../../context/messagingStateContext";
 import { CLIENT_METHODS } from "../../../services/signalR/Message/constants/hubMethods";
 import { LIFECYCLE_METHODS } from "../../../services/signalR/Message/constants/lifecycleMethods";
 import { fetchUserFromStorage } from "../../../lib";
+import { useTranslation } from "../../../hooks/useTranslation";
 
 export default function MessageScreen({ navigation }) {
+  const { t } = useTranslation();
   const [conversations, setConversations] = useState([]);
   const [filteredConversations, setFilteredConversations] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -479,7 +482,7 @@ export default function MessageScreen({ navigation }) {
         <Ionicons name="search-outline" size={20} color="#9CA3AF" />
         <TextInput
           style={styles.searchInput}
-          placeholder="Search conversations..."
+          placeholder={t("messageScreen.searchPlaceholder")}
           placeholderTextColor="#9CA3AF"
           value={searchQuery}
           onChangeText={handleSearch}
@@ -495,24 +498,58 @@ export default function MessageScreen({ navigation }) {
     </View>
   );
 
+  // Render AI chatbot card
+  const renderAIChatbot = () => (
+    <TouchableOpacity
+      style={styles.aiChatbotCard}
+      onPress={() => navigation.navigate("ChatbotScreen")}
+      activeOpacity={0.7}
+    >
+      <View style={styles.aiChatbotIconContainer}>
+        <Ionicons name="sparkles" size={24} color="#007AFF" />
+      </View>
+      <View style={styles.aiChatbotContent}>
+        <Text style={styles.aiChatbotTitle}>
+          {t("messageScreen.aiChatbot")}
+        </Text>
+        <Text style={styles.aiChatbotDesc}>
+          {t("messageScreen.aiChatbotDesc")}
+        </Text>
+      </View>
+      <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+    </TouchableOpacity>
+  );
+
+  // Render loading state
+  const renderLoadingState = () => (
+    <View style={styles.loadingContainer}>
+      <ActivityIndicator size="large" color={colors.red} />
+      <Text style={styles.loadingText}>{t("loading")}</Text>
+    </View>
+  );
+
   // Render empty state
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
       <Ionicons name="chatbubbles-outline" size={80} color="#D1D5DB" />
       <Text style={styles.emptyTitle}>
-        {searchQuery ? "No conversations found" : "No messages yet"}
+        {searchQuery
+          ? t("messageScreen.noConversations")
+          : t("messageScreen.noMessages")}
       </Text>
       <Text style={styles.emptySubtitle}>
         {searchQuery
-          ? "Try searching with a different name"
-          : "Start a conversation to connect with others"}
+          ? t("messageScreen.tryDifferentName")
+          : t("messageScreen.startConversation")}
       </Text>
       {!searchQuery && (
         <TouchableOpacity
           style={styles.emptyButton}
           onPress={handleCreateConversation}
         >
-          <Text style={styles.emptyButtonText}>Start Conversation</Text>
+          <Text style={styles.emptyButtonText}>
+            {t("messageScreen.startConversationButton")}
+          </Text>
         </TouchableOpacity>
       )}
     </View>
@@ -550,48 +587,55 @@ export default function MessageScreen({ navigation }) {
             ]}
           >
             {connectionStatus === "reconnecting"
-              ? "Reconnecting..."
-              : "Offline - Messages won't update"}
+              ? t("messageScreen.reconnecting")
+              : t("messageScreen.offline")}
           </Text>
         </View>
       )}
 
       {renderSearchBar()}
 
-      <FlatList
-        data={filteredConversations}
-        renderItem={({ item }) => (
-          <ConversationCard
-            conversation={item}
-            onPress={handleConversationPress}
-            currentUserId={currentUserId}
-            userPresences={userPresences}
+      {loading && !refreshing ? (
+        renderLoadingState()
+      ) : (
+        <>
+          {currentUserRole === "Customer" && renderAIChatbot()}
+          <FlatList
+            data={filteredConversations}
+            renderItem={({ item }) => (
+              <ConversationCard
+                conversation={item}
+                onPress={handleConversationPress}
+                currentUserId={currentUserId}
+                userPresences={userPresences}
+              />
+            )}
+            keyExtractor={(item, index) => item.id || `conversation-${index}`}
+            contentContainerStyle={
+              filteredConversations.length === 0 && styles.emptyList
+            }
+            ListEmptyComponent={renderEmptyState}
+            ListFooterComponent={
+              loading && !refreshing ? (
+                <View style={styles.loadingFooter}>
+                  <ActivityIndicator size="small" color={colors.red} />
+                </View>
+              ) : null
+            }
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                tintColor={colors.red}
+                colors={[colors.red]}
+              />
+            }
+            onEndReached={handleLoadMore}
+            onEndReachedThreshold={0.5}
+            showsVerticalScrollIndicator={false}
           />
-        )}
-        keyExtractor={(item, index) => item.id || `conversation-${index}`}
-        contentContainerStyle={
-          filteredConversations.length === 0 && styles.emptyList
-        }
-        ListEmptyComponent={renderEmptyState}
-        ListFooterComponent={
-          loading && !refreshing ? (
-            <View style={styles.loadingFooter}>
-              <ActivityIndicator size="small" color={colors.red} />
-            </View>
-          ) : null
-        }
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.red}
-            colors={[colors.red]}
-          />
-        }
-        onEndReached={handleLoadMore}
-        onEndReachedThreshold={0.5}
-        showsVerticalScrollIndicator={false}
-      />
+        </>
+      )}
 
       {/* Floating Create Button */}
       <TouchableOpacity
@@ -622,9 +666,53 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "500",
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 60,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: "#6B7280",
+  },
   loadingFooter: {
     paddingVertical: 20,
     alignItems: "center",
+  },
+  aiChatbotCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F0F9FF",
+    marginHorizontal: 16,
+    marginVertical: 8,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+  },
+  aiChatbotIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#DBEAFE",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  aiChatbotContent: {
+    flex: 1,
+  },
+  aiChatbotTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#111827",
+    marginBottom: 4,
+  },
+  aiChatbotDesc: {
+    fontSize: 13,
+    color: "#6B7280",
   },
   unreadBadge: {
     backgroundColor: colors.red,

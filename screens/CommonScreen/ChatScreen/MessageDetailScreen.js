@@ -27,6 +27,7 @@ import colors from "../../../constants/color";
 import messageService from "../../../services/messageService";
 import uploadImageService from "../../../services/uploadImageService";
 import { useMessagingState } from "../../../context/messagingStateContext";
+import { useTranslation } from "../../../hooks/useTranslation";
 import {
   CLIENT_METHODS,
   HUB_METHODS,
@@ -35,6 +36,7 @@ import { LIFECYCLE_METHODS } from "../../../services/signalR/Message/constants/l
 import { fetchUserFromStorage } from "../../../lib";
 
 export default function MessageDetailScreen({ route, navigation }) {
+  const { t } = useTranslation();
   const { conversationId, conversationTitle, conversationImg, members } =
     route.params || {};
 
@@ -1046,9 +1048,10 @@ export default function MessageDetailScreen({ route, navigation }) {
       const userId = members.find(
         (member) => member.role === "Customer"
       )?.userId;
-      const responseCheck = await messageService.checkCustomerPurchased({
-        ptId: ptId,
-      });
+
+      const responseCheck = await messageService.checkCustomerPurchased(
+        currentUserRole === "Customer" ? { ptId } : { customerId: userId }
+      );
       console.log("response check:", responseCheck);
       if (!responseCheck || !responseCheck.data) {
         Alert.alert(
@@ -1355,12 +1358,12 @@ export default function MessageDetailScreen({ route, navigation }) {
                 style={[styles.headerSubtitle, { color: getSubtitleColor() }]}
               >
                 {typingStatus?.isTyping
-                  ? "Typing..."
+                  ? t("chat.typing")
                   : userPresence?.isOnline
-                  ? "Online"
+                  ? t("chat.online")
                   : connectionStatus === "reconnecting"
-                  ? "Reconnecting..."
-                  : "Offline"}
+                  ? t("messageScreen.reconnecting")
+                  : t("chat.offline")}
               </Text>
             </View>
           </View>
@@ -1381,7 +1384,7 @@ export default function MessageDetailScreen({ route, navigation }) {
         <View style={styles.replyPreviewContainer}>
           <View style={styles.replyPreviewContent}>
             <Text style={[styles.replyPreviewLabel, { color: "#F59E0B" }]}>
-              Editing message
+              {t("messageScreen.editingMessage")}
             </Text>
             <Text style={styles.replyPreviewText} numberOfLines={2}>
               {editingMessage.content}
@@ -1402,7 +1405,9 @@ export default function MessageDetailScreen({ route, navigation }) {
       {replyingTo && !editingMessage && (
         <View style={styles.replyPreviewContainer}>
           <View style={styles.replyPreviewContent}>
-            <Text style={styles.replyPreviewLabel}>Replying to</Text>
+            <Text style={styles.replyPreviewLabel}>
+              {t("messageScreen.replyingTo")}
+            </Text>
             <Text style={styles.replyPreviewText} numberOfLines={2}>
               {replyingTo.content}
             </Text>
@@ -1441,7 +1446,7 @@ export default function MessageDetailScreen({ route, navigation }) {
 
         <TextInput
           style={styles.input}
-          placeholder="Type a message..."
+          placeholder={t("chat.typeMessage")}
           placeholderTextColor="#9CA3AF"
           value={inputText}
           onChangeText={handleTyping}
@@ -1604,7 +1609,9 @@ export default function MessageDetailScreen({ route, navigation }) {
                   onPress={handleReplyToMessage}
                 >
                   <Ionicons name="arrow-undo" size={20} color="#FFFFFF" />
-                  <Text style={styles.inlineActionText}>Reply</Text>
+                  <Text style={styles.inlineActionText}>
+                    {t("messageScreen.reply")}
+                  </Text>
                 </TouchableOpacity>
               )}
 
@@ -1617,7 +1624,9 @@ export default function MessageDetailScreen({ route, navigation }) {
                     onPress={handleEditMessage}
                   >
                     <Ionicons name="create" size={20} color="#FFFFFF" />
-                    <Text style={styles.inlineActionText}>Edit</Text>
+                    <Text style={styles.inlineActionText}>
+                      {t("messageScreen.edit")}
+                    </Text>
                   </TouchableOpacity>
                 )}
 
@@ -1628,7 +1637,9 @@ export default function MessageDetailScreen({ route, navigation }) {
                   onPress={handleDeleteMessage}
                 >
                   <Ionicons name="trash" size={20} color="#FFFFFF" />
-                  <Text style={styles.inlineActionText}>Delete</Text>
+                  <Text style={styles.inlineActionText}>
+                    {t("chat.delete")}
+                  </Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -1661,7 +1672,9 @@ export default function MessageDetailScreen({ route, navigation }) {
           }}
         >
           <View style={styles.reactionSheet}>
-            <Text style={styles.reactionSheetTitle}>Choose a Reaction</Text>
+            <Text style={styles.reactionSheetTitle}>
+              {t("messageScreen.chooseReaction")}
+            </Text>
             <View style={styles.reactionGrid}>
               {reactions.map((reaction) => (
                 <TouchableOpacity
@@ -1726,8 +1739,8 @@ export default function MessageDetailScreen({ route, navigation }) {
             <Text style={styles.bookingRequestTitle}>
               {
                 // editingBookingRequest
-                // ? "Edit Booking Request" :
-                "Create Booking Request"
+                // ? t("messageScreen.editBookingRequest") :
+                t("messageScreen.createBookingRequest")
               }
             </Text>
             <TouchableOpacity
@@ -1743,10 +1756,12 @@ export default function MessageDetailScreen({ route, navigation }) {
           <View style={styles.bookingRequestForm}>
             {/* Booking Name */}
             <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Booking Name</Text>
+              <Text style={styles.formLabel}>
+                {t("messageScreen.bookingName")}
+              </Text>
               <TextInput
                 style={styles.formInput}
-                placeholder="Enter booking name"
+                placeholder={t("messageScreen.enterBookingName")}
                 value={bookingFormData.bookingName}
                 onChangeText={(text) =>
                   setBookingFormData((prev) => ({ ...prev, bookingName: text }))
@@ -1756,7 +1771,7 @@ export default function MessageDetailScreen({ route, navigation }) {
 
             {/* Booking Date */}
             <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Date</Text>
+              <Text style={styles.formLabel}>{t("messageScreen.date")}</Text>
               <TouchableOpacity
                 style={styles.formInputTouchable}
                 onPress={() => setShowDatePicker(true)}
@@ -1770,7 +1785,9 @@ export default function MessageDetailScreen({ route, navigation }) {
 
             {/* Start Time */}
             <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Start Time</Text>
+              <Text style={styles.formLabel}>
+                {t("messageScreen.startTime")}
+              </Text>
               <TouchableOpacity
                 style={styles.formInputTouchable}
                 onPress={() => setShowStartTimePicker(true)}
@@ -1784,7 +1801,7 @@ export default function MessageDetailScreen({ route, navigation }) {
 
             {/* End Time */}
             <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>End Time</Text>
+              <Text style={styles.formLabel}>{t("messageScreen.endTime")}</Text>
               <TouchableOpacity
                 style={styles.formInputTouchable}
                 onPress={() => setShowEndTimePicker(true)}
@@ -1810,7 +1827,9 @@ export default function MessageDetailScreen({ route, navigation }) {
                 <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
                 <Text style={styles.submitButtonText}>
-                  {editingBookingRequest ? "Update Request" : "Send Request"}
+                  {editingBookingRequest
+                    ? t("messageScreen.updateRequest")
+                    : t("messageScreen.sendRequest")}
                 </Text>
               )}
             </TouchableOpacity>
@@ -1878,9 +1897,9 @@ export default function MessageDetailScreen({ route, navigation }) {
           return new Date();
         })()}
         minimumDate={new Date()}
-        confirmTextIOS="Confirm"
-        cancelTextIOS="Cancel"
-        headerTextIOS="Select Date"
+        confirmTextIOS={t("messageScreen.confirm")}
+        cancelTextIOS={t("chat.cancel")}
+        headerTextIOS={t("messageScreen.selectDate")}
         display="spinner"
         isDarkModeEnabled={false}
         buttonTextColorIOS={colors.red}
@@ -1959,9 +1978,9 @@ export default function MessageDetailScreen({ route, navigation }) {
           }
           return undefined;
         })()}
-        confirmTextIOS="Confirm"
-        cancelTextIOS="Cancel"
-        headerTextIOS="Select Start Time"
+        confirmTextIOS={t("messageScreen.confirm")}
+        cancelTextIOS={t("chat.cancel")}
+        headerTextIOS={t("messageScreen.selectStartTime")}
         display="spinner"
         isDarkModeEnabled={false}
         buttonTextColorIOS={colors.red}
@@ -2037,9 +2056,9 @@ export default function MessageDetailScreen({ route, navigation }) {
           }
           return new Date();
         })()}
-        confirmTextIOS="Confirm"
-        cancelTextIOS="Cancel"
-        headerTextIOS="Select End Time"
+        confirmTextIOS={t("messageScreen.confirm")}
+        cancelTextIOS={t("chat.cancel")}
+        headerTextIOS={t("messageScreen.selectEndTime")}
         display="spinner"
         isDarkModeEnabled={false}
         buttonTextColorIOS={colors.red}
