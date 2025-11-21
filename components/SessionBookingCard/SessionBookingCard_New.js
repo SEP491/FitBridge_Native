@@ -46,7 +46,7 @@ const SessionBookingCard = ({
           icon: "calendar-outline",
           text: t ? t("calendar.statusBooked") : "Booked",
         };
-      case "completed":
+      case "finished":
         return {
           color: "#28a745",
           backgroundColor: "#F0F8F0",
@@ -115,7 +115,7 @@ const SessionBookingCard = ({
     navigation.navigate("VideoCallPrep", {
       booking: booking,
     });
-  }
+  };
 
   return (
     <View style={styles.sessionCard}>
@@ -183,27 +183,34 @@ const SessionBookingCard = ({
         </View>
 
         {/* Meeting Button Section */}
-          <TouchableOpacity
+        <TouchableOpacity
+          style={[
+            styles.meetingButton,
+            (isBookingInPast || isActionDisabled) &&
+              styles.disabledMeetingButton,
+          ]}
+          onPress={handleJoinMeeting}
+          disabled={isBookingInPast || isActionDisabled}
+        >
+          <Ionicons
+            name={
+              isBookingInPast || isActionDisabled
+                ? "ban-outline"
+                : "videocam-outline"
+            }
+            size={18}
+            color={isBookingInPast || isActionDisabled ? "#999" : colors.white}
+          />
+          <Text
             style={[
-              styles.meetingButton,
-              (isBookingInPast || isActionDisabled) && styles.disabledMeetingButton
-            ]}
-            onPress={handleJoinMeeting}
-            disabled={isBookingInPast || isActionDisabled}
-          >
-            <Ionicons
-              name={(isBookingInPast || isActionDisabled) ? "ban-outline" : "videocam-outline"}
-              size={18}
-              color={(isBookingInPast || isActionDisabled) ? "#999" : colors.white}
-            />
-            <Text style={[
               styles.meetingButtonText,
-              (isBookingInPast || isActionDisabled) && styles.disabledMeetingButtonText
-            ]}>
-              {t ? t("calendar.meetingOnline") : "Join Meeting Online"}
-            </Text>
-          </TouchableOpacity>
-       
+              (isBookingInPast || isActionDisabled) &&
+                styles.disabledMeetingButtonText,
+            ]}
+          >
+            {t ? t("calendar.meetingOnline") : "Join Meeting Online"}
+          </Text>
+        </TouchableOpacity>
 
         {/* View Detail Button - Always visible */}
         {!booking.ptGymSlotId && viewDetailAction && (

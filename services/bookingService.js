@@ -28,6 +28,11 @@ const bookingService = {
 
   deleteSessionActivity: (sessionActivityId) =>
     request("DELETE", `v1/session-activities/${sessionActivityId}`),
+
+  startSession: (data) =>
+    request("POST", `v1/bookings/start-booking-session`, data),
+  endSession: (data) =>
+    request("POST", `v1/bookings/end-booking-session`, data),
 };
 
 export default bookingService;

@@ -4,7 +4,9 @@ import React, {
   useEffect,
   useState,
   useCallback,
+  useRef,
 } from "react";
+import { AppState } from "react-native";
 import fitnessTrackingService from "../services/fitnessTrackingService";
 
 const FitnessContext = createContext();
@@ -29,6 +31,7 @@ export const FitnessProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [weeklyData, setWeeklyData] = useState([]);
   const [monthlyData, setMonthlyData] = useState([]);
+  const appState = useRef(AppState.currentState);
 
   // Initialize fitness tracking
   useEffect(() => {
@@ -48,6 +51,50 @@ export const FitnessProvider = ({ children }) => {
       fitnessTrackingService.stopTracking();
     };
   }, []);
+
+  // Listen to app state changes to save data when going to background
+  useEffect(() => {
+    const subscription = AppState.addEventListener(
+      "change",
+      handleAppStateChange
+    );
+
+    return () => {
+      subscription?.remove();
+    };
+  }, []);
+
+  const handleAppStateChange = async (nextAppState) => {
+    // App is going to background or inactive
+    if (
+      appState.current.match(/active/) &&
+      nextAppState.match(/inactive|background/)
+    ) {
+      console.log("📱 App going to background - saving fitness data...");
+      try {
+        await fitnessTrackingService.saveTodayData();
+        console.log("✅ Fitness data saved before background");
+      } catch (error) {
+        console.error("❌ Error saving data on background:", error);
+      }
+    }
+
+    // App is coming back to foreground
+    if (
+      appState.current.match(/inactive|background/) &&
+      nextAppState === "active"
+    ) {
+      console.log("📱 App coming to foreground - refreshing data...");
+      try {
+        await refreshData();
+        console.log("✅ Fitness data refreshed");
+      } catch (error) {
+        console.error("❌ Error refreshing data:", error);
+      }
+    }
+
+    appState.current = nextAppState;
+  };
 
   const initializeFitnessTracking = async () => {
     try {
@@ -127,16 +174,6 @@ export const FitnessProvider = ({ children }) => {
       setError(err.message);
     }
   }, []);
-
-  const updateUserProfile = async (profile) => {
-    try {
-      await fitnessTrackingService.updateUserProfile(profile);
-      // The service will automatically notify listeners with updated data
-    } catch (err) {
-      console.error("Error updating user profile:", err);
-      setError(err.message);
-    }
-  };
 
   const startTracking = async () => {
     try {
@@ -238,11 +275,6 @@ export const FitnessProvider = ({ children }) => {
     [fitnessData.steps]
   );
 
-  // Get debug info for troubleshooting
-  const getDebugInfo = () => {
-    return fitnessTrackingService.getDebugInfo();
-  };
-
   // Get comprehensive fitness statistics
   const getFitnessStatistics = useCallback(async () => {
     try {
@@ -281,13 +313,14 @@ export const FitnessProvider = ({ children }) => {
     }
   }, []);
 
-  // Debug method to get fitness history
-  const getDebugFitnessHistory = useCallback(async () => {
+  // Manual save today's data
+  const saveTodayData = useCallback(async () => {
     try {
-      return await fitnessTrackingService.getDebugFitnessHistory();
+      await fitnessTrackingService.saveTodayData();
+      console.log("✅ Manually saved today's data");
     } catch (err) {
-      console.error("Error getting debug fitness history:", err);
-      return {};
+      console.error("Error saving today's data:", err);
+      setError(err.message);
     }
   }, []);
 
@@ -310,18 +343,16 @@ export const FitnessProvider = ({ children }) => {
 
     // Actions
     refreshData,
-    updateUserProfile,
     startTracking,
     stopTracking,
     forceRefresh,
     clearCaches,
+    saveTodayData,
 
     // Utilities
     getStepGoalProgress,
     loadHistoricalData,
-    getDebugInfo,
     getFitnessStatistics,
-    getDebugFitnessHistory,
   };
 
   return (

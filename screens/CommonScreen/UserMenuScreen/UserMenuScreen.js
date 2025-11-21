@@ -114,12 +114,12 @@ export default function UserMenuScreen() {
         navigation: "SubscriptionScreen",
         category: "services",
       },
-      {
-        icon: <Ionicons name="ticket-outline" size={28} color="#ED2A46" />,
-        label: t("userMenu.vouchers"),
-        navigation: "VoucherScreen",
-        category: "services",
-      },
+      // {
+      //   icon: <Ionicons name="ticket-outline" size={28} color="#ED2A46" />,
+      //   label: t("userMenu.vouchers"),
+      //   navigation: "VoucherScreen",
+      //   category: "services",
+      // },
       {
         icon: <Ionicons name="time-outline" size={28} color="#ED2A46" />,
         label: t("userMenu.transactionHistory"),

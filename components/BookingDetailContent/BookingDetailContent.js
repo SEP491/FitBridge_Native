@@ -9,11 +9,13 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import colors from "../../constants/color";
 import customerPurchasedService from "../../services/customerPurchased";
 import accountService from "../../services/accountService";
+import bookingService from "../../services/bookingService";
 
 const bodyPartImages = {
   chest: require("../../assets/images/bodyparts/chest.png"),
@@ -69,6 +71,7 @@ export default function BookingDetailContent({
   onAddExercise,
 }) {
   // Get unique activity types from sessionActivities
+
   const scrollViewRef = React.useRef(null);
   const getUniqueActivityTypes = () => {
     if (
@@ -115,13 +118,13 @@ export default function BookingDetailContent({
       }
 
       // Fetch customer information
-      const searchTerm = booking.customerName;
+      const customerId = booking.customerId;
       const customerResponse = await accountService.getFreelancePTCustomers({
-        searchTerm: searchTerm,
+        customerId: customerId,
       });
       const customerData = customerResponse.data?.items[0];
       console.log("Customer Data:", customerData);
-      
+
       // Fetch customer packages
       const packagesResponse =
         await customerPurchasedService.getAllCustomerPurchasedPackageById(
@@ -134,7 +137,7 @@ export default function BookingDetailContent({
         packages.length > 0
           ? new Date(
               Math.min(...packages.map((p) => new Date(p.purchaseDate)))
-            ).toLocaleDateString('vi-VN')
+            ).toLocaleDateString("vi-VN")
           : "N/A";
 
       // Filter active packages (not expired and have sessions left)
@@ -144,7 +147,10 @@ export default function BookingDetailContent({
         return expDate > today && pkg.availableSessions > 0;
       });
 
-      const totalActiveSessions = activePackagesList.reduce((sum, pkg) => sum + pkg.availableSessions, 0);
+      const totalActiveSessions = activePackagesList.reduce(
+        (sum, pkg) => sum + pkg.availableSessions,
+        0
+      );
       const activePackages = activePackagesList.length;
 
       // Construct complete customer object with packages
@@ -154,13 +160,13 @@ export default function BookingDetailContent({
         email: customerData.email,
         phone: "(+84)" + (customerData.phoneNumber || "N/A"),
         avatarUrl: customerData.avatarUrl,
-        status: activePackages > 0 ? 'active' : 'inactive',
+        status: activePackages > 0 ? "active" : "inactive",
         joinDate: joinDate,
         packages: packages,
         totalPackages: packages.length,
         activePackages: activePackages,
         totalSessions: totalActiveSessions,
-        lastSession: 'N/A',
+        lastSession: "N/A",
       };
 
       console.log("Complete Customer Data:", completeCustomer);
@@ -188,6 +194,62 @@ export default function BookingDetailContent({
   //   getCustomerPurchasedInformation(Booking.customerId);
   // }, [Booking]);
 
+  // Determine session state
+  const getSessionState = () => {
+    if (
+      bookingDetail.sessionStartTime == null &&
+      bookingDetail.sessionEndTime == null
+    ) {
+      return "not-started";
+    } else if (
+      bookingDetail.sessionStartTime != null &&
+      bookingDetail.sessionEndTime == null
+    ) {
+      return "in-progress";
+    } else if (
+      bookingDetail.sessionStartTime != null &&
+      bookingDetail.sessionEndTime != null
+    ) {
+      return "completed";
+    }
+    return "not-started";
+  };
+
+  const [sessionState, setSessionState] = useState(getSessionState());
+
+  const handleStartSession = async () => {
+    try {
+      const response = await bookingService.startSession({
+        bookingId: bookingDetail.bookingId,
+      });
+      console.log(response);
+      setSessionState("in-progress");
+    } catch (error) {
+      console.error("Error starting session:", error);
+      Alert.alert(
+        "Error",
+        error.response?.data?.message ||
+          "Unable to start session. Please try again."
+      );
+    }
+  };
+
+  const handleEndSession = async () => {
+    try {
+      const response = await bookingService.endSession({
+        bookingId: bookingDetail.bookingId,
+      });
+      console.log(response);
+      setSessionState("completed");
+    } catch (error) {
+      console.error("Error ending session:", error);
+      Alert.alert(
+        "Error",
+        error.response?.data?.message ||
+          "Unable to end session. Please try again."
+      );
+    }
+  };
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
@@ -420,13 +482,18 @@ export default function BookingDetailContent({
               ]}
             >
               <TouchableOpacity
-                style={styles.setCardContent}
+                style={[
+                  styles.setCardContent,
+                  { opacity: sessionState === "not-started" ? 0.5 : 1 },
+                ]}
                 onPress={() =>
                   navigation.navigate("TrainingActivityScreen", {
                     activityId: activity.id,
+                    userRole: userRole,
                   })
                 }
                 activeOpacity={0.7}
+                disabled={sessionState === "not-started"}
               >
                 <View style={styles.setHeader}>
                   <View style={styles.setTitleContainer}>
@@ -568,12 +635,110 @@ export default function BookingDetailContent({
             />
           </View>
         </View>
+        {userRole === "Customer" && (
+          <View style={styles.controlsContainer}>
+            {sessionState === "not-started" && (
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={handleStartSession}
+              >
+                <Ionicons
+                  name="play-circle"
+                  size={24}
+                  color="#FFFFFF"
+                  style={styles.buttonIcon}
+                />
+                <Text style={styles.actionButtonText}>
+                  {t("bookingDetail.startSession", "Start Session")}
+                </Text>
+              </TouchableOpacity>
+            )}
+
+            {sessionState === "in-progress" && (
+              <TouchableOpacity
+                style={[styles.actionButton, styles.endSessionButton]}
+                onPress={handleEndSession}
+              >
+                <Ionicons
+                  name="stop-circle"
+                  size={24}
+                  color="#FFFFFF"
+                  style={styles.buttonIcon}
+                />
+                <Text style={styles.actionButtonText}>
+                  {t("bookingDetail.endSession", "End Session")}
+                </Text>
+              </TouchableOpacity>
+            )}
+
+            {sessionState === "completed" && (
+              <View style={[styles.actionButton, styles.completedButton]}>
+                <Ionicons
+                  name="checkmark-circle"
+                  size={24}
+                  color="#FFFFFF"
+                  style={styles.buttonIcon}
+                />
+                <Text style={styles.actionButtonText}>
+                  {t("bookingDetail.sessionCompleted", "Completed")}
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  controlsContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    gap: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  actionButton: {
+    backgroundColor: colors.orange,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 20,
+    shadowColor: colors.orange,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  endSessionButton: {
+    backgroundColor: "#DC2626",
+    shadowColor: "#DC2626",
+  },
+  completedButton: {
+    backgroundColor: "#4CAF50",
+    shadowColor: "#4CAF50",
+    opacity: 0.8,
+  },
+  actionButtonText: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: "700",
+    textAlign: "center",
+  },
+  buttonIcon: {
+    marginRight: 4,
+  },
   scrollView: {
     flex: 1,
   },

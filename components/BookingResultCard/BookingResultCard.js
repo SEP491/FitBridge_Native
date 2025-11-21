@@ -1,8 +1,16 @@
 import React from "react";
-import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Dimensions,
+  TouchableOpacity,
+} from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { ProgressChart } from "react-native-chart-kit";
 import colors from "../../constants/color";
+import { useTranslation } from "../../hooks/useTranslation";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -33,11 +41,14 @@ const ActivityTypeTag = ({ type }) => {
 };
 
 export default function BookingResultCard({ result, navigation, Booking }) {
+  const { t } = useTranslation();
   if (!result) {
     return (
       <View style={styles.emptyContainer}>
         <Ionicons name="stats-chart-outline" size={60} color="#ccc" />
-        <Text style={styles.emptyText}>Chưa có kết quả tập luyện</Text>
+        <Text style={styles.emptyText}>
+          {t("bookingResultCard.noTrainingResults")}
+        </Text>
       </View>
     );
   }
@@ -70,51 +81,61 @@ export default function BookingResultCard({ result, navigation, Booking }) {
           <Ionicons name="trophy" size={28} color={colors.orange} />
         </View>
         <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>Kết quả tập luyện</Text>
+          <Text style={styles.headerTitle}>
+            {t("bookingResultCard.trainingResults")}
+          </Text>
           <Text style={styles.headerSubtitle}>{sessionName}</Text>
         </View>
       </View>
 
-      <TouchableOpacity 
+      <TouchableOpacity
         onPress={() => {
           if (navigation && Booking.customerPurchasedId) {
-            navigation.navigate('TrainingResultScreen', {
+            navigation.navigate("TrainingResultScreen", {
               customerPurchasedId: Booking.customerPurchasedId,
               customer: customerInfo,
               pkg: pkgInfo,
-              activeTab: 'userGoal'
+              activeTab: "userGoal",
             });
           }
         }}
         style={styles.viewDetailsButton}
       >
         <Ionicons name="bar-chart" size={20} color={colors.white} />
-        <Text style={styles.viewDetailsButtonText}>View Training Analytics</Text>
+        <Text style={styles.viewDetailsButtonText}>
+          {t("bookingResultCard.viewTrainingAnalytics")}
+        </Text>
       </TouchableOpacity>
 
       {/* Time Info */}
       <View style={styles.card}>
         <View style={styles.cardHeader}>
           <Ionicons name="time-outline" size={20} color={colors.orange} />
-          <Text style={styles.cardTitle}>Thời gian</Text>
+          <Text style={styles.cardTitle}>{t("bookingResultCard.time")}</Text>
         </View>
         <View style={styles.timeRow}>
           <View style={styles.timeItem}>
-            <Text style={styles.timeLabel}>Ngày tập</Text>
+            <Text style={styles.timeLabel}>
+              {t("bookingResultCard.trainingDate")}
+            </Text>
             <Text style={styles.timeValue}>{dateTraining}</Text>
           </View>
           <View style={styles.timeItem}>
-            <Text style={styles.timeLabel}>Dự kiến</Text>
+            <Text style={styles.timeLabel}>
+              {t("bookingResultCard.planned")}
+            </Text>
             <Text style={styles.timeValue}>
-              {plannedStartTime?.substring(0, 5)} -{" "}
-              {plannedEndTime?.substring(0, 5)}
+              {plannedStartTime?.substring(0, 5) || "--:--"} -{" "}
+              {plannedEndTime?.substring(0, 5) || "--:--"}
             </Text>
           </View>
         </View>
         {(actualStartTime || actualEndTime) && (
           <View style={styles.timeRow}>
             <View style={styles.timeItem}>
-              <Text style={styles.timeLabel}>Thực tế</Text>
+              <Text style={styles.timeLabel}>
+                {t("bookingResultCard.actual")}
+              </Text>
               <Text style={styles.timeValue}>
                 {actualStartTime?.substring(0, 5) || "--:--"} -{" "}
                 {actualEndTime?.substring(0, 5) || "--:--"}
@@ -133,7 +154,9 @@ export default function BookingResultCard({ result, navigation, Booking }) {
               size={20}
               color={colors.orange}
             />
-            <Text style={styles.cardTitle}>Loại hoạt động đã thực hiện</Text>
+            <Text style={styles.cardTitle}>
+              {t("bookingResultCard.activityTypesPerformed")}
+            </Text>
           </View>
           <View style={styles.activityTypesContainer}>
             {activityTypesPerformed.map((type, index) => (
@@ -147,7 +170,9 @@ export default function BookingResultCard({ result, navigation, Booking }) {
       <View style={styles.card}>
         <View style={styles.cardHeader}>
           <Ionicons name="bar-chart" size={20} color={colors.orange} />
-          <Text style={styles.cardTitle}>Tổng quan buổi tập</Text>
+          <Text style={styles.cardTitle}>
+            {t("bookingResultCard.sessionOverview")}
+          </Text>
         </View>
         <View style={styles.summaryGrid}>
           <View style={styles.summaryItem}>
@@ -155,7 +180,9 @@ export default function BookingResultCard({ result, navigation, Booking }) {
             <Text style={styles.summaryValue}>
               {sessionTotalSummary?.sessionActivityCount || 0}
             </Text>
-            <Text style={styles.summaryLabel}>Bài tập</Text>
+            <Text style={styles.summaryLabel}>
+              {t("bookingResultCard.exercises")}
+            </Text>
           </View>
           <View style={styles.summaryItem}>
             <Ionicons name="repeat" size={24} color="#EC4899" />
@@ -163,7 +190,9 @@ export default function BookingResultCard({ result, navigation, Booking }) {
               {sessionTotalSummary?.totalCompletedSets || 0}/
               {sessionTotalSummary?.plannedSets || 0}
             </Text>
-            <Text style={styles.summaryLabel}>Sets</Text>
+            <Text style={styles.summaryLabel}>
+              {t("bookingResultCard.sets")}
+            </Text>
           </View>
           <View style={styles.summaryItem}>
             <MaterialCommunityIcons name="counter" size={24} color="#10B981" />
@@ -171,7 +200,9 @@ export default function BookingResultCard({ result, navigation, Booking }) {
               {sessionTotalSummary?.totalCompletedReps || 0}/
               {sessionTotalSummary?.plannedReps || 0}
             </Text>
-            <Text style={styles.summaryLabel}>Reps</Text>
+            <Text style={styles.summaryLabel}>
+              {t("bookingResultCard.reps")}
+            </Text>
           </View>
           {sessionTotalSummary?.totalRestTimeSec > 0 && (
             <View style={styles.summaryItem}>
@@ -183,7 +214,9 @@ export default function BookingResultCard({ result, navigation, Booking }) {
               <Text style={styles.summaryValue}>
                 {Math.round(sessionTotalSummary.totalRestTimeSec / 60)}
               </Text>
-              <Text style={styles.summaryLabel}>Phút nghỉ</Text>
+              <Text style={styles.summaryLabel}>
+                {t("bookingResultCard.restMinutes")}
+              </Text>
             </View>
           )}
         </View>
@@ -193,9 +226,11 @@ export default function BookingResultCard({ result, navigation, Booking }) {
       <View style={styles.card}>
         <View style={styles.cardHeader}>
           <Ionicons name="stats-chart" size={20} color={colors.orange} />
-          <Text style={styles.cardTitle}>Tiến độ hoàn thành</Text>
+          <Text style={styles.cardTitle}>
+            {t("bookingResultCard.completionProgress")}
+          </Text>
         </View>
-        
+
         {/* 3 Separate Progress Charts */}
         <View style={styles.progressChartsRow}>
           {/* Overall Progress */}
@@ -203,7 +238,9 @@ export default function BookingResultCard({ result, navigation, Booking }) {
             <View style={styles.chartWrapper}>
               <ProgressChart
                 data={{
-                  data: [(sessionTotalSummary?.completionPercentage || 0) / 100],
+                  data: [
+                    (sessionTotalSummary?.completionPercentage || 0) / 100,
+                  ],
                 }}
                 width={110}
                 height={110}
@@ -219,12 +256,16 @@ export default function BookingResultCard({ result, navigation, Booking }) {
                 style={styles.singleChart}
               />
               <View style={styles.chartCenterText}>
-                <Text style={[styles.chartPercentage, { color: colors.orange }]}>
+                <Text
+                  style={[styles.chartPercentage, { color: colors.orange }]}
+                >
                   {sessionTotalSummary?.completionPercentage || 0}%
                 </Text>
               </View>
             </View>
-            <Text style={styles.chartLabel}>Tổng thể</Text>
+            <Text style={styles.chartLabel}>
+              {t("bookingResultCard.overall")}
+            </Text>
           </View>
 
           {/* Sets Progress */}
@@ -234,8 +275,8 @@ export default function BookingResultCard({ result, navigation, Booking }) {
                 data={{
                   data: [
                     sessionTotalSummary?.plannedSets > 0
-                      ? ((sessionTotalSummary?.totalCompletedSets || 0) /
-                          sessionTotalSummary.plannedSets)
+                      ? (sessionTotalSummary?.totalCompletedSets || 0) /
+                        sessionTotalSummary.plannedSets
                       : 0,
                   ],
                 }}
@@ -265,9 +306,10 @@ export default function BookingResultCard({ result, navigation, Booking }) {
                 </Text>
               </View>
             </View>
-            <Text style={styles.chartLabel}>Sets</Text>
+            <Text style={styles.chartLabel}>{t("bookingResultCard.sets")}</Text>
             <Text style={styles.chartSubLabel}>
-              {sessionTotalSummary?.totalCompletedSets || 0}/{sessionTotalSummary?.plannedSets || 0}
+              {sessionTotalSummary?.totalCompletedSets || 0}/
+              {sessionTotalSummary?.plannedSets || 0}
             </Text>
           </View>
 
@@ -278,8 +320,8 @@ export default function BookingResultCard({ result, navigation, Booking }) {
                 data={{
                   data: [
                     sessionTotalSummary?.plannedReps > 0
-                      ? ((sessionTotalSummary?.totalCompletedReps || 0) /
-                          sessionTotalSummary.plannedReps)
+                      ? (sessionTotalSummary?.totalCompletedReps || 0) /
+                        sessionTotalSummary.plannedReps
                       : 0,
                   ],
                 }}
@@ -309,9 +351,10 @@ export default function BookingResultCard({ result, navigation, Booking }) {
                 </Text>
               </View>
             </View>
-            <Text style={styles.chartLabel}>Reps</Text>
+            <Text style={styles.chartLabel}>{t("bookingResultCard.reps")}</Text>
             <Text style={styles.chartSubLabel}>
-              {sessionTotalSummary?.totalCompletedReps || 0}/{sessionTotalSummary?.plannedReps || 0}
+              {sessionTotalSummary?.totalCompletedReps || 0}/
+              {sessionTotalSummary?.plannedReps || 0}
             </Text>
           </View>
         </View>
@@ -326,25 +369,32 @@ export default function BookingResultCard({ result, navigation, Booking }) {
               size={20}
               color={colors.orange}
             />
-            <Text style={styles.cardTitle}>Phân tích buổi tập</Text>
+            <Text style={styles.cardTitle}>
+              {t("bookingResultCard.sessionAnalysis")}
+            </Text>
           </View>
           {muscleGroupAggregates.map((muscle, index) => (
             <View key={index} style={styles.muscleGroupItem}>
               <View style={styles.muscleGroupHeader}>
                 <Text style={styles.muscleGroupName}>{muscle.muscleGroup}</Text>
                 <Text style={styles.muscleGroupActivities}>
-                  {muscle.sessionActivitiesCount} bài tập
+                  {muscle.sessionActivitiesCount}{" "}
+                  {t("bookingResultCard.exercisesCount")}
                 </Text>
               </View>
               <View style={styles.muscleStatsRow}>
                 <View style={styles.muscleStat}>
-                  <Text style={styles.muscleStatLabel}>Sets</Text>
+                  <Text style={styles.muscleStatLabel}>
+                    {t("bookingResultCard.sets")}
+                  </Text>
                   <Text style={styles.muscleStatValue}>
                     {muscle.totalSetsCompleted}
                   </Text>
                 </View>
                 <View style={styles.muscleStat}>
-                  <Text style={styles.muscleStatLabel}>Reps</Text>
+                  <Text style={styles.muscleStatLabel}>
+                    {t("bookingResultCard.reps")}
+                  </Text>
                   <Text style={styles.muscleStatValue}>
                     {muscle.totalRepsCompleted}
                   </Text>
@@ -384,7 +434,9 @@ export default function BookingResultCard({ result, navigation, Booking }) {
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <Ionicons name="list" size={20} color={colors.orange} />
-            <Text style={styles.cardTitle}>Chi tiết bài tập</Text>
+            <Text style={styles.cardTitle}>
+              {t("bookingResultCard.exerciseDetails")}
+            </Text>
           </View>
           {activitiesSummary.map((activity, index) => {
             const hasReps = activity.plannedReps > 0;
@@ -495,7 +547,7 @@ export default function BookingResultCard({ result, navigation, Booking }) {
               size={20}
               color={colors.orange}
             />
-            <Text style={styles.cardTitle}>Ghi chú</Text>
+            <Text style={styles.cardTitle}>{t("bookingResultCard.notes")}</Text>
           </View>
           <Text style={styles.notesText}>{note}</Text>
         </View>
@@ -507,7 +559,7 @@ export default function BookingResultCard({ result, navigation, Booking }) {
           <View style={styles.cardHeader}>
             <Ionicons name="nutrition-outline" size={20} color="#10B981" />
             <Text style={[styles.cardTitle, { color: "#10B981" }]}>
-              Lời khuyên dinh dưỡng
+              {t("bookingResultCard.nutritionAdvice")}
             </Text>
           </View>
           <Text style={styles.nutritionText}>{nutritionTip}</Text>
@@ -1034,9 +1086,9 @@ const styles = StyleSheet.create({
   },
   viewDetailsButton: {
     backgroundColor: colors.orange,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 12,
@@ -1052,6 +1104,6 @@ const styles = StyleSheet.create({
   viewDetailsButtonText: {
     color: colors.white,
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: "700",
   },
 });

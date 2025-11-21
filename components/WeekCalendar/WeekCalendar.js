@@ -324,9 +324,9 @@ const WeekCalendar = ({
   // Handle date selection
   const handleDateSelect = (date) => {
     // Prevent selecting past dates
-    if (isPastDate(date)) {
-      return;
-    }
+    // if (isPastDate(date)) {
+    //   return;
+    // }
 
     setCurrentSelectedDate(date);
     if (onDateSelect) {
@@ -414,16 +414,16 @@ const WeekCalendar = ({
                 styles.fullWidthDateItem,
                 isSelectedDate && styles.selectedFullWidthDateItem,
                 isTodayDate && !isSelectedDate && styles.todayFullWidthDateItem,
-                isPast && styles.pastFullWidthDateItem,
+                // isPast && styles.pastFullWidthDateItem,
               ]}
               onPress={() => handleDateSelect(date)}
-              disabled={isPast}
+              // disabled={isPast}
             >
               <Text
                 style={[
                   styles.fullWidthDayName,
                   isSelectedDate && styles.selectedFullWidthDayName,
-                  isPast && styles.pastFullWidthDayName,
+                  // isPast && styles.pastFullWidthDayName,
                 ]}
               >
                 {getDayName(date)}
@@ -432,7 +432,7 @@ const WeekCalendar = ({
                 style={[
                   styles.fullWidthDateNumber,
                   isSelectedDate && styles.selectedFullWidthDateNumber,
-                  isPast && styles.pastFullWidthDateNumber,
+                  // isPast && styles.pastFullWidthDateNumber,
                 ]}
               >
                 {date.getDate()}

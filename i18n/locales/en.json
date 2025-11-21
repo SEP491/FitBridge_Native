@@ -35,7 +35,9 @@
     "schedule": "Schedule",
     "aiChatbox": "AI Chatbox",
     "me": "Me",
-    "ptSchedule": "PT Schedule",
+    "ptSchedule": "Schedule",
+
+    "registerSlot": "Register Slot",
     "withdrawal": "Withdrawal",
     "freelancePTSchedule": "Schedule",
     "freelancePTHome": "Home",
@@ -45,6 +47,8 @@
   },
 
   "screenTitles": {
+    "trainingResult": "Training Result",
+    "addMeasurement": "Measure Body",
     "ptList": "PT List",
     "blog": "Blog",
     "searchGym": "Search Gym",
@@ -86,7 +90,8 @@
     "bookingDetail": "Booking Detail",
     "activityDetail": "Activity Detail",
     "orderDetails": "Order Details",
-    "manageOrders": "Manage Orders"
+    "manageOrders": "Manage Orders",
+    "schedulePT": "Schedule"
   },
 
   "myPackage": {
@@ -263,13 +268,17 @@
     "enterExerciseName": "Please enter activity name",
     "selectMuscleGroup": "Please select a muscle group",
     "nutritionTip": " Nutrition Tip",
+    "startSession": "Start Session",
+    "endSession": "End Session",
+    "sessionCompleted": "Completed",
+    "bookingTime": "Booking Time",
     "enterNutritionTip": "Add nutrition tip for this session...",
     "exerciseSets": "Exercise Sets",
     "packageName": "Package Name",
     "startTime": "Start Time",
     "endTime": "End Time",
     "sessionStatus": "Session Status",
-    "bookingInfo": "Booking Information",
+    "bookingInfo": "Information",
     "customerInfo": "Customer Information",
     "sets": "sets",
     "seconds": "s",
@@ -277,7 +286,17 @@
     "kg": "kg",
     "completed": "Completed",
     "bookingDate": "Booking Date",
-    "customerName": "Customer Name"
+    "customerName": "Customer Name",
+    "sessionDetailsTab": "Session Details",
+    "trainingResultsTab": "Training Results",
+    "error": "Error",
+    "enterActivityName": "Please enter activity name",
+    "selectAtLeastOneMuscleGroup": "Please select at least one muscle group",
+    "enterExerciseInfo": "Please enter exercise information",
+    "success": "Success",
+    "activityCreatedSuccessfully": "Activity created successfully",
+    "cannotCreateActivity": "Cannot create activity",
+    "set": "Set"
   },
 
   "trainingActivity": {
@@ -384,7 +403,12 @@
     "fetchProfileError": "Cannot get profile information. Please try again later.",
     "updateProfileError": "Cannot update profile. Please try again later.",
     "updateSuccess": "Success",
-    "updateProfileSuccess": "Profile updated successfully"
+    "updateProfileSuccess": "Profile updated successfully",
+    "units": {
+      "kg": "kg",
+      "cm": "cm",
+      "bmi": "BMI"
+    }
   },
 
   "ptProfile": {
@@ -453,6 +477,8 @@
     "close": "Close",
     "next": "Next",
     "previous": "Previous",
+    "retake": "Retake",
+    "retry": "Retry",
     "search": "Search",
     "filter": "Filter",
     "sort": "Sort",
@@ -464,6 +490,7 @@
     "info": "Information",
     "optional": "Optional",
     "personalTrainer": "Personal Trainer",
+    "customer": "Customer",
     "clear": "Clear",
     "loading": "Loading...",
     "goBack": "Go Back",
@@ -480,6 +507,7 @@
     "priceDesc": "Price: High to Low",
     "rating": "Rating",
     "experience": "Experience",
+    "completed": "Completed",
     "viewAll": "View All",
     "comingSoon": "Coming Soon",
     "loadMore": "Load More",
@@ -708,7 +736,8 @@
     "myCustomer": "My Customer",
     "customerDetail": "Customer Detail",
     "myOrders": "My Orders",
-    "manageOrders": "Manage Orders"
+    "manageOrders": "Manage Orders",
+    "myReports": "My Feedback"
   },
 
   "updatePassword": {
@@ -1000,6 +1029,8 @@
     "minute": "minute",
     "am": "AM",
     "pm": "PM",
+    "session": "Session",
+    "ptSession": "PT Training Session",
     "errorLoadingSlots": "Cannot load PT time slots.",
     "error": "Error",
     "notificationTitle": "Notification",
@@ -1040,7 +1071,6 @@
     "toggleSlotError": "Cannot toggle time slot. Please try again.",
     "slotActivatedSuccessfully": "Time slot activated successfully!",
     "slotDeactivatedSuccessfully": "Time slot deactivated successfully!",
-    "ptSession": "PT Training Session",
     "bookingConfirmation": "Booking Confirmation",
     "confirmBookSlot": "Are you sure you want to book a session with {{ptName}} from {{time}} on {{date}}?",
     "slotBookedSuccessfully": "Slot booked successfully!",
@@ -1108,6 +1138,7 @@
     "statusCompleted": "Completed",
     "statusCancelled": "Cancelled",
     "statusPending": "Pending",
+    "statusWaitingForEdit": "Waiting for Edit",
     "confirmCancelSession": "Are you sure you want to cancel this session?",
     "yes": "Yes",
     "no": "No",
@@ -1115,7 +1146,12 @@
     "viewDetail": "View Detail",
     "requestEditBooking": "Request Edit Booking",
     "sendEditRequest": "Send Edit Request",
-    "meetingOnline": "Meeting Online"
+    "meetingOnline": "Meeting Online",
+    "customer": "Customer",
+    "course": "Course",
+    "gymSlot": "Gym Slot",
+    "startTime": "Start",
+    "endTime": "End"
   },
 
   "pt": {
@@ -1560,7 +1596,14 @@
     "currentStreak": "Current Streak",
     "longestStreak": "Longest Streak",
     "bestPerformance": "Best Performance",
-    "forceRefresh": "Refresh"
+    "forceRefresh": "Refresh",
+    "poweredByAppleHealth": "Data from Apple Health",
+    "poweredByMotionFitness": "Uses Motion & Fitness",
+    "dataSource": "Data Source",
+    "healthKitDescription": "This app uses Apple Health (HealthKit) to track your steps, distance, and calories. Your health data is processed on your device and used to provide personalized fitness insights.",
+    "motionFitnessDescription": "This app uses Motion & Fitness activity tracking to monitor your steps, distance, and calories burned. All data is processed locally on your device.",
+    "appleHealth": "Apple Health",
+    "motionAndFitness": "Motion & Fitness"
   },
 
   "notifications": {
@@ -1639,7 +1682,15 @@
     "start": "Start",
     "current": "Current",
     "target": "Target",
-    "userGoal": "User Goal"
+    "userGoal": "User Goal",
+    "loadingText": "Loading training data...",
+    "errorText": "Failed to load training data. Please try again.",
+    "retry": "Retry",
+    "customer": "Customer",
+    "package": "Package",
+    "dailyProgressTracking": "Daily Progress Tracking",
+    "selectMuscleGroup": "Select Muscle Group",
+    "currentUserStats": "Current User Stats"
   },
 
   "muscleGroups": {
@@ -1680,7 +1731,54 @@
     "fillRequiredFields": "Please fill in all required fields",
     "fillTargetFields": "Please fill in all target fields",
     "goalCreatedSuccessfully": "User goal created successfully!",
-    "failedToCreateGoal": "Failed to create user goal. Please try again."
+    "failedToCreateGoal": "Failed to create user goal. Please try again.",
+    "currentUserStats": "Current User Stats",
+    "measurements": "measurements",
+    "latest": "Latest",
+    "noMeasurements": "No Measurements Yet",
+    "addMeasurements": "Add body measurements to track your progress",
+    "noDataAvailable": "No Data Available",
+    "addMeasurementsToSeeChart": "Add body measurements to see progress chart",
+    "recorded": "recorded",
+    "progress": "Progress"
+  },
+
+  "bodyMeasurements": {
+    "addMeasurement": "Body Measurements",
+    "headerDescription": "Take two photos to get accurate body measurements",
+    "tip1": "Wear fitted clothing",
+    "tip2": "Well-lit area",
+    "tip3": "Stand straight",
+    "frontPhotoDesc": "Face the camera, arms at sides",
+    "sidePhotoDesc": "Stand sideways, same posture",
+    "tapToCapture": "Tap to take photo",
+    "chooseFromGallery": "Choose from gallery",
+    "galleryPermissionDenied": "Gallery permission denied",
+    "failedToTakePhoto": "Failed to take photo",
+    "failedToPickImage": "Failed to pick image",
+    "bothImagesRequired": "Both front and side images are required",
+    "measurementsSaved": "Body measurements saved successfully!",
+    "failedToProcessMeasurements": "Failed to process measurements",
+    "frontImageInstruction": "Stand facing the camera, arms at sides",
+    "sideImageInstruction": "Stand sideways, arms at sides",
+    "cameraPermissionDenied": "Camera permission denied",
+    "frontPhoto": "Front Photo",
+    "sidePhoto": "Side Photo",
+    "review": "Review",
+    "instructionsTitle": "How to Take Photos",
+    "instruction1": "Wear fitted clothing for accurate measurements",
+    "instruction2": "Stand in a well-lit area with plain background",
+    "instruction3": "Keep arms at your sides, feet shoulder-width apart",
+    "instruction4": "Make sure your full body is visible in the frame",
+    "takeFrontPhoto": "Take Front Photo",
+    "takeSidePhoto": "Take Side Photo",
+    "takePhotos": "Take Photos",
+    "sidePhotoTitle": "Now Take Side Photo",
+    "sidePhotoDescription": "Turn to your side and take a photo with the same posture",
+    "reviewPhotos": "Review Your Photos",
+    "processMeasurements": "Analyze Measurements",
+    "processing": "Processing...",
+    "processingDescription": "This may take a few moments. Please wait."
   },
 
   "bookingRequest": {
@@ -1821,6 +1919,30 @@
     "offering_has_no_packages": "Offering exists but has no packages",
     "debug_logs": "Debug Logs",
     "current_offering": "Current Offering"
+  },
+
+  "bookingResultCard": {
+    "noTrainingResults": "No training results yet",
+    "trainingResults": "Training Results",
+    "viewTrainingAnalytics": "View Training Analytics",
+    "time": "Time",
+    "trainingDate": "Training Date",
+    "planned": "Planned",
+    "actual": "Actual",
+    "activityTypesPerformed": "Activity Types Performed",
+    "sessionOverview": "Session Overview",
+    "exercises": "Exercises",
+    "sets": "Sets",
+    "reps": "Reps",
+    "restMinutes": "Rest Minutes",
+    "completionProgress": "Completion Progress",
+    "overall": "Overall",
+    "sessionAnalysis": "Session Analysis",
+    "exercisesCount": "exercises",
+    "volume": "Volume",
+    "exerciseDetails": "Exercise Details",
+    "notes": "Notes",
+    "nutritionAdvice": "Nutrition Advice"
   },
   "ecommerce": {
     "categories": "Categories",

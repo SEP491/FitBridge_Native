@@ -75,6 +75,7 @@ import NotificationScreen from "../screens/CommonScreen/NotificationScreen/Notif
 import { useSignalR } from "../context/SignalRContext";
 import * as Notifications from "expo-notifications";
 import notificationService from "../services/notificationService";
+import NotificationBannerWrapper from "../components/NotificationBannerWrapper";
 import ScheduleFreelanceScreen from "../screens/CustomerScreen/ScheduleFreelanceScreen/ScheduleFreelanceScreen";
 import FreelanceChoosingCourseScreen from "../screens/FreelancePTScreen/FreelanceChoosingCourseScreen/FreelanceChoosingCourseScreen";
 import FreelancePTRequestScreen from "../screens/FreelancePTScreen/FreelancePTRequestScreen/FreelancePTRequestScreen";
@@ -82,8 +83,10 @@ import BookingDetailScreen from "../screens/CustomerScreen/BookingDetailScreen/B
 import TrainingActivityScreen from "../screens/CustomerScreen/TrainingActivityScreen/TrainingActivityScreen";
 import EditSessionActivityScreen from "../screens/CustomerScreen/EditSessionActivityScreen/EditSessionActivityScreen";
 import EditActivitySetScreen from "../screens/CustomerScreen/EditActivitySetScreen/EditActivitySetScreen";
+import AddMeasurementScreen from "../screens/CommonScreen/AddMeasurementScreen/AddMeasurementScreen_new";
 import { useRevenueCat } from "../context/RevenueCatContext";
 import { useUser } from "../context/UserContext";
+import CalendarPTScreen from "../screens/GymPTScreen/CalendarPTScreen/CalendarPTScreen";
 import EcommerceScreen from "../screens/CommonScreen/EcommerceScreen/EcommerceScreen";
 import ProductDetailsScreen from "../screens/CommonScreen/ProductDetailsScreen/ProductDetailsScreen";
 import AddressListScreen from "../screens/CommonScreen/PaymentScreen/AddressListScreen";
@@ -426,7 +429,34 @@ export default function Navigator({
             },
           }}
         />
-
+        <Stack.Screen
+          name="TrainingResultScreen"
+          component={TrainingResultScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.trainingResult"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="AddMeasurementScreen"
+          component={AddMeasurementScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.addMeasurement"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
         <Stack.Screen
           name="TrainingActivityScreen"
           component={TrainingActivityScreen}
@@ -463,6 +493,7 @@ export default function Navigator({
             orientation: "portrait",
           }}
         />
+
         <Stack.Screen
           name="CustomerDetailScreen"
           component={CustomerDetailScreen}
@@ -539,6 +570,38 @@ export default function Navigator({
     );
   };
 
+  const CalendarPTStack = () => {
+    return (
+      <Stack.Navigator
+        screenOptions={({ navigation, route }) => ({
+          headerTitleAlign: "center",
+          headerShown: false,
+          headerTintColor: "#ED2A46",
+          headerLeft: (props) =>
+            navigation.canGoBack() ? (
+              <TouchableOpacity onPress={() => navigation.goBack()}>
+                <Ionicons name="caret-back" size={30} color="#ED2A46" />
+              </TouchableOpacity>
+            ) : null,
+        })}
+      >
+        <Stack.Screen
+          name="CalendarPTScreen"
+          component={CalendarPTScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.schedulePT"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+      </Stack.Navigator>
+    );
+  };
   const SchedulePTStack = () => {
     return (
       <Stack.Navigator
@@ -1605,10 +1668,18 @@ export default function Navigator({
             }}
           />
         )}
-
         {user?.role === "GymPT" && (
           <Tab.Screen
             name={t("navigation.ptSchedule")}
+            component={CalendarPTStack}
+            options={{
+              headerShown: false,
+            }}
+          />
+        )}
+        {user?.role === "GymPT" && (
+          <Tab.Screen
+            name={t("navigation.registerSlot")}
             component={SchedulePTStack}
             options={{
               headerShown: false,
@@ -1696,7 +1767,7 @@ export default function Navigator({
 
   return (
     <NavigationContainer linking={linking}>
-      <>
+      <NotificationBannerWrapper>
         <Stack.Navigator
           screenOptions={({ navigation, route }) => ({
             headerTitleAlign: "center",
@@ -1791,7 +1862,7 @@ export default function Navigator({
           )}
         </Stack.Navigator>
         <FloatingVideoCall />
-      </>
+      </NotificationBannerWrapper>
     </NavigationContainer>
   );
 }

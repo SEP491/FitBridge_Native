@@ -166,6 +166,18 @@ export const pauseConnection = async () => {
   }
 };
 
+export const resumeConnection = async () => {
+  if (connection) {
+    try {
+      await connection.start();
+      triggerCallback("onReconnecting");
+      console.log("SignalR: Connection resumed");
+    } catch (error) {
+      console.error("SignalR: Error resuming connection", error);
+    }
+  }
+};
+
 export const onEvent = (eventName, callback) => {
   if (typeof eventName !== "string" || !eventName.trim()) {
     throw new Error("Event name must be a non-empty string");

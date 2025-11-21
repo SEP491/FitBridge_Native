@@ -34,7 +34,9 @@
     "schedule": "Lịch Tập",
     "aiChatbox": "AI Chatbox",
     "me": "Tôi",
-    "ptSchedule": "Đăng Ký Lịch PT",
+    "ptSchedule": "Lịch Dạy",
+    "registerSlot": "Đăng Ký Lịch",
+
     "withdrawal": "Rút Tiền",
     "freelancePTSchedule": "Lịch Dạy",
     "freelancePTHome": "Trang chủ",
@@ -45,6 +47,7 @@
 
   "screenTitles": {
     "ptList": "Danh sách PT",
+    "addMeasurement": "Đo Chỉ Số",
     "blog": "Blog",
     "searchGym": "Tìm kiếm phòng gym",
     "ptInfo": "Thông tin PT",
@@ -87,7 +90,8 @@
     "trainingResult": "Thống Kê Tập Luyện",
     "myReports": "Báo Cáo Của Tôi",
     "orderDetails": "Chi Tiết Đơn Hàng",
-    "manageOrders": "Quản Lý Đơn Hàng"
+    "manageOrders": "Quản Lý Đơn Hàng",
+    "schedulePT": "Lịch Dạy"
   },
 
   "myPackage": {
@@ -264,6 +268,9 @@
     "confirmDeleteMessage": "Bạn có chắc chắn muốn xóa hoạt động này? Hành động này không thể hoàn tác.",
     "updateSetSuccess": "Đã cập nhật set thành công",
     "updateSetError": "Không thể cập nhật set",
+    "startSession": "Bắt Đầu Buổi Tập",
+    "endSession": "Kết Thúc Buổi Tập",
+    "sessionCompleted": "Đã Hoàn Thành",
     "selectMuscleGroup": "Vui lòng chọn nhóm cơ",
     "nutritionTip": "Mẹo Dinh Dưỡng",
     "enterNutritionTip": "Thêm mẹo dinh dưỡng cho buổi tập này...",
@@ -281,7 +288,17 @@
     "completed": "Hoàn Thành",
     "bookingDate": "Ngày Đặt Lịch",
     "bookingTime": "Thời Gian Đặt Lịch",
-    "customerName": "Tên Khách Hàng"
+    "customerName": "Tên Khách Hàng",
+    "sessionDetailsTab": "Chi Tiết Buổi Tập",
+    "trainingResultsTab": "Kết Quả Tập Luyện",
+    "error": "Lỗi",
+    "enterActivityName": "Vui lòng nhập tên hoạt động",
+    "selectAtLeastOneMuscleGroup": "Vui lòng chọn ít nhất một nhóm cơ",
+    "enterExerciseInfo": "Vui lòng nhập thông tin bài tập",
+    "success": "Thành Công",
+    "activityCreatedSuccessfully": "Đã tạo hoạt động thành công",
+    "cannotCreateActivity": "Không thể tạo hoạt động",
+    "set": "Hiệp"
   },
 
   "trainingActivity": {
@@ -388,7 +405,12 @@
     "fetchProfileError": "Không thể lấy thông tin hồ sơ. Vui lòng thử lại sau.",
     "updateProfileError": "Không thể cập nhật hồ sơ. Vui lòng thử lại sau.",
     "updateSuccess": "Thành công",
-    "updateProfileSuccess": "Cập nhật hồ sơ thành công"
+    "updateProfileSuccess": "Cập nhật hồ sơ thành công",
+    "units": {
+      "kg": "kg",
+      "cm": "cm",
+      "bmi": "BMI"
+    }
   },
 
   "ptProfile": {
@@ -456,6 +478,8 @@
     "close": "Đóng",
     "next": "Tiếp theo",
     "previous": "Trước",
+    "retake": "Chụp lại",
+    "retry": "Thử lại",
     "search": "Tìm kiếm",
     "filter": "Bộ lọc",
     "sort": "Sắp xếp",
@@ -467,6 +491,7 @@
     "info": "Thông tin",
     "optional": "Tùy chọn",
     "personalTrainer": "Huấn Luyện Viên",
+    "customer": "Khách Hàng",
     "clear": "Xóa tất cả",
     "delete": "Xóa",
     "loading": "Đang tải...",
@@ -484,6 +509,7 @@
     "rating": "Đánh giá",
     "experience": "Kinh nghiệm",
     "later": "Để sau",
+    "completed": "Thành công",
     "viewAll": "Xem tất cả",
     "comingSoon": "Sắp ra mắt",
     "loadMore": "Tải thêm",
@@ -633,7 +659,8 @@
     "customerDetail": "Chi tiết khách hàng",
     "myReports": "Báo cáo của tôi",
     "myOrders": "Đơn Hàng Của Tôi",
-    "manageOrders": "Quản Lý Đơn Hàng"
+    "manageOrders": "Quản Lý Đơn Hàng",
+    "myReports": "Phản hồi của tôi"
   },
 
   "updatePassword": {
@@ -929,6 +956,8 @@
     "minute": "phút",
     "am": "SA",
     "pm": "CH",
+    "session": "Buổi Tập",
+    "ptSession": "Buổi Tập PT",
     "errorLoadingSlots": "Không thể tải danh sách slot thời gian PT.",
     "error": "Lỗi",
     "notificationTitle": "Thông báo",
@@ -969,7 +998,6 @@
     "toggleSlotError": "Không thể thay đổi trạng thái khung giờ. Vui lòng thử lại.",
     "slotActivatedSuccessfully": "Kích hoạt khung giờ thành công!",
     "slotDeactivatedSuccessfully": "Hủy kích hoạt khung giờ thành công!",
-    "ptSession": "Buổi Tập PT",
     "bookingConfirmation": "Xác Nhận Đặt Lịch",
     "confirmBookSlot": "Bạn có chắc chắn muốn đặt lịch với {{ptName}} từ {{time}} vào {{date}}?",
     "slotBookedSuccessfully": "Đặt lịch thành công!",
@@ -1038,6 +1066,7 @@
     "statusCompleted": "Hoàn Thành",
     "statusCancelled": "Đã Hủy",
     "statusPending": "Chờ Xử Lý",
+    "statusWaitingForEdit": "Chờ Chỉnh Sửa",
     "confirmCancelSession": "Bạn có chắc chắn muốn hủy buổi tập này?",
     "yes": "Có",
     "no": "Không",
@@ -1045,7 +1074,12 @@
     "viewDetail": "Chi Tiết",
     "requestEditBooking": "Yêu Cầu Thay Đổi Lịch",
     "sendEditRequest": "Gửi Yêu Cầu Thay Đổi",
-    "meetingOnline": "Tham Gia Online"
+    "meetingOnline": "Tham Gia Online",
+    "customer": "Khách Hàng",
+    "course": "Khóa Học",
+    "gymSlot": "Khung Giờ Tập",
+    "startTime": "Bắt Đầu",
+    "endTime": "Kết Thúc"
   },
 
   "pt": {
@@ -1469,7 +1503,14 @@
     "currentStreak": "Chuỗi hiện tại",
     "longestStreak": "Chuỗi dài nhất",
     "bestPerformance": "Thành tích tốt nhất",
-    "forceRefresh": "Làm mới"
+    "forceRefresh": "Làm mới",
+    "poweredByAppleHealth": "Dữ liệu từ Apple Health",
+    "poweredByMotionFitness": "Sử dụng Motion & Fitness",
+    "dataSource": "Nguồn Dữ liệu",
+    "healthKitDescription": "Ứng dụng này sử dụng Apple Health (HealthKit) để theo dõi bước chân, khoảng cách và calo của bạn. Dữ liệu sức khỏe được xử lý trên thiết bị và dùng để cung cấp thông tin sức khỏe cá nhân hóa.",
+    "motionFitnessDescription": "Ứng dụng này sử dụng theo dõi hoạt động Motion & Fitness để giám sát bước chân, khoảng cách và lượng calo tiêu thụ của bạn. Tất cả dữ liệu được xử lý cục bộ trên thiết bị của bạn.",
+    "appleHealth": "Apple Health",
+    "motionAndFitness": "Motion & Fitness"
   },
 
   "notifications": {
@@ -1588,7 +1629,7 @@
     "title": "Thống Kê Luyện Tập",
     "overview": "Tổng Quan",
     "overviewAndProgress": "Tổng Quan & Tiến Độ",
-    "detailedStatistics": "Thống Kê Chi Tiết",
+    "detailedStatistics": "Thống Kê",
     "completionRate": "Hoàn Thành Buổi Tập",
     "activityRate": "Hoàn Thành Hoạt Động",
     "sessions": "Buổi Tập",
@@ -1621,16 +1662,22 @@
     "activityTypeBreakdown": "Phân Loại Hoạt Động",
     "muscleGroupBreakdown": "Phân Tích Nhóm Cơ",
     "userGoals": "Tiến Độ Mục Tiêu",
-    "userGoalsProgress": "Tiến Độ Mục Tiêu Người Dùng",
+    "userGoalsProgress": "Tiến Độ Mục Tiêu",
     "startValue": "Khởi Đầu",
     "progress": "Tiến Độ",
     "remaining": "Còn Lại",
     "start": "Bắt Đầu",
     "current": "Hiện Tại",
     "target": "Mục Tiêu",
-    "userGoal": "Mục Tiêu Người Dùng",
+    "userGoal": "Mục Tiêu",
+    "loadingText": "Đang tải dữ liệu tập luyện...",
+    "errorText": "Không thể tải dữ liệu tập luyện. Vui lòng thử lại.",
+    "retry": "Thử Lại",
+    "customer": "Khách Hàng",
+    "package": "Gói Tập",
+    "dailyProgressTracking": "Theo Dõi Tiến Độ Hàng Ngày",
+    "selectMuscleGroup": "Chọn Nhóm Cơ",
     "currentUserStats": "Số Liệu Hiện Tại"
-
   },
 
   "muscleGroups": {
@@ -1675,7 +1722,54 @@
     "fillRequiredFields": "Vui lòng điền tất cả các trường bắt buộc",
     "fillTargetFields": "Vui lòng điền tất cả các trường mục tiêu",
     "goalCreatedSuccessfully": "Mục tiêu đã được tạo thành công!",
-    "failedToCreateGoal": "Không thể tạo mục tiêu. Vui lòng thử lại."
+    "failedToCreateGoal": "Không thể tạo mục tiêu. Vui lòng thử lại.",
+    "latest": "Mới Nhất",
+    "measurements": "Số Đo",
+    "progress": "Tiến Độ",
+    "currentUserStats": "Số Liệu Hiện Tại",
+    "noMeasurements": "Chưa Có Số Đo Nào",
+    "addMeasurements": "Thêm số đo cơ thể để theo dõi tiến độ của bạn",
+    "noDataAvailable": "Không Có Dữ Liệu",
+    "addMeasurementsToSeeChart": "Thêm số đo cơ thể để xem biểu đồ tiến độ",
+    "recorded": "đã ghi"
+  },
+
+  "bodyMeasurements": {
+    "addMeasurement": "Đo Chỉ Số Cơ Thể",
+    "headerDescription": "Chụp hai bức ảnh để nhận số đo cơ thể chính xác",
+    "tip1": "Mặc quần áo vừa vặn",
+    "tip2": "Nơi có ánh sáng tốt",
+    "tip3": "Đứng thẳng",
+    "frontPhotoDesc": "Hướng mặt vào camera, tay xuôi xuống",
+    "sidePhotoDesc": "Đứng nghiêng, tư thế tương tự",
+    "tapToCapture": "Chạm để chụp ảnh",
+    "chooseFromGallery": "Chọn từ thư viện",
+    "galleryPermissionDenied": "Quyền truy cập thư viện bị từ chối",
+    "failedToTakePhoto": "Không thể chụp ảnh",
+    "failedToPickImage": "Không thể chọn ảnh",
+    "bothImagesRequired": "Cần cả ảnh mặt trước và ảnh bên hông",
+    "measurementsSaved": "Đã lưu số đo cơ thể thành công!",
+    "failedToProcessMeasurements": "Không thể xử lý số đo",
+    "frontImageInstruction": "Đứng thẳng hướng về máy ảnh, tay để xuôi hai bên",
+    "sideImageInstruction": "Đứng nghiêng, tay để xuôi hai bên",
+    "cameraPermissionDenied": "Quyền truy cập máy ảnh bị từ chối",
+    "frontPhoto": "Ảnh Mặt Trước",
+    "sidePhoto": "Ảnh Bên Hông",
+    "review": "Xem Lại",
+    "instructionsTitle": "Cách Chụp Ảnh",
+    "instruction1": "Mặc trang phục vừa vặn để đo lường chính xác",
+    "instruction2": "Đứng ở nơi có ánh sáng tốt với nền đơn giản",
+    "instruction3": "Giữ tay xuôi hai bên, chân rộng bằng vai",
+    "instruction4": "Đảm bảo toàn bộ cơ thể của bạn hiển thị trong khung hình",
+    "takeFrontPhoto": "Chụp Ảnh Mặt Trước",
+    "takeSidePhoto": "Chụp Ảnh Bên Hông",
+    "takePhotos": "Chụp Ảnh",
+    "sidePhotoTitle": "Bây Giờ Chụp Ảnh Bên Hông",
+    "sidePhotoDescription": "Quay sang một bên và chụp ảnh với tư thế tương tự",
+    "reviewPhotos": "Xem Lại Ảnh Của Bạn",
+    "processMeasurements": "Phân Tích Số Đo",
+    "processing": "Đang xử lý...",
+    "processingDescription": "Quá trình này có thể mất vài phút. Vui lòng chờ."
   },
 
   "bookingRequest": {
@@ -1781,6 +1875,30 @@
     "offering_has_no_packages": "Offering đã có nhưng chưa có packages",
     "debug_logs": "Debug Logs",
     "current_offering": "Current Offering"
+  },
+
+  "bookingResultCard": {
+    "noTrainingResults": "Chưa có kết quả tập luyện",
+    "trainingResults": "Kết quả tập luyện",
+    "viewTrainingAnalytics": "Xem phân tích tập luyện",
+    "time": "Thời gian",
+    "trainingDate": "Ngày tập",
+    "planned": "Dự kiến",
+    "actual": "Thực tế",
+    "activityTypesPerformed": "Loại hoạt động đã thực hiện",
+    "sessionOverview": "Tổng quan buổi tập",
+    "exercises": "Bài tập",
+    "sets": "Sets",
+    "reps": "Reps",
+    "restMinutes": "Phút nghỉ",
+    "completionProgress": "Tiến độ hoàn thành",
+    "overall": "Tổng thể",
+    "sessionAnalysis": "Phân tích buổi tập",
+    "exercisesCount": "bài tập",
+    "volume": "Khối lượng",
+    "exerciseDetails": "Chi tiết bài tập",
+    "notes": "Ghi chú",
+    "nutritionAdvice": "Lời khuyên dinh dưỡng"
   },
   "ecommerce": {
     "categories": "Danh mục",

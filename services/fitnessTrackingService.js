@@ -2,6 +2,7 @@ import { Pedometer } from "expo-sensors";
 import * as BackgroundFetch from "expo-background-fetch";
 import * as TaskManager from "expo-task-manager";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { fetchUserFromStorage } from "./../lib/async/asyncUtils";
 
 const BACKGROUND_FETCH_TASK = "background-fitness-fetch";
 const STORAGE_KEYS = {
@@ -16,12 +17,6 @@ const STORAGE_KEYS = {
 };
 
 // Default user profile for calorie calculation
-const DEFAULT_USER_PROFILE = {
-  weight: 70, // kg
-  height: 170, // cm
-  age: 25,
-  gender: "male", // male or female
-};
 
 class FitnessTrackingService {
   constructor() {
@@ -32,8 +27,11 @@ class FitnessTrackingService {
     this.realTimeSteps = 0; // Real-time incremental steps from watchStepCount
     this.todayDistance = 0;
     this.todayCalories = 0;
-    this.userProfile = DEFAULT_USER_PROFILE;
+    this.userProfile = {};
     this.listeners = [];
+    this.lastSavedSteps = 0; // Track last saved steps for auto-save
+    this.lastSaveTime = Date.now(); // Track last save time
+    this.autoSaveInterval = null; // Interval for periodic saves
   }
 
   // Initialize the service
@@ -53,31 +51,12 @@ class FitnessTrackingService {
   // Load user profile for calorie calculation
   async loadUserProfile() {
     try {
-      const profileData = await AsyncStorage.getItem(STORAGE_KEYS.USER_PROFILE);
-      if (profileData) {
-        this.userProfile = {
-          ...DEFAULT_USER_PROFILE,
-          ...JSON.parse(profileData),
-        };
+      const userInfo = await fetchUserFromStorage();
+      if (userInfo) {
+        this.userProfile = userInfo;
       }
     } catch (error) {
       console.error("Error loading profile:", error.message);
-    }
-  }
-
-  // Update user profile
-  async updateUserProfile(profile) {
-    try {
-      this.userProfile = { ...this.userProfile, ...profile };
-      await AsyncStorage.setItem(
-        STORAGE_KEYS.USER_PROFILE,
-        JSON.stringify(this.userProfile)
-      );
-      // Recalculate metrics with new profile
-      this.updateDerivedMetrics();
-      this.notifyListeners();
-    } catch (error) {
-      console.error("Error updating profile:", error.message);
     }
   }
 
@@ -163,6 +142,65 @@ class FitnessTrackingService {
       console.log(`Total history entries: ${Object.keys(fitnessData).length}`);
     } catch (error) {
       console.error("Error saving yesterday data:", error.message);
+    }
+  }
+
+  // NEW: Save today's data to history (can be called anytime)
+  async saveTodayData() {
+    try {
+      if (this.todaySteps === 0) {
+        console.log("⚠️ No steps to save for today");
+        return;
+      }
+
+      const fitnessData = await this.getFitnessHistory();
+      const today = new Date();
+      const todayKey = today.toDateString();
+
+      const dataToSave = {
+        steps: this.todaySteps,
+        distance: parseFloat(this.todayDistance.toFixed(2)),
+        calories: this.todayCalories,
+        date: today.toISOString(),
+      };
+
+      fitnessData[todayKey] = dataToSave;
+
+      await AsyncStorage.setItem(
+        STORAGE_KEYS.FITNESS_DATA,
+        JSON.stringify(fitnessData)
+      );
+
+      this.lastSavedSteps = this.todaySteps;
+      this.lastSaveTime = Date.now();
+
+      console.log(`💾 Saved today's data (${todayKey}):`, dataToSave);
+      console.log(`Total history entries: ${Object.keys(fitnessData).length}`);
+    } catch (error) {
+      console.error("Error saving today's data:", error.message);
+    }
+  }
+
+  // Auto-save today's data if there's significant change
+  async autoSaveTodayData() {
+    try {
+      const stepsDifference = this.todaySteps - this.lastSavedSteps;
+      const timeSinceLastSave = Date.now() - this.lastSaveTime;
+      const thirtyMinutes = 30 * 60 * 1000;
+
+      // Save if:
+      // 1. Steps increased by 1000 or more
+      // 2. 30 minutes passed since last save
+      if (stepsDifference >= 1000 || timeSinceLastSave >= thirtyMinutes) {
+        console.log(
+          `🔄 Auto-saving: ${stepsDifference} new steps or ${Math.floor(
+            timeSinceLastSave / 60000
+          )} minutes passed`
+        );
+        await this.saveTodayData();
+      }
+    } catch (error) {
+      console.error("Error in auto-save:", error.message);
     }
   }
 
@@ -259,9 +297,15 @@ class FitnessTrackingService {
 
         // Update immediately for real-time UI
         this.updateStepCount(newTotalSteps, true);
+
+        // Auto-save if needed
+        this.autoSaveTodayData();
       });
 
       this.isTracking = true;
+
+      // Start periodic save interval (every 30 minutes)
+      this.startPeriodicSave();
 
       // Update derived metrics and notify
       this.updateDerivedMetrics();
@@ -300,9 +344,38 @@ class FitnessTrackingService {
       this.stepSubscription = null;
     }
 
+    // Stop periodic save
+    this.stopPeriodicSave();
+
+    // Save data one last time before stopping
+    this.saveTodayData();
+
     this.isTracking = false;
     this.realTimeSteps = 0;
-    console.log("Stopped tracking");
+    console.log("Stopped tracking and saved final data");
+  }
+
+  // Start periodic save interval
+  startPeriodicSave() {
+    // Clear existing interval if any
+    this.stopPeriodicSave();
+
+    // Save every 30 minutes
+    this.autoSaveInterval = setInterval(() => {
+      console.log("⏰ Periodic save triggered");
+      this.saveTodayData();
+    }, 30 * 60 * 1000); // 30 minutes
+
+    console.log("Started periodic save (every 30 minutes)");
+  }
+
+  // Stop periodic save interval
+  stopPeriodicSave() {
+    if (this.autoSaveInterval) {
+      clearInterval(this.autoSaveInterval);
+      this.autoSaveInterval = null;
+      console.log("Stopped periodic save");
+    }
   }
 
   // Update step count (internal method)
@@ -358,7 +431,7 @@ class FitnessTrackingService {
     const heightInMeters = this.userProfile.height / 100;
     let stepLength;
 
-    if (this.userProfile.gender === "female") {
+    if (this.userProfile.gender === "Female") {
       stepLength = heightInMeters * 0.413; // Slightly shorter for women
     } else {
       stepLength = heightInMeters * 0.415; // Standard for men
@@ -435,54 +508,6 @@ class FitnessTrackingService {
     } catch (error) {
       console.error("Error in manual refresh:", error.message);
       return this.getCurrentFitnessData();
-    }
-  }
-
-  // Debug info
-  getDebugInfo() {
-    return {
-      todaySteps: this.todaySteps,
-      baseStepsToday: this.baseStepsToday,
-      realTimeSteps: this.realTimeSteps,
-      isTracking: this.isTracking,
-      distance: this.todayDistance,
-      calories: this.todayCalories,
-      userProfile: this.userProfile,
-      hasStepSubscription: !!this.stepSubscription,
-      listenerCount: this.listeners.length,
-      timestamp: new Date().toISOString(),
-    };
-  }
-
-  // Debug method to check stored fitness history
-  async getDebugFitnessHistory() {
-    try {
-      const history = await this.getFitnessHistory();
-      const keys = Object.keys(history);
-      console.log("=== FITNESS HISTORY DEBUG ===");
-      console.log("Total entries:", keys.length);
-      console.log("Date keys:", keys);
-
-      // Show last 7 days
-      const today = new Date();
-      console.log("\nLast 7 days in history:");
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date(today);
-        date.setDate(date.getDate() - i);
-        const dateKey = date.toDateString();
-        const data = history[dateKey];
-        console.log(
-          `  ${dateKey}: ${data ? `${data.steps} steps ✓` : "No data"}`
-        );
-      }
-
-      console.log("\nFull history data:", JSON.stringify(history, null, 2));
-      console.log("=== END DEBUG ===");
-
-      return history;
-    } catch (error) {
-      console.error("Error getting debug fitness history:", error);
-      return {};
     }
   }
 
@@ -987,11 +1012,11 @@ class FitnessTrackingService {
   async registerBackgroundTask() {
     try {
       await BackgroundFetch.registerTaskAsync(BACKGROUND_FETCH_TASK, {
-        minimumInterval: 15000, // 15 seconds
+        minimumInterval: 60 * 60, // 1 hour (in seconds)
         stopOnTerminate: false,
         startOnBoot: true,
       });
-      console.log("Background fetch task registered");
+      console.log("Background fetch task registered (1 hour interval)");
     } catch (error) {
       console.error("Error registering background task:", error);
     }
@@ -1030,11 +1055,18 @@ class FitnessTrackingService {
 // Background task definition
 TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
   try {
-    console.log("Background fitness tracking task running");
+    console.log("📱 Background fitness tracking task running");
 
     const service = new FitnessTrackingService();
     await service.initialize();
+
+    // Check and reset if new day
     await service.checkAndResetDailyData();
+
+    // Save current day's data to history
+    await service.saveTodayData();
+
+    console.log("✅ Background task completed - data saved");
 
     return BackgroundFetch.BackgroundFetchResult.NewData;
   } catch (error) {
