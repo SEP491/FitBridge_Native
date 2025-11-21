@@ -9,28 +9,30 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { useTranslation } from "../../hooks/useTranslation";
 
 const OrderManagementCard = ({ order }) => {
   const navigation = useNavigation();
+  const { t } = useTranslation();
 
   const getStatusColor = (status) => {
     switch (status) {
       case "Created":
-        return "#9E9E9E";
+        return "#3498DB";
       case "Pending":
-        return "#FF9800";
+        return "#F39C12";
       case "Processing":
-        return "#2196F3";
+        return "#1ABC9C";
       case "Assigning":
-        return "#9C27B0";
+        return "#9B59B6";
       case "Shipping":
-        return "#00BCD4";
+        return "#3498DB";
       case "Finished":
-        return "#4CAF50";
+        return "#27AE60";
       case "Cancelled":
-        return "#F44336";
+        return "#E74C3C";
       default:
-        return "#9E9E9E";
+        return "#8E44AD";
     }
   };
 
@@ -72,21 +74,17 @@ const OrderManagementCard = ({ order }) => {
   };
 
   const handleViewDetails = () => {
-    navigation.navigate("OrderDetailScreen", { orderId: order.id });
+    navigation.navigate("OrderDetailScreen", { selectedOrder: order });
   };
 
   const handleCheckoutAgain = () => {
-    if (order.checkOutUrl) {
-      Linking.openURL(order.checkOutUrl);
+    if (order.checkoutUrl) {
+      Linking.openURL(order.checkoutUrl);
     }
   };
 
   return (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={handleViewDetails}
-      activeOpacity={0.7}
-    >
+    <View style={styles.card}>
       {/* Status Header */}
       <View
         style={[
@@ -106,101 +104,101 @@ const OrderManagementCard = ({ order }) => {
       </View>
 
       {/* Order Info */}
-      <View style={styles.orderInfo}>
-        <View style={styles.orderIdRow}>
-          <Text style={styles.orderIdLabel}>Order ID:</Text>
-          <Text style={styles.orderIdValue} numberOfLines={1}>
-            {order.id.slice(0, 8)}...
-          </Text>
-        </View>
 
-        {/* Order Items Preview */}
-        <View style={styles.itemsContainer}>
-          <Text style={styles.itemsLabel}>
-            {order.orderItems.length} item(s)
-          </Text>
-          {order.orderItems.slice(0, 2).map((item, index) => (
-            <View key={index} style={styles.itemRow}>
-              {item.productDetail && (
-                <>
-                  {item.productDetail.imageUrl && (
+      <View style={styles.orderInfo}>
+        <TouchableOpacity onPress={handleViewDetails}>
+          <View style={styles.orderIdRow}>
+            <Text style={styles.orderIdLabel}>{t("orders.orderId")}:</Text>
+            <Text
+              style={styles.orderIdValue}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {order.id}
+            </Text>
+          </View>
+
+          {/* Order Items Preview */}
+          <View style={styles.itemsContainer}>
+            {order.orderItems.slice(0, 2).map((item, index) => (
+              <View key={index} style={styles.itemRow}>
+                {item.productDetail && (
+                  <>
                     <Image
-                      source={{ uri: item.productDetail.imageUrl }}
+                      source={
+                        item.productDetail.imageUrl
+                          ? { uri: item.productDetail.imageUrl }
+                          : require("../../assets/images/LogoColor.png")
+                      }
                       style={styles.itemImage}
                       resizeMode="cover"
                     />
-                  )}
-                  <View style={styles.itemInfo}>
-                    <Text style={styles.itemName} numberOfLines={1}>
-                      {item.productDetail.flavourName || "Product"}
-                      {item.productDetail.weightValue > 0 &&
-                        ` - ${item.productDetail.weightValue}${item.productDetail.weightUnit || ""}`}
-                    </Text>
+                    <View style={styles.itemInfo}>
+                      <Text style={styles.itemName} numberOfLines={1}>
+                        {item.productDetail.flavourName || "Product"}
+                        {item.productDetail.weightValue > 0 &&
+                          ` - ${item.productDetail.weightValue}${
+                            item.productDetail.weightUnit || ""
+                          }`}
+                      </Text>
                     <View style={styles.itemDetails}>
                       <Text style={styles.itemQuantity}>
-                        Qty: {item.quantity}
+                        {t("orders.quantity")}: {item.quantity}
                       </Text>
-                      <Text style={styles.itemPrice}>
-                        {formatPrice(item.price)}
-                      </Text>
-                    </View>
+                        <Text style={styles.itemPrice}>
+                          {formatPrice(item.price)}
+                        </Text>
+                      </View>
                     {item.productDetail.proteinPerServingGrams > 0 && (
                       <Text style={styles.itemNutrition}>
-                        Protein: {item.productDetail.proteinPerServingGrams}g |
-                        Calories: {item.productDetail.caloriesPerServingKcal}
+                        {t("orders.protein")}: {item.productDetail.proteinPerServingGrams}g
+                        | {t("orders.calories")}:{" "}
+                        {item.productDetail.caloriesPerServingKcal}
                         kcal
                       </Text>
                     )}
-                  </View>
-                </>
-              )}
-              {!item.productDetail && (
-                <Text style={styles.itemText} numberOfLines={1}>
-                  • Quantity: {item.quantity} - {formatPrice(item.price)}
-                </Text>
-              )}
-            </View>
-          ))}
-          {order.orderItems.length > 2 && (
-            <Text style={styles.moreItems}>
-              +{order.orderItems.length - 2} more
-            </Text>
-          )}
-        </View>
-
-        {/* Price Section */}
-        <View style={styles.priceSection}>
-          <View style={styles.priceRow}>
-            <Text style={styles.priceLabel}>Subtotal:</Text>
-            <Text style={styles.priceValue}>
-              {formatPrice(order.subTotalPrice)}
-            </Text>
+                    </View>
+                  </>
+                )}
+                {!item.productDetail && (
+                  <Text style={styles.itemText} numberOfLines={1}>
+                    • Quantity: {item.quantity} - {formatPrice(item.price)}
+                  </Text>
+                )}
+              </View>
+            ))}
+            {order.orderItems.length > 2 && (
+              <Text style={styles.moreItems}>
+                +{order.orderItems.length - 2} {t("orders.moreItems")}
+              </Text>
+            )}
           </View>
-          {order.shippingFee > 0 && (
-            <View style={styles.priceRow}>
-              <Text style={styles.priceLabel}>Shipping:</Text>
-              <Text style={styles.priceValue}>
-                {formatPrice(order.shippingFee)}
+
+          {/* Price Section */}
+          <View style={styles.priceSection}>
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>
+                {t("orders.total")}:{" "}
+                <Text style={styles.itemsLabel}>
+                 ({order.orderItems.length} {t("orders.items")})
+                </Text>
+              </Text>
+              <Text style={styles.totalValue}>
+                {formatPrice(order.totalAmount)}
               </Text>
             </View>
-          )}
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Total:</Text>
-            <Text style={styles.totalValue}>
-              {formatPrice(order.totalAmount)}
-            </Text>
           </View>
-        </View>
+        </TouchableOpacity>
 
         {/* Action Buttons */}
         <View style={styles.actionButtons}>
-          {order.currentStatus === "Created" && order.checkOutUrl && (
+          {order.currentStatus === "Created" && order.checkoutUrl && (
             <TouchableOpacity
               style={[styles.actionButton, styles.checkoutButton]}
               onPress={handleCheckoutAgain}
             >
               <Ionicons name="card-outline" size={18} color="#4CAF50" />
-              <Text style={styles.checkoutButtonText}>Complete Payment</Text>
+              <Text style={styles.checkoutButtonText}>{t("orders.completePayment")}</Text>
             </TouchableOpacity>
           )}
 
@@ -213,7 +211,7 @@ const OrderManagementCard = ({ order }) => {
                 }
               >
                 <Ionicons name="star-outline" size={18} color="#FF9800" />
-                <Text style={styles.feedbackButtonText}>Leave Feedback</Text>
+                <Text style={styles.feedbackButtonText}>{t("orders.leaveFeedback")}</Text>
               </TouchableOpacity>
             )}
 
@@ -227,20 +225,12 @@ const OrderManagementCard = ({ order }) => {
               }
             >
               <Ionicons name="location-outline" size={18} color="#00BCD4" />
-              <Text style={styles.trackButtonText}>Track Order</Text>
+              <Text style={styles.trackButtonText}>{t("orders.trackOrder")}</Text>
             </TouchableOpacity>
           )}
-
-          <TouchableOpacity
-            style={[styles.actionButton, styles.detailsButton]}
-            onPress={handleViewDetails}
-          >
-            <Ionicons name="eye-outline" size={18} color="#ED2A46" />
-            <Text style={styles.detailsButtonText}>View Details</Text>
-          </TouchableOpacity>
         </View>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 };
 
@@ -388,10 +378,6 @@ const styles = StyleSheet.create({
   totalRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 8,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: "#E0E0E0",
   },
   totalLabel: {
     fontSize: 15,

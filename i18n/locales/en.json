@@ -84,7 +84,9 @@
     "notification": "Notifications",
     "packageDetail": "Package Details",
     "bookingDetail": "Booking Detail",
-    "activityDetail": "Activity Detail"
+    "activityDetail": "Activity Detail",
+    "orderDetails": "Order Details",
+    "manageOrders": "Manage Orders"
   },
 
   "myPackage": {
@@ -480,7 +482,8 @@
     "experience": "Experience",
     "viewAll": "View All",
     "comingSoon": "Coming Soon",
-    "loadMore": "Load More"
+    "loadMore": "Load More",
+    "lastUpdate": "Last Update"
   },
 
   "freelancePT": {
@@ -1249,7 +1252,9 @@
     "district": "District",
     "enterDistrict": "Enter district name",
     "city": "City",
-    "enterCity": "Enter city name"
+    "enterCity": "Enter city name",
+    "shippingAddress": "Shipping Address",
+    "paymentSummary": "Payment Summary"
   },
 
   "faq": {
@@ -1871,6 +1876,7 @@
     "cancelled": "Cancelled",
     "created": "Created",
     "assigning": "Assigning",
+    "confirm": "Confirm",
     "manageOrders": "Manage Orders",
     "filterByStatus": "Filter by Status",
     "all": "All",
@@ -1887,6 +1893,29 @@
     "leaveFeedback": "Leave Feedback",
     "trackOrder": "Track Order",
     "viewDetails": "View Details",
-    "orderDate": "Order Date"
+    "orderDate": "Order Date",
+    "completePayment": "Complete Payment",
+    "quantity": "Qty",
+    "protein": "Protein",
+    "calories": "Calories",
+    "moreItems": "more",
+    "trackingInfo": "Tracking Information",
+    "paymentMethod": "Payment Method",
+    "status": {
+      "created": "Created",
+      "pending": "Pending",
+      "processing": "Processing",
+      "assigning": "Assigning",
+      "shipping": "Shipping",
+      "finished": "Finished",
+      "cancelled": "Cancelled"
+    },
+    "paymentMethods": {
+      "cod": "Cash on Delivery",
+      "online": "Online Payment",
+      "vnpay": "VNPay",
+      "momo": "MoMo",
+      "zalopay": "ZaloPay"
+    }
   }
 }

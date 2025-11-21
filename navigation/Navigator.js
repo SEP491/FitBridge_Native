@@ -54,6 +54,7 @@ import MyPackageScreen from "../screens/CustomerScreen/MyPackageScreen/MyPackage
 import MyReportsScreen from "../screens/CustomerScreen/MyReportsScreen/MyReportsScreen";
 import VoucherScreen from "../screens/CustomerScreen/VoucherScreen/VoucherScreen";
 import ManageOrderScreen from "../screens/CustomerScreen/ManageOrderScreen/ManageOrderScreen";
+import OrderDetailScreen from "../screens/CustomerScreen/OrderDetailScreen/OrderDetailScreen";
 import FAQScreen from "../screens/CommonScreen/FAQScreen/FAQScreen";
 import ManageVoucherScreen from "./../screens/FreelancePTScreen/ManageVoucherScreen/ManageVoucherScreen";
 import ManagePackageScreen from "./../screens/FreelancePTScreen/ManagePackageScreen/ManagePackageScreen";
@@ -1319,7 +1320,28 @@ export default function Navigator({
           name="ManageOrderScreen"
           component={ManageOrderScreen}
           options={{
-            headerShown: false,
+            headerShown: true,
+            title: t("screenTitles.manageOrders"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="OrderDetailScreen"
+          component={OrderDetailScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.orderDetails"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
           }}
         />
         <Stack.Screen

@@ -85,7 +85,9 @@
     "bookingDetail": "Chi Tiết Đặt Lịch",
     "activityDetail": "Chi Tiết Bài Tập",
     "trainingResult": "Thống Kê Tập Luyện",
-    "myReports": "Báo Cáo Của Tôi"
+    "myReports": "Báo Cáo Của Tôi",
+    "orderDetails": "Chi Tiết Đơn Hàng",
+    "manageOrders": "Quản Lý Đơn Hàng"
   },
 
   "myPackage": {
@@ -484,7 +486,8 @@
     "later": "Để sau",
     "viewAll": "Xem tất cả",
     "comingSoon": "Sắp ra mắt",
-    "loadMore": "Tải thêm"
+    "loadMore": "Tải thêm",
+    "lastUpdate": "Cập nhật lần cuối"
   },
 
   "account": {
@@ -1375,7 +1378,9 @@
     "district": "Quận/Huyện",
     "enterDistrict": "Nhập tên quận/huyện",
     "city": "Tỉnh/Thành phố",
-    "enterCity": "Nhập tên tỉnh/thành phố"
+    "enterCity": "Nhập tên tỉnh/thành phố",
+    "shippingAddress": "Địa Chỉ Giao Hàng",
+    "paymentSummary": "Tóm Tắt Thanh Toán"
   },
 
   "deleteAccount": {
@@ -1831,6 +1836,7 @@
     "cancelled": "Đã Hủy",
     "created": "Đã Tạo",
     "assigning": "Đang Phân Công",
+    "confirm": "Xác Nhận",
     "manageOrders": "Quản Lý Đơn Hàng",
     "filterByStatus": "Lọc theo trạng thái",
     "all": "Tất Cả",
@@ -1847,6 +1853,29 @@
     "leaveFeedback": "Đánh Giá",
     "trackOrder": "Theo Dõi Đơn Hàng",
     "viewDetails": "Xem Chi Tiết",
-    "orderDate": "Ngày Đặt Hàng"
+    "orderDate": "Ngày Đặt Hàng",
+    "completePayment": "Hoàn Tất Thanh Toán",
+    "quantity": "SL",
+    "protein": "Protein",
+    "calories": "Calo",
+    "moreItems": "sản phẩm khác",
+    "trackingInfo": "Thông Tin Vận Chuyển",
+    "paymentMethod": "Phương Thức Thanh Toán",
+    "status": {
+      "created": "Đã Tạo",
+      "pending": "Chờ Xác Nhận",
+      "processing": "Đang Xử Lý",
+      "assigning": "Đang Phân Công",
+      "shipping": "Đang Giao",
+      "finished": "Hoàn Thành",
+      "cancelled": "Đã Hủy"
+    },
+    "paymentMethods": {
+      "cod": "Thanh Toán Khi Nhận Hàng",
+      "online": "Thanh Toán Online",
+      "vnpay": "VNPay",
+      "momo": "MoMo",
+      "zalopay": "ZaloPay"
+    }
   }
 }

@@ -8,13 +8,13 @@ import {
   ActivityIndicator,
   RefreshControl,
   Alert,
+  ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import orderService from "../../../services/orderService";
 import OrderManagementCard from "../../../components/OrderManagementCard";
-import PairedSwiper from "../../../components/PairSwiper/PairSwiper";
 import { useTranslation } from "../../../hooks/useTranslation";
 
 const ManageOrderScreen = ({ route }) => {
@@ -33,44 +33,44 @@ const ManageOrderScreen = ({ route }) => {
   const statusFilters = [
     {
       id: "all",
-      label: "All",
+      label: t("orders.all"),
       icon: "apps-outline",
-      color: "#9E9E9E",
+      color: "#8E44AD",
       status: "All",
     },
     {
       id: "confirm",
-      label: "Confirm",
+      label: t("orders.confirm"),
       icon: "document-text-outline",
-      color: "#757575",
+      color: "#3498DB",
       status: "Created",
     },
     {
       id: "pending",
-      label: "Pending",
+      label: t("orders.pending"),
       icon: "time-outline",
-      color: "#FF9800",
+      color: "#F39C12",
       status: "Pending",
     },
     {
       id: "processing",
-      label: "Processing",
+      label: t("orders.processing"),
       icon: "construct-outline",
-      color: "#2196F3",
+      color: "#1ABC9C",
       status: "Processing",
     },
     {
       id: "shipping",
-      label: "Shipping",
+      label: t("orders.shipping"),
       icon: "car-outline",
-      color: "#00BCD4",
+      color: "#3498DB",
       status: "Shipping",
     },
     {
       id: "feedback",
-      label: "Feedback",
+      label: t("orders.feedback"),
       icon: "star-outline",
-      color: "#FF9800",
+      color: "#E67E22",
       status: "Finished",
       filterFeedback: true,
     },
@@ -115,6 +115,12 @@ const ManageOrderScreen = ({ route }) => {
   const filterOrdersByStatus = () => {
     if (selectedStatus === "All") {
       setFilteredOrders(orders);
+    } else if (selectedStatus === "Processing") {
+      // Processing includes both Processing and Assigning statuses
+      let filtered = orders.filter(
+        (order) => order.currentStatus === "Processing" || order.currentStatus === "Assigning"
+      );
+      setFilteredOrders(filtered);
     } else {
       let filtered = orders.filter(
         (order) => order.currentStatus === selectedStatus
@@ -182,6 +188,11 @@ const ManageOrderScreen = ({ route }) => {
         >
           {item.status === "All"
             ? orders.length
+            : item.status === "Processing"
+            ? orders.filter(
+                (order) =>
+                  order.currentStatus === "Processing" || order.currentStatus === "Assigning"
+              ).length
             : item.filterFeedback
             ? orders.filter(
                 (order) =>
@@ -209,29 +220,17 @@ const ManageOrderScreen = ({ route }) => {
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="arrow-back" size={24} color="#333" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t("orders.manageOrders") || "Manage Orders"}</Text>
-        <View style={styles.placeholder} />
-      </View>
 
       {/* Status Filter with PairSwiper */}
       <View style={styles.filterSection}>
         <Text style={styles.filterTitle}>{t("orders.filterByStatus") || "Filter by Status"}</Text>
-        <PairedSwiper
-          data={statusFilters}
-          renderItem={renderStatusButton}
-          itemsPerSlide={4}
-          height={120}
-          showsPagination={true}
-          containerStyle={styles.swiperContainer}
-        />
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.statusScrollContent}
+        >
+          {statusFilters.map((item) => renderStatusButton(item))}
+        </ScrollView>
       </View>
 
       {/* Orders List */}
@@ -267,29 +266,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F8F9FA",
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: "#fff",
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  backButton: {
-    padding: 8,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#333",
-    flex: 1,
-    textAlign: "center",
-  },
+
   placeholder: {
     width: 40,
   },
@@ -299,6 +276,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderBottomWidth: 1,
     borderBottomColor: "#E0E0E0",
+    marginTop: -64,
   },
   filterTitle: {
     fontSize: 16,
@@ -307,8 +285,9 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     paddingHorizontal: 8,
   },
-  swiperContainer: {
-    height: 120,
+  statusScrollContent: {
+    paddingHorizontal: 8,
+    gap: 10,
   },
   statusButton: {
     backgroundColor: "#fff",
@@ -320,6 +299,7 @@ const styles = StyleSheet.create({
     borderColor: "#E0E0E0",
     position: "relative",
     minHeight: 100,
+    width: 90,
   },
   statusButtonText: {
     fontSize: 12,
