@@ -6,8 +6,9 @@ import {
   ActivityIndicator,
   Alert,
   BackHandler,
+  Linking,
 } from "react-native";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, use } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import cartService from "../../../services/cartService";
 import { useTranslation } from "../../../hooks/useTranslation";
@@ -34,6 +35,7 @@ export default function OrderSuccessScreen({ route, navigation }) {
   const { orderCode } = route?.params || {};
   const { code } = route?.params || {};
   const { amount } = route?.params || {};
+  const {isCOD , isOnlinePayment, checkoutUrl}= route?.params || {};
 
   const updateOrderFailed = async () => {
     const requestData = {
@@ -49,11 +51,17 @@ export default function OrderSuccessScreen({ route, navigation }) {
   console.log("OrderSuccessScreen params:", route?.params);
   useFocusEffect(
     useCallback(() => {
-      setOrderStatus(code === "00" ? "success" : "failed"); // Update order status based on API response
-      if (code === "00") {
-        setOrderData({
-          status: code, // Change this to test different scenarios
-          orderCode: orderCode || "000000",
+      if (isOnlinePayment) {
+        setOrderStatus("waitingForPayment");
+      }
+      else if (isCOD) {
+        setOrderStatus("success");
+      } else {
+        setOrderStatus(code === "00" ? "success" : "failed"); // Update order status based on API response
+        if (code === "00") {
+          setOrderData({
+            status: code, // Change this to test different scenarios
+            orderCode: orderCode || "000000",
           amount: amount || 0,
           description: t("orderSuccess.successDescription"),
         });
@@ -63,7 +71,8 @@ export default function OrderSuccessScreen({ route, navigation }) {
         setOrderStatus("failed");
         updateOrderFailed();
       }
-    }, [code, orderCode, amount])
+    }
+    }, [code, orderCode, amount, isCOD])
   );
 
   const formatAmount = (amount) => {
@@ -71,7 +80,12 @@ export default function OrderSuccessScreen({ route, navigation }) {
   };
 
   const handleGoBack = () => {
-    navigation.navigate("HomeMain"); // Adjust navigation as needed
+    navigation.popToTop(); 
+  };
+  const handleCheckoutAgain = () => {
+    if (checkoutUrl) {
+      Linking.openURL(checkoutUrl);
+  };
   };
 
   const handleRetry = () => {
@@ -95,8 +109,39 @@ export default function OrderSuccessScreen({ route, navigation }) {
     );
   }
 
+if (orderStatus === "waitingForPayment" ) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.contentContainer}>
+          {/* Payment Icon */}
+          <View style={styles.successIcon}>
+            <Text style={styles.successIconText}>💳</Text>
+          </View>
+
+          <Text style={styles.successTitle}>
+            {t("orderSuccess.awaitingPayment")}
+          </Text>
+          <Text style={styles.successSubtitle}>
+            {t("orderSuccess.pleaseCompletePayment")}
+          </Text>
+
+          <TouchableOpacity style={[styles.primaryButton, {marginBottom: 15}]} onPress={handleCheckoutAgain}>
+            <Text style={styles.primaryButtonText}>
+              {t("orderSuccess.continuePayment")}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.secondaryButton} onPress={handleGoBack}>
+            <Text style={styles.secondaryButtonText}>
+              {t("orderSuccess.backToHome")}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
   // Success State
-  if (orderStatus === "success") {
+  if (orderStatus === "success" ) {
     return (
       <View style={styles.container}>
         <View style={styles.contentContainer}>

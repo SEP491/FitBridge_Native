@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useTranslation } from "../../../../hooks/useTranslation";
 import { useNavigation } from "@react-navigation/native";
@@ -14,7 +20,6 @@ export default function AddressSection({
 }) {
   const { t } = useTranslation();
   const navigation = useNavigation();
-  
 
   if (!visible) return null;
 
@@ -27,59 +32,62 @@ export default function AddressSection({
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>{t("payment.deliveryAddress")}</Text>
-        <TouchableOpacity onPress={handleNavigateToAddressList}>
-          <Text style={styles.actionText}>
-            {selectedAddress ? t("payment.change") : t("payment.select")}
-          </Text>
-        </TouchableOpacity>
-      </View>
+    <>
+      <TouchableOpacity onPress={handleNavigateToAddressList}>
+        <View style={styles.container}>
+          <View style={styles.header}>
+            <Text style={styles.title}>{t("payment.deliveryAddress")}</Text>
 
-      <View style={styles.content}>
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="small" color="#ED2A46" />
-            <Text style={styles.loadingText}>{t("common.loading")}</Text>
-          </View>
-        ) : selectedAddress ? (
-          <View style={styles.addressCard}>
-            <View style={styles.addressHeader}>
-              <MaterialIcons name="location-on" size={24} color="#ED2A46" />
-              <View style={styles.addressInfo}>
-                <Text style={styles.addressName}>
-                  {selectedAddress.receiverName}
-                </Text>
-                <Text style={styles.addressPhone}>
-                  {selectedAddress.phoneNumber}
-                </Text>
-              </View>
-            </View>
-            <Text style={styles.addressDetail}>
-              {selectedAddress.googleMapAddressString}
+            <Text style={styles.actionText}>
+              {selectedAddress ? t("payment.change") : t("payment.select")}
             </Text>
-            {selectedAddress.isDefault && (
-              <View style={styles.defaultBadge}>
-                <Text style={styles.defaultBadgeText}>
-                  {t("payment.default")}
-                </Text>
+          </View>
+
+          <View style={styles.content}>
+            {loading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="small" color="#ED2A46" />
+                <Text style={styles.loadingText}>{t("common.loading")}</Text>
               </View>
+            ) : selectedAddress ? (
+              <View style={styles.addressCard}>
+                <View style={styles.addressHeader}>
+                  <MaterialIcons name="location-on" size={24} color="#ED2A46" />
+                  <View style={styles.addressInfo}>
+                    <Text style={styles.addressName}>
+                      {selectedAddress.receiverName}
+                    </Text>
+                    <Text style={styles.addressPhone}>
+                      {selectedAddress.phoneNumber}
+                    </Text>
+                  </View>
+                </View>
+                <Text style={styles.addressDetail}>
+                  {selectedAddress.googleMapAddressString}
+                </Text>
+                {selectedAddress.isDefault && (
+                  <View style={styles.defaultBadge}>
+                    <Text style={styles.defaultBadgeText}>
+                      {t("payment.default")}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={styles.addAddressButton}
+                onPress={handleNavigateToAddressList}
+              >
+                <MaterialIcons name="add-location" size={24} color="#ED2A46" />
+                <Text style={styles.addAddressText}>
+                  {t("payment.addDeliveryAddress")}
+                </Text>
+              </TouchableOpacity>
             )}
           </View>
-        ) : (
-          <TouchableOpacity
-            style={styles.addAddressButton}
-            onPress={handleNavigateToAddressList}
-          >
-            <MaterialIcons name="add-location" size={24} color="#ED2A46" />
-            <Text style={styles.addAddressText}>
-              {t("payment.addDeliveryAddress")}
-            </Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    </View>
+        </View>
+      </TouchableOpacity>
+    </>
   );
 }
 
@@ -88,7 +96,7 @@ const styles = StyleSheet.create({
     width: "100%",
     backgroundColor: "#fff",
     borderRadius: 20,
-    marginTop: 20,
+    marginTop: 10,
     padding: 15,
     shadowColor: "#000",
     shadowOpacity: 0.25,

@@ -222,7 +222,7 @@ export default function PaymentScreen({ navigation, route }) {
           paymentMethodId:
             selectedPaymentMethod === "bank"
               ? "01997597-d188-7f12-95f4-43ef8d442612"
-              : "01997597-d188-7f12-95f4-43ef8d412633",
+              : "01997597-d188-7f12-95f4-43ef8d442643",
           orderItems: isExtending
             ? orderToExtend.orderItems
             : displayItems.map((item) => {
@@ -280,12 +280,27 @@ export default function PaymentScreen({ navigation, route }) {
       const response = await cartService.processCart(requestData);
       console.log("Cart processed successfully:", response);
 
-      if (
+      // Check if payment method is COD
+      if (response && response.data.isCOD) {
+        console.log("COD payment detected, navigating to PurchaseSuccessScreen");
+        if (!isDirectPurchase) {
+          clearCart();
+        }
+        // Navigate to OrderSuccessScreen
+        navigation.navigate("OrderSuccessScreen", {
+          isCOD: true,
+        });
+      } else if (
         response &&
         response.data &&
         response.data.data &&
         response.data.data.checkoutUrl
       ) {
+        // Open payment URL for online payment
+        navigation.navigate("OrderSuccessScreen", {
+          isOnlinePayment: true,
+          checkoutUrl: response.data.data.checkoutUrl,
+        });
         Linking.openURL(response.data.data.checkoutUrl);
 
         // If direct purchase, navigate back after successful payment initiation
@@ -295,7 +310,7 @@ export default function PaymentScreen({ navigation, route }) {
           }, 500);
         }
       } else {
-        throw new Error("Invalid response - missing checkout URL");
+        throw new Error("Invalid response - missing checkout URL or payment info");
       }
     } catch (error) {
       console.error("Error processing payment:", error.response?.data || error);
@@ -509,8 +524,9 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   itemsContainer: {
-    paddingVertical: 20,
+    marginTop: 25,
   },
+
   orderSummary: {
     paddingVertical: 35,
     borderTopLeftRadius: 20,

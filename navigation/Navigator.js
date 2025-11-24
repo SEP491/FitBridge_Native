@@ -810,6 +810,15 @@ export default function Navigator({
           }}
         />
         <Stack.Screen
+          name="OrderSuccessScreen"
+          component={OrderSuccessScreen}
+          options={{
+            headerTitleAlign: "center",
+            headerShown: true,
+            title: t("screenTitles.paymentSuccess"),
+          }}
+        />
+        <Stack.Screen
           name="CartScreen"
           component={CartScreen}
           options={{
@@ -841,7 +850,15 @@ export default function Navigator({
           name="AddressListScreen"
           component={AddressListScreen}
           options={{
-            headerShown: false,
+            zIndex: 999,
+            headerShown: true,
+            title: t("screenTitles.addressList"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
           }}
         />
         <Stack.Screen
