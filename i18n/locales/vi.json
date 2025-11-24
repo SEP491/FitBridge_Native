@@ -2042,6 +2042,12 @@
     "moreItems": "sản phẩm khác",
     "trackingInfo": "Thông Tin Vận Chuyển",
     "paymentMethod": "Phương Thức Thanh Toán",
+    "cancelOrder": "Hủy Đơn Hàng",
+    "cancelReason": "Lý Do Hủy",
+    "enterCancelReason": "Vui lòng nhập lý do hủy đơn hàng...",
+    "orderCancelled": "Đã hủy đơn hàng thành công",
+    "cancelOrderFailed": "Không thể hủy đơn hàng. Vui lòng thử lại.",
+    "enterReasonRequired": "Vui lòng nhập lý do hủy đơn hàng",
     "status": {
       "created": "Đã Tạo",
       "pending": "Chờ Xác Nhận",
@@ -2057,6 +2063,12 @@
       "vnpay": "VNPay",
       "momo": "MoMo",
       "zalopay": "ZaloPay"
-    }
+    },
+    "accepted": "Shipper đã nhận đơn hàng",
+    "arrived": "Hàng đã đến nơi",
+    "returned": "Trả Hàng",
+    "confirmReceived": "Xác nhận đã nhận hàng",
+    "areYouSureReceived": "Bạn có chắc chắn đã nhận được hàng?",
+    "orderReceivedSuccessfully": "Xác nhận đã nhận hàng thành công"
   }
 }

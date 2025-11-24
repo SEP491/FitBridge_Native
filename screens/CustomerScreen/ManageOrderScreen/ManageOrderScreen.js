@@ -59,12 +59,34 @@ const ManageOrderScreen = ({ route }) => {
       color: "#1ABC9C",
       status: "Processing",
     },
+
+    {
+      id: "assigning",
+      label: t("orders.assigning"),
+      icon: "people-outline",
+      color: "#9B59B6",
+      status: "Assigning",
+    },
+    {
+      id: 'accepted',
+      label: t("orders.accepted"),
+      icon: 'checkmark-done-outline',
+      color: '#27AE60',
+      status: 'Accepted',
+    },
     {
       id: "shipping",
       label: t("orders.shipping"),
-      icon: "car-outline",
-      color: "#3498DB",
+      icon: "bicycle-outline",
+      color: "#E74C3C",
       status: "Shipping",
+    },
+    {
+      id: "arrived",
+      label: t("orders.arrived"),
+      icon: "location-outline",
+      color: "#2980B9",
+      status: "Arrived",
     },
     {
       id: "feedback",
@@ -74,6 +96,13 @@ const ManageOrderScreen = ({ route }) => {
       status: "Finished",
       filterFeedback: true,
     },
+    {
+      id: "returned",
+      label: t("orders.returned"),
+      icon: "arrow-undo-outline",
+      color: "#C0392B",
+      status: "Returned",
+    }
   ];
 
   useEffect(() => {
@@ -242,7 +271,7 @@ const ManageOrderScreen = ({ route }) => {
       ) : (
         <FlatList
           data={filteredOrders}
-          renderItem={({ item }) => <OrderManagementCard order={item} />}
+          renderItem={({ item }) => <OrderManagementCard order={item} onRefresh={handleRefresh} />}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
