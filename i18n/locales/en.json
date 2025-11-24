@@ -2114,6 +2114,12 @@
     "moreItems": "more",
     "trackingInfo": "Tracking Information",
     "paymentMethod": "Payment Method",
+    "cancelOrder": "Cancel Order",
+    "cancelReason": "Cancellation Reason",
+    "enterCancelReason": "Please enter the reason for cancelling this order...",
+    "orderCancelled": "Order cancelled successfully",
+    "cancelOrderFailed": "Failed to cancel order. Please try again.",
+    "enterReasonRequired": "Please enter a reason for cancelling the order",
     "status": {
       "created": "Created",
       "pending": "Pending",

@@ -7,6 +7,10 @@ const orderService = {
         request("POST", "v1/orders/shipping/price-estimate", addressId),
     getProductOrder: (params) =>
         request("GET", "v1/orders/product",null,{}, params  ),
+    cancelOrder: (orderId, data) =>
+        request("PUT", `v1/orders/shipping/cancel/${orderId}`, data, {}, ),
+    confirmOrderReceived: (orderId) =>
+        request("PUT", `v1/orders/status/${orderId}`, { status: "Finished", description: "Order received by customer successfully" }, {}, ),
 };
 
 export default orderService;

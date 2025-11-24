@@ -6,18 +6,24 @@ import {
   TouchableOpacity,
   Image,
   Linking,
+  Modal,
+  TextInput,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Link, useNavigation } from "@react-navigation/native";
 import { useTranslation } from "../../hooks/useTranslation";
 import FeedbackModal from "./FeedbackModal";
 import paymentService from "../../services/paymentService";
+import orderService from "../../services/orderService";
 
 const OrderManagementCard = ({ order, onRefresh }) => {
   const navigation = useNavigation();
   const { t } = useTranslation();
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
   const [unreviewedItems, setUnreviewedItems] = useState([]);
+  const [cancelModalVisible, setCancelModalVisible] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -29,6 +35,16 @@ const OrderManagementCard = ({ order, onRefresh }) => {
         return "#1ABC9C";
       case "Assigning":
         return "#9B59B6";
+      case "Accepted":
+        return "#2ECC71";
+      case "Arrived":
+        return "#8E44AD";
+      case "InReturn":
+        return "#E67E22";
+      case "Returned":
+        return "#D35400";
+      case "CustomerNotReceived":
+        return "#E74C3C";
       case "Shipping":
         return "#3498DB";
       case "Finished":
@@ -50,8 +66,18 @@ const OrderManagementCard = ({ order, onRefresh }) => {
         return "construct-outline";
       case "Assigning":
         return "people-outline";
+      case "Accepted":
+        return "checkmark-done-outline";
       case "Shipping":
         return "car-outline";
+      case "Arrived":
+        return "location-outline";
+      case "InReturn":
+        return "arrow-undo-outline";
+      case "Returned":
+        return "return-down-back-outline";
+      case "CustomerNotReceived":
+        return "close-outline";
       case "Finished":
         return "checkmark-circle-outline";
       case "Cancelled":
@@ -101,6 +127,60 @@ const OrderManagementCard = ({ order, onRefresh }) => {
       setUnreviewedItems(itemsToReview);
       setFeedbackModalVisible(true);
     }
+  };
+
+  const handleCancelOrder = async () => {
+    console.log("Cancelling order with reason:", cancelReason);
+    try {
+      const response = await orderService.cancelOrder(order.id, { 
+        comment: cancelReason
+      });
+      if (response && response.data) {
+        Alert.alert(t("common.success"), t("orders.orderCancelledSuccessfully"));
+        setCancelModalVisible(false);
+        setCancelReason("");
+        if (onRefresh) {
+          onRefresh();
+        }
+      }
+    } catch (error) {
+      console.error("Error cancelling order:", error);
+      Alert.alert(t("common.error"), t("orders.errorCancellingOrder"));
+    }
+  };
+
+  const handleOpenCancelModal = () => {
+    setCancelModalVisible(true);
+  };
+
+  const handleReceivedConfirmation = () => {
+    Alert.alert(
+      t("orders.confirmReceived"),
+      t("orders.areYouSureReceived"),
+      [
+        {
+          text: t("common.cancel"),
+          style: "cancel",
+        },
+        {
+          text: t("common.confirm"),
+          onPress: async () => {
+            try {
+              const response = await orderService.confirmOrderReceived(order.id);
+              if (response && response.data) {
+                Alert.alert(t("common.success"), t("orders.orderReceivedSuccessfully"));
+                if (onRefresh) {
+                  onRefresh();
+                }
+              }
+            } catch (error) {
+              console.error("Error confirming received:", error);
+              Alert.alert(t("common.error"), t("orders.errorConfirmingReceived"));
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleCloseFeedbackModal = (success) => {
@@ -231,6 +311,25 @@ const OrderManagementCard = ({ order, onRefresh }) => {
             </TouchableOpacity>
           )}
 
+          {order.currentStatus === "Pending" && !order.checkoutUrl && (
+            <TouchableOpacity
+              style={[styles.actionButton, styles.trackButton]}
+              onPress={handleOpenCancelModal}
+            >
+              <Ionicons name="close-outline" size={18} color="#00BCD4" />
+              <Text style={styles.trackButtonText}>{t("orders.cancelOrder")}</Text>
+            </TouchableOpacity>
+          )}
+
+          {order.currentStatus === "Arrived" && (
+            <TouchableOpacity
+              style={[styles.actionButton, styles.trackButton]}
+              onPress={handleReceivedConfirmation}
+            >
+              <Ionicons name="checkmark-done-outline" size={18} color="#00BCD4" />
+              <Text style={styles.trackButtonText}>{t("orders.confirmReceived")}</Text>
+            </TouchableOpacity>
+          )}
           {order.currentStatus === "Finished" &&
             order.orderItems.some((item) => !item.isFeedback) && (
               <TouchableOpacity
@@ -252,6 +351,68 @@ const OrderManagementCard = ({ order, onRefresh }) => {
           orderItems={unreviewedItems}
         />
       )}
+
+      {/* Cancel Order Modal */}
+      <Modal
+        visible={cancelModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setCancelModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.cancelModalContainer}>
+            <View style={styles.cancelModalHeader}>
+              <Text style={styles.cancelModalTitle}>{t("orders.cancelOrder")}</Text>
+              <TouchableOpacity
+                onPress={() => {
+                  setCancelModalVisible(false);
+                  setCancelReason("");
+                }}
+                style={styles.closeButton}
+              >
+                <Ionicons name="close" size={24} color="#333" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.cancelModalContent}>
+              <Text style={styles.cancelModalLabel}>
+                {t("orders.cancelReason")}
+              </Text>
+              <TextInput
+                style={styles.cancelReasonInput}
+                multiline
+                numberOfLines={4}
+                placeholder={t("orders.enterCancelReason")}
+                value={cancelReason}
+                onChangeText={setCancelReason}
+                textAlignVertical="top"
+              />
+            </View>
+
+            <View style={styles.cancelModalActions}>
+              <TouchableOpacity
+                style={[styles.cancelModalButton, styles.cancelModalButtonSecondary]}
+                onPress={() => {
+                  setCancelModalVisible(false);
+                  setCancelReason("");
+                }}
+              >
+                <Text style={styles.cancelModalButtonTextSecondary}>
+                  {t("common.cancel")}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.cancelModalButton, styles.cancelModalButtonPrimary]}
+                onPress={handleCancelOrder}
+              >
+                <Text style={styles.cancelModalButtonTextPrimary}>
+                  {t("common.confirm")}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -466,6 +627,92 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#ED2A46",
     fontWeight: "600",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  cancelModalContainer: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    width: "85%",
+    maxWidth: 400,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  cancelModalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+  cancelModalTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#333",
+  },
+  closeButton: {
+    padding: 4,
+  },
+  cancelModalContent: {
+    padding: 16,
+  },
+  cancelModalLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 8,
+  },
+  cancelReasonInput: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 14,
+    color: "#333",
+    minHeight: 100,
+  },
+  cancelModalActions: {
+    flexDirection: "row",
+    padding: 16,
+    gap: 12,
+    borderTopWidth: 1,
+    borderTopColor: "#eee",
+  },
+  cancelModalButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cancelModalButtonSecondary: {
+    backgroundColor: "#f5f5f5",
+    borderWidth: 1,
+    borderColor: "#ddd",
+  },
+  cancelModalButtonPrimary: {
+    backgroundColor: "#ED2A46",
+  },
+  cancelModalButtonTextSecondary: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#666",
+  },
+  cancelModalButtonTextPrimary: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#fff",
   },
 });
 
