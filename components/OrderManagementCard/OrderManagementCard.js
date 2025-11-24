@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -8,12 +8,16 @@ import {
   Linking,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { Link, useNavigation } from "@react-navigation/native";
 import { useTranslation } from "../../hooks/useTranslation";
+import FeedbackModal from "./FeedbackModal";
+import paymentService from "../../services/paymentService";
 
-const OrderManagementCard = ({ order }) => {
+const OrderManagementCard = ({ order, onRefresh }) => {
   const navigation = useNavigation();
   const { t } = useTranslation();
+  const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
+  const [unreviewedItems, setUnreviewedItems] = useState([]);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -77,9 +81,34 @@ const OrderManagementCard = ({ order }) => {
     navigation.navigate("OrderDetailScreen", { selectedOrder: order });
   };
 
-  const handleCheckoutAgain = () => {
-    if (order.checkoutUrl) {
-      Linking.openURL(order.checkoutUrl);
+  const handleCheckoutAgain = async () => {
+    try {
+      const response = await paymentService.repaidOrder({ orderId: order.id });
+      if(response && response.data) {
+        Linking.openURL(response.data);
+      }
+    } catch (error) {
+      console.error("Error during checkout again:", error);
+    }
+  };
+
+  const handleOpenFeedbackModal = () => {
+    // Find all product items that haven't been reviewed
+    const itemsToReview = order.orderItems.filter(
+      (item) => item.productDetail && !item.isFeedback
+    );
+    if (itemsToReview.length > 0) {
+      setUnreviewedItems(itemsToReview);
+      setFeedbackModalVisible(true);
+    }
+  };
+
+  const handleCloseFeedbackModal = (success) => {
+    setFeedbackModalVisible(false);
+    setUnreviewedItems([]);
+    if (success && onRefresh) {
+      // Refresh the order list after successful feedback submission
+      onRefresh();
     }
   };
 
@@ -206,30 +235,23 @@ const OrderManagementCard = ({ order }) => {
             order.orderItems.some((item) => !item.isFeedback) && (
               <TouchableOpacity
                 style={[styles.actionButton, styles.feedbackButton]}
-                onPress={() =>
-                  navigation.navigate("FeedbackScreen", { orderId: order.id })
-                }
+                onPress={handleOpenFeedbackModal}
               >
                 <Ionicons name="star-outline" size={18} color="#FF9800" />
                 <Text style={styles.feedbackButtonText}>{t("orders.leaveFeedback")}</Text>
               </TouchableOpacity>
             )}
-
-          {order.currentStatus === "Shipping" && order.shippingTrackingId && (
-            <TouchableOpacity
-              style={[styles.actionButton, styles.trackButton]}
-              onPress={() =>
-                navigation.navigate("TrackingScreen", {
-                  trackingId: order.shippingTrackingId,
-                })
-              }
-            >
-              <Ionicons name="location-outline" size={18} color="#00BCD4" />
-              <Text style={styles.trackButtonText}>{t("orders.trackOrder")}</Text>
-            </TouchableOpacity>
-          )}
         </View>
       </View>
+
+      {/* Feedback Modal */}
+      {unreviewedItems.length > 0 && (
+        <FeedbackModal
+          visible={feedbackModalVisible}
+          onClose={handleCloseFeedbackModal}
+          orderItems={unreviewedItems}
+        />
+      )}
     </View>
   );
 };
