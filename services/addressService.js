@@ -9,6 +9,7 @@ const addressService = {
         request("POST", "v1/addresses", data),
     updateAddress: (addressId, data) =>
         request("PUT", `v1/addresses/${addressId}`, data),
+
 };
 
 export default addressService;

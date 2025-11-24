@@ -8,14 +8,13 @@ import addressService from "../../../../services/addressService";
 export default function AddressSection({
   onSelectAddress,
   visible = true,
+  selectedAddress,
   addresses,
   loading,
 }) {
   const { t } = useTranslation();
   const navigation = useNavigation();
-  console.log("Addresses in AddressSection:", addresses);
-
-  const selectedAddress = addresses && addresses.length > 0 ? addresses[0] : null;
+  
 
   if (!visible) return null;
 

@@ -91,6 +91,8 @@
     "activityDetail": "Chi Tiết Bài Tập",
     "trainingResult": "Thống Kê Tập Luyện",
     "myReports": "Báo Cáo Của Tôi",
+    "orderDetails": "Chi Tiết Đơn Hàng",
+    "manageOrders": "Quản Lý Đơn Hàng",
     "schedulePT": "Lịch Dạy"
   },
 
@@ -159,6 +161,9 @@
   },
 
   "gym": {
+    "featuredGyms": "Phòng Gym Nổi Bật",
+    "topRanked": "Top 10 Phòng Gym Phổ Biến Nhất",
+    "noGyms": "Hiện chưa có phòng gym nào",
     "details": "Chi tiết phòng gym",
     "facilities": "Tiện ích",
     "packages": "Gói tập",
@@ -513,7 +518,8 @@
     "completed": "Thành công",
     "viewAll": "Xem tất cả",
     "comingSoon": "Sắp ra mắt",
-    "loadMore": "Tải thêm"
+    "loadMore": "Tải thêm",
+    "lastUpdate": "Cập nhật lần cuối"
   },
 
   "account": {
@@ -657,6 +663,9 @@
     "manageTransaction": "Quản lý Giao dịch",
     "myCustomer": "Khách hàng của tôi",
     "customerDetail": "Chi tiết khách hàng",
+    "myReports": "Báo cáo của tôi",
+    "myOrders": "Đơn Hàng Của Tôi",
+    "manageOrders": "Quản Lý Đơn Hàng",
     "myReports": "Phản hồi của tôi"
   },
 
@@ -1442,7 +1451,9 @@
     "district": "Quận/Huyện",
     "enterDistrict": "Nhập tên quận/huyện",
     "city": "Tỉnh/Thành phố",
-    "enterCity": "Nhập tên tỉnh/thành phố"
+    "enterCity": "Nhập tên tỉnh/thành phố",
+    "shippingAddress": "Địa Chỉ Giao Hàng",
+    "paymentSummary": "Tóm Tắt Thanh Toán"
   },
 
   "deleteAccount": {
@@ -1574,6 +1585,9 @@
   },
 
   "freelancePT": {
+    "featuredTrainers": "Huấn Luyện Viên Nổi Bật",
+    "topRanked": "Top 10 Huấn Luyện Viên Hàng Đầu",
+    "noTrainers": "Hiện chưa có huấn luyện viên nào",
     "packageDetail": "Chi Tiết Gói Tập",
     "packageName": "Tên Gói Tập",
     "trainer": "Huấn Luyện Viên Cá Nhân",
@@ -1971,5 +1985,57 @@
     "productsFound": "sản phẩm được tìm thấy",
     "noProductsFound": "Không tìm thấy sản phẩm",
     "tryDifferentKeywords": "Thử tìm kiếm với từ khóa khác"
+  },
+  "orders": {
+    "pending": "Chờ Xác Nhận",
+    "processing": "Đang Xử Lý",
+    "shipping": "Đang Giao",
+    "feedback": "Đánh Giá",
+    "viewAll": "Xem Tất Cả Đơn Hàng",
+    "finished": "Hoàn Thành",
+    "cancelled": "Đã Hủy",
+    "created": "Đã Tạo",
+    "assigning": "Đang Phân Công",
+    "confirm": "Xác Nhận",
+    "manageOrders": "Quản Lý Đơn Hàng",
+    "filterByStatus": "Lọc theo trạng thái",
+    "all": "Tất Cả",
+    "noOrdersFound": "Không Tìm Thấy Đơn Hàng",
+    "noOrdersMessage": "Bạn chưa đặt đơn hàng nào",
+    "noStatusOrders": "Không có đơn hàng {{status}}",
+    "loadingOrders": "Đang tải đơn hàng...",
+    "orderDetails": "Chi Tiết Đơn Hàng",
+    "orderId": "Mã Đơn Hàng",
+    "items": "sản phẩm",
+    "subtotal": "Tạm Tính",
+    "shippingFee": "Phí Vận Chuyển",
+    "total": "Tổng Cộng",
+    "leaveFeedback": "Đánh Giá",
+    "trackOrder": "Theo Dõi Đơn Hàng",
+    "viewDetails": "Xem Chi Tiết",
+    "orderDate": "Ngày Đặt Hàng",
+    "completePayment": "Hoàn Tất Thanh Toán",
+    "quantity": "SL",
+    "protein": "Protein",
+    "calories": "Calo",
+    "moreItems": "sản phẩm khác",
+    "trackingInfo": "Thông Tin Vận Chuyển",
+    "paymentMethod": "Phương Thức Thanh Toán",
+    "status": {
+      "created": "Đã Tạo",
+      "pending": "Chờ Xác Nhận",
+      "processing": "Đang Xử Lý",
+      "assigning": "Đang Phân Công",
+      "shipping": "Đang Giao",
+      "finished": "Hoàn Thành",
+      "cancelled": "Đã Hủy"
+    },
+    "paymentMethods": {
+      "cod": "Thanh Toán Khi Nhận Hàng",
+      "online": "Thanh Toán Online",
+      "vnpay": "VNPay",
+      "momo": "MoMo",
+      "zalopay": "ZaloPay"
+    }
   }
 }

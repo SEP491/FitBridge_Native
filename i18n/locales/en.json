@@ -91,6 +91,8 @@
     "packageDetail": "Package Details",
     "bookingDetail": "Booking Detail",
     "activityDetail": "Activity Detail",
+    "orderDetails": "Order Details",
+    "manageOrders": "Manage Orders",
     "schedulePT": "Schedule"
   },
 
@@ -157,6 +159,9 @@
   },
 
   "gym": {
+    "featuredGyms": "Featured Gyms",
+    "topRanked": "Top 10 Most Popular Gyms",
+    "noGyms": "No gyms available",
     "details": "Gym Details",
     "facilities": "Facilities",
     "packages": "Packages",
@@ -511,10 +516,14 @@
     "viewAll": "View All",
     "comingSoon": "Coming Soon",
     "loadMore": "Load More",
-    "no": "No"
+    "no": "No",
+    "lastUpdate": "Last Update"
   },
 
   "freelancePT": {
+    "featuredTrainers": "Featured Personal Trainers",
+    "topRanked": "Top 10 Ranked Trainers",
+    "noTrainers": "No trainers available",
     "packageDetail": "Package Details",
     "packageName": "Package Name",
     "trainer": "Personal Trainer",
@@ -735,6 +744,8 @@
     "manageTransaction": "Manage Transaction",
     "myCustomer": "My Customer",
     "customerDetail": "Customer Detail",
+    "myOrders": "My Orders",
+    "manageOrders": "Manage Orders",
     "myReports": "My Feedback"
   },
 
@@ -1286,7 +1297,9 @@
     "district": "District",
     "enterDistrict": "Enter district name",
     "city": "City",
-    "enterCity": "Enter city name"
+    "enterCity": "Enter city name",
+    "shippingAddress": "Shipping Address",
+    "paymentSummary": "Payment Summary"
   },
 
   "faq": {
@@ -2016,5 +2029,57 @@
     "productsFound": "products found",
     "noProductsFound": "No products found",
     "tryDifferentKeywords": "Try searching with different keywords"
+  },
+  "orders": {
+    "pending": "Pending",
+    "processing": "Processing",
+    "shipping": "Shipping",
+    "feedback": "Feedback",
+    "viewAll": "View All Orders",
+    "finished": "Finished",
+    "cancelled": "Cancelled",
+    "created": "Created",
+    "assigning": "Assigning",
+    "confirm": "Confirm",
+    "manageOrders": "Manage Orders",
+    "filterByStatus": "Filter by Status",
+    "all": "All",
+    "noOrdersFound": "No Orders Found",
+    "noOrdersMessage": "You haven't placed any orders yet",
+    "noStatusOrders": "No {{status}} orders",
+    "loadingOrders": "Loading orders...",
+    "orderDetails": "Order Details",
+    "orderId": "Order ID",
+    "items": "item(s)",
+    "subtotal": "Subtotal",
+    "shippingFee": "Shipping Fee",
+    "total": "Total",
+    "leaveFeedback": "Leave Feedback",
+    "trackOrder": "Track Order",
+    "viewDetails": "View Details",
+    "orderDate": "Order Date",
+    "completePayment": "Complete Payment",
+    "quantity": "Qty",
+    "protein": "Protein",
+    "calories": "Calories",
+    "moreItems": "more",
+    "trackingInfo": "Tracking Information",
+    "paymentMethod": "Payment Method",
+    "status": {
+      "created": "Created",
+      "pending": "Pending",
+      "processing": "Processing",
+      "assigning": "Assigning",
+      "shipping": "Shipping",
+      "finished": "Finished",
+      "cancelled": "Cancelled"
+    },
+    "paymentMethods": {
+      "cod": "Cash on Delivery",
+      "online": "Online Payment",
+      "vnpay": "VNPay",
+      "momo": "MoMo",
+      "zalopay": "ZaloPay"
+    }
   }
 }

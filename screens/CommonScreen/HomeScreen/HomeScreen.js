@@ -18,6 +18,9 @@ export default function HomeScreen() {
   const [user, setUser] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [showFullScreenSearch, setShowFullScreenSearch] = useState(false);
+  const [searchInitialTab, setSearchInitialTab] = useState("gyms");
+  
   const { t } = useTranslation();
   const { refreshLocation } = useLocationContext();
 
@@ -50,7 +53,12 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <HeaderHome user={user} />
+      <HeaderHome 
+        user={user} 
+        showFullScreenSearch={showFullScreenSearch} 
+        setShowFullScreenSearch={setShowFullScreenSearch}
+        initialTab={searchInitialTab}
+      />
       <ScrollView
         refreshControl={
           <RefreshControl
@@ -66,6 +74,11 @@ export default function HomeScreen() {
         <CarouselBannerSection />
         <FitnessSummarySection />
         <FreelancePTTrainersSection refreshTrigger={refreshTrigger} />
+        {/* <FreelancePTPackagesSection 
+          refreshTrigger={refreshTrigger} 
+          setShowFullScreenSearch={setShowFullScreenSearch}
+          setSearchInitialTab={setSearchInitialTab}
+        /> */}
         <FeaturedGymsSection refreshTrigger={refreshTrigger} />
         <NearbyGymsSection refreshTrigger={refreshTrigger} />
         <BlogSection />

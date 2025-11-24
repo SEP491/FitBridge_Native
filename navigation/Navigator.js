@@ -20,6 +20,8 @@ import FloatingVideoCall from "../components/FloatingVideoCall/FloatingVideoCall
 import HomeScreen from "../screens/CommonScreen/HomeScreen/HomeScreen";
 import GymDetailScreen from "../screens/CommonScreen/GymDetailScreen/GymDetailScreen";
 import PTInGymScreen from "../screens/CommonScreen/PTInGymScreen/PTInGymScreen";
+import FeaturedFreelancePTScreen from "../screens/CommonScreen/FeaturedFreelancePTScreen/FeaturedFreelancePTScreen";
+import FeaturedGymsScreen from "../screens/CommonScreen/FeaturedGymsScreen/FeaturedGymsScreen";
 import BlogScreen from "../screens/CommonScreen/BlogScreen/BlogScreen";
 import BlogDetailScreen from "../screens/CommonScreen/BlogDetailScreen/BlogDetailScreen";
 import PTProfileScreen from "../screens/CommonScreen/PTProfileScreen/PTProfileScreen";
@@ -53,6 +55,8 @@ import TransactionHistoryScreen from "../screens/CustomerScreen/TransactionHisto
 import MyPackageScreen from "../screens/CustomerScreen/MyPackageScreen/MyPackageScreen";
 import MyReportsScreen from "../screens/CustomerScreen/MyReportsScreen/MyReportsScreen";
 import VoucherScreen from "../screens/CustomerScreen/VoucherScreen/VoucherScreen";
+import ManageOrderScreen from "../screens/CustomerScreen/ManageOrderScreen/ManageOrderScreen";
+import OrderDetailScreen from "../screens/CustomerScreen/OrderDetailScreen/OrderDetailScreen";
 import FAQScreen from "../screens/CommonScreen/FAQScreen/FAQScreen";
 import ManageVoucherScreen from "./../screens/FreelancePTScreen/ManageVoucherScreen/ManageVoucherScreen";
 import ManagePackageScreen from "./../screens/FreelancePTScreen/ManagePackageScreen/ManagePackageScreen";
@@ -213,6 +217,20 @@ export default function Navigator({
             headerTitleAlign: "center",
             headerShown: true,
             title: t("screenTitles.ptList"),
+          }}
+        />
+        <Stack.Screen
+          name="FeaturedFreelancePTScreen"
+          component={FeaturedFreelancePTScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="FeaturedGymsScreen"
+          component={FeaturedGymsScreen}
+          options={{
+            headerShown: false,
           }}
         />
         <Stack.Screen
@@ -1406,6 +1424,34 @@ export default function Navigator({
           options={{
             headerShown: true,
             title: t("screenTitles.offers"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="ManageOrderScreen"
+          component={ManageOrderScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.manageOrders"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="OrderDetailScreen"
+          component={OrderDetailScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.orderDetails"),
             headerTitleAlign: "center",
             headerTitleStyle: {
               fontWeight: "bold",
