@@ -89,7 +89,7 @@ export default function PaymentScreen({ navigation, route }) {
         addressId: addressId,
       });
       console.log("Estimated shipping price:", response);
-      return response.data;
+      return response.data?.total_pay || 0;
     } catch (error) {
       console.error("Error estimating shipping price:", error);
       return 0;

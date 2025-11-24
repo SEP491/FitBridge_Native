@@ -32,13 +32,13 @@ export default function PaymentMethodSection({
 
         <TouchableOpacity
           style={styles.paymentOption}
-          onPress={() => onSelectMethod("qr")}
+          onPress={() => onSelectMethod("cod")}
         >
           <View style={styles.paymentLeft}>
-            <MaterialIcons name="qr-code" size={30} color="#ED2A46" />
-            <Text>{t("payment.qrCode")}</Text>
+            <MaterialIcons name="local-shipping" size={30} color="#ED2A46" />
+            <Text>{t("payment.cashOnDelivery")}</Text>
           </View>
-          {selectedMethod === "qr" && (
+          {selectedMethod === "cod" && (
             <MaterialIcons name="check-circle" size={24} color="#ED2A46" />
           )}
         </TouchableOpacity>
