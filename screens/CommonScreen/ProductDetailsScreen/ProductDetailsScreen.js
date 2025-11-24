@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import {
   View,
   Text,
@@ -19,6 +19,8 @@ import { useTranslation } from "../../../hooks/useTranslation";
 import { useCart } from "../../../context/CartContext";
 import colors from "../../../constants/color";
 import productService from "../../../services/productService";
+import addressService from "../../../services/addressService";
+import orderService from "../../../services/orderService";
 
 export default function ProductDetailsScreen() {
   const navigation = useNavigation();
@@ -28,7 +30,6 @@ export default function ProductDetailsScreen() {
   const { product } = route.params;
 
   const [quantity, setQuantity] = useState(1);
-  const [selectedTab, setSelectedTab] = useState("description");
   const [productDetails, setProductDetails] = useState(null);
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -39,10 +40,64 @@ export default function ProductDetailsScreen() {
   const [selectedFlavour, setSelectedFlavour] = useState(null);
   const [availableWeights, setAvailableWeights] = useState([]);
   const [availableFlavours, setAvailableFlavours] = useState([]);
+  const [addresses, setAddresses] = useState([]);
+  const [selectedAddress, setSelectedAddress] = useState(null);
+  const [shippingInfo, setShippingInfo] = useState(null);
+  const [shippingModalVisible, setShippingModalVisible] = useState(false);
+  const [shippingModalTab, setShippingModalTab] = useState("details"); // 'details' or 'addresses'
+  const [shippingLoading, setShippingLoading] = useState(false);
 
   useEffect(() => {
     fetchProductDetails();
   }, [product.id]);
+  console.log("Product Details:", productDetails);
+  const fetchAddresses = async () => {
+    try {
+      setLoading(true);
+      const response = await addressService.getAllAddresses();
+      setAddresses(response.data);
+      if (selectedAddress === null && response.data.length > 0) {
+        setSelectedAddress(response.data[0]);
+      }
+    } catch (error) {
+      console.error("Error fetching addresses:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const shippingPriceEstimate = async (addressId) => {
+    setShippingLoading(true);
+    try {
+      const response = await orderService.orderShippingPriceEstimate({
+        addressId: addressId,
+      });
+      console.log("Estimated shipping price:", response);
+      const data = response.data || {};
+      setShippingInfo({
+        price: data.total_pay || 0,
+        distance: data.distance || 0,
+        duration: data.duration || 0,
+      });
+      return data.total_pay || 0;
+    } catch (error) {
+      console.error("Error estimating shipping price:", error);
+      setShippingInfo(null);
+      return 0;
+    } finally {
+      setShippingLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAddresses();
+  }, []);
+
+  useEffect(() => {
+    if (selectedAddress) {
+      shippingPriceEstimate(selectedAddress.id);
+    }
+  }, [selectedAddress]);
 
   const fetchProductDetails = async () => {
     try {
@@ -111,6 +166,16 @@ export default function ProductDetailsScreen() {
     }).format(price);
   };
 
+  const getEstimatedDeliveryDate = (durationInSeconds) => {
+    if (!durationInSeconds) return null;
+    const now = new Date();
+    const deliveryDate = new Date(now.getTime() + durationInSeconds * 1000);
+    return deliveryDate.toLocaleDateString("vi-VN", {
+      day: "2-digit",
+      month: "long",
+    });
+  };
+
   const findVariantBySelection = (weightId, flavourId) => {
     if (!productDetails?.productDetails) return null;
     return productDetails.productDetails.find(
@@ -120,13 +185,13 @@ export default function ProductDetailsScreen() {
 
   const handleWeightChange = (weight) => {
     setSelectedWeight(weight);
-    
+
     // Check if current flavour is available for this weight
     const currentVariant = findVariantBySelection(
       weight.weightId,
       selectedFlavour?.flavourId
     );
-    
+
     if (currentVariant && currentVariant.quantity > 0) {
       // Current flavour is available, use it
       setSelectedVariant(currentVariant);
@@ -136,7 +201,7 @@ export default function ProductDetailsScreen() {
       const availableVariant = productDetails?.productDetails?.find(
         (v) => v.weightId === weight.weightId && v.quantity > 0
       );
-      
+
       if (availableVariant) {
         const newFlavour = availableFlavours.find(
           (f) => f.flavourId === availableVariant.flavourId
@@ -160,6 +225,12 @@ export default function ProductDetailsScreen() {
         setQuantity(1);
       }
     }
+  };
+
+  const handleSelectAddressFromModal = (address) => {
+    setSelectedAddress(address);
+    shippingPriceEstimate(address.id);
+    setShippingModalTab("details");
   };
 
   const discountPercentage = selectedVariant
@@ -317,25 +388,6 @@ export default function ProductDetailsScreen() {
         </View>
         {/* Product Info */}
         <View style={styles.infoSection}>
-          <Text style={styles.productName}>{product.name}</Text>
-
-          <View style={styles.ratingRow}>
-            <View style={styles.ratingContainer}>
-              <Ionicons name="star" size={16} color="#FFA500" />
-              <Text style={styles.ratingText}>
-                {product.rating > 0 ? product.rating.toFixed(1) : "N/A"}
-              </Text>
-            </View>
-            <Text style={styles.separator}>|</Text>
-            <Text style={styles.reviewsText}>
-              {product.totalReviews || 0} {t("product.reviews")}
-            </Text>
-            <Text style={styles.separator}>|</Text>
-            <Text style={styles.soldText}>
-              {t("product.sold")}: {product.totalSoldQuantity || 0}
-            </Text>
-          </View>
-
           <View style={styles.priceRow}>
             <Text style={styles.salePrice}>
               {formatPrice(selectedVariant?.salePrice || product.salePrice)}
@@ -348,16 +400,38 @@ export default function ProductDetailsScreen() {
               </Text>
             )}
           </View>
+          <Text style={styles.productName}>{product.name}</Text>
 
-          {product.countryOfOrigin && (
-            <View style={styles.originRow}>
-              <Ionicons name="location-outline" size={16} color="#666" />
-              <Text style={styles.originLabel}>{t("product.origin")}:</Text>
-              <Text style={styles.originValue}>{product.countryOfOrigin}</Text>
+          <View style={styles.originAndRatingRow}>
+            <View style={styles.ratingRow}>
+              <View style={styles.ratingContainer}>
+                <Ionicons name="star" size={16} color="#FFA500" />
+                <Text style={styles.ratingText}>
+                  {product.rating > 0 ? product.rating.toFixed(1) : "N/A"}
+                </Text>
+              </View>
+              <Text style={styles.separator}>|</Text>
+              <Text style={styles.reviewsText}>
+                {product.totalReviews || 0} {t("product.reviews")}
+              </Text>
+              <Text style={styles.separator}>|</Text>
+              <Text style={styles.soldText}>
+                {t("product.sold")}: {product.totalSoldQuantity || 0}
+              </Text>
             </View>
-          )}
 
-          {/* Stock Status */}
+            {product.countryOfOrigin && (
+              <View style={styles.originRow}>
+                <Ionicons name="location-outline" size={16} color="#666" />
+                <Text style={styles.originLabel}>{t("product.origin")}:</Text>
+                <Text style={styles.originValue}>
+                  {product.countryOfOrigin}
+                </Text>
+              </View>
+            )}
+          </View>
+
+          {/* Stock Status
           <View style={styles.stockRow}>
             <Ionicons
               name={
@@ -389,14 +463,62 @@ export default function ProductDetailsScreen() {
                   } ${t("product.available")})`
                 : t("product.outOfStock")}
             </Text>
-          </View>
-        </View>
+          </View> */}
 
-        {/* Weight Selector */}
+          {/* Shipping Information */}
+          {shippingInfo && shippingInfo.price > 0 && (
+            <TouchableOpacity 
+              style={styles.shippingSection}
+              onPress={() => setShippingModalVisible(true)}
+            >
+              <View style={styles.shippingRow}>
+                <Ionicons name="cube-outline" size={20} color="#0d0f11ff" />
+                <View style={styles.shippingInfo}>
+                  <Text style={styles.shippingLabel}>
+                    {t("product.shippingPrice")}:
+                  </Text>
+                  {shippingLoading ? (
+                    <ActivityIndicator size="small" color={colors.red} />
+                  ) : (
+                    <Text style={styles.shippingPrice}>
+                      {formatPrice(shippingInfo.price)}
+                    </Text>
+                  )}
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#999" />
+              </View>
+              {shippingInfo.duration > 0 && (
+                <View style={styles.deliveryRow}>
+                  <Text style={styles.deliveryText}>
+                    {t("product.estimatedDelivery")}:{" "}
+                    <Text style={styles.deliveryDate}>
+                      {getEstimatedDeliveryDate(shippingInfo.duration)}
+                    </Text>
+                    -
+                    <Text style={styles.deliveryDate}>
+                      {getEstimatedDeliveryDate(shippingInfo.duration * 20)}
+                    </Text>
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+            )}
+          </View>
+          
         {availableWeights.length > 0 && (
           <View style={styles.variantSection}>
             <View style={styles.variantHeader}>
-              <Text style={styles.variantLabel}>Select Weight:</Text>
+              <View style={styles.variantRow}>
+                <Text style={styles.variantLabel}>
+                  {t("product.selectProductTypes")}
+                </Text>
+                <Text style={styles.subvariantLabel}>
+                  {"("}
+                  {availableWeights.length} {t("product.options")},{" "}
+                  {availableFlavours.length} {t("product.flavour")}
+                  {")"}
+                </Text>
+              </View>
               <TouchableOpacity onPress={() => setVariantModalVisible(true)}>
                 <Text style={styles.viewAllText}>View All</Text>
               </TouchableOpacity>
@@ -435,7 +557,9 @@ export default function ProductDetailsScreen() {
         {availableFlavours.length > 0 && (
           <View style={styles.variantSection}>
             <View style={styles.variantHeader}>
-              <Text style={styles.variantLabel}>Select Flavour:</Text>
+              <Text style={styles.variantLabel}>
+                {t("product.selectFlavour")}
+              </Text>
             </View>
             <ScrollView
               horizontal
@@ -484,53 +608,120 @@ export default function ProductDetailsScreen() {
           </View>
         )}
 
-        {/* Tabs */}
-        <View style={styles.tabsContainer}>
-          <TouchableOpacity
-            style={[
-              styles.tab,
-              selectedTab === "description" && styles.activeTab,
-            ]}
-            onPress={() => setSelectedTab("description")}
-          >
-            <Text
-              style={[
-                styles.tabText,
-                selectedTab === "description" && styles.activeTabText,
-              ]}
-            >
-              {t("product.description")}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tab, selectedTab === "reviews" && styles.activeTab]}
-            onPress={() => setSelectedTab("reviews")}
-          >
-            <Text
-              style={[
-                styles.tabText,
-                selectedTab === "reviews" && styles.activeTabText,
-              ]}
-            >
-              {t("product.reviews")}
-            </Text>
-          </TouchableOpacity>
-        </View>
+        {/* Description and Reviews Section */}
+        <View style={styles.descriptionSection}>
+          <Text style={styles.sectionTitle}>{t("product.description")}</Text>
 
-        {/* Tab Content */}
-        <View style={styles.tabContent}>
-          {selectedTab === "description" ? (
-            <Text style={styles.descriptionText}>
-              {product.description || t("product.noDescription")}
-            </Text>
-          ) : (
-            <View style={styles.reviewsEmpty}>
-              <Ionicons name="chatbubbles-outline" size={48} color="#CCC" />
-              <Text style={styles.reviewsEmptyText}>
-                {t("product.noReviews")}
+          {/* Product Details Grid */}
+          <View style={styles.detailsGrid}>
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>{t("product.brandName")}:</Text>
+              <Text style={styles.detailValue}>
+                {productDetails?.brandName || "N/A"}
               </Text>
             </View>
-          )}
+
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>{t("product.category")}:</Text>
+              <Text style={styles.detailValue}>
+                {productDetails?.subCategoryName || "N/A"}
+              </Text>
+            </View>
+
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>{t("product.weight")}:</Text>
+              <Text style={styles.detailValue}>
+                {availableWeights
+                  .map((w) => w.weightValue + " " + w.weightUnit)
+                  .join(", ")}
+              </Text>
+            </View>
+
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>{t("product.flavour")}:</Text>
+              <Text style={styles.detailValue}>
+                {availableFlavours.map((f) => f.flavourName).join(", ")}
+              </Text>
+            </View>
+
+            {productDetails?.proteinSources && (
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>
+                  {t("product.proteinSources")}:
+                </Text>
+                <Text style={styles.detailValue}>
+                  {productDetails?.proteinSources}
+                </Text>
+              </View>
+            )}
+
+            {productDetails?.productDetails[0]?.bcaaPerServingGrams && (
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>
+                  {t("product.bcaaPerServing")}:
+                </Text>
+                <Text style={styles.detailValue}>
+                  {productDetails?.productDetails[0]?.bcaaPerServingGrams}g/{" "}
+                  {t("product.perServingTime")}
+                </Text>
+              </View>
+            )}
+
+            {productDetails?.productDetails[0]?.caloriesPerServingKcal && (
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>
+                  {t("product.caloriesPerServingKcal")}:
+                </Text>
+                <Text style={styles.detailValue}>
+                  {productDetails?.productDetails[0]?.caloriesPerServingKcal}
+                  kcal/ {t("product.perServingTime")}
+                </Text>
+              </View>
+            )}
+
+            {productDetails?.productDetails[0]?.proteinPerServingGrams && (
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>
+                  {t("product.proteinPerServingGrams")}:
+                </Text>
+                <Text style={styles.detailValue}>
+                  {productDetails?.productDetails[0]?.proteinPerServingGrams}g/{" "}
+                  {t("product.perServingTime")}
+                </Text>
+              </View>
+            )}
+
+            {productDetails?.countryOfOrigin && (
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>
+                  {t("product.countryOfOrigin")}:
+                </Text>
+                <Text style={styles.detailValue}>
+                  {productDetails?.countryOfOrigin}
+                </Text>
+              </View>
+            )}
+            {productDetails?.description && (
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>
+                  {t("product.additionalInfo")}:
+                </Text>
+                <Text style={styles.detailValue}>
+                  {productDetails?.description}
+                </Text>
+              </View>
+            )}
+          </View>
+
+          <Text style={[styles.sectionTitle, { marginTop: 24 }]}>
+            {t("product.reviews")}
+          </Text>
+          <View style={styles.reviewsEmpty}>
+            <Ionicons name="chatbubbles-outline" size={48} color="#CCC" />
+            <Text style={styles.reviewsEmptyText}>
+              {t("product.noReviews")}
+            </Text>
+          </View>
         </View>
       </ScrollView>
 
@@ -796,6 +987,144 @@ export default function ProductDetailsScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Shipping Modal */}
+      <Modal
+        visible={shippingModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => {
+          setShippingModalVisible(false);
+          setShippingModalTab("details");
+        }}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              {shippingModalTab === "addresses" && (
+                <TouchableOpacity
+                  onPress={() => setShippingModalTab("details")}
+                  style={styles.modalBackButton}
+                >
+                  <Ionicons name="arrow-back" size={24} color="#333" />
+                </TouchableOpacity>
+              )}
+              <Text style={styles.modalTitle}>
+                {shippingModalTab === "details" 
+                  ? t("product.shippingDetails") 
+                  : t("product.selectAddress")}
+              </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  setShippingModalVisible(false);
+                  setShippingModalTab("details");
+                }}
+                style={styles.modalCloseButton}
+              >
+                <Ionicons name="close" size={24} color="#333" />
+              </TouchableOpacity>
+            </View>
+
+            {shippingModalTab === "details" ? (
+              <ScrollView showsVerticalScrollIndicator={false}>
+                {/* Delivery Address Section */}
+                <View style={styles.modalSection}>
+                  <Text style={styles.modalSectionTitle}>{t("product.deliveryAddress")}</Text>
+                  <TouchableOpacity
+                    style={styles.addressSelectCard}
+                    onPress={() => setShippingModalTab("addresses")}
+                  >
+                    <View style={styles.addressCardContent}>
+                      <Ionicons name="location" size={24} color={colors.red} />
+                      <View style={styles.addressCardInfo}>
+                        <Text style={styles.addressCardName}>
+                          {selectedAddress?.receiverName}
+                        </Text>
+                        <Text style={styles.addressCardPhone}>
+                          {selectedAddress?.phoneNumber}
+                        </Text>
+                        <Text style={styles.addressCardAddress} numberOfLines={2}>
+                          {selectedAddress?.googleMapAddressString}
+                        </Text>
+                      </View>
+                    </View>
+                    <Ionicons name="chevron-forward" size={24} color="#999" />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Shipping Method Section */}
+                <View style={styles.modalSection}>
+                  <Text style={styles.modalSectionTitle}>{t("product.shippingMethod")}</Text>
+                  <View style={styles.shippingMethodCard}>
+                    <View style={styles.shippingMethodContent}>
+                      <Ionicons name="cube-outline" size={24} color={colors.red} />
+                      <View style={styles.shippingMethodInfo}>
+                        <Text style={styles.shippingMethodName}>
+                          {t("product.standardShipping")}
+                        </Text>
+                        <Text style={styles.shippingMethodTime}>
+                          {t("product.estimatedDelivery")}: {" "}
+                          {getEstimatedDeliveryDate(shippingInfo?.duration)} - {getEstimatedDeliveryDate(shippingInfo?.duration * 20)}
+                        </Text>
+                      </View>
+                      
+                      {shippingLoading ? (
+                        <ActivityIndicator size="small" color={colors.red} />
+                      ) : (
+                        <Text style={styles.shippingMethodPrice}>
+                          {formatPrice(shippingInfo?.price || 0)}
+                        </Text>
+                      )}
+                    </View>
+                  </View>
+                </View>
+              </ScrollView>
+            ) : (
+              <ScrollView showsVerticalScrollIndicator={false}>
+                {addresses.map((address) => (
+                  <TouchableOpacity
+                    key={address.id}
+                    style={[
+                      styles.addressListItem,
+                      selectedAddress?.id === address.id && styles.addressListItemSelected
+                    ]}
+                    onPress={() => handleSelectAddressFromModal(address)}
+                  >
+                    <View style={styles.addressListAddress}>
+                    <Ionicons name="location" size={20} color={colors.red} />
+                      <View style={styles.addressListContent}>
+                        
+                        <Text style={styles.addressListName}>
+                          {address.receiverName}
+                        </Text>
+                        {address.isDefault && (
+                          <View style={styles.defaultBadge}>
+                            <Text style={styles.defaultBadgeText}>
+                              {t("product.default")}
+                            </Text>
+                          </View>
+                        )}
+                        <Text style={styles.addressListPhone}>
+                        {address.phoneNumber}
+                      </Text>
+                      <Text style={styles.addressListAddress} numberOfLines={2}>
+                        {address.googleMapAddressString}
+                      </Text>
+                      </View>
+                      
+                    </View>
+                    {selectedAddress?.id === address.id && (
+                      <Ionicons name="checkmark-circle" size={24} color={colors.red} />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            )}
+          </View>
+        </View>
+      </Modal>
+
+
     </SafeAreaView>
   );
 }
@@ -881,6 +1210,11 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     lineHeight: 28,
   },
+  originAndRatingRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+  },
   ratingRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -912,7 +1246,7 @@ const styles = StyleSheet.create({
   priceRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: 8,
     gap: 12,
   },
   salePrice: {
@@ -928,7 +1262,6 @@ const styles = StyleSheet.create({
   originRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 12,
     gap: 6,
   },
   originLabel: {
@@ -949,6 +1282,71 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
   },
+  shippingSection: {
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: "#F0F0F0",
+  },
+  shippingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 8,
+  },
+  shippingInfo: {
+    flex: 1,
+    flexDirection: "row",
+    gap: 8,
+    alignItems: "center",
+  },
+  shippingLabel: {
+    fontSize: 14,
+    color: "#666",
+    fontWeight: "500",
+  },
+  shippingPrice: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#ED2A46",
+  },
+  deliveryRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingLeft: 32,
+  },
+  deliveryText: {
+    fontSize: 13,
+    color: "#666",
+  },
+  deliveryDate: {
+    fontWeight: "600",
+    color: "#52C41A",
+  },
+  addressRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginTop: 8,
+  },
+  addressInfo: {
+    flex: 1,
+    flexDirection: "row",
+    gap: 8,
+    alignItems: "center",
+  },
+  addressLabel: {
+    fontSize: 14,
+    color: "#666",
+    fontWeight: "500",
+  },
+  addressValue: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#333",
+    flex: 1,
+  },
+
   quantitySection: {
     backgroundColor: "#FFFFFF",
     padding: 16,
@@ -990,11 +1388,37 @@ const styles = StyleSheet.create({
     padding: 16,
     marginTop: 8,
   },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#333",
+    marginBottom: 12,
+  },
   descriptionText: {
     fontSize: 14,
     color: "#666",
     lineHeight: 22,
-    marginTop: 12,
+  },
+  detailsGrid: {},
+  detailRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderBottomWidth: 1,
+    borderBottomColor: "#F0F0F0",
+    paddingVertical: 16,
+  },
+  detailLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#666",
+    width: 200,
+    flexShrink: 0,
+  },
+  detailValue: {
+    fontSize: 14,
+    color: "#333",
+    flex: 1,
+    flexShrink: 0,
   },
   bottomActions: {
     flexDirection: "row",
@@ -1039,34 +1463,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#FFFFFF",
   },
-  tabsContainer: {
-    flexDirection: "row",
-    backgroundColor: "#FFFFFF",
-    marginTop: 8,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 16,
-    alignItems: "center",
-    borderBottomWidth: 2,
-    borderBottomColor: "#E0E0E0",
-  },
-  activeTab: {
-    borderBottomColor: colors.red,
-  },
-  tabText: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#666",
-  },
-  activeTabText: {
-    color: colors.red,
-  },
-  tabContent: {
-    backgroundColor: "#FFFFFF",
-    padding: 16,
-    minHeight: 200,
-  },
   reviewsEmpty: {
     alignItems: "center",
     justifyContent: "center",
@@ -1091,9 +1487,18 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   variantLabel: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: "600",
     color: "#333",
+  },
+  variantRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  subvariantLabel: {
+    fontSize: 12,
+    color: "#666",
   },
   viewAllText: {
     fontSize: 12,
@@ -1149,13 +1554,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "flex-end",
+    
   },
   modalContent: {
     backgroundColor: "#FFFFFF",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    maxHeight: "80%",
-    paddingBottom: 20,
+    height: 700,
+    paddingBottom: 10,
   },
   modalHeader: {
     flexDirection: "row",
@@ -1172,6 +1578,10 @@ const styles = StyleSheet.create({
   },
   modalCloseButton: {
     padding: 4,
+  },
+  modalBackButton: {
+    padding: 4,
+    marginRight: 8,
   },
   modalVariantList: {
     padding: 12,
@@ -1407,5 +1817,120 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
     color: "#FFFFFF",
+  },
+  // Shipping modal styles
+  addressSelectCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 12,
+    backgroundColor: "#F8F9FA",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+  },
+  addressCardContent: {
+    flex: 1,
+    flexDirection: "row",
+    gap: 12,
+  },
+  addressCardInfo: {
+    flex: 1,
+  },
+  addressCardName: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#333",
+    marginBottom: 4,
+  },
+  addressCardPhone: {
+    fontSize: 13,
+    color: "#666",
+    marginBottom: 4,
+  },
+  addressCardAddress: {
+    fontSize: 12,
+    color: "#666",
+    lineHeight: 18,
+  },
+  shippingMethodCard: {
+    padding: 12,
+    backgroundColor: "#F8F9FA",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.red,
+  },
+  shippingMethodContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  shippingMethodInfo: {
+    flex: 1,
+  },
+  shippingMethodName: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#333",
+    marginBottom: 4,
+  },
+  shippingMethodTime: {
+    fontSize: 12,
+    color: "#666",
+  },
+  shippingMethodPrice: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: colors.red,
+  },
+  addressListItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 20,
+    borderWidth: 2,
+    borderColor: "#F0F0F0",
+    margin:5,
+    marginHorizontal: 12,
+    borderRadius: 8,
+  },
+  addressListItemSelected: {
+    backgroundColor: "#FFF5F7",
+  },
+  addressListContent: {
+    flexDirection: "column",
+    flex: 1,
+  },
+  addressListHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 6,
+    gap: 8,
+  },
+  addressListName: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#333",
+  },
+  defaultBadge: {
+    backgroundColor: colors.red,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  defaultBadgeText: {
+    fontSize: 10,
+    fontWeight: "600",
+    color: "#FFFFFF",
+  },
+  addressListPhone: {
+    fontSize: 13,
+    color: "#666",
+    marginBottom: 4,
+  },
+  addressListAddress: {
+    flexDirection: "row",
+    flex: 1,
+    fontSize: 12,
+    color: "#666",
+    lineHeight: 18,
   },
 });

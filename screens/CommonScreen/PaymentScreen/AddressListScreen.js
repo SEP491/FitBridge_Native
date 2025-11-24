@@ -21,15 +21,14 @@ export default function AddressListScreen({ navigation, route }) {
   const [selectedAddressId, setSelectedAddressId] = useState(null);
 
 
-  useEffect(() => {
-    // Listen for new address from AddressSelectionScreen
-    const unsubscribe = navigation.addListener('focus', () => {
-      if (route.params?.newAddress) {
-        fetchAddresses();
-      }
-    });
-    return unsubscribe;
-  }, [navigation, route.params?.newAddress]);
+useEffect(() => {
+  const unsubscribe = navigation.addListener('focus', () => {
+    console.log("AddressListScreen focused");
+    // Always refresh when coming back to this screen
+    fetchAddresses();
+  });
+  return unsubscribe;
+}, [navigation]);
 
   const fetchAddresses = async () => {
     try {
@@ -138,17 +137,7 @@ export default function AddressListScreen({ navigation, route }) {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <MaterialIcons name="arrow-back" size={24} color="#333" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t("payment.selectAddress")}</Text>
-        <View style={styles.placeholder} />
-      </View>
+
 
       {/* Content */}
       {loading ? (

@@ -24,7 +24,6 @@ import {
   buildPlaceDetailsUrl,
 } from "../../../config/googleMaps";
 
-
 export default function AddressSelectionScreen({ navigation, route }) {
   const { t } = useTranslation();
   const { onSelectAddress, currentAddress } = route.params || {};
@@ -93,7 +92,7 @@ export default function AddressSelectionScreen({ navigation, route }) {
   const getCurrentLocation = async () => {
     try {
       setLoading(true);
-      
+
       // Request permission
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
@@ -165,7 +164,7 @@ export default function AddressSelectionScreen({ navigation, route }) {
         setAddressDetail(
           [address.streetNumber, address.street].filter(Boolean).join(" ")
         );
-        
+
         // Set individual address components
         setHouseNumber(address.streetNumber || "");
         setStreet(address.street || "");
@@ -196,7 +195,7 @@ export default function AddressSelectionScreen({ navigation, route }) {
       const url = buildAutocompleteUrl(input);
       console.log("Fetching predictions for:", input);
       console.log("API URL:", url);
-      
+
       const response = await fetch(url);
       const data = await response.json();
 
@@ -274,12 +273,16 @@ export default function AddressSelectionScreen({ navigation, route }) {
           longitude: lng,
         });
         setFullAddress(formatted_address);
-        
+
         // Parse the formatted address into components
-        const addressParts = formatted_address.split(',').map(part => part.trim());
+        const addressParts = formatted_address
+          .split(",")
+          .map((part) => part.trim());
         if (addressParts.length >= 1) {
           const firstPart = addressParts[0];
-          const houseNumberMatch = firstPart.match(/^([0-9]+[A-Za-z]?(?:\/[0-9]+)?)\s+(.+)$/);
+          const houseNumberMatch = firstPart.match(
+            /^([0-9]+[A-Za-z]?(?:\/[0-9]+)?)\s+(.+)$/
+          );
           if (houseNumberMatch) {
             setHouseNumber(houseNumberMatch[1]);
             setStreet(houseNumberMatch[2]);
@@ -289,13 +292,21 @@ export default function AddressSelectionScreen({ navigation, route }) {
           }
         }
         if (addressParts.length >= 2) {
-          setWard(addressParts[1].replace(/^(Phường|Ward|Xã)\s+/i, '').trim());
+          setWard(addressParts[1].replace(/^(Phường|Ward|Xã)\s+/i, "").trim());
         }
         if (addressParts.length >= 3) {
-          setDistrict(addressParts[2].replace(/^(Quận|District|Huyện)\s+/i, '').trim());
+          setDistrict(
+            addressParts[2].replace(/^(Quận|District|Huyện)\s+/i, "").trim()
+          );
         }
         if (addressParts.length >= 4) {
-          setCity(addressParts.slice(3).join(', ').replace(/^(Thành phố|Tỉnh|City|Province)\s+/i, '').trim());
+          setCity(
+            addressParts
+              .slice(3)
+              .join(", ")
+              .replace(/^(Thành phố|Tỉnh|City|Province)\s+/i, "")
+              .trim()
+          );
         }
 
         if (mapRef.current) {
@@ -382,13 +393,19 @@ export default function AddressSelectionScreen({ navigation, route }) {
 
     try {
       setLoading(true);
-      
+
       // Use state variables for address components
       const noteText = addressDetail.trim() || "";
 
       // Ensure latitude and longitude are numbers
-      const lat = typeof markerPosition.latitude === 'number' ? markerPosition.latitude : parseFloat(markerPosition.latitude) || 0;
-      const lng = typeof markerPosition.longitude === 'number' ? markerPosition.longitude : parseFloat(markerPosition.longitude) || 0;
+      const lat =
+        typeof markerPosition.latitude === "number"
+          ? markerPosition.latitude
+          : parseFloat(markerPosition.latitude) || 0;
+      const lng =
+        typeof markerPosition.longitude === "number"
+          ? markerPosition.longitude
+          : parseFloat(markerPosition.longitude) || 0;
 
       // Create address via API - matching exact body structure
       const createAddressData = {
@@ -406,7 +423,7 @@ export default function AddressSelectionScreen({ navigation, route }) {
       };
 
       console.log("Creating address with data:", createAddressData);
-      
+
       // Call API to create address
       const response = await addressService.createAddress(createAddressData);
       console.log("Address created successfully:", response);
@@ -437,13 +454,19 @@ export default function AddressSelectionScreen({ navigation, route }) {
         onSelectAddress(addressData);
       }
 
-      navigation.goBack();
+      // Navigate back with refresh flag
+      navigation.goBack({
+        refreshAddresses: true,
+        newAddress: addressData,
+      });
     } catch (error) {
       console.error("Error creating address:", error);
       console.error("Error details:", error.response?.data);
       Alert.alert(
-        t("common.error"), 
-        error.response?.data?.message || error.message || "Failed to create address. Please try again."
+        t("common.error"),
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to create address. Please try again."
       );
     } finally {
       setLoading(false);
@@ -451,7 +474,7 @@ export default function AddressSelectionScreen({ navigation, route }) {
   };
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={Platform.OS === "ios" ? 140 : 0}
@@ -502,7 +525,8 @@ export default function AddressSelectionScreen({ navigation, route }) {
         {showPredictions && predictions.length > 0 && (
           <View style={styles.predictionsContainer}>
             <Text style={styles.predictionsHeader}>
-              {predictions.length} {predictions.length === 1 ? 'result' : 'results'}
+              {predictions.length}{" "}
+              {predictions.length === 1 ? "result" : "results"}
             </Text>
             <FlatList
               data={predictions}
@@ -523,7 +547,10 @@ export default function AddressSelectionScreen({ navigation, route }) {
                     <Text style={styles.predictionMainText} numberOfLines={1}>
                       {item.structured_formatting.main_text}
                     </Text>
-                    <Text style={styles.predictionSecondaryText} numberOfLines={1}>
+                    <Text
+                      style={styles.predictionSecondaryText}
+                      numberOfLines={1}
+                    >
                       {item.structured_formatting.secondary_text}
                     </Text>
                   </View>
@@ -535,8 +562,6 @@ export default function AddressSelectionScreen({ navigation, route }) {
           </View>
         )}
 
-       
-
         {/* Address Form */}
         <ScrollView
           style={styles.formContainer}
@@ -544,38 +569,38 @@ export default function AddressSelectionScreen({ navigation, route }) {
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={styles.scrollContent}
         >
-         {/* Map */}
-        <View style={styles.mapContainer}>
-          <MapView
-            ref={mapRef}
-            style={styles.map}
-            initialRegion={region}
-            onPress={handleMapPress}
-            showsUserLocation={true}
-            showsMyLocationButton={false}
-            customMapStyle={MapStyle}
-            showsPointsOfInterest={false}
-          >
-            <Marker 
-              coordinate={markerPosition} 
-              draggable 
-              onDragEnd={handleMapPress}
-              tracksViewChanges={false}
+          {/* Map */}
+          <View style={styles.mapContainer}>
+            <MapView
+              ref={mapRef}
+              style={styles.map}
+              initialRegion={region}
+              onPress={handleMapPress}
+              showsUserLocation={true}
+              showsMyLocationButton={false}
+              customMapStyle={MapStyle}
+              showsPointsOfInterest={false}
             >
-              <View style={styles.markerContainer}>
-                <MaterialIcons name="location-on" size={40} color="#ED2A46" />
-              </View>
-            </Marker>
-          </MapView>
+              <Marker
+                coordinate={markerPosition}
+                draggable
+                onDragEnd={handleMapPress}
+                tracksViewChanges={false}
+              >
+                <View style={styles.markerContainer}>
+                  <MaterialIcons name="location-on" size={40} color="#ED2A46" />
+                </View>
+              </Marker>
+            </MapView>
 
-          {/* Center Marker Hint */}
-          <View style={styles.mapHint}>
-            <MaterialIcons name="info-outline" size={16} color="#666" />
-            <Text style={styles.mapHintText}>
-              {t("payment.tapMapToSelectLocation")}
-            </Text>
+            {/* Center Marker Hint */}
+            <View style={styles.mapHint}>
+              <MaterialIcons name="info-outline" size={16} color="#666" />
+              <Text style={styles.mapHintText}>
+                {t("payment.tapMapToSelectLocation")}
+              </Text>
+            </View>
           </View>
-        </View>
           {/* Selected Address Display */}
           <View style={styles.formSection}>
             <Text style={styles.sectionLabel}>
@@ -592,7 +617,8 @@ export default function AddressSelectionScreen({ navigation, route }) {
           {/* Recipient Name */}
           <View style={styles.formSection}>
             <Text style={styles.label}>
-              {t("payment.recipientName")} <Text style={styles.required}>*</Text>
+              {t("payment.recipientName")}{" "}
+              <Text style={styles.required}>*</Text>
             </Text>
             <TextInput
               style={styles.input}
@@ -732,7 +758,9 @@ export default function AddressSelectionScreen({ navigation, route }) {
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.saveButtonText}>{t("payment.saveAddress")}</Text>
+              <Text style={styles.saveButtonText}>
+                {t("payment.saveAddress")}
+              </Text>
             )}
           </TouchableOpacity>
         </ScrollView>

@@ -91,7 +91,9 @@
     "myReports": "Báo Cáo Của Tôi",
     "orderDetails": "Chi Tiết Đơn Hàng",
     "manageOrders": "Quản Lý Đơn Hàng",
-    "schedulePT": "Lịch Dạy"
+    "schedulePT": "Lịch Dạy",
+    "addressList": "Danh Sách Địa Chỉ",
+    "addressSelection": "Chọn Địa Chỉ"
   },
 
   "myPackage": {
@@ -516,7 +518,8 @@
     "viewAll": "Xem tất cả",
     "comingSoon": "Sắp ra mắt",
     "loadMore": "Tải thêm",
-    "lastUpdate": "Cập nhật lần cuối"
+    "lastUpdate": "Cập nhật lần cuối",
+    "continueShopping": "Tiếp tục mua sắm"
   },
 
   "account": {
@@ -1256,7 +1259,10 @@
     "failed": "Thất bại",
     "successDescription": "Thanh toán đơn hàng thành công",
     "backToHome": "Về trang chủ",
-    "retry": "Thử lại"
+    "retry": "Thử lại",
+    "awaitingPayment": "Chờ thanh toán",
+    "pleaseCompletePayment": "Vui lòng hoàn tất thanh toán để xử lý đơn hàng của bạn",
+    "continuePayment": "Tiếp tục thanh toán"
   },
 
   "slots": {
@@ -1419,7 +1425,8 @@
     "city": "Tỉnh/Thành phố",
     "enterCity": "Nhập tên tỉnh/thành phố",
     "shippingAddress": "Địa Chỉ Giao Hàng",
-    "paymentSummary": "Tóm Tắt Thanh Toán"
+    "paymentSummary": "Tóm Tắt Thanh Toán",
+    "cashOnDelivery": "Thanh Toán Khi Nhận Hàng"
   },
 
   "deleteAccount": {
@@ -1927,7 +1934,7 @@
   },
   "product": {
     "productDetails": "Chi tiết sản phẩm",
-    "description": "Mô tả",
+    "description": "Thông tin sản phẩm",
     "reviews": "Đánh giá",
     "rating": "Xếp hạng",
     "sold": "Đã bán",
@@ -1939,7 +1946,31 @@
     "buyNow": "Mua ngay",
     "noDescription": "Chưa có mô tả",
     "noReviews": "Chưa có đánh giá",
-    "productOutOfStock": "Sản phẩm này hiện đang hết hàng"
+    "productOutOfStock": "Sản phẩm này hiện đang hết hàng",
+    "shipping": "Vận chuyển",
+    "estimatedDelivery": "Dự kiến giao hàng",
+    "brandName": "Thương hiệu",
+    "category": "Danh mục",
+    "proteinSources": "Nguồn protein",
+    "additionalInfo": "Thông tin thêm",
+    "perServingTime": "lần dùng",
+    "weight": "Trọng lượng",
+    "flavour": "Hương vị",
+    "bcaaPerServing": "BCAA mỗi lần dùng",
+    "caloriesPerServingKcal": "Calo mỗi lần dùng",
+    "proteinPerServingGrams": "Protein mỗi lần dùng",
+    "countryOfOrigin": "Quốc gia xuất xứ",
+    "selectProductTypes": "Chọn loại sản phẩm",
+    "selectWeight": "Chọn trọng lượng",
+    "selectFlavour": "Chọn hương vị",
+    "options": "Phân loại",
+    "shippingPrice": "Phí vận chuyển",
+    "deliveryAddress": "Địa chỉ giao hàng",
+    "shippingDetails": "Chi tiết vận chuyển",
+    "shippingMethod": "Phương thức vận chuyển",
+    "standardShipping": "Vận chuyển tiêu chuẩn",
+    "selectAddress": "Chọn địa chỉ",
+    "default": "Mặc định"
   },
   "search": {
     "searchGymsAndPTs": "Tìm kiếm phòng gym và huấn luyện viên...",
