@@ -159,6 +159,9 @@
   },
 
   "gym": {
+    "featuredGyms": "Phòng Gym Nổi Bật",
+    "topRanked": "Top 10 Phòng Gym Phổ Biến Nhất",
+    "noGyms": "Hiện chưa có phòng gym nào",
     "details": "Chi tiết phòng gym",
     "facilities": "Tiện ích",
     "packages": "Gói tập",
@@ -1546,6 +1549,9 @@
   },
 
   "freelancePT": {
+    "featuredTrainers": "Huấn Luyện Viên Nổi Bật",
+    "topRanked": "Top 10 Huấn Luyện Viên Hàng Đầu",
+    "noTrainers": "Hiện chưa có huấn luyện viên nào",
     "packageDetail": "Chi Tiết Gói Tập",
     "packageName": "Tên Gói Tập",
     "trainer": "Huấn Luyện Viên Cá Nhân",

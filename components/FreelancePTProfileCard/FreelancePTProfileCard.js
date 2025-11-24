@@ -98,21 +98,13 @@ export default function FreelancePTProfileCard({
         </Text>
 
         {/* Description */}
-        {pt?.description ? (
+        {pt?.description && (
           <Text
             style={styles.description}
             numberOfLines={1}
             ellipsizeMode="tail"
           >
             {pt.description}
-          </Text>
-        ) : (
-          <Text
-            style={styles.description}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {/* Description not available */}
           </Text>
         )}
 
@@ -229,12 +221,14 @@ const styles = StyleSheet.create({
   },
   infoContainer: {
     padding: 12,
+    
   },
   name: {
     fontSize: 16,
     fontWeight: "bold",
-    marginBottom: 4,
+    marginBottom: 8,
     color: "#1A1A1A",
+
   },
   description: {
     fontSize: 12,

@@ -1,16 +1,23 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from "react-native";
-import { useNavigation } from "@react-navigation/native";
 import PairedSwiper from "../../../components/PairSwiper/PairSwiper";
 import FreelancePTPackagesCard from "../../../components/FreelancePTPackageCard/FreelancePTPackageCard";
 import { useTranslation } from "../../../hooks/useTranslation";
 
-export default function FreelancePTPackagesSection({ packages, loading }) {
-  const navigation = useNavigation();
+export default function FreelancePTPackagesSection({ packages, loading, setShowFullScreenSearch, setSearchInitialTab }) {
   const { t } = useTranslation();
 
   const renderFreelancePTCard = (item) => {
     return <FreelancePTPackagesCard package={item} />;
+  };
+
+  const handleViewMore = () => {
+    if (setSearchInitialTab) {
+      setSearchInitialTab("freelancePts");
+    }
+    if (setShowFullScreenSearch) {
+      setShowFullScreenSearch(true);
+    }
   };
 
   return (
@@ -22,7 +29,7 @@ export default function FreelancePTPackagesSection({ packages, loading }) {
         </View>
         <TouchableOpacity
           style={styles.viewMoreButton}
-          onPress={() => navigation.navigate("FreelancePTPackagesScreen", { packages: packages })}
+          onPress={handleViewMore}
           activeOpacity={0.7}
         >
           <Text style={styles.viewMoreText}>{t("home.viewMore")}</Text>

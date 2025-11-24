@@ -35,6 +35,7 @@ export default function FullScreenSearch({
   showBackButton = true,
   searchText: controlledSearchText,
   onSearchTextChange,
+  initialTab = 'gyms',
 }) {
   const [internalSearchText, setInternalSearchText] = useState(initialSearchText);
   const searchText = controlledSearchText !== undefined ? controlledSearchText : internalSearchText;
@@ -61,7 +62,7 @@ export default function FullScreenSearch({
   const [currentFreelancePTPage, setCurrentFreelancePTPage] = useState(1);
   const [hasMoreGymData, setHasMoreGymData] = useState(false);
   const [hasMoreFreelancePTData, setHasMoreFreelancePTData] = useState(false);
-  const [activeTab, setActiveTab] = useState('gyms'); // 'gyms' or 'freelancePts'
+  const [activeTab, setActiveTab] = useState(initialTab); // 'gyms' or 'freelancePts'
   const [showFilterModal, setShowFilterModal] = useState(false);
   
   // Filter states
@@ -92,6 +93,7 @@ export default function FullScreenSearch({
       loadRecentSearches();
       loadKeywords();
       setIsSearchFocused(true);
+      setActiveTab(initialTab); // Reset to initialTab when opening
 
       // Auto focus on search input when visible
       if (searchInputRef.current) {
@@ -104,7 +106,7 @@ export default function FullScreenSearch({
     } else {
       setIsSearchFocused(false);
     }
-  }, [visible]);
+  }, [visible, initialTab]);
 
   const performSearch = async (query, gymPage = 1, freelancePTPage = 1, append = false) => {
     if (!query.trim()) {

@@ -20,6 +20,8 @@ import FloatingVideoCall from "../components/FloatingVideoCall/FloatingVideoCall
 import HomeScreen from "../screens/CommonScreen/HomeScreen/HomeScreen";
 import GymDetailScreen from "../screens/CommonScreen/GymDetailScreen/GymDetailScreen";
 import PTInGymScreen from "../screens/CommonScreen/PTInGymScreen/PTInGymScreen";
+import FeaturedFreelancePTScreen from "../screens/CommonScreen/FeaturedFreelancePTScreen/FeaturedFreelancePTScreen";
+import FeaturedGymsScreen from "../screens/CommonScreen/FeaturedGymsScreen/FeaturedGymsScreen";
 import BlogScreen from "../screens/CommonScreen/BlogScreen/BlogScreen";
 import BlogDetailScreen from "../screens/CommonScreen/BlogDetailScreen/BlogDetailScreen";
 import PTProfileScreen from "../screens/CommonScreen/PTProfileScreen/PTProfileScreen";
@@ -213,6 +215,20 @@ export default function Navigator({
             headerTitleAlign: "center",
             headerShown: true,
             title: t("screenTitles.ptList"),
+          }}
+        />
+        <Stack.Screen
+          name="FeaturedFreelancePTScreen"
+          component={FeaturedFreelancePTScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="FeaturedGymsScreen"
+          component={FeaturedGymsScreen}
+          options={{
+            headerShown: false,
           }}
         />
         <Stack.Screen

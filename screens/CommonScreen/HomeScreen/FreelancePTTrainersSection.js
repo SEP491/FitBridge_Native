@@ -6,7 +6,7 @@ import FreelancePTProfileCard from "../../../components/FreelancePTProfileCard/F
 import { useTranslation } from "../../../hooks/useTranslation";
 import accountService from "../../../services/accountService";
 
-export default function FreelancePTTrainersSection({ refreshTrigger }) {
+export default function FreelancePTTrainersSection({ refreshTrigger, setShowFullScreenSearch }) {
   const navigation = useNavigation();
   const { t } = useTranslation();
   const [freelancePT, setFreelancePT] = useState([]);
@@ -36,6 +36,10 @@ export default function FreelancePTTrainersSection({ refreshTrigger }) {
     return <FreelancePTProfileCard pt={item} />;
   };
 
+  const handleViewMore = () => {
+    navigation.navigate("FeaturedFreelancePTScreen");
+  };
+
   return (
     <View style={styles.section}>
       <View style={styles.titleContainer}>
@@ -47,10 +51,7 @@ export default function FreelancePTTrainersSection({ refreshTrigger }) {
         </View>
         <TouchableOpacity
           style={styles.viewMoreButton}
-          onPress={() => navigation.navigate(t("navigation.ecommerce"), { 
-            screen: "EcommerceMain",
-            params: { category: "freelancePts" }
-          })}
+          onPress={handleViewMore}
           activeOpacity={0.7}
         >
           <Text style={styles.viewMoreText}>{t("home.viewMore")}</Text>
@@ -67,7 +68,7 @@ export default function FreelancePTTrainersSection({ refreshTrigger }) {
           renderItem={renderFreelancePTProfileCard}
           showsPagination={true}
           itemsPerSlide={2}
-          height={300}
+          height={270}
           loop={freelancePT.length > 2}
           dotStyle={styles.paginationDot}
           activeDotStyle={styles.activePaginationDot}

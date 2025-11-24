@@ -157,6 +157,9 @@
   },
 
   "gym": {
+    "featuredGyms": "Featured Gyms",
+    "topRanked": "Top 10 Most Popular Gyms",
+    "noGyms": "No gyms available",
     "details": "Gym Details",
     "facilities": "Facilities",
     "packages": "Packages",
@@ -515,6 +518,9 @@
   },
 
   "freelancePT": {
+    "featuredTrainers": "Featured Personal Trainers",
+    "topRanked": "Top 10 Ranked Trainers",
+    "noTrainers": "No trainers available",
     "packageDetail": "Package Details",
     "packageName": "Package Name",
     "trainer": "Personal Trainer",

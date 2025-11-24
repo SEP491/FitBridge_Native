@@ -7,7 +7,7 @@ import { useTranslation } from "../../../hooks/useTranslation";
 import accountService from "../../../services/accountService";
 import gymService from "../../../services/gymService";
 
-export default function FeaturedGymsSection({ refreshTrigger, viewMore }) {
+export default function FeaturedGymsSection({ refreshTrigger }) {
   const navigation = useNavigation();
   const { t } = useTranslation();
   const [gyms, setGyms] = useState();
@@ -46,6 +46,10 @@ export default function FeaturedGymsSection({ refreshTrigger, viewMore }) {
     ? gyms.filter((gym) => gym.hotResearch === true)
     : [];
 
+  const handleViewMore = () => {
+    navigation.navigate("FeaturedGymsScreen");
+  };
+
   return (
     <View style={styles.section}>
       <View style={styles.titleContainer}>
@@ -53,18 +57,14 @@ export default function FeaturedGymsSection({ refreshTrigger, viewMore }) {
           <Text style={styles.sectionTitle}>{t("home.featuredGyms")}</Text>
           <View style={styles.titleUnderline} />
         </View>
-        {viewMore && (
+
         <TouchableOpacity
           style={styles.viewMoreButton}
-          onPress={() => navigation.navigate(t("navigation.ecommerce"), { 
-            screen: "EcommerceMain",
-            params: { category: "gyms" }
-          })}
+          onPress={handleViewMore}
           activeOpacity={0.7}
         >
           <Text style={styles.viewMoreText}>{t("home.viewMore")}</Text>
         </TouchableOpacity>
-        )}
       </View>
 
       {loading ? (
