@@ -150,6 +150,17 @@ const ManageOrderScreen = ({ route }) => {
         (order) => order.currentStatus === "Processing" || order.currentStatus === "Assigning"
       );
       setFilteredOrders(filtered);
+    } else if (selectedStatus === "Arrived") {
+      // Arrived includes both Arrived and CustomerNotReceived statuses
+      let filtered = orders.filter(
+        (order) => order.currentStatus === "Arrived" || order.currentStatus === "CustomerNotReceived"
+      );
+      setFilteredOrders(filtered);
+    } else if (selectedStatus === "Returned") {
+      let filtered = orders.filter(
+        (order) => order.currentStatus === "Returned" || order.currentStatus === "InReturn"
+      );
+      setFilteredOrders(filtered);
     } else {
       let filtered = orders.filter(
         (order) => order.currentStatus === selectedStatus
@@ -217,6 +228,8 @@ const ManageOrderScreen = ({ route }) => {
         >
           {item.status === "All"
             ? orders.length
+            : item.status === "Arrived"
+            ? orders.filter((order) => order.currentStatus === "Arrived" || order.currentStatus === "CustomerNotReceived").length
             : item.status === "Processing"
             ? orders.filter(
                 (order) =>

@@ -2105,6 +2105,13 @@
     "returned": "Trả Hàng",
     "confirmReceived": "Xác nhận đã nhận hàng",
     "areYouSureReceived": "Bạn có chắc chắn đã nhận được hàng?",
-    "orderReceivedSuccessfully": "Xác nhận đã nhận hàng thành công"
+    "orderReceivedSuccessfully": "Xác nhận đã nhận hàng thành công",
+    "notReceived": "Xác nhận chưa nhận được hàng",
+    "notReceivedOrder": "Chưa nhận được hàng",
+    "notReceivedDescription": "Nếu bạn chưa nhận được hàng, vui lòng liên hệ với chúng tôi để được hỗ trợ.",
+    "enterNotReceivedDescription": "Vui lòng nhập mô tả vấn đề...",
+    "areYouSureNotReceived": "Bạn xác nhận chưa nhận được hàng?",
+    "orderMarkedNotReceived": "Xác nhận chưa nhận được hàng thành công, chúng tôi sẽ kiểm tra và liên hệ bạn sớm nhất",
+    "errorMarkingNotReceived": "Không thể xác nhận chưa nhận được hàng. Vui lòng thử lại."
   }
 }

@@ -11,6 +11,8 @@ const orderService = {
         request("PUT", `v1/orders/shipping/cancel/${orderId}`, data, {}, ),
     confirmOrderReceived: (orderId) =>
         request("PUT", `v1/orders/status/${orderId}`, { status: "Finished", description: "Order received by customer successfully" }, {}, ),
+    markOrderNotReceived: (orderId, description) =>
+        request("PUT", `v1/orders/status/${orderId}`, { status: "CustomerNotReceived", description: description }, {}, ),
 };
 
 export default orderService;

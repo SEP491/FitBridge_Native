@@ -16,6 +16,7 @@ import { useTranslation } from "../../hooks/useTranslation";
 import FeedbackModal from "./FeedbackModal";
 import paymentService from "../../services/paymentService";
 import orderService from "../../services/orderService";
+import { Button } from "react-native-web";
 
 const OrderManagementCard = ({ order, onRefresh }) => {
   const navigation = useNavigation();
@@ -24,6 +25,8 @@ const OrderManagementCard = ({ order, onRefresh }) => {
   const [unreviewedItems, setUnreviewedItems] = useState([]);
   const [cancelModalVisible, setCancelModalVisible] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
+  const [notReceivedDescription, setNotReceivedDescription] = useState("");
+  const [notReceivedModalVisible, setNotReceivedModalVisible] = useState(false);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -183,6 +186,36 @@ const OrderManagementCard = ({ order, onRefresh }) => {
     );
   };
 
+  const handleNotReceivedConfirmation = () => {
+    Alert.alert(
+      t("orders.notReceived"),
+      t("orders.areYouSureNotReceived"),
+      [
+        {
+          text: t("common.cancel"),
+          style: "cancel",
+        },
+        {
+          text: t("common.confirm"),
+          onPress: async () => {
+            try {
+              const response = await orderService.markOrderNotReceived(order.id, notReceivedDescription );
+              if (response && response.data) {
+                Alert.alert(t("common.success"), t("orders.orderMarkedNotReceived"));
+                if (onRefresh) {
+                  onRefresh();
+                }
+              }
+            } catch (error) {
+              console.error("Error marking not received:", error);
+              Alert.alert(t("common.error"), t("orders.errorMarkingNotReceived"));
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const handleCloseFeedbackModal = (success) => {
     setFeedbackModalVisible(false);
     setUnreviewedItems([]);
@@ -322,6 +355,24 @@ const OrderManagementCard = ({ order, onRefresh }) => {
           )}
 
           {order.currentStatus === "Arrived" && (
+            <View style={{flexDirection: 'row', justifyContent: 'space-between', flex: 1, gap: 8}}>
+            <TouchableOpacity
+              style={[styles.actionButton, styles.trackButton]}
+              onPress={handleReceivedConfirmation}
+            >
+              <Ionicons name="checkmark-done-outline" size={18} color="#00BCD4" />
+              <Text style={styles.trackButtonText}>{t("orders.confirmReceived")}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionButton, styles.notReceivedButton]}
+              onPress={() => setNotReceivedModalVisible(true)}
+            >
+              <Ionicons name="close-outline" size={18} color="#ffffffff" />
+              <Text style={styles.notReceivedButtonText}>{t("orders.notReceivedOrder")}</Text>
+            </TouchableOpacity>
+            </View>
+          )}
+          {order.currentStatus === "CustomerNotReceived" && (
             <TouchableOpacity
               style={[styles.actionButton, styles.trackButton]}
               onPress={handleReceivedConfirmation}
@@ -413,6 +464,68 @@ const OrderManagementCard = ({ order, onRefresh }) => {
           </View>
         </View>
       </Modal>
+
+
+      {/* Not Received Modal */}
+      <Modal
+        visible={notReceivedModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setNotReceivedModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.cancelModalContainer}>
+            <View style={styles.cancelModalHeader}>
+              <Text style={styles.cancelModalTitle}>{t("orders.notReceived")}</Text>
+              <TouchableOpacity
+                onPress={() => {
+                  setNotReceivedModalVisible(false);
+                  setNotReceivedDescription("");
+                }}
+                style={styles.closeButton}
+              >
+                <Ionicons name="close" size={24} color="#333" />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.cancelModalContent}>
+              <Text style={styles.cancelModalLabel}>
+                {t("orders.notReceivedDescription")}
+              </Text>
+              <TextInput
+                style={styles.cancelReasonInput}
+                multiline
+                numberOfLines={4}
+                placeholder={t("orders.enterNotReceivedDescription")}
+                value={notReceivedDescription}
+                onChangeText={setNotReceivedDescription}
+                textAlignVertical="top"
+              />
+              <View style={styles.cancelModalActions}>
+              <TouchableOpacity
+                style={[styles.cancelModalButton, styles.cancelModalButtonSecondary]}
+                onPress={() => {
+                  setNotReceivedModalVisible(false);
+                  setNotReceivedDescription("");
+                }}
+              >
+                <Text style={styles.cancelModalButtonTextSecondary}>
+                  {t("common.cancel")}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.cancelModalButton, styles.cancelModalButtonPrimary]}
+                onPress={handleNotReceivedConfirmation}
+              >
+                <Text style={styles.cancelModalButtonTextPrimary}>
+                  {t("common.confirm")}
+                </Text>
+              </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </View>
+      </Modal>
+      
     </View>
   );
 };
@@ -612,6 +725,16 @@ const styles = StyleSheet.create({
     backgroundColor: "#E0F7FA",
     borderWidth: 1,
     borderColor: "#00BCD4",
+  },
+  notReceivedButton: {
+    backgroundColor: "#ED2A46",
+    borderWidth: 1,
+    borderColor: "#ED2A46",
+  },
+  notReceivedButtonText: {
+    fontSize: 13,
+    color: "#ffffff",
+    fontWeight: "600",
   },
   trackButtonText: {
     fontSize: 13,
