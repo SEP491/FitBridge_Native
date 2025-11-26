@@ -1,5 +1,5 @@
 import { View, Text, ScrollView, Animated, Alert } from "react-native";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -12,7 +12,7 @@ import {
   Ionicons,
 } from "@expo/vector-icons";
 import { TouchableOpacity } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { useCart } from "../../../context/CartContext";
 import authService from "../../../services/authService";
 import DeleteAccountBottomSheet from "../../../components/DeleteAccountBottomSheet/DeleteAccountBottomSheet";
@@ -33,6 +33,8 @@ export default function UserMenuScreen() {
   const { t } = useTranslation();
   const { logoutRevenueCatUser } = useRevenueCat();
   const { avatarUrl, clearAvatarUrl } = useUser();
+  const [orderSummary, setOrderSummary] = useState(null);
+  const navigation = useNavigation();
   
   useEffect(() => {
     const fetchUser = async () => {
@@ -47,18 +49,38 @@ export default function UserMenuScreen() {
   useEffect(() => {
     if (user && user.role === "Customer") {
       fetchOrders();
+      fetchOrdersSummary();
     }
   }, [user]);
+
+  // Refresh orders when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      if (user && user.role === "Customer") {
+        fetchOrders();
+        fetchOrdersSummary();
+      }
+    }, [user])
+  );
 
   const fetchOrders = async () => {
     try {
       setLoadingOrders(true);
       const response = await orderService.getProductOrder({sortOrder:"dsc"});
+      setOrders(response.data.productOrders.items || []);
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+    } finally {
+      setLoadingOrders(false);
+    }
+  };
 
-      if (response.status === "200" && response.data) {
-        const fetchedOrders = response.data.items || [];
-        setOrders(fetchedOrders);
-      }
+  const fetchOrdersSummary = async () => {
+     try {
+      setLoadingOrders(true);
+      const response = await orderService.getProductOrder({doApplyPaging: false});
+      setOrderSummary(response.data);
+      
     } catch (error) {
       console.error("Error fetching orders:", error);
     } finally {
@@ -68,19 +90,25 @@ export default function UserMenuScreen() {
 
   const getOrderCountByStatus = (status) => {
     if (status === "All") {
-      return orders.length;
+      return orderSummary?.summaryProductOrder?.length || 0;
     } else if (status === "Feedback") {
-      return orders.filter(
+      return orderSummary?.productOrders?.items?.filter(
         (order) =>
           order.currentStatus === "Finished" &&
           order.orderItems.some((item) => !item.isFeedback)
       ).length;
-    } else {
-      return orders.filter((order) => order.currentStatus === status).length;
+    } else if(status === "Processing" || status === "Shipping" || status === "Pending" || status === "Finished") {
+      return orderSummary?.summaryProductOrder?.[ 
+        status === "Processing"
+          ? "totalProcessing"
+          : status === "Shipping"
+          ? "totalShipping"
+          : status === "Pending"
+          ? "totalPending"
+          : "totalFinished"
+      ];
     }
   };
-
-  const navigation = useNavigation();
 
   let menuItems = [
     {

@@ -113,7 +113,7 @@ const OrderManagementCard = ({ order, onRefresh }) => {
   const handleCheckoutAgain = async () => {
     try {
       const response = await paymentService.repaidOrder({ orderId: order.id });
-      if(response && response.data) {
+      if (response && response.data) {
         Linking.openURL(response.data);
       }
     } catch (error) {
@@ -135,11 +135,15 @@ const OrderManagementCard = ({ order, onRefresh }) => {
   const handleCancelOrder = async () => {
     console.log("Cancelling order with reason:", cancelReason);
     try {
-      const response = await orderService.cancelOrder(order.id, { 
-        comment: cancelReason
+      const response = await orderService.cancelOrder(order.id, {
+        status: "Cancelled",
+        description: cancelReason,
       });
       if (response && response.data) {
-        Alert.alert(t("common.success"), t("orders.orderCancelledSuccessfully"));
+        Alert.alert(
+          t("common.success"),
+          t("orders.orderCancelledSuccessfully")
+        );
         setCancelModalVisible(false);
         setCancelReason("");
         if (onRefresh) {
@@ -157,63 +161,64 @@ const OrderManagementCard = ({ order, onRefresh }) => {
   };
 
   const handleReceivedConfirmation = () => {
-    Alert.alert(
-      t("orders.confirmReceived"),
-      t("orders.areYouSureReceived"),
-      [
-        {
-          text: t("common.cancel"),
-          style: "cancel",
-        },
-        {
-          text: t("common.confirm"),
-          onPress: async () => {
-            try {
-              const response = await orderService.confirmOrderReceived(order.id);
-              if (response && response.data) {
-                Alert.alert(t("common.success"), t("orders.orderReceivedSuccessfully"));
-                if (onRefresh) {
-                  onRefresh();
-                }
+    Alert.alert(t("orders.confirmReceived"), t("orders.areYouSureReceived"), [
+      {
+        text: t("common.cancel"),
+        style: "cancel",
+      },
+      {
+        text: t("common.confirm"),
+        onPress: async () => {
+          try {
+            const response = await orderService.confirmOrderReceived(order.id);
+            if (response && response.data) {
+              Alert.alert(
+                t("common.success"),
+                t("orders.orderReceivedSuccessfully")
+              );
+              if (onRefresh) {
+                onRefresh();
               }
-            } catch (error) {
-              console.error("Error confirming received:", error);
-              Alert.alert(t("common.error"), t("orders.errorConfirmingReceived"));
             }
-          },
+          } catch (error) {
+            console.error("Error confirming received:", error);
+            Alert.alert(t("common.error"), t("orders.errorConfirmingReceived"));
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const handleNotReceivedConfirmation = () => {
-    Alert.alert(
-      t("orders.notReceived"),
-      t("orders.areYouSureNotReceived"),
-      [
-        {
-          text: t("common.cancel"),
-          style: "cancel",
-        },
-        {
-          text: t("common.confirm"),
-          onPress: async () => {
-            try {
-              const response = await orderService.markOrderNotReceived(order.id, notReceivedDescription );
-              if (response && response.data) {
-                Alert.alert(t("common.success"), t("orders.orderMarkedNotReceived"));
-                if (onRefresh) {
-                  onRefresh();
-                }
+    Alert.alert(t("orders.notReceived"), t("orders.areYouSureNotReceived"), [
+      {
+        text: t("common.cancel"),
+        style: "cancel",
+      },
+      {
+        text: t("common.confirm"),
+        onPress: async () => {
+          try {
+            const response = await orderService.markOrderNotReceived(
+              order.id,
+              notReceivedDescription
+            );
+            if (response && response.data) {
+              Alert.alert(
+                t("common.success"),
+                t("orders.orderMarkedNotReceived")
+              );
+              if (onRefresh) {
+                onRefresh();
               }
-            } catch (error) {
-              console.error("Error marking not received:", error);
-              Alert.alert(t("common.error"), t("orders.errorMarkingNotReceived"));
             }
-          },
+          } catch (error) {
+            console.error("Error marking not received:", error);
+            Alert.alert(t("common.error"), t("orders.errorMarkingNotReceived"));
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const handleCloseFeedbackModal = (success) => {
@@ -283,28 +288,38 @@ const OrderManagementCard = ({ order, onRefresh }) => {
                             item.productDetail.weightUnit || ""
                           }`}
                       </Text>
-                    <View style={styles.itemDetails}>
-                      <Text style={styles.itemQuantity}>
-                        {t("orders.quantity")}: {item.quantity}
-                      </Text>
-                        <Text style={styles.itemPrice}>
-                          {formatPrice(item.price)}
+                      <View style={styles.itemDetails}>
+                        <Text style={styles.itemQuantity}>
+                          {t("orders.quantity")}: {item.quantity}
                         </Text>
+                        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                          <Text>
+                            {item.productDetail.salePrice < item.productDetail.displayPrice ? (
+                              <Text style={styles.originalPrice}>
+                                {formatPrice(item.productDetail.displayPrice)}
+                              </Text>
+                            ) : null}
+                          </Text>
+                          <Text style={styles.itemPrice}>
+                            {formatPrice(item.productDetail.salePrice)}
+                          </Text>
+                        </View>
                       </View>
-                    {item.productDetail.proteinPerServingGrams > 0 && (
-                      <Text style={styles.itemNutrition}>
-                        {t("orders.protein")}: {item.productDetail.proteinPerServingGrams}g
-                        | {t("orders.calories")}:{" "}
-                        {item.productDetail.caloriesPerServingKcal}
-                        kcal
-                      </Text>
-                    )}
+                      {item.productDetail.proteinPerServingGrams > 0 && (
+                        <Text style={styles.itemNutrition}>
+                          {t("orders.protein")}:{" "}
+                          {item.productDetail.proteinPerServingGrams}g |{" "}
+                          {t("orders.calories")}:{" "}
+                          {item.productDetail.caloriesPerServingKcal}
+                          kcal
+                        </Text>
+                      )}
                     </View>
                   </>
                 )}
                 {!item.productDetail && (
                   <Text style={styles.itemText} numberOfLines={1}>
-                    • Quantity: {item.quantity} - {formatPrice(item.price)}
+                    • Quantity: {item.quantity} - {formatPrice(item.salePrice)}
                   </Text>
                 )}
               </View>
@@ -322,7 +337,7 @@ const OrderManagementCard = ({ order, onRefresh }) => {
               <Text style={styles.totalLabel}>
                 {t("orders.total")}:{" "}
                 <Text style={styles.itemsLabel}>
-                 ({order.orderItems.length} {t("orders.items")})
+                  ({order.orderItems.length} {t("orders.items")})
                 </Text>
               </Text>
               <Text style={styles.totalValue}>
@@ -340,7 +355,9 @@ const OrderManagementCard = ({ order, onRefresh }) => {
               onPress={handleCheckoutAgain}
             >
               <Ionicons name="card-outline" size={18} color="#4CAF50" />
-              <Text style={styles.checkoutButtonText}>{t("orders.completePayment")}</Text>
+              <Text style={styles.checkoutButtonText}>
+                {t("orders.completePayment")}
+              </Text>
             </TouchableOpacity>
           )}
 
@@ -350,26 +367,43 @@ const OrderManagementCard = ({ order, onRefresh }) => {
               onPress={handleOpenCancelModal}
             >
               <Ionicons name="close-outline" size={18} color="#00BCD4" />
-              <Text style={styles.trackButtonText}>{t("orders.cancelOrder")}</Text>
+              <Text style={styles.trackButtonText}>
+                {t("orders.cancelOrder")}
+              </Text>
             </TouchableOpacity>
           )}
 
           {order.currentStatus === "Arrived" && (
-            <View style={{flexDirection: 'row', justifyContent: 'space-between', flex: 1, gap: 8}}>
-            <TouchableOpacity
-              style={[styles.actionButton, styles.trackButton]}
-              onPress={handleReceivedConfirmation}
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                flex: 1,
+                gap: 8,
+              }}
             >
-              <Ionicons name="checkmark-done-outline" size={18} color="#00BCD4" />
-              <Text style={styles.trackButtonText}>{t("orders.confirmReceived")}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.actionButton, styles.notReceivedButton]}
-              onPress={() => setNotReceivedModalVisible(true)}
-            >
-              <Ionicons name="close-outline" size={18} color="#ffffffff" />
-              <Text style={styles.notReceivedButtonText}>{t("orders.notReceivedOrder")}</Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.trackButton]}
+                onPress={handleReceivedConfirmation}
+              >
+                <Ionicons
+                  name="checkmark-done-outline"
+                  size={18}
+                  color="#00BCD4"
+                />
+                <Text style={styles.trackButtonText}>
+                  {t("orders.confirmReceived")}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.notReceivedButton]}
+                onPress={() => setNotReceivedModalVisible(true)}
+              >
+                <Ionicons name="close-outline" size={18} color="#ffffffff" />
+                <Text style={styles.notReceivedButtonText}>
+                  {t("orders.notReceivedOrder")}
+                </Text>
+              </TouchableOpacity>
             </View>
           )}
           {order.currentStatus === "CustomerNotReceived" && (
@@ -377,8 +411,14 @@ const OrderManagementCard = ({ order, onRefresh }) => {
               style={[styles.actionButton, styles.trackButton]}
               onPress={handleReceivedConfirmation}
             >
-              <Ionicons name="checkmark-done-outline" size={18} color="#00BCD4" />
-              <Text style={styles.trackButtonText}>{t("orders.confirmReceived")}</Text>
+              <Ionicons
+                name="checkmark-done-outline"
+                size={18}
+                color="#00BCD4"
+              />
+              <Text style={styles.trackButtonText}>
+                {t("orders.confirmReceived")}
+              </Text>
             </TouchableOpacity>
           )}
           {order.currentStatus === "Finished" &&
@@ -388,7 +428,9 @@ const OrderManagementCard = ({ order, onRefresh }) => {
                 onPress={handleOpenFeedbackModal}
               >
                 <Ionicons name="star-outline" size={18} color="#FF9800" />
-                <Text style={styles.feedbackButtonText}>{t("orders.leaveFeedback")}</Text>
+                <Text style={styles.feedbackButtonText}>
+                  {t("orders.leaveFeedback")}
+                </Text>
               </TouchableOpacity>
             )}
         </View>
@@ -413,7 +455,9 @@ const OrderManagementCard = ({ order, onRefresh }) => {
         <View style={styles.modalOverlay}>
           <View style={styles.cancelModalContainer}>
             <View style={styles.cancelModalHeader}>
-              <Text style={styles.cancelModalTitle}>{t("orders.cancelOrder")}</Text>
+              <Text style={styles.cancelModalTitle}>
+                {t("orders.cancelOrder")}
+              </Text>
               <TouchableOpacity
                 onPress={() => {
                   setCancelModalVisible(false);
@@ -442,7 +486,10 @@ const OrderManagementCard = ({ order, onRefresh }) => {
 
             <View style={styles.cancelModalActions}>
               <TouchableOpacity
-                style={[styles.cancelModalButton, styles.cancelModalButtonSecondary]}
+                style={[
+                  styles.cancelModalButton,
+                  styles.cancelModalButtonSecondary,
+                ]}
                 onPress={() => {
                   setCancelModalVisible(false);
                   setCancelReason("");
@@ -453,7 +500,10 @@ const OrderManagementCard = ({ order, onRefresh }) => {
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.cancelModalButton, styles.cancelModalButtonPrimary]}
+                style={[
+                  styles.cancelModalButton,
+                  styles.cancelModalButtonPrimary,
+                ]}
                 onPress={handleCancelOrder}
               >
                 <Text style={styles.cancelModalButtonTextPrimary}>
@@ -465,7 +515,6 @@ const OrderManagementCard = ({ order, onRefresh }) => {
         </View>
       </Modal>
 
-
       {/* Not Received Modal */}
       <Modal
         visible={notReceivedModalVisible}
@@ -476,7 +525,9 @@ const OrderManagementCard = ({ order, onRefresh }) => {
         <View style={styles.modalOverlay}>
           <View style={styles.cancelModalContainer}>
             <View style={styles.cancelModalHeader}>
-              <Text style={styles.cancelModalTitle}>{t("orders.notReceived")}</Text>
+              <Text style={styles.cancelModalTitle}>
+                {t("orders.notReceived")}
+              </Text>
               <TouchableOpacity
                 onPress={() => {
                   setNotReceivedModalVisible(false);
@@ -501,31 +552,36 @@ const OrderManagementCard = ({ order, onRefresh }) => {
                 textAlignVertical="top"
               />
               <View style={styles.cancelModalActions}>
-              <TouchableOpacity
-                style={[styles.cancelModalButton, styles.cancelModalButtonSecondary]}
-                onPress={() => {
-                  setNotReceivedModalVisible(false);
-                  setNotReceivedDescription("");
-                }}
-              >
-                <Text style={styles.cancelModalButtonTextSecondary}>
-                  {t("common.cancel")}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.cancelModalButton, styles.cancelModalButtonPrimary]}
-                onPress={handleNotReceivedConfirmation}
-              >
-                <Text style={styles.cancelModalButtonTextPrimary}>
-                  {t("common.confirm")}
-                </Text>
-              </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.cancelModalButton,
+                    styles.cancelModalButtonSecondary,
+                  ]}
+                  onPress={() => {
+                    setNotReceivedModalVisible(false);
+                    setNotReceivedDescription("");
+                  }}
+                >
+                  <Text style={styles.cancelModalButtonTextSecondary}>
+                    {t("common.cancel")}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.cancelModalButton,
+                    styles.cancelModalButtonPrimary,
+                  ]}
+                  onPress={handleNotReceivedConfirmation}
+                >
+                  <Text style={styles.cancelModalButtonTextPrimary}>
+                    {t("common.confirm")}
+                  </Text>
+                </TouchableOpacity>
               </View>
             </View>
           </View>
         </View>
       </Modal>
-      
     </View>
   );
 };
@@ -636,6 +692,11 @@ const styles = StyleSheet.create({
     color: "#ED2A46",
     fontWeight: "600",
   },
+  originalPrice: {
+    fontSize: 11,
+    color: "#999",
+    textDecorationLine: "line-through",
+  },
   itemNutrition: {
     fontSize: 11,
     color: "#999",
@@ -654,8 +715,7 @@ const styles = StyleSheet.create({
   priceSection: {
     borderTopWidth: 1,
     borderTopColor: "#E0E0E0",
-    paddingTop: 12,
-    marginBottom: 12,
+    paddingTop: 14,
   },
   priceRow: {
     flexDirection: "row",
@@ -689,6 +749,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 8,
     flexWrap: "wrap",
+    marginTop: 14,
   },
   actionButton: {
     flexDirection: "row",

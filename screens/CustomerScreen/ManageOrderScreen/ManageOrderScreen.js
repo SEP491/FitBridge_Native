@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import orderService from "../../../services/orderService";
 import OrderManagementCard from "../../../components/OrderManagementCard";
 import { useTranslation } from "../../../hooks/useTranslation";
@@ -28,6 +28,8 @@ const ManageOrderScreen = ({ route }) => {
   const [selectedStatus, setSelectedStatus] = useState(initialStatus);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [orderSummary, setOrderSummary] = useState(null);
+  const [initialStatusSet, setInitialStatusSet] = useState(false);
 
   // Status filters for the swiper
   const statusFilters = [
@@ -93,8 +95,15 @@ const ManageOrderScreen = ({ route }) => {
       label: t("orders.feedback"),
       icon: "star-outline",
       color: "#E67E22",
-      status: "Finished",
+      status: "Feedback",
       filterFeedback: true,
+    },
+    {
+      id:'finished',
+      label: t("orders.finished"),
+      icon: 'checkmark-circle-outline',
+      color: '#27AE60',
+      status: 'Finished',
     },
     {
       id: "returned",
@@ -104,17 +113,23 @@ const ManageOrderScreen = ({ route }) => {
       status: "Returned",
     }
   ];
-
-  useEffect(() => {
-    // Only fetch if no orders were passed from UserMenu
-    if (passedOrders.length === 0) {
+  useFocusEffect(
+    useCallback(() => {
       fetchOrders();
-    }
-  }, []);
+      fetchOrdersSummary();
+    }, [])
+  );
+
 
   useEffect(() => {
-    filterOrdersByStatus();
-  }, [selectedStatus, orders]);
+    if (selectedStatus === "Feedback") {
+      // Special case: Feedback uses local filtering
+      filterOrdersByStatus();
+    } else {
+      // All other statuses: fetch from API
+      fetchOrdersByStatus(selectedStatus);
+    }
+  }, [selectedStatus]);
 
   const fetchOrders = async (pageNum = 1, isRefresh = false) => {
     try {
@@ -123,15 +138,11 @@ const ManageOrderScreen = ({ route }) => {
       } else {
         setLoading(true);
       }
-
       const response = await orderService.getProductOrder({sortOrder:"dsc"});
-
-      if (response.status === "200" && response.data) {
-        const fetchedOrders = response.data.items || [];
-        setOrders(fetchedOrders);
+        setOrders(response.data.productOrders.items || []);
+        setFilteredOrders(response.data.productOrders.items || []);
         setTotalPages(response.data.totalPages || 1);
         setPage(pageNum);
-      }
     } catch (error) {
       console.error("Error fetching orders:", error);
       Alert.alert("Error", "Failed to fetch orders. Please try again.");
@@ -141,42 +152,85 @@ const ManageOrderScreen = ({ route }) => {
     }
   };
 
-  const filterOrdersByStatus = () => {
-    if (selectedStatus === "All") {
-      setFilteredOrders(orders);
-    } else if (selectedStatus === "Processing") {
-      // Processing includes both Processing and Assigning statuses
-      let filtered = orders.filter(
-        (order) => order.currentStatus === "Processing" || order.currentStatus === "Assigning"
-      );
-      setFilteredOrders(filtered);
-    } else if (selectedStatus === "Arrived") {
-      // Arrived includes both Arrived and CustomerNotReceived statuses
-      let filtered = orders.filter(
-        (order) => order.currentStatus === "Arrived" || order.currentStatus === "CustomerNotReceived"
-      );
-      setFilteredOrders(filtered);
-    } else if (selectedStatus === "Returned") {
-      let filtered = orders.filter(
-        (order) => order.currentStatus === "Returned" || order.currentStatus === "InReturn"
-      );
-      setFilteredOrders(filtered);
-    } else {
-      let filtered = orders.filter(
-        (order) => order.currentStatus === selectedStatus
-      );
+  const fetchOrdersSummary = async () => {
+    try {
+      const response = await orderService.getProductOrder({ doApplyPaging: false });
+      setOrderSummary(response.data || null);
+    } catch (error) {
+      console.error("Error fetching order summary:", error);
+    }
+  };
 
-      // Special case for Feedback filter - show finished orders with items that need feedback
-      if (
-        selectedStatus === "Finished" &&
-        (statusFilters.find((f) => f.status === selectedStatus)?.filterFeedback ||
-          filterFeedback)
-      ) {
-        filtered = filtered.filter((order) =>
-          order.orderItems.some((item) => !item.isFeedback)
-        );
+  const fetchOrdersByStatus = async (status) => {
+    try {
+      setLoading(true);
+      let apiStatus = status;
+      
+      // Map combined statuses to API parameters
+      if (status === "All") {
+        apiStatus = null; // Fetch all orders
+      } else if (status === "Processing") {
+        // For Processing, we'll fetch and combine Processing + Assigning
+        const [processingRes, assigningRes] = await Promise.all([
+          orderService.getProductOrder({ status: "Processing", sortOrder: "dsc" }),
+          orderService.getProductOrder({ status: "Assigning", sortOrder: "dsc" })
+        ]);
+        const combined = [
+          ...(processingRes.data.productOrders.items || []),
+          ...(assigningRes.data.productOrders.items || [])
+        ];
+        setFilteredOrders(combined);
+        setOrders(combined);
+        return;
+      } else if (status === "Arrived") {
+        // For Arrived, fetch Arrived + CustomerNotReceived
+        const [arrivedRes, notReceivedRes] = await Promise.all([
+          orderService.getProductOrder({ status: "Arrived", sortOrder: "dsc" }),
+          orderService.getProductOrder({ status: "CustomerNotReceived", sortOrder: "dsc" })
+        ]);
+        const combined = [
+          ...(arrivedRes.data.productOrders.items || []),
+          ...(notReceivedRes.data.productOrders.items || [])
+        ];
+        setFilteredOrders(combined);
+        setOrders(combined);
+        return;
+      } else if (status === "Returned") {
+        // For Returned, fetch Returned + InReturn
+        const [returnedRes, inReturnRes] = await Promise.all([
+          orderService.getProductOrder({ status: "Returned", sortOrder: "dsc" }),
+          orderService.getProductOrder({ status: "InReturn", sortOrder: "dsc" })
+        ]);
+        const combined = [
+          ...(returnedRes.data.productOrders.items || []),
+          ...(inReturnRes.data.productOrders.items || [])
+        ];
+        setFilteredOrders(combined);
+        setOrders(combined);
+        return;
       }
+      
+      // For other statuses, fetch directly
+      const params = apiStatus ? { status: apiStatus, sortOrder: "dsc" } : { sortOrder: "dsc" };
+      const response = await orderService.getProductOrder(params);
+      setFilteredOrders(response.data.productOrders.items || []);
+      setOrders(response.data.productOrders.items || []);
+    } catch (error) {
+      console.error("Error fetching orders by status:", error);
+      Alert.alert("Error", "Failed to fetch orders. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+
+  const filterOrdersByStatus = () => {
+    // This function is now only used for the Feedback special case
+    if (selectedStatus === "Feedback") {
+      let filtered = orderSummary?.productOrders?.items.filter((order) => order.currentStatus === "Finished");
+      filtered = filtered.filter((order) =>
+        order.orderItems.some((item) => !item.isFeedback)
+      );
       setFilteredOrders(filtered);
     }
   };
@@ -227,18 +281,29 @@ const ManageOrderScreen = ({ route }) => {
           ]}
         >
           {item.status === "All"
-            ? orders.length
+            ? orderSummary?.summaryProductOrder?.totalProductOrders
             : item.status === "Arrived"
-            ? orders.filter((order) => order.currentStatus === "Arrived" || order.currentStatus === "CustomerNotReceived").length
+            ? orderSummary?.summaryProductOrder?.totalArrived + orderSummary?.summaryProductOrder?.totalCustomerNotReceived
             : item.status === "Processing"
-            ? orders.filter(
-                (order) =>
-                  order.currentStatus === "Processing" || order.currentStatus === "Assigning"
-              ).length
+            ? orderSummary?.summaryProductOrder?.totalProcessing
+            : item.status === "Returned"
+            ? orderSummary?.summaryProductOrder?.totalReturned + orderSummary?.summaryProductOrder?.totalInReturn
+            : item.status === "Created"
+            ? orderSummary?.summaryProductOrder?.totalCreated
+            : item.status === "Pending"
+            ? orderSummary?.summaryProductOrder?.totalPending
+            : item.status === "Assigning"
+            ? orderSummary?.summaryProductOrder?.totalAssigning
+            : item.status === "Accepted"
+            ? orderSummary?.summaryProductOrder?.totalAccepted
+            : item.status === "Shipping"
+            ? orderSummary?.summaryProductOrder?.totalShipping
+            : item.status === "Finished"
+            ? orderSummary?.summaryProductOrder?.totalFinished
             : item.filterFeedback
-            ? orders.filter(
+            ? orderSummary?.productOrders?.items.filter(
                 (order) =>
-                  order.currentStatus === item.status &&
+                  order.currentStatus === 'Finished' &&
                   order.orderItems.some((i) => !i.isFeedback)
               ).length
             : orders.filter((order) => order.currentStatus === item.status)

@@ -2066,7 +2066,7 @@
     "items": "sản phẩm",
     "subtotal": "Tạm Tính",
     "shippingFee": "Phí Vận Chuyển",
-    "total": "Tổng Cộng",
+    "total": "Tổng số tiền",
     "leaveFeedback": "Đánh Giá",
     "trackOrder": "Theo Dõi Đơn Hàng",
     "viewDetails": "Xem Chi Tiết",
@@ -2112,6 +2112,8 @@
     "enterNotReceivedDescription": "Vui lòng nhập mô tả vấn đề...",
     "areYouSureNotReceived": "Bạn xác nhận chưa nhận được hàng?",
     "orderMarkedNotReceived": "Xác nhận chưa nhận được hàng thành công, chúng tôi sẽ kiểm tra và liên hệ bạn sớm nhất",
-    "errorMarkingNotReceived": "Không thể xác nhận chưa nhận được hàng. Vui lòng thử lại."
+    "errorMarkingNotReceived": "Không thể xác nhận chưa nhận được hàng. Vui lòng thử lại.",
+    "orderCancelledSuccessfully": "Đơn hàng đã được hủy thành công",
+    "errorCancellingOrder": "Không thể hủy đơn hàng. Vui lòng thử lại."
   }
 }

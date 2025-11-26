@@ -8,7 +8,7 @@ const orderService = {
     getProductOrder: (params) =>
         request("GET", "v1/orders/product",null,{}, params  ),
     cancelOrder: (orderId, data) =>
-        request("PUT", `v1/orders/shipping/cancel/${orderId}`, data, {}, ),
+        request("PUT", `v1/orders/status/${orderId}`, data, {}, ),
     confirmOrderReceived: (orderId) =>
         request("PUT", `v1/orders/status/${orderId}`, { status: "Finished", description: "Order received by customer successfully" }, {}, ),
     markOrderNotReceived: (orderId, description) =>
