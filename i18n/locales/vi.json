@@ -1782,7 +1782,7 @@
     "addMeasurements": "Thêm số đo cơ thể để theo dõi tiến độ của bạn",
     "noDataAvailable": "Không Có Dữ Liệu",
     "addMeasurementsToSeeChart": "Thêm số đo cơ thể để xem biểu đồ tiến độ",
-    "recorded": "đã ghi"
+    "recorded": "Ghi nhận"
   },
 
   "bodyMeasurements": {
@@ -1820,7 +1820,9 @@
     "reviewPhotos": "Xem Lại Ảnh Của Bạn",
     "processMeasurements": "Phân Tích Số Đo",
     "processing": "Đang xử lý...",
-    "processingDescription": "Quá trình này có thể mất vài phút. Vui lòng chờ."
+    "processingDescription": "Quá trình này có thể mất vài phút. Vui lòng chờ.",
+    "viewHistory": "Xem Lịch Sử",
+    "measurementHistory": "Lịch Sử Số Đo"
   },
 
   "bookingRequest": {

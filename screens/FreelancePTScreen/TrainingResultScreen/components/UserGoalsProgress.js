@@ -13,6 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { LineChart } from "react-native-chart-kit";
 import UserGoalService from "../../../../services/user-goalService";
 import BodyMeasurementsService from "../../../../services/body-measurementService";
+import BodyMeasurementHistoryModal from "./BodyMeasurementHistoryModal";
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 // Muscle group images mapping
@@ -45,6 +46,7 @@ export const UserGoalsProgress = ({
   const [loading, setLoading] = React.useState(true);
   const [selectedMuscleGroup, setSelectedMuscleGroup] =
     React.useState("Weight");
+  const [historyModalVisible, setHistoryModalVisible] = React.useState(false);
 
   const fetchUserGoals = async () => {
     try {
@@ -226,20 +228,31 @@ export const UserGoalsProgress = ({
         title={t("trainingResults.currentUserStats", "Current User Stats")}
         icon="body"
       >
-        {/* Add Measurement Button */}
-        <TouchableOpacity
-          style={styles.addMeasurementButton}
-          onPress={() =>
-            navigation?.navigate("AddMeasurementScreen", {
-              customerPurchasedId,
-            })
-          }
-        >
-          <Ionicons name="add-circle" size={20} color="#fff" />
-          <Text style={styles.addMeasurementButtonText}>
-            {t("bodyMeasurements.addMeasurement", "Add Measurement")}
-          </Text>
-        </TouchableOpacity>
+        {/* Add Measurement and View History Button */}
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={styles.addMeasurementButton}
+            onPress={() =>
+              navigation?.navigate("AddMeasurementScreen", {
+                customerPurchasedId,
+              })
+            }
+          >
+            <Ionicons name="add-circle" size={20} color="#fff" />
+            <Text style={styles.addMeasurementButtonText}>
+              {t("bodyMeasurements.addMeasurement", "Add Measurement")}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.viewHistoryButton}
+            onPress={() => setHistoryModalVisible(true)}
+          >
+            <Ionicons name="time-outline" size={20} color="#ED2A46" />
+            <Text style={styles.viewHistoryButtonText}>
+              {t("bodyMeasurements.viewHistory", "View History")}
+            </Text>
+          </TouchableOpacity>
+        </View>
 
         <View style={styles.currentStatsContainer}>
           {/* Latest Measurement Stats */}
@@ -576,11 +589,49 @@ export const UserGoalsProgress = ({
           })}
         </View>
       </StatCard>
+
+      {/* Body Measurement History Modal */}
+      <BodyMeasurementHistoryModal
+        visible={historyModalVisible}
+        onClose={() => setHistoryModalVisible(false)}
+        measurements={bodyMeasurements}
+        t={t}
+      />
     </>
   );
 };
 
 const styles = StyleSheet.create({
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  viewHistoryButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    backgroundColor: "#ffffffff",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#ED2A46",
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  viewHistoryButtonText: {
+    color: "#ED2A46",
+    fontWeight: "700",
+    fontSize: 15,
+  },
   addMeasurementButton: {
     flexDirection: "row",
     alignItems: "center",
