@@ -23,16 +23,17 @@ const FeedbackModal = ({ visible, onClose, orderItems = [] }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const currentItem = orderItems[currentItemIndex];
-  const currentFeedback = feedbackData[currentItem?.orderId] || {
+  const currentFeedback = feedbackData[currentItem?.id] || {
     rating: 0,
     content: "",
     images: [],
   };
+  console.log("Current feedback data:", currentItem);
 
   const updateCurrentFeedback = (updates) => {
     setFeedbackData({
       ...feedbackData,
-      [currentItem.orderId]: {
+      [currentItem.id]: {
         ...currentFeedback,
         ...updates,
       },
@@ -93,7 +94,7 @@ const FeedbackModal = ({ visible, onClose, orderItems = [] }) => {
     setIsSubmitting(true);
     try {
       const formData = new FormData();
-      formData.append("orderItemId", currentItem.orderId);
+      formData.append("orderItemId", currentItem.id);
       formData.append("rating", currentFeedback.rating.toString());
       formData.append("content", currentFeedback.content.trim());
 
@@ -107,7 +108,7 @@ const FeedbackModal = ({ visible, onClose, orderItems = [] }) => {
       });
 
       console.log("Submitting review with data:", {
-        orderItemId: currentItem.orderId,
+        orderItemId: currentItem.id,
         rating: currentFeedback.rating,
         content: currentFeedback.content.trim(),
         images: currentFeedback.images,
@@ -118,7 +119,7 @@ const FeedbackModal = ({ visible, onClose, orderItems = [] }) => {
       // Check if there are more items to review
       if (currentItemIndex < orderItems.length - 1) {
         Alert.alert(
-          t("success.success"),
+          t("orders.feedbackSuccess"),
           t("orders.feedbackSubmittedNext"),
           [
             {
@@ -133,7 +134,7 @@ const FeedbackModal = ({ visible, onClose, orderItems = [] }) => {
       } else {
         // This was the last item
         Alert.alert(
-          t("success.success"),
+          t("orders.feedbackSuccess"),
           t("orders.allFeedbacksSubmitted"),
           [
             {

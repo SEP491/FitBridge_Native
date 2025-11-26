@@ -32,7 +32,6 @@ class SignalRService {
       }
 
       const accessToken = await AsyncStorage.getItem("token");
-      console.log("accessToken", accessToken);
 
       // Build connection with authentication
       this.#connection = new HubConnectionBuilder()

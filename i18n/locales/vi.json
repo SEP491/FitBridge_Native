@@ -2072,7 +2072,7 @@
     "viewDetails": "Xem Chi Tiết",
     "orderDate": "Ngày Đặt Hàng",
     "completePayment": "Hoàn Tất Thanh Toán",
-    "quantity": "SL",
+    "quantity": "Số Lượng",
     "protein": "Protein",
     "calories": "Calo",
     "moreItems": "sản phẩm khác",
@@ -2114,6 +2114,7 @@
     "orderMarkedNotReceived": "Xác nhận chưa nhận được hàng thành công, chúng tôi sẽ kiểm tra và liên hệ bạn sớm nhất",
     "errorMarkingNotReceived": "Không thể xác nhận chưa nhận được hàng. Vui lòng thử lại.",
     "orderCancelledSuccessfully": "Đơn hàng đã được hủy thành công",
-    "errorCancellingOrder": "Không thể hủy đơn hàng. Vui lòng thử lại."
+    "errorCancellingOrder": "Không thể hủy đơn hàng. Vui lòng thử lại.",
+    "feedbackSuccess": "Cảm ơn bạn đã đánh giá!"
   }
 }

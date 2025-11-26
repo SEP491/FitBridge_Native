@@ -30,7 +30,6 @@ export const startConnection = async () => {
     }
 
     const accessToken = await AsyncStorage.getItem("token");
-    console.log("accessToken", accessToken);
 
     // Build connection with authentication
     connection = new HubConnectionBuilder()

@@ -289,12 +289,23 @@ const OrderManagementCard = ({ order, onRefresh }) => {
                           }`}
                       </Text>
                       <View style={styles.itemDetails}>
-                        <Text style={styles.itemQuantity}>
-                          {t("orders.quantity")}: {item.quantity}
+                        <Text style={styles.itemQuantity} numberOfLines={1}>
+                          {item.productDetail.flavourName || "Product"}
+                          {item.productDetail.weightValue > 0 &&
+                            ` - ${item.productDetail.weightValue}${
+                              item.productDetail.weightUnit || ""
+                            }`}
                         </Text>
-                        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: 6,
+                          }}
+                        >
                           <Text>
-                            {item.productDetail.salePrice < item.productDetail.displayPrice ? (
+                            {item.productDetail.salePrice <
+                            item.productDetail.displayPrice ? (
                               <Text style={styles.originalPrice}>
                                 {formatPrice(item.productDetail.displayPrice)}
                               </Text>
@@ -305,15 +316,9 @@ const OrderManagementCard = ({ order, onRefresh }) => {
                           </Text>
                         </View>
                       </View>
-                      {item.productDetail.proteinPerServingGrams > 0 && (
-                        <Text style={styles.itemNutrition}>
-                          {t("orders.protein")}:{" "}
-                          {item.productDetail.proteinPerServingGrams}g |{" "}
-                          {t("orders.calories")}:{" "}
-                          {item.productDetail.caloriesPerServingKcal}
-                          kcal
-                        </Text>
-                      )}
+                          <Text style={styles.itemNutrition}>
+                            {t("orders.quantity")}: {item.quantity}
+                          </Text>
                     </View>
                   </>
                 )}
@@ -681,7 +686,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 2,
+    marginBottom: 4,
   },
   itemQuantity: {
     fontSize: 12,

@@ -236,7 +236,15 @@ const ManageOrderScreen = ({ route }) => {
   };
 
   const handleRefresh = () => {
-    fetchOrders(1, true);
+    if (selectedStatus !==  "All"){
+      fetchOrdersSummary();
+      fetchOrdersByStatus(selectedStatus);
+    }
+    else
+    {
+      fetchOrdersSummary();
+      fetchOrders();
+    }
   };
 
   const handleStatusSelect = (status) => {
