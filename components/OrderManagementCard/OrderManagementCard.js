@@ -282,11 +282,7 @@ const OrderManagementCard = ({ order, onRefresh }) => {
                     />
                     <View style={styles.itemInfo}>
                       <Text style={styles.itemName} numberOfLines={1}>
-                        {item.productDetail.flavourName || "Product"}
-                        {item.productDetail.weightValue > 0 &&
-                          ` - ${item.productDetail.weightValue}${
-                            item.productDetail.weightUnit || ""
-                          }`}
+                        {item.productName}
                       </Text>
                       <View style={styles.itemDetails}>
                         <Text style={styles.itemQuantity} numberOfLines={1}>
@@ -353,6 +349,14 @@ const OrderManagementCard = ({ order, onRefresh }) => {
         </TouchableOpacity>
 
         {/* Action Buttons */}
+      {order.currentStatus !== "Cancelled" 
+      && order.orderItems.some((item) => !item.isFeedback)
+      && order.currentStatus !== "Processing"  
+      && order.currentStatus !== "Shipping" 
+      && order.currentStatus !== "InReturn"
+      && order.currentStatus !== "Returned"
+
+      && (
         <View style={styles.actionButtons}>
           {order.currentStatus === "Created" && order.checkoutUrl && (
             <TouchableOpacity
@@ -439,6 +443,7 @@ const OrderManagementCard = ({ order, onRefresh }) => {
               </TouchableOpacity>
             )}
         </View>
+      )}
       </View>
 
       {/* Feedback Modal */}
@@ -721,11 +726,11 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "#E0E0E0",
     paddingTop: 14,
+    
   },
   priceRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 6,
   },
   priceLabel: {
     fontSize: 13,
@@ -754,7 +759,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 8,
     flexWrap: "wrap",
-    marginTop: 14,
+    marginTop: 12,
   },
   actionButton: {
     flexDirection: "row",
