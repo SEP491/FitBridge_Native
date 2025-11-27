@@ -95,6 +95,8 @@ import MessageScreen from "../screens/CommonScreen/ChatScreen/MessageScreen";
 import MessageDetailScreen from "../screens/CommonScreen/ChatScreen/MessageDetailScreen";
 import AddressListScreen from "../screens/CommonScreen/PaymentScreen/AddressListScreen";
 import AddressSelectionScreen from "../screens/CommonScreen/PaymentScreen/AddressSelectionScreen";
+import ContractScreen from "../screens/FreelancePTScreen/ContractScreen/ContractScreen";
+import ContractDetailScreen from "../screens/FreelancePTScreen/ContractDetailScreen/ContractDetailScreen";
 
 export default function Navigator({
   isAuthenticated: propIsAuthenticated,
@@ -1620,6 +1622,34 @@ export default function Navigator({
           options={{
             headerShown: false,
             orientation: "portrait",
+          }}
+        />
+        <Stack.Screen
+          name="ContractScreen"
+          component={ContractScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.contracts"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="ContractDetailScreen"
+          component={ContractDetailScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.contractDetail"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
           }}
         />
       </Stack.Navigator>

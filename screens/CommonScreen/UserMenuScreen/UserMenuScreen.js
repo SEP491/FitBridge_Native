@@ -35,7 +35,7 @@ export default function UserMenuScreen() {
   const { avatarUrl, clearAvatarUrl } = useUser();
   const [orderSummary, setOrderSummary] = useState(null);
   const navigation = useNavigation();
-  
+
   useEffect(() => {
     const fetchUser = async () => {
       const userData = await AsyncStorage.getItem("user");
@@ -66,7 +66,7 @@ export default function UserMenuScreen() {
   const fetchOrders = async () => {
     try {
       setLoadingOrders(true);
-      const response = await orderService.getProductOrder({sortOrder:"dsc"});
+      const response = await orderService.getProductOrder({ sortOrder: "dsc" });
       setOrders(response.data.productOrders.items || []);
     } catch (error) {
       console.error("Error fetching orders:", error);
@@ -76,11 +76,12 @@ export default function UserMenuScreen() {
   };
 
   const fetchOrdersSummary = async () => {
-     try {
+    try {
       setLoadingOrders(true);
-      const response = await orderService.getProductOrder({doApplyPaging: false});
+      const response = await orderService.getProductOrder({
+        doApplyPaging: false,
+      });
       setOrderSummary(response.data);
-      
     } catch (error) {
       console.error("Error fetching orders:", error);
     } finally {
@@ -97,8 +98,13 @@ export default function UserMenuScreen() {
           order.currentStatus === "Finished" &&
           order.orderItems.some((item) => !item.isFeedback)
       ).length;
-    } else if(status === "Processing" || status === "Shipping" || status === "Pending" || status === "Finished") {
-      return orderSummary?.summaryProductOrder?.[ 
+    } else if (
+      status === "Processing" ||
+      status === "Shipping" ||
+      status === "Pending" ||
+      status === "Finished"
+    ) {
+      return orderSummary?.summaryProductOrder?.[
         status === "Processing"
           ? "totalProcessing"
           : status === "Shipping"
@@ -122,6 +128,12 @@ export default function UserMenuScreen() {
       icon: <Ionicons name="document-text-outline" size={28} color="#ED2A46" />,
       label: t("userMenu.profile"),
       navigation: "ProfileScreen",
+      category: "account",
+    },
+    {
+      icon: <Ionicons name="person-outline" size={28} color="#ED2A46" />,
+      label: t("userMenu.contracts"),
+      navigation: "ContractScreen",
       category: "account",
     },
     {
@@ -435,7 +447,9 @@ export default function UserMenuScreen() {
 
               <TouchableOpacity
                 style={styles.viewAllOrdersButton}
-                onPress={() => navigation.navigate("ManageOrderScreen", { orders: orders })}
+                onPress={() =>
+                  navigation.navigate("ManageOrderScreen", { orders: orders })
+                }
                 activeOpacity={0.7}
               >
                 <Text style={styles.viewAllOrdersText}>

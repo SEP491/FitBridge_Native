@@ -93,7 +93,9 @@
     "activityDetail": "Activity Detail",
     "orderDetails": "Order Details",
     "manageOrders": "Manage Orders",
-    "schedulePT": "Schedule"
+    "schedulePT": "Schedule",
+    "contracts": "Contracts",
+    "contractDetail": "Contract Detail"
   },
 
   "myPackage": {
@@ -748,7 +750,8 @@
     "customerDetail": "Customer Detail",
     "myOrders": "My Orders",
     "manageOrders": "Manage Orders",
-    "myReports": "My Feedback"
+    "myReports": "My Feedback",
+    "contracts": "Contracts"
   },
 
   "updatePassword": {
@@ -2136,5 +2139,41 @@
       "momo": "MoMo",
       "zalopay": "ZaloPay"
     }
+  },
+
+  "contract": {
+    "title": "My Contracts",
+    "contractsFound": "contracts found",
+    "noContracts": "No Contracts",
+    "noContractsDesc": "You don't have any contracts yet",
+    "id": "Contract ID",
+    "statusCreated": "Created",
+    "statusCompanySigned": "Company Signed",
+    "statusCustomerSigned": "Customer Signed",
+    "statusBothSigned": "Both Signed",
+    "statusFinished": "Finished",
+    "statusRejected": "Rejected",
+    "typeGymOwner": "Gym Owner",
+    "typeFreelancePT": "Freelance PT",
+    "commission": "Commission",
+    "needsSignature": "Needs your signature",
+    "createdAt": "Created at",
+    "error": "Error",
+    "fetchError": "Failed to load contracts",
+    "signContract": "Sign Contract",
+    "clearSignature": "Clear Signature",
+    "submitSignature": "Submit",
+    "cancel": "Cancel",
+    "clear": "Clear",
+    "signAbove": "Sign above",
+    "confirmSignature": "Confirm Signature",
+    "provideSignature": "Please provide your signature",
+    "signSuccess": "Contract signed successfully",
+    "signError": "Failed to sign contract. Please try again.",
+    "contractNotFound": "Contract not found",
+    "loadingContract": "Loading contract...",
+    "signed": "Signed",
+    "unsigned": "Not signed yet",
+    "signatureCreated": "Signature created"
   }
 }
