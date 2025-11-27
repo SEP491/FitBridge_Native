@@ -21,6 +21,8 @@ import colors from "../../../constants/color";
 import productService from "../../../services/productService";
 import addressService from "../../../services/addressService";
 import orderService from "../../../services/orderService";
+import reviewService from "../../../services/reviewService";
+import ReviewCard from "../../../components/ReviewCard/ReviewCard";
 
 export default function ProductDetailsScreen() {
   const navigation = useNavigation();
@@ -46,9 +48,14 @@ export default function ProductDetailsScreen() {
   const [shippingModalVisible, setShippingModalVisible] = useState(false);
   const [shippingModalTab, setShippingModalTab] = useState("details"); // 'details' or 'addresses'
   const [shippingLoading, setShippingLoading] = useState(false);
+  const [productReviews, setProductReviews] = useState([]);
+  const [reviewsPage, setReviewsPage] = useState(1);
+  const [reviewsTotalPages, setReviewsTotalPages] = useState(1);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
 
   useEffect(() => {
     fetchProductDetails();
+    fetchProductReviews();
   }, [product.id]);
   console.log("Product Details:", productDetails);
   const fetchAddresses = async () => {
@@ -156,6 +163,29 @@ export default function ProductDetailsScreen() {
       Alert.alert(t("common.error"), "Failed to load product details");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchProductReviews = async (pageNum = 1) => {
+    try {
+      setReviewsLoading(true);
+      const response = await reviewService.getItemReviewsById({
+        productId: product.id,
+        sortOrder: "dsc",
+        page: pageNum,
+        size: 10,
+      });
+      if (pageNum === 1) {
+        setProductReviews(response.data.items || []);
+      } else {
+        setProductReviews((prev) => [...prev, ...(response.data.items || [])]);
+      }
+      setReviewsPage(pageNum);
+      setReviewsTotalPages(response.data.totalPages || 1);
+    } catch (error) {
+      console.error("Error fetching product reviews:", error);
+    } finally {
+      setReviewsLoading(false);
     }
   };
 
@@ -467,7 +497,7 @@ export default function ProductDetailsScreen() {
 
           {/* Shipping Information */}
           {shippingInfo && shippingInfo.price > 0 && (
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.shippingSection}
               onPress={() => setShippingModalVisible(true)}
             >
@@ -502,9 +532,9 @@ export default function ProductDetailsScreen() {
                 </View>
               )}
             </TouchableOpacity>
-            )}
-          </View>
-          
+          )}
+        </View>
+
         {availableWeights.length > 0 && (
           <View style={styles.variantSection}>
             <View style={styles.variantHeader}>
@@ -713,15 +743,61 @@ export default function ProductDetailsScreen() {
             )}
           </View>
 
-          <Text style={[styles.sectionTitle, { marginTop: 24 }]}>
-            {t("product.reviews")}
-          </Text>
-          <View style={styles.reviewsEmpty}>
-            <Ionicons name="chatbubbles-outline" size={48} color="#CCC" />
-            <Text style={styles.reviewsEmptyText}>
-              {t("product.noReviews")}
+          <View style={[styles.sectionTitle]}>
+            <View style={styles.ratingContainer}>
+              <Text style={styles.ratingText}>
+                {product.rating > 0 ? product.rating.toFixed(1) : "N/A"}
+              </Text>
+              <Ionicons name={"star"} size={25} color="#FFA500" />
+            </View>
+            <Text style={styles.sectionTitleText}>
+              {t("product.reviewedProducts")} ({product.totalReviews || 0})
             </Text>
           </View>
+          {productReviews.length > 0 ? (
+            <View style={styles.reviewsSection}>
+              {productReviews.map((review) => (
+                <ReviewCard
+                  key={review.id}
+                  review={review}
+                  t={t}
+                  showProductType={true}
+                  productTypeText={`${t("product.productType")}: ${review?.productDetail.flavourName || ""} - ${review?.productDetail.weightValue || ""} ${review?.productDetail.weightUnit || ""}`}
+                />
+              ))}
+
+              {/* Load More Button */}
+              {reviewsPage < reviewsTotalPages && (
+                <TouchableOpacity
+                  style={styles.loadMoreButton}
+                  onPress={() => fetchProductReviews(reviewsPage + 1)}
+                  disabled={reviewsLoading}
+                >
+                  {reviewsLoading ? (
+                    <ActivityIndicator size="small" color={colors.red} />
+                  ) : (
+                    <>
+                      <Text style={styles.loadMoreText}>
+                        {t("product.loadMoreReviews")}
+                      </Text>
+                      <Ionicons
+                        name="chevron-down"
+                        size={20}
+                        color={colors.red}
+                      />
+                    </>
+                  )}
+                </TouchableOpacity>
+              )}
+            </View>
+          ) : (
+            <View style={styles.reviewsEmpty}>
+              <Ionicons name="chatbubbles-outline" size={48} color="#CCC" />
+              <Text style={styles.reviewsEmptyText}>
+                {t("product.noReviews")}
+              </Text>
+            </View>
+          )}
         </View>
       </ScrollView>
 
@@ -1010,8 +1086,8 @@ export default function ProductDetailsScreen() {
                 </TouchableOpacity>
               )}
               <Text style={styles.modalTitle}>
-                {shippingModalTab === "details" 
-                  ? t("product.shippingDetails") 
+                {shippingModalTab === "details"
+                  ? t("product.shippingDetails")
                   : t("product.selectAddress")}
               </Text>
               <TouchableOpacity
@@ -1029,7 +1105,9 @@ export default function ProductDetailsScreen() {
               <ScrollView showsVerticalScrollIndicator={false}>
                 {/* Delivery Address Section */}
                 <View style={styles.modalSection}>
-                  <Text style={styles.modalSectionTitle}>{t("product.deliveryAddress")}</Text>
+                  <Text style={styles.modalSectionTitle}>
+                    {t("product.deliveryAddress")}
+                  </Text>
                   <TouchableOpacity
                     style={styles.addressSelectCard}
                     onPress={() => setShippingModalTab("addresses")}
@@ -1043,7 +1121,10 @@ export default function ProductDetailsScreen() {
                         <Text style={styles.addressCardPhone}>
                           {selectedAddress?.phoneNumber}
                         </Text>
-                        <Text style={styles.addressCardAddress} numberOfLines={2}>
+                        <Text
+                          style={styles.addressCardAddress}
+                          numberOfLines={2}
+                        >
                           {selectedAddress?.googleMapAddressString}
                         </Text>
                       </View>
@@ -1054,20 +1135,29 @@ export default function ProductDetailsScreen() {
 
                 {/* Shipping Method Section */}
                 <View style={styles.modalSection}>
-                  <Text style={styles.modalSectionTitle}>{t("product.shippingMethod")}</Text>
+                  <Text style={styles.modalSectionTitle}>
+                    {t("product.shippingMethod")}
+                  </Text>
                   <View style={styles.shippingMethodCard}>
                     <View style={styles.shippingMethodContent}>
-                      <Ionicons name="cube-outline" size={24} color={colors.red} />
+                      <Ionicons
+                        name="cube-outline"
+                        size={24}
+                        color={colors.red}
+                      />
                       <View style={styles.shippingMethodInfo}>
                         <Text style={styles.shippingMethodName}>
                           {t("product.standardShipping")}
                         </Text>
                         <Text style={styles.shippingMethodTime}>
-                          {t("product.estimatedDelivery")}: {" "}
-                          {getEstimatedDeliveryDate(shippingInfo?.duration)} - {getEstimatedDeliveryDate(shippingInfo?.duration * 20)}
+                          {t("product.estimatedDelivery")}:{" "}
+                          {getEstimatedDeliveryDate(shippingInfo?.duration)} -{" "}
+                          {getEstimatedDeliveryDate(
+                            shippingInfo?.duration * 20
+                          )}
                         </Text>
                       </View>
-                      
+
                       {shippingLoading ? (
                         <ActivityIndicator size="small" color={colors.red} />
                       ) : (
@@ -1086,14 +1176,14 @@ export default function ProductDetailsScreen() {
                     key={address.id}
                     style={[
                       styles.addressListItem,
-                      selectedAddress?.id === address.id && styles.addressListItemSelected
+                      selectedAddress?.id === address.id &&
+                        styles.addressListItemSelected,
                     ]}
                     onPress={() => handleSelectAddressFromModal(address)}
                   >
                     <View style={styles.addressListAddress}>
-                    <Ionicons name="location" size={20} color={colors.red} />
+                      <Ionicons name="location" size={20} color={colors.red} />
                       <View style={styles.addressListContent}>
-                        
                         <Text style={styles.addressListName}>
                           {address.receiverName}
                         </Text>
@@ -1105,16 +1195,22 @@ export default function ProductDetailsScreen() {
                           </View>
                         )}
                         <Text style={styles.addressListPhone}>
-                        {address.phoneNumber}
-                      </Text>
-                      <Text style={styles.addressListAddress} numberOfLines={2}>
-                        {address.googleMapAddressString}
-                      </Text>
+                          {address.phoneNumber}
+                        </Text>
+                        <Text
+                          style={styles.addressListAddress}
+                          numberOfLines={2}
+                        >
+                          {address.googleMapAddressString}
+                        </Text>
                       </View>
-                      
                     </View>
                     {selectedAddress?.id === address.id && (
-                      <Ionicons name="checkmark-circle" size={24} color={colors.red} />
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={24}
+                        color={colors.red}
+                      />
                     )}
                   </TouchableOpacity>
                 ))}
@@ -1123,8 +1219,6 @@ export default function ProductDetailsScreen() {
           </View>
         </View>
       </Modal>
-
-
     </SafeAreaView>
   );
 }
@@ -1389,10 +1483,25 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   sectionTitle: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 14,
+  },
+  ratingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  ratingText: {
     fontSize: 20,
-    fontWeight: "700",
     color: "#333",
-    marginBottom: 12,
+    fontWeight: "600",
+  },
+  sectionTitleText: {
+    fontSize: 18,
+    fontWeight: "500",
+    color: "#333",
   },
   descriptionText: {
     fontSize: 14,
@@ -1472,6 +1581,26 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#999",
     marginTop: 12,
+  },
+  reviewsSection: {
+  },
+  loadMoreButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: colors.red,
+    backgroundColor: "#FFFFFF",
+    gap: 8,
+    marginTop: 8,
+  },
+  loadMoreText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: colors.red,
   },
   // Variant selector button styles
   variantSection: {
@@ -1554,7 +1683,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "flex-end",
-    
   },
   modalContent: {
     backgroundColor: "#FFFFFF",
@@ -1888,7 +2016,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderWidth: 2,
     borderColor: "#F0F0F0",
-    margin:5,
+    margin: 5,
     marginHorizontal: 12,
     borderRadius: 8,
   },

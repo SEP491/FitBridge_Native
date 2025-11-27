@@ -19,6 +19,17 @@ export default function ProductCard({ product }) {
     }).format(price);
   };
 
+  const getShortCountryName = (country) => {
+    if (!country) return "";
+    if(country.length <= 8)
+      return country;
+    return country
+      .split(' ')
+      .map((word) => word[0])
+      .join('')
+      .toUpperCase();
+  };
+
   const discountPercentage = product.displayPrice > product.salePrice
     ? Math.round(((product.displayPrice - product.salePrice) / product.displayPrice) * 100)
     : 0;
@@ -78,7 +89,7 @@ export default function ProductCard({ product }) {
           </View>
           {product.countryOfOrigin && (
             <View style={styles.originBadge}>
-              <Text style={styles.originText}>{product.countryOfOrigin}</Text>
+              <Text style={styles.originText}>{getShortCountryName(product.countryOfOrigin)}</Text>
             </View>
           )}
         </View>
