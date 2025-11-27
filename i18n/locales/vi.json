@@ -1977,7 +1977,8 @@
   "product": {
     "productDetails": "Chi tiết sản phẩm",
     "description": "Thông tin sản phẩm",
-    "reviews": "Đánh giá",
+    "reviews": "Đánh giá ",
+    "reviewedProducts": "Đánh giá sản phẩm",
     "rating": "Xếp hạng",
     "sold": "Đã bán",
     "inStock": "Còn hàng",
@@ -2012,7 +2013,9 @@
     "shippingMethod": "Phương thức vận chuyển",
     "standardShipping": "Vận chuyển tiêu chuẩn",
     "selectAddress": "Chọn địa chỉ",
-    "default": "Mặc định"
+    "default": "Mặc định",
+    "productType":"Phân loại",
+    "edited": "Đã chỉnh sửa"
   },
   "search": {
     "searchGymsAndPTs": "Tìm kiếm phòng gym và huấn luyện viên...",
