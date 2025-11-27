@@ -1298,7 +1298,11 @@
     "retry": "Thử lại",
     "awaitingPayment": "Chờ thanh toán",
     "pleaseCompletePayment": "Vui lòng hoàn tất thanh toán để xử lý đơn hàng của bạn",
-    "continuePayment": "Tiếp tục thanh toán"
+    "continuePayment": "Tiếp tục thanh toán",
+    "paymentCancelled": "Thanh toán thất bại",
+    "cancelledMessage": "Thanh toán của bạn không thành công. Vui lòng thử lại.",
+    "cancelled": "Thất bại",
+    "viewOrder": "Xem đơn hàng của bạn"
   },
 
   "slots": {
@@ -2116,6 +2120,7 @@
     "orderMarkedNotReceived": "Xác nhận chưa nhận được hàng thành công, chúng tôi sẽ kiểm tra và liên hệ bạn sớm nhất",
     "errorMarkingNotReceived": "Không thể xác nhận chưa nhận được hàng. Vui lòng thử lại.",
     "orderCancelledSuccessfully": "Đơn hàng đã được hủy thành công",
-    "errorCancellingOrder": "Không thể hủy đơn hàng. Vui lòng thử lại."
+    "errorCancellingOrder": "Không thể hủy đơn hàng. Vui lòng thử lại.",
+    "loadingMore": "Đang tải thêm..."
   }
 }
