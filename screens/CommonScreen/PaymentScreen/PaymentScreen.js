@@ -296,6 +296,9 @@ export default function PaymentScreen({ navigation, route }) {
         response.data.data &&
         response.data.data.checkoutUrl
       ) {
+        if (!isDirectPurchase) {
+          clearCart();
+        }
         // Open payment URL for online payment
         navigation.navigate("OrderSuccessScreen", {
           isOnlinePayment: true,

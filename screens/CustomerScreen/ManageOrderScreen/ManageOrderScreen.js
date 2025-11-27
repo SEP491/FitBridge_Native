@@ -30,6 +30,7 @@ const ManageOrderScreen = ({ route }) => {
   const [totalPages, setTotalPages] = useState(1);
   const [orderSummary, setOrderSummary] = useState(null);
   const [initialStatusSet, setInitialStatusSet] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   // Status filters for the swiper
   const statusFilters = [
@@ -106,6 +107,13 @@ const ManageOrderScreen = ({ route }) => {
       status: 'Finished',
     },
     {
+      id: "cancelled",
+      label: t("orders.cancelled"),
+      icon: "close-circle-outline",
+      color: "#E74C3C",
+      status: "Cancelled",
+    },
+    {
       id: "returned",
       label: t("orders.returned"),
       icon: "arrow-undo-outline",
@@ -115,40 +123,68 @@ const ManageOrderScreen = ({ route }) => {
   ];
   useFocusEffect(
     useCallback(() => {
-      fetchOrders();
-      fetchOrdersSummary();
+      if (selectedStatus === "Feedback") {
+        filterOrdersByStatus();
+        fetchOrdersSummary();
+      } else if (selectedStatus === "All") {
+        fetchOrders(1, true);
+        fetchOrdersSummary();
+      } else if (selectedStatus) {
+        fetchOrdersByStatus(selectedStatus, 1, false);
+        fetchOrdersSummary();
+      } else {
+        fetchOrders(1, true);
+        fetchOrdersSummary();
+      }
     }, [])
   );
 
 
   useEffect(() => {
+    setPage(1); // Reset page when status changes
     if (selectedStatus === "Feedback") {
       // Special case: Feedback uses local filtering
       filterOrdersByStatus();
     } else {
       // All other statuses: fetch from API
-      fetchOrdersByStatus(selectedStatus);
+      fetchOrdersByStatus(selectedStatus, 1, false);
     }
   }, [selectedStatus]);
 
-  const fetchOrders = async (pageNum = 1, isRefresh = false) => {
+  const fetchOrders = async (pageNum = 1, isRefresh = false, isLoadMore = false) => {
     try {
       if (isRefresh) {
         setRefreshing(true);
+      } else if (isLoadMore) {
+        setLoadingMore(true);
       } else {
         setLoading(true);
       }
-      const response = await orderService.getProductOrder({sortOrder:"dsc"});
-        setOrders(response.data.productOrders.items || []);
-        setFilteredOrders(response.data.productOrders.items || []);
-        setTotalPages(response.data.totalPages || 1);
-        setPage(pageNum);
+      const response = await orderService.getProductOrder({
+        sortOrder: "dsc",
+        pageNumber: pageNum,
+      });
+      const newItems = response.data.productOrders.items || [];
+      
+      if (isLoadMore) {
+        // Append new items to existing list
+        setOrders(prevOrders => [...prevOrders, ...newItems]);
+        setFilteredOrders(prevFiltered => [...prevFiltered, ...newItems]);
+      } else {
+        // Replace list with new items
+        setOrders(newItems);
+        setFilteredOrders(newItems);
+      }
+      
+      setTotalPages(response.data.productOrders.totalPages || 1);
+      setPage(pageNum);
     } catch (error) {
       console.error("Error fetching orders:", error);
       Alert.alert("Error", "Failed to fetch orders. Please try again.");
     } finally {
       setLoading(false);
       setRefreshing(false);
+      setLoadingMore(false);
     }
   };
 
@@ -161,65 +197,97 @@ const ManageOrderScreen = ({ route }) => {
     }
   };
 
-  const fetchOrdersByStatus = async (status) => {
+  const fetchOrdersByStatus = async (status, pageNum = 1, isLoadMore = false) => {
     try {
-      setLoading(true);
+      if (isLoadMore) {
+        setLoadingMore(true);
+      } else {
+        setLoading(true);
+      }
       let apiStatus = status;
       
       // Map combined statuses to API parameters
       if (status === "All") {
         apiStatus = null; // Fetch all orders
-      } else if (status === "Processing") {
-        // For Processing, we'll fetch and combine Processing + Assigning
-        const [processingRes, assigningRes] = await Promise.all([
-          orderService.getProductOrder({ status: "Processing", sortOrder: "dsc" }),
-          orderService.getProductOrder({ status: "Assigning", sortOrder: "dsc" })
-        ]);
-        const combined = [
-          ...(processingRes.data.productOrders.items || []),
-          ...(assigningRes.data.productOrders.items || [])
-        ];
-        setFilteredOrders(combined);
-        setOrders(combined);
-        return;
-      } else if (status === "Arrived") {
+      }  else if (status === "Arrived") {
         // For Arrived, fetch Arrived + CustomerNotReceived
         const [arrivedRes, notReceivedRes] = await Promise.all([
-          orderService.getProductOrder({ status: "Arrived", sortOrder: "dsc" }),
-          orderService.getProductOrder({ status: "CustomerNotReceived", sortOrder: "dsc" })
+          orderService.getProductOrder({ status: "Arrived", sortOrder: "dsc", pageNumber: pageNum }),
+          orderService.getProductOrder({ status: "CustomerNotReceived", sortOrder: "dsc", pageNumber: pageNum })
         ]);
         const combined = [
           ...(arrivedRes.data.productOrders.items || []),
           ...(notReceivedRes.data.productOrders.items || [])
         ];
-        setFilteredOrders(combined);
-        setOrders(combined);
+        
+        if (isLoadMore) {
+          setFilteredOrders(prev => [...prev, ...combined]);
+          setOrders(prev => [...prev, ...combined]);
+        } else {
+          setFilteredOrders(combined);
+          setOrders(combined);
+        }
+        
+        // Use max of both total pages
+        const maxPages = Math.max(
+          arrivedRes.data.productOrders.totalPages || 1,
+          notReceivedRes.data.productOrders.totalPages || 1
+        );
+        setTotalPages(maxPages);
+        setPage(pageNum);
         return;
       } else if (status === "Returned") {
         // For Returned, fetch Returned + InReturn
         const [returnedRes, inReturnRes] = await Promise.all([
-          orderService.getProductOrder({ status: "Returned", sortOrder: "dsc" }),
-          orderService.getProductOrder({ status: "InReturn", sortOrder: "dsc" })
+          orderService.getProductOrder({ status: "Returned", sortOrder: "dsc", pageNumber: pageNum }),
+          orderService.getProductOrder({ status: "InReturn", sortOrder: "dsc", pageNumber: pageNum })
         ]);
         const combined = [
           ...(returnedRes.data.productOrders.items || []),
           ...(inReturnRes.data.productOrders.items || [])
         ];
-        setFilteredOrders(combined);
-        setOrders(combined);
+        
+        if (isLoadMore) {
+          setFilteredOrders(prev => [...prev, ...combined]);
+          setOrders(prev => [...prev, ...combined]);
+        } else {
+          setFilteredOrders(combined);
+          setOrders(combined);
+        }
+        
+        // Use max of both total pages
+        const maxPages = Math.max(
+          returnedRes.data.productOrders.totalPages || 1,
+          inReturnRes.data.productOrders.totalPages || 1
+        );
+        setTotalPages(maxPages);
+        setPage(pageNum);
         return;
       }
       
       // For other statuses, fetch directly
-      const params = apiStatus ? { status: apiStatus, sortOrder: "dsc" } : { sortOrder: "dsc" };
+      const params = apiStatus 
+        ? { status: apiStatus, sortOrder: "dsc", pageNumber: pageNum } 
+        : { sortOrder: "dsc", pageNumber: pageNum };
       const response = await orderService.getProductOrder(params);
-      setFilteredOrders(response.data.productOrders.items || []);
-      setOrders(response.data.productOrders.items || []);
+      const newItems = response.data.productOrders.items || [];
+      
+      if (isLoadMore) {
+        setFilteredOrders(prev => [...prev, ...newItems]);
+        setOrders(prev => [...prev, ...newItems]);
+      } else {
+        setFilteredOrders(newItems);
+        setOrders(newItems);
+      }
+      
+      setTotalPages(response.data.productOrders.totalPages || 1);
+      setPage(pageNum);
     } catch (error) {
       console.error("Error fetching orders by status:", error);
       Alert.alert("Error", "Failed to fetch orders. Please try again.");
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
@@ -236,14 +304,29 @@ const ManageOrderScreen = ({ route }) => {
   };
 
   const handleRefresh = () => {
-    if (selectedStatus !==  "All"){
+    setPage(1);
+    if (selectedStatus === "Feedback") {
+      filterOrdersByStatus();
       fetchOrdersSummary();
-      fetchOrdersByStatus(selectedStatus);
+    } else if (selectedStatus === "All") {
+      fetchOrders(1, true);
+      fetchOrdersSummary();
+    } else {
+      fetchOrdersByStatus(selectedStatus, 1, false);
+      fetchOrdersSummary();
     }
-    else
-    {
-      fetchOrdersSummary();
-      fetchOrders();
+  };
+
+  const handleLoadMore = () => {
+    // Don't load more for Feedback (uses local filtering)
+    if (selectedStatus === "Feedback") return;
+    
+    if (!loadingMore && !loading && page < totalPages) {
+      if (selectedStatus === "All") {
+        fetchOrders(page + 1, false, true);
+      } else {
+        fetchOrdersByStatus(selectedStatus, page + 1, true);
+      }
     }
   };
 
@@ -333,6 +416,16 @@ const ManageOrderScreen = ({ route }) => {
     </View>
   );
 
+  const renderFooter = () => {
+    if (!loadingMore) return null;
+    return (
+      <View style={styles.footerLoader}>
+        <ActivityIndicator size="small" color="#ED2A46" />
+        <Text style={styles.footerLoaderText}>{t("orders.loadingMore") || "Loading more..."}</Text>
+      </View>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
 
@@ -344,7 +437,11 @@ const ManageOrderScreen = ({ route }) => {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.statusScrollContent}
         >
-          {statusFilters.map((item) => renderStatusButton(item))}
+          {statusFilters.map((item) => (
+            <View key={item.id}>
+              {renderStatusButton(item)}
+            </View>
+          ))}
         </ScrollView>
       </View>
 
@@ -362,6 +459,9 @@ const ManageOrderScreen = ({ route }) => {
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={renderEmptyState}
+          ListFooterComponent={renderFooter}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.5}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -469,6 +569,16 @@ const styles = StyleSheet.create({
     color: "#666",
     marginTop: 8,
     textAlign: "center",
+  },
+  footerLoader: {
+    paddingVertical: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  footerLoaderText: {
+    fontSize: 12,
+    color: "#666",
   },
 });
 

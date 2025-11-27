@@ -1,15 +1,7 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ActivityIndicator,
-  Alert,
-  BackHandler,
-  Linking,
-} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, BackHandler, Linking, } from "react-native";
 import { useState, useCallback, useEffect, use } from "react";
 import { useFocusEffect } from "@react-navigation/native";
+import { Ionicons } from "@expo/vector-icons";
 import cartService from "../../../services/cartService";
 import { useTranslation } from "../../../hooks/useTranslation";
 import { formatPrice } from "../../../lib";
@@ -23,19 +15,21 @@ const THEME_COLORS = {
   black: "#000000",
   gray: "#F5F5F5",
   lightGray: "#E0E0E0",
+  warning: "#FFA726",
 };
 
 export default function OrderSuccessScreen({ route, navigation }) {
   const { t } = useTranslation();
   const { clearCart } = useCart();
-  const [orderStatus, setOrderStatus] = useState("processing"); // 'processing', 'success', 'failed'
+  const [orderStatus, setOrderStatus] = useState("processing");
   const [orderData, setOrderData] = useState(null);
 
-  // Get order data from route params if available
   const { orderCode } = route?.params || {};
   const { code } = route?.params || {};
   const { amount } = route?.params || {};
-  const {isCOD , isOnlinePayment, checkoutUrl}= route?.params || {};
+  const { cancel } = route?.params || {};
+  const { id } = route?.params || {};
+  const { isCOD, isOnlinePayment, checkoutUrl } = route?.params || {};
 
   const updateOrderFailed = async () => {
     const requestData = {
@@ -48,31 +42,46 @@ export default function OrderSuccessScreen({ route, navigation }) {
       console.error("Error updating payment:", error.response.data);
     }
   };
+
   console.log("OrderSuccessScreen params:", route?.params);
+
   useFocusEffect(
     useCallback(() => {
+      // Check if payment was cancelled
+      if (cancel === "true" || cancel === true) {
+        setOrderStatus("cancelled");
+        setOrderData({
+          status: "CANCELLED",
+          orderCode: id || orderCode || "000000",
+          amount: amount || 264000,
+          description: t("orderSuccess.cancelledDescription") || "Payment was cancelled by user",
+        });
+        updateOrderFailed();
+        return;
+      }
+
       if (isOnlinePayment) {
         setOrderStatus("waitingForPayment");
-      }
-      else if (isCOD) {
+      } else if (isCOD) {
         setOrderStatus("success");
       } else {
-        setOrderStatus(code === "00" ? "success" : "failed"); // Update order status based on API response
+        setOrderStatus(code === "00" ? "success" : "failed");
+        
         if (code === "00") {
           setOrderData({
-            status: code, // Change this to test different scenarios
+            status: code,
             orderCode: orderCode || "000000",
-          amount: amount || 0,
-          description: t("orderSuccess.successDescription"),
-        });
-        setOrderStatus("success");
-        clearCart();
-      } else if (code === "01") {
-        setOrderStatus("failed");
-        updateOrderFailed();
+            amount: amount || 0,
+            description: t("orderSuccess.successDescription"),
+          });
+          setOrderStatus("success");
+          clearCart();
+        } else if (code === "01") {
+          setOrderStatus("failed");
+          updateOrderFailed();
+        }
       }
-    }
-    }, [code, orderCode, amount, isCOD])
+    }, [code, orderCode, amount, isCOD, cancel, id])
   );
 
   const formatAmount = (amount) => {
@@ -80,16 +89,27 @@ export default function OrderSuccessScreen({ route, navigation }) {
   };
 
   const handleGoBack = () => {
-    navigation.popToTop(); 
+    navigation.popToTop();
   };
+
   const handleCheckoutAgain = () => {
     if (checkoutUrl) {
       Linking.openURL(checkoutUrl);
-  };
+    }
   };
 
   const handleRetry = () => {
     setOrderStatus("processing");
+  };
+
+  const handleViewOrder = () => {
+    // Navigate to ManageOrderScreen in ProfileStack
+    navigation.navigate("MainApp", {
+      screen: t("navigation.me"),
+      params: {
+        screen: "ManageOrderScreen",
+      },
+    });
   };
 
   // Processing State
@@ -98,109 +118,117 @@ export default function OrderSuccessScreen({ route, navigation }) {
       <View style={styles.container}>
         <View style={styles.processingContainer}>
           <ActivityIndicator size="large" color={THEME_COLORS.primary} />
-          <Text style={styles.processingTitle}>
-            {t("orderSuccess.processing")}
-          </Text>
-          <Text style={styles.processingSubtitle}>
-            {t("orderSuccess.pleaseWait")}
-          </Text>
+          <Text style={styles.processingTitle}>{t("orderSuccess.processing")}</Text>
+          <Text style={styles.processingSubtitle}>{t("orderSuccess.pleaseWait")}</Text>
         </View>
       </View>
     );
   }
 
-if (orderStatus === "waitingForPayment" ) {
+  if (orderStatus === "waitingForPayment") {
     return (
       <View style={styles.container}>
         <View style={styles.contentContainer}>
-          {/* Payment Icon */}
-          <View style={styles.successIcon}>
-            <Text style={styles.successIconText}>💳</Text>
+          <View style={styles.waitingIcon}>
+            <Ionicons name="card-outline" size={50} color={THEME_COLORS.white} />
           </View>
+          <Text style={styles.waitingTitle}>{t("orderSuccess.awaitingPayment")}</Text>
+          <Text style={styles.successSubtitle}>{t("orderSuccess.pleaseCompletePayment")}</Text>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity style={styles.primaryButton} onPress={handleCheckoutAgain}>
+              <Text style={styles.primaryButtonText}>{t("orderSuccess.continuePayment")}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.secondaryButton} onPress={handleGoBack}>
+              <Text style={styles.secondaryButtonText}>{t("orderSuccess.backToHome")}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    );
+  }
 
-          <Text style={styles.successTitle}>
-            {t("orderSuccess.awaitingPayment")}
-          </Text>
+  // Cancelled State
+  if (orderStatus === "cancelled") {
+    return (
+      <View style={styles.container}>
+        <View style={styles.contentContainer}>
+          <View style={styles.cancelledIcon}>
+            <Ionicons name="close-circle" size={50} color={THEME_COLORS.white} />
+          </View>
+          <Text style={styles.cancelledTitle}>{t("orderSuccess.paymentCancelled") || "Payment Cancelled"}</Text>
           <Text style={styles.successSubtitle}>
-            {t("orderSuccess.pleaseCompletePayment")}
+            {t("orderSuccess.cancelledMessage") || "You have cancelled the payment process"}
           </Text>
 
-          <TouchableOpacity style={[styles.primaryButton, {marginBottom: 15}]} onPress={handleCheckoutAgain}>
-            <Text style={styles.primaryButtonText}>
-              {t("orderSuccess.continuePayment")}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.secondaryButton} onPress={handleGoBack}>
-            <Text style={styles.secondaryButtonText}>
-              {t("orderSuccess.backToHome")}
-            </Text>
-          </TouchableOpacity>
+          {orderData && (
+            <View style={styles.orderDetails}>
+              <Text style={styles.orderDetailsTitle}>{t("orderSuccess.orderInfo")}</Text>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>{t("orderSuccess.orderCode")}</Text>
+                <Text style={styles.detailValue}>{orderData.orderCode}</Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>{t("orderSuccess.amount")}</Text>
+                <Text style={styles.detailValue}>{formatAmount(parseInt(orderData.amount))}</Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>{t("orderSuccess.status")}</Text>
+                <Text style={[styles.detailValue, { color: THEME_COLORS.warning }]}>
+                  {t("orderSuccess.cancelled") || "CANCELLED"}
+                </Text>
+              </View>
+            </View>
+          )}
+
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity style={styles.primaryButton} onPress={handleViewOrder}>
+              <Text style={styles.primaryButtonText}>
+                {t("orderSuccess.viewOrder") || "View Your Order"}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.secondaryButton} onPress={handleGoBack}>
+              <Text style={styles.secondaryButtonText}>{t("orderSuccess.backToHome")}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     );
   }
 
   // Success State
-  if (orderStatus === "success" ) {
+  if (orderStatus === "success") {
     return (
       <View style={styles.container}>
         <View style={styles.contentContainer}>
-          {/* Success Icon */}
           <View style={styles.successIcon}>
-            <Text style={styles.successIconText}>✓</Text>
+            <Ionicons name="checkmark-circle" size={50} color={THEME_COLORS.white} />
           </View>
+          <Text style={styles.successTitle}>{t("orderSuccess.paymentSuccess")}</Text>
+          <Text style={styles.successSubtitle}>{t("orderSuccess.orderProcessedSuccess")}</Text>
 
-          <Text style={styles.successTitle}>
-            {t("orderSuccess.paymentSuccess")}
-          </Text>
-          <Text style={styles.successSubtitle}>
-            {t("orderSuccess.orderProcessedSuccess")}
-          </Text>
-
-          {/* Order Details */}
           {orderData && (
             <View style={styles.orderDetails}>
-              <Text style={styles.orderDetailsTitle}>
-                {t("orderSuccess.orderDetails")}
-              </Text>
-
+              <Text style={styles.orderDetailsTitle}>{t("orderSuccess.orderDetails")}</Text>
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>
-                  {t("orderSuccess.orderCode")}
-                </Text>
+                <Text style={styles.detailLabel}>{t("orderSuccess.orderCode")}</Text>
                 <Text style={styles.detailValue}>{orderData.orderCode}</Text>
               </View>
-
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>
-                  {t("orderSuccess.amount")}
-                </Text>
-                <Text style={styles.detailValue}>
-                  {formatAmount(parseInt(orderData.amount))}
-                </Text>
+                <Text style={styles.detailLabel}>{t("orderSuccess.amount")}</Text>
+                <Text style={styles.detailValue}>{formatAmount(parseInt(orderData.amount))}</Text>
               </View>
-
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>
-                  {t("orderSuccess.description")}
-                </Text>
+                <Text style={styles.detailLabel}>{t("orderSuccess.description")}</Text>
                 <Text style={styles.detailValue}>{orderData.description}</Text>
               </View>
-
-              {/* <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Phương thức:</Text>
-                <Text style={styles.detailValue}>
-                  {orderData.paymentMethod}
-                </Text>
-              </View> */}
             </View>
           )}
 
-          <TouchableOpacity style={styles.primaryButton} onPress={handleGoBack}>
-            <Text style={styles.primaryButtonText}>
-              {t("orderSuccess.backToHome")}
-            </Text>
-          </TouchableOpacity>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity style={styles.primaryButton} onPress={handleGoBack}>
+              <Text style={styles.primaryButtonText}>{t("orderSuccess.backToHome")}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     );
@@ -210,64 +238,36 @@ if (orderStatus === "waitingForPayment" ) {
   return (
     <View style={styles.container}>
       <View style={styles.contentContainer}>
-        {/* Failed Icon */}
         <View style={styles.failedIcon}>
-          <Text style={styles.failedIconText}>✕</Text>
+          <Ionicons name="alert-circle" size={50} color={THEME_COLORS.white} />
         </View>
+        <Text style={styles.failedTitle}>{t("orderSuccess.paymentFailed")}</Text>
+        <Text style={styles.failedSubtitle}>{t("orderSuccess.paymentError")}</Text>
 
-        <Text style={styles.failedTitle}>
-          {t("orderSuccess.paymentFailed")}
-        </Text>
-        <Text style={styles.failedSubtitle}>
-          {t("orderSuccess.paymentError")}
-        </Text>
-
-        {/* Order Details */}
         {orderData && (
           <View style={styles.orderDetails}>
-            <Text style={styles.orderDetailsTitle}>
-              {t("orderSuccess.orderInfo")}
-            </Text>
-
+            <Text style={styles.orderDetailsTitle}>{t("orderSuccess.orderInfo")}</Text>
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>
-                {t("orderSuccess.orderCode")}
-              </Text>
+              <Text style={styles.detailLabel}>{t("orderSuccess.orderCode")}</Text>
               <Text style={styles.detailValue}>{orderData.orderCode}</Text>
             </View>
-
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>{t("orderSuccess.amount")}</Text>
-              <Text style={styles.detailValue}>
-                {formatAmount(orderData.amount)}
-              </Text>
+              <Text style={styles.detailValue}>{formatAmount(orderData.amount)}</Text>
             </View>
-
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>{t("orderSuccess.status")}</Text>
-              <Text
-                style={[styles.detailValue, { color: THEME_COLORS.primary }]}
-              >
-                {t("orderSuccess.failed")}
-              </Text>
+              <Text style={styles.detailValue}>{t("orderSuccess.failed")}</Text>
             </View>
           </View>
         )}
 
         <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={styles.secondaryButton}
-            onPress={handleRetry}
-          >
-            <Text style={styles.secondaryButtonText}>
-              {t("orderSuccess.retry")}
-            </Text>
+          <TouchableOpacity style={styles.primaryButton} onPress={handleRetry}>
+            <Text style={styles.primaryButtonText}>{t("orderSuccess.retry")}</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.primaryButton} onPress={handleGoBack}>
-            <Text style={styles.primaryButtonText}>
-              {t("orderSuccess.backToHome")}
-            </Text>
+          <TouchableOpacity style={styles.secondaryButton} onPress={handleGoBack}>
+            <Text style={styles.secondaryButtonText}>{t("orderSuccess.backToHome")}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -314,11 +314,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
   },
-  successIconText: {
-    fontSize: 40,
-    color: THEME_COLORS.white,
-    fontWeight: "bold",
-  },
   failedIcon: {
     width: 80,
     height: 80,
@@ -328,10 +323,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
   },
-  failedIconText: {
-    fontSize: 40,
-    color: THEME_COLORS.white,
-    fontWeight: "bold",
+  cancelledIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: THEME_COLORS.warning,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  waitingIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: THEME_COLORS.secondary,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 20,
   },
   successTitle: {
     fontSize: 24,
@@ -344,6 +352,20 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     color: THEME_COLORS.primary,
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  cancelledTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: THEME_COLORS.warning,
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  waitingTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: THEME_COLORS.secondary,
     marginBottom: 10,
     textAlign: "center",
   },

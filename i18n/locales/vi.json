@@ -1301,7 +1301,11 @@
     "retry": "Thử lại",
     "awaitingPayment": "Chờ thanh toán",
     "pleaseCompletePayment": "Vui lòng hoàn tất thanh toán để xử lý đơn hàng của bạn",
-    "continuePayment": "Tiếp tục thanh toán"
+    "continuePayment": "Tiếp tục thanh toán",
+    "paymentCancelled": "Thanh toán thất bại",
+    "cancelledMessage": "Thanh toán của bạn không thành công. Vui lòng thử lại.",
+    "cancelled": "Thất bại",
+    "viewOrder": "Xem đơn hàng của bạn"
   },
 
   "slots": {
@@ -2156,6 +2160,7 @@
     "loadingContract": "Đang tải hợp đồng...",
     "signed": "Đã ký",
     "unsigned": "Chưa ký",
-    "signatureCreated": "Chữ ký đã tạo"
+    "signatureCreated": "Chữ ký đã tạo",
+    "loadingMore": "Đang tải thêm..."
   }
 }
