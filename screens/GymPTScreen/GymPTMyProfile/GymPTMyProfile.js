@@ -15,12 +15,13 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import * as ImagePicker from "expo-image-picker";
 import accountService from "../../../services/accountService";
 import { useTranslation } from "../../../hooks/useTranslation";
 import { formatNumber, formatDate, formatDateForAPI } from "../../../lib";
 import { useUser } from "../../../context/UserContext";
 
-const ProfileScreen = () => {
+const GymPTMyProfile = () => {
   const { t } = useTranslation();
   const { avatarUrl } = useUser();
   const [userId, setUserId] = useState("");
@@ -29,16 +30,25 @@ const ProfileScreen = () => {
     email: "",
     phone: "",
     dob: "",
-    age: 0,
     weight: 0,
     height: 0,
     gender: "",
+    avatarUrl: "",
+    isActive: "",
+    frontCitizenIdUrl: "",
+    backCitizenIdUrl: "",
+    citizenIdNumber: "",
+    identityCardPlace: "",
+    citizenCardPermanentAddress: "",
+    identityCardDate: "",
   });
 
   const [isEditMode, setIsEditMode] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showIdentityDatePicker, setShowIdentityDatePicker] = useState(false);
   const [showGenderPicker, setShowGenderPicker] = useState(false);
   const [displayDate, setDisplayDate] = useState("");
+  const [displayIdentityDate, setDisplayIdentityDate] = useState("");
 
   const formatDisplayDate = (dateString) => {
     if (!dateString) return "";
@@ -62,7 +72,6 @@ const ProfileScreen = () => {
 
   const getBMICategory = (bmi) => {
     if (!bmi) return "";
-    // Convert to number in case bmi is a formatted string
     const numBmi =
       typeof bmi === "string"
         ? parseFloat(bmi.replace(",", "."))
@@ -76,7 +85,6 @@ const ProfileScreen = () => {
 
   const getBMIColor = (bmi) => {
     if (!bmi) return "#666";
-    // Convert to number in case bmi is a formatted string
     const numBmi =
       typeof bmi === "string"
         ? parseFloat(bmi.replace(",", "."))
@@ -86,36 +94,6 @@ const ProfileScreen = () => {
     if (numBmi < 25) return "#4CAF50";
     if (numBmi < 30) return "#FF9800";
     return "#F44336";
-  };
-
-  const getBMIPosition = (bmi) => {
-    if (!bmi) return 0;
-    // Convert to number in case bmi is a formatted string
-    const numBmi =
-      typeof bmi === "string"
-        ? parseFloat(bmi.replace(",", "."))
-        : parseFloat(bmi);
-    if (isNaN(numBmi)) return 0;
-
-    // BMI scale: 15 --- 18.5 --- 25 --- 30 --- 40
-    // Positions: 0%    25%      50%    75%   100%
-
-    if (numBmi <= 15) return 0;
-    if (numBmi >= 40) return 100;
-
-    if (numBmi <= 18.5) {
-      // Between 15 and 18.5: 0% to 25%
-      return ((numBmi - 15) / (18.5 - 15)) * 25;
-    } else if (numBmi <= 25) {
-      // Between 18.5 and 25: 25% to 50%
-      return 25 + ((numBmi - 18.5) / (25 - 18.5)) * 25;
-    } else if (numBmi <= 30) {
-      // Between 25 and 30: 50% to 75%
-      return 50 + ((numBmi - 25) / (30 - 25)) * 25;
-    } else {
-      // Between 30 and 40: 75% to 100%
-      return 75 + ((numBmi - 30) / (40 - 30)) * 25;
-    }
   };
 
   useEffect(() => {
@@ -128,34 +106,48 @@ const ProfileScreen = () => {
     }
   }, [userProfile.dob]);
 
+  useEffect(() => {
+    if (userProfile.identityCardDate) {
+      setDisplayIdentityDate(formatDisplayDate(userProfile.identityCardDate));
+    }
+  }, [userProfile.identityCardDate]);
+
   const openDatePicker = () => {
     if (isEditMode) {
       setShowDatePicker(true);
     }
   };
 
+  const openIdentityDatePicker = () => {
+    if (isEditMode) {
+      setShowIdentityDatePicker(true);
+    }
+  };
+
   const handleDateConfirm = (selectedDate) => {
     setShowDatePicker(false);
     const newDateString = formatAPIDate(selectedDate);
+    setUserProfile({
+      ...userProfile,
+      dob: newDateString,
+    });
+  };
 
-    // Validate age
-    if (!validateAge(newDateString)) {
-      Alert.alert(
-        t("profile.invalidDateOfBirth"),
-        t("profile.ageValidationMessage")
-      );
-      return;
-    } else {
-      // Valid date - update profile
-      setUserProfile({
-        ...userProfile,
-        dob: newDateString,
-      });
-    }
+  const handleIdentityDateConfirm = (selectedDate) => {
+    setShowIdentityDatePicker(false);
+    const newDateString = formatAPIDate(selectedDate);
+    setUserProfile({
+      ...userProfile,
+      identityCardDate: newDateString,
+    });
   };
 
   const handleDateCancel = () => {
     setShowDatePicker(false);
+  };
+
+  const handleIdentityDateCancel = () => {
+    setShowIdentityDatePicker(false);
   };
 
   const genderOptions = [
@@ -183,34 +175,54 @@ const ProfileScreen = () => {
     return age;
   };
 
-  const validateAge = (dateString) => {
-    if (!dateString) return true;
-    const birthDate = new Date(dateString);
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-
-    if (
-      monthDiff < 0 ||
-      (monthDiff === 0 && today.getDate() < birthDate.getDate())
-    ) {
-      age--;
-    }
-
-    return age >= 13 && age <= 100; // Reasonable age range
-  };
-
   const fetchProfileData = async () => {
     try {
       const response = await accountService.getProfile();
-      console.log("Hồ sơ người dùng phản hồi:", response);
+      console.log("Profile response:", response);
       setUserProfile(response.data);
       if (response.data.id) {
         setUserId(response.data.id);
       }
     } catch (error) {
-      console.error("Lỗi khi lấy thông tin hồ sơ:", error);
+      console.error("Error fetching profile:", error);
       Alert.alert(t("profile.profileError"), t("profile.fetchProfileError"));
+    }
+  };
+
+  const pickImage = async (type) => {
+    if (!isEditMode) return;
+
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert(
+        t("profile.permissionDenied"),
+        t("profile.permissionMessage")
+      );
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: type === "avatar" ? [1, 1] : [4, 3],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      // Update the appropriate field
+      if (type === "avatar") {
+        setUserProfile({ ...userProfile, avatarUrl: result.assets[0].uri });
+      } else if (type === "frontCitizenId") {
+        setUserProfile({
+          ...userProfile,
+          frontCitizenIdUrl: result.assets[0].uri,
+        });
+      } else if (type === "backCitizenId") {
+        setUserProfile({
+          ...userProfile,
+          backCitizenIdUrl: result.assets[0].uri,
+        });
+      }
     }
   };
 
@@ -225,17 +237,24 @@ const ProfileScreen = () => {
         fullName: userProfile.fullName,
         isMale: userProfile.gender === "Female" ? false : true,
         dob: userProfile.dob,
+        citizenIdNumber: userProfile.citizenIdNumber || null,
+        identityCardPlace: userProfile.identityCardPlace || null,
+        citizenCardPermanentAddress:
+          userProfile.citizenCardPermanentAddress || null,
+        identityCardDate: userProfile.identityCardDate || null,
         userDetail: {
           height: parseFloat(userProfile.height) || 0,
           weight: parseFloat(userProfile.weight) || 0,
         },
+        // Note: Image uploads would typically be handled separately
+        // frontCitizenIdUrl and backCitizenIdUrl would need multipart/form-data upload
       };
 
       const response = await accountService.updateProfileUser(
         userId,
         updateData
       );
-      console.log("Cập nhật hồ sơ phản hồi:", response);
+      console.log("Update profile response:", response);
       if (global.updateNavigationUser) {
         global.updateNavigationUser();
       }
@@ -253,7 +272,7 @@ const ProfileScreen = () => {
         );
       }
     } catch (error) {
-      console.error("Lỗi khi cập nhật hồ sơ:", error);
+      console.error("Error updating profile:", error);
       Alert.alert(t("profile.profileError"), t("profile.updateProfileError"));
     }
   };
@@ -287,14 +306,27 @@ const ProfileScreen = () => {
           style={styles.gradientContainer}
         >
           <View style={styles.profileHeader}>
-            <View style={styles.avatarContainer}>
+            <TouchableOpacity
+              style={styles.avatarContainer}
+              onPress={() => pickImage("avatar")}
+              disabled={!isEditMode}
+            >
               <Image
                 source={{
-                  uri: userProfile.avatar || avatarUrl,
+                  uri: userProfile.avatarUrl || avatarUrl,
                 }}
                 style={styles.avatar}
               />
-            </View>
+              {isEditMode && (
+                <View style={styles.avatarEditBadge}>
+                  <MaterialCommunityIcons
+                    name="camera"
+                    size={16}
+                    color="#fff"
+                  />
+                </View>
+              )}
+            </TouchableOpacity>
 
             <Text style={styles.name}>{userProfile.fullName}</Text>
             <Text style={styles.email}>{userProfile.email}</Text>
@@ -369,55 +401,6 @@ const ProfileScreen = () => {
           )}
         </View>
 
-        {/* Health Metrics Section */}
-        {bmi && (
-          <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>
-              {t("profile.healthMetrics")}
-            </Text>
-
-            <View style={styles.healthCard}>
-              <View style={styles.healthHeader}>
-                <MaterialCommunityIcons
-                  name="heart-pulse"
-                  size={24}
-                  color={bmiColor}
-                />
-                <View style={styles.healthInfo}>
-                  <Text style={styles.healthTitle}>
-                    {t("profile.bmiIndex")}
-                  </Text>
-                  <Text style={styles.healthSubtitle}>{bmiCategory}</Text>
-                </View>
-                <Text style={[styles.healthValue, { color: bmiColor }]}>
-                  {bmi}
-                </Text>
-              </View>
-
-              <View style={styles.bmiProgressContainer}>
-                <View style={styles.bmiProgress}>
-                  <View
-                    style={[
-                      styles.bmiIndicator,
-                      {
-                        left: `${getBMIPosition(bmi)}%`,
-                        backgroundColor: bmiColor,
-                      },
-                    ]}
-                  />
-                </View>
-                <View style={styles.bmiLabels}>
-                  <Text style={styles.bmiLabel}>15</Text>
-                  <Text style={styles.bmiLabel}>18.5</Text>
-                  <Text style={styles.bmiLabel}>25</Text>
-                  <Text style={styles.bmiLabel}>30</Text>
-                  <Text style={styles.bmiLabel}>40</Text>
-                </View>
-              </View>
-            </View>
-          </View>
-        )}
-
         {/* Personal Information Form */}
         <View style={styles.sectionContainer}>
           <View style={styles.sectionHeader}>
@@ -447,13 +430,10 @@ const ProfileScreen = () => {
                 {t("profile.fullName")}
               </Text>
               <TextInput
-                style={[styles.textInput, !isEditMode && styles.disabledInput]}
+                style={[styles.textInput, styles.disabledInput]}
                 value={userProfile.fullName}
-                onChangeText={(text) =>
-                  setUserProfile({ ...userProfile, fullName: text })
-                }
+                editable={false}
                 placeholder={t("profile.enterFullName")}
-                editable={isEditMode}
               />
             </View>
 
@@ -612,6 +592,195 @@ const ProfileScreen = () => {
           </View>
         </View>
 
+        {/* Identity Information Section */}
+        <View style={styles.sectionContainer}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>
+              {t("profile.identityInformation")}
+            </Text>
+          </View>
+
+          <View style={styles.formContainer}>
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>
+                <MaterialCommunityIcons
+                  name="card-account-details"
+                  size={16}
+                  color="#FF914D"
+                />{" "}
+                {t("profile.citizenIdNumber")}
+              </Text>
+              <TextInput
+                style={[styles.textInput, !isEditMode && styles.disabledInput]}
+                value={userProfile.citizenIdNumber}
+                onChangeText={(text) =>
+                  setUserProfile({ ...userProfile, citizenIdNumber: text })
+                }
+                placeholder={t("profile.enterCitizenIdNumber")}
+                editable={isEditMode}
+                keyboardType="numeric"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>
+                <MaterialCommunityIcons
+                  name="map-marker"
+                  size={16}
+                  color="#FF914D"
+                />{" "}
+                {t("profile.identityCardPlace")}
+              </Text>
+              <TextInput
+                style={[styles.textInput, styles.disabledInput]}
+                value={userProfile.identityCardPlace}
+                editable={false}
+                placeholder={t("profile.enterIdentityCardPlace")}
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>
+                <MaterialCommunityIcons
+                  name="home-city"
+                  size={16}
+                  color="#FF914D"
+                />{" "}
+                {t("profile.permanentAddress")}
+              </Text>
+              <TextInput
+                style={[styles.textInput, !isEditMode && styles.disabledInput]}
+                value={userProfile.citizenCardPermanentAddress}
+                onChangeText={(text) =>
+                  setUserProfile({
+                    ...userProfile,
+                    citizenCardPermanentAddress: text,
+                  })
+                }
+                placeholder={t("profile.enterPermanentAddress")}
+                editable={isEditMode}
+                multiline
+                numberOfLines={2}
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>
+                <MaterialCommunityIcons
+                  name="calendar-check"
+                  size={16}
+                  color="#FF914D"
+                />{" "}
+                {t("profile.identityCardDate")}
+              </Text>
+              <TouchableOpacity
+                onPress={openIdentityDatePicker}
+                disabled={!isEditMode}
+              >
+                <View
+                  style={[
+                    styles.dateInput,
+                    !isEditMode && styles.disabledInput,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.dateText,
+                      !displayIdentityDate && styles.placeholderText,
+                    ]}
+                  >
+                    {displayIdentityDate || t("profile.selectIdentityCardDate")}
+                  </Text>
+                  <MaterialCommunityIcons
+                    name="calendar"
+                    size={20}
+                    color={isEditMode ? "#FF914D" : "#999"}
+                  />
+                </View>
+              </TouchableOpacity>
+            </View>
+
+            {/* Citizen ID Images */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>
+                <MaterialCommunityIcons
+                  name="card-account-details-outline"
+                  size={16}
+                  color="#FF914D"
+                />{" "}
+                {t("profile.citizenIdImages")}
+              </Text>
+              <View style={styles.idImagesContainer}>
+                <TouchableOpacity
+                  style={styles.idImageCard}
+                  onPress={() => pickImage("frontCitizenId")}
+                  disabled={!isEditMode}
+                >
+                  {userProfile.frontCitizenIdUrl ? (
+                    <Image
+                      source={{ uri: userProfile.frontCitizenIdUrl }}
+                      style={styles.idImage}
+                    />
+                  ) : (
+                    <View style={styles.idImagePlaceholder}>
+                      <MaterialCommunityIcons
+                        name="image-plus"
+                        size={32}
+                        color="#ccc"
+                      />
+                      <Text style={styles.idImageText}>
+                        {t("profile.frontCitizenId")}
+                      </Text>
+                    </View>
+                  )}
+                  {isEditMode && (
+                    <View style={styles.idEditBadge}>
+                      <MaterialCommunityIcons
+                        name="camera"
+                        size={12}
+                        color="#fff"
+                      />
+                    </View>
+                  )}
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.idImageCard}
+                  onPress={() => pickImage("backCitizenId")}
+                  disabled={!isEditMode}
+                >
+                  {userProfile.backCitizenIdUrl ? (
+                    <Image
+                      source={{ uri: userProfile.backCitizenIdUrl }}
+                      style={styles.idImage}
+                    />
+                  ) : (
+                    <View style={styles.idImagePlaceholder}>
+                      <MaterialCommunityIcons
+                        name="image-plus"
+                        size={32}
+                        color="#ccc"
+                      />
+                      <Text style={styles.idImageText}>
+                        {t("profile.backCitizenId")}
+                      </Text>
+                    </View>
+                  )}
+                  {isEditMode && (
+                    <View style={styles.idEditBadge}>
+                      <MaterialCommunityIcons
+                        name="camera"
+                        size={12}
+                        color="#fff"
+                      />
+                    </View>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </View>
+
         {/* Action Buttons */}
         {isEditMode && (
           <View style={styles.actionContainer}>
@@ -713,6 +882,28 @@ const ProfileScreen = () => {
         buttonTextColorIOS="#FF914D"
         textColor="#1A191A"
       />
+
+      {/* Identity Card Date Picker Modal */}
+      <DateTimePickerModal
+        isVisible={showIdentityDatePicker}
+        mode="date"
+        onConfirm={handleIdentityDateConfirm}
+        onCancel={handleIdentityDateCancel}
+        date={
+          userProfile.identityCardDate
+            ? new Date(userProfile.identityCardDate)
+            : new Date()
+        }
+        maximumDate={new Date()}
+        minimumDate={new Date(1924, 0, 1)}
+        confirmTextIOS={t("common.confirm")}
+        cancelTextIOS={t("common.cancel")}
+        headerTextIOS={t("profile.selectIdentityCardDate")}
+        display="spinner"
+        isDarkModeEnabled={false}
+        buttonTextColorIOS="#FF914D"
+        textColor="#1A191A"
+      />
     </KeyboardAvoidingView>
   );
 };
@@ -737,6 +928,7 @@ const styles = StyleSheet.create({
   avatarContainer: {
     alignItems: "center",
     marginBottom: 16,
+    position: "relative",
   },
   avatar: {
     width: 120,
@@ -748,6 +940,19 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
+  },
+  avatarEditBadge: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    backgroundColor: "#FF914D",
+    borderRadius: 20,
+    width: 36,
+    height: 36,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 3,
+    borderColor: "#fff",
   },
   name: {
     color: "#fff",
@@ -837,60 +1042,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: "#f8f9fa",
   },
-  healthCard: {
-    backgroundColor: "#f8f9fa",
-    borderRadius: 12,
-    padding: 16,
-  },
-  healthHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  healthInfo: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  healthTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333",
-  },
-  healthSubtitle: {
-    fontSize: 14,
-    color: "#666",
-    marginTop: 2,
-  },
-  healthValue: {
-    fontSize: 24,
-    fontWeight: "700",
-  },
-  bmiProgressContainer: {
-    marginTop: 8,
-  },
-  bmiProgress: {
-    height: 8,
-    backgroundColor: "#e0e0e0",
-    borderRadius: 4,
-    position: "relative",
-    marginBottom: 8,
-  },
-  bmiIndicator: {
-    position: "absolute",
-    top: -2,
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    transform: [{ translateX: -6 }],
-  },
-  bmiLabels: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  bmiLabel: {
-    fontSize: 10,
-    color: "#666",
-  },
   formContainer: {
     gap: 16,
   },
@@ -940,6 +1091,48 @@ const styles = StyleSheet.create({
     backgroundColor: "#f8f9fa",
     color: "#666",
   },
+  idImagesContainer: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  idImageCard: {
+    flex: 1,
+    aspectRatio: 1.5,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: "#e0e0e0",
+    borderStyle: "dashed",
+    overflow: "hidden",
+    position: "relative",
+  },
+  idImage: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+  },
+  idImagePlaceholder: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f8f9fa",
+  },
+  idImageText: {
+    fontSize: 12,
+    color: "#999",
+    marginTop: 8,
+    textAlign: "center",
+  },
+  idEditBadge: {
+    position: "absolute",
+    bottom: 8,
+    right: 8,
+    backgroundColor: "#FF914D",
+    borderRadius: 16,
+    width: 28,
+    height: 28,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   actionContainer: {
     flexDirection: "row",
     gap: 12,
@@ -981,6 +1174,7 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     justifyContent: "flex-end",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   pickerModal: {
     backgroundColor: "#fff",
@@ -1037,4 +1231,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ProfileScreen;
+export default GymPTMyProfile;

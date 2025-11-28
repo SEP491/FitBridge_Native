@@ -197,13 +197,19 @@ const MessagingStateContext = createContext(null);
 export const MessagingStateProvider = ({ children }) => {
   const [state, dispatch] = useReducer(messagingReducer, initialState);
   const [joinedGroup, setJoinedGroup] = useState("");
+  const connectionInitializedRef = useRef(false);
 
-  useEffect(() => {
-    const uid = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    dispatch({ type: actionTypes.SET_UNIQUE_ID, payload: uid });
-    console.log("MessagingStateProvider useEffect called.");
+  // Manual start connection function
+  const startConnection = async () => {
+    if (connectionInitializedRef.current) {
+      console.log("Connection already initialized, skipping...");
+      return;
+    }
 
-    const startConnection = async () => {
+    console.log("Starting messaging connection...");
+    connectionInitializedRef.current = true;
+
+    try {
       const messagingService = await SignalRServiceFactory.getInstance(
         ServiceName.MESSAGING
       );
@@ -212,6 +218,7 @@ export const MessagingStateProvider = ({ children }) => {
         type: actionTypes.SET_MESSAGING_SERVICE,
         payload: messagingService,
       });
+
       if (!messagingService) return;
 
       // Set initial connection status
@@ -242,15 +249,19 @@ export const MessagingStateProvider = ({ children }) => {
       } catch (error) {
         console.error("Error registering handlers", error);
       }
-    };
+    } catch (error) {
+      console.error("Error starting connection:", error);
+      connectionInitializedRef.current = false;
+    }
+  };
 
-    startConnection();
-
+  useEffect(() => {
     return () => {
       dispatch({ type: actionTypes.CLEAR_STATE });
       console.log("unregistering handlers", state.messagingService);
       unregisterHandlers(state.messagingService);
       SignalRServiceFactory.dispose(ServiceName.MESSAGING);
+      connectionInitializedRef.current = false;
     };
   }, []);
 
@@ -462,6 +473,7 @@ export const MessagingStateProvider = ({ children }) => {
 
   // Actions
   const actions = {
+    startConnection, // Expose the manual start function
     setTypingStatus: (typingStatus) =>
       dispatch({
         type: actionTypes.SET_TYPING_STATUS,

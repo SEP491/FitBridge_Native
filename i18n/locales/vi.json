@@ -419,7 +419,22 @@
       "kg": "kg",
       "cm": "cm",
       "bmi": "BMI"
-    }
+    },
+    "identityInformation": "Thông tin định danh",
+    "citizenIdNumber": "Số CMND/CCCD",
+    "enterCitizenIdNumber": "Nhập số CMND/CCCD",
+    "identityCardPlace": "Nơi cấp",
+    "enterIdentityCardPlace": "Nhập nơi cấp",
+    "permanentAddress": "Địa chỉ thường trú",
+    "enterPermanentAddress": "Nhập địa chỉ thường trú",
+    "identityCardDate": "Ngày cấp",
+    "selectIdentityCardDate": "Chọn ngày cấp",
+    "businessAddress": "Địa chỉ kinh doanh",
+    "citizenIdImages": "Hình ảnh CMND/CCCD",
+    "frontCitizenId": "Mặt trước",
+    "backCitizenId": "Mặt sau",
+    "permissionDenied": "Quyền truy cập bị từ chối",
+    "permissionMessage": "Chúng tôi cần quyền truy cập vào thư viện ảnh của bạn để tải lên hình ảnh."
   },
 
   "ptProfile": {

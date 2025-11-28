@@ -48,6 +48,8 @@ import UserMenuScreen from "../screens/CommonScreen/UserMenuScreen/UserMenuScree
 import SettingScreen from "../screens/CommonScreen/SettingScreen/SettingScreen";
 import LanguageSelectScreen from "../screens/CommonScreen/SettingScreen/LanguageSelectScreen/LanguageSelectScreen";
 import ProfileScreen from "../screens/CustomerScreen/ProfileScreen/ProfileScreen";
+import FreelancePTMyProfile from "../screens/FreelancePTScreen/FreelancePTMyProfile/FreelancePTMyProfile";
+import GymPTMyProfile from "../screens/GymPTScreen/GymPTMyProfile/GymPTMyProfile";
 import AccountScreen from "../screens/CustomerScreen/AccountScreen/AccountScreen";
 import UpdatePasswordScreen from "../screens/AuthenticationScreen/UpdatePasswordScreen/UpdatePasswordScreen";
 import SubscriptionScreen from "../screens/CustomerScreen/SubscriptionScreen/SubscriptionScreen";
@@ -75,6 +77,7 @@ import VideoCallPrepScreen from "../screens/CommonScreen/VideoCallPrepScreen/Vid
 
 import NotificationScreen from "../screens/CommonScreen/NotificationScreen/NotificationScreen";
 import { useSignalR } from "../context/SignalRContext";
+import { useMessagingState } from "../context/messagingStateContext";
 import * as Notifications from "expo-notifications";
 import notificationService from "../services/notificationService";
 import NotificationBannerWrapper from "../components/NotificationBannerWrapper";
@@ -1341,7 +1344,13 @@ export default function Navigator({
         />
         <Stack.Screen
           name="ProfileScreen"
-          component={ProfileScreen}
+          component={
+            user?.role === "FreelancePT"
+              ? FreelancePTMyProfile
+              : user?.role === "GymPT"
+              ? GymPTMyProfile
+              : ProfileScreen
+          }
           options={{
             headerShown: true,
             title: t("screenTitles.profile"),
@@ -1658,6 +1667,7 @@ export default function Navigator({
 
   const MainTab = () => {
     const { service: signalrService } = useSignalR();
+    const { startConnection } = useMessagingState();
     const { getAvatarUser } = useUser();
     const registerPushToken = async () => {
       try {
@@ -1694,6 +1704,8 @@ export default function Navigator({
       registerPushToken();
       getAvatarUser();
       signalrService.startConnection();
+      // Start messaging SignalR connection when MainTab mounts
+      startConnection();
     }, []);
 
     return (

@@ -19,10 +19,10 @@ import DeleteAccountBottomSheet from "../../../components/DeleteAccountBottomShe
 import { useTranslation } from "../../../hooks/useTranslation";
 import { ConnectionStates } from "../../../services/signalR/ConnectionStates";
 import signalR_webrtcService from "../../../services/signalR/signalR-webrtcService";
-import Purchases from "react-native-purchases";
 import { useRevenueCat } from "../../../context/RevenueCatContext";
 import { useUser } from "../../../context/UserContext";
 import orderService from "../../../services/orderService";
+import { fetchUserFromStorage } from "../../../lib";
 
 export default function UserMenuScreen() {
   const [user, setUser] = useState(null);
@@ -38,9 +38,10 @@ export default function UserMenuScreen() {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const userData = await AsyncStorage.getItem("user");
+      const userData = await fetchUserFromStorage();
+      console.log("Fetched user data:", userData);
       if (userData) {
-        setUser(JSON.parse(userData));
+        setUser(userData);
       }
     };
     fetchUser();

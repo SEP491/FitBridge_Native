@@ -415,7 +415,22 @@
       "kg": "kg",
       "cm": "cm",
       "bmi": "BMI"
-    }
+    },
+    "identityInformation": "Identity Information",
+    "citizenIdNumber": "Citizen ID Number",
+    "enterCitizenIdNumber": "Enter citizen ID number",
+    "identityCardPlace": "Place of Issue",
+    "enterIdentityCardPlace": "Enter place of issue",
+    "permanentAddress": "Permanent Address",
+    "enterPermanentAddress": "Enter permanent address",
+    "identityCardDate": "Date of Issue",
+    "selectIdentityCardDate": "Select date of issue",
+    "businessAddress": "Business Address",
+    "citizenIdImages": "Citizen ID Images",
+    "frontCitizenId": "Front Side",
+    "backCitizenId": "Back Side",
+    "permissionDenied": "Permission Denied",
+    "permissionMessage": "We need permission to access your photo library to upload images."
   },
 
   "ptProfile": {
