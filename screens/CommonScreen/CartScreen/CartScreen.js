@@ -8,6 +8,7 @@ import {
   Dimensions,
 } from "react-native";
 import React, { useState, useMemo, useRef, useEffect } from "react";
+import Checkbox from "expo-checkbox";
 import CartCard from "../../../components/CartCard/CartCard";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import { Image } from "react-native";
@@ -30,8 +31,41 @@ export default function CartScreen() {
   const [activeTab, setActiveTab] = useState(
     route.params?.initialTab || "gym"
   ); // gym, freelance, product
+  
+  // State for selected items (checkbox selection)
+  const [selectedItems, setSelectedItems] = useState(new Set());
+
+  // Reset selected items when switching tabs
+  useEffect(() => {
+    setSelectedItems(new Set());
+  }, [activeTab]);
 
   console.log("Cart items:", cart);
+
+  // Handle individual item selection
+  const toggleItemSelection = (cartItemId) => {
+    setSelectedItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(cartItemId)) {
+        newSet.delete(cartItemId);
+      } else {
+        newSet.add(cartItemId);
+      }
+      return newSet;
+    });
+  };
+
+  // Handle select all / deselect all
+  const toggleSelectAll = () => {
+    if (selectedItems.size === filteredCart.length && filteredCart.length > 0) {
+      // Deselect all
+      setSelectedItems(new Set());
+    } else {
+      // Select all
+      const allIds = new Set(filteredCart.map(item => item.cartItemId));
+      setSelectedItems(allIds);
+    }
+  };
 
   // Map tab keys to indices
   const tabIndices = { gym: 0, freelance: 1, product: 2 };
@@ -78,14 +112,16 @@ export default function CartScreen() {
     return counts;
   }, [cart]);
 
-  // Calculate total price for active tab
+  // Calculate total price for selected items in active tab
   const tabTotalPrice = useMemo(() => {
-    return filteredCart.reduce((total, item) => {
-      // For products, use selectedVariant price if available
-      const itemPrice = item.selectedVariant?.salePrice || item.price || item.salePrice;
-      return total + itemPrice * (item.quantity || 1);
-    }, 0);
-  }, [filteredCart]);
+    return filteredCart
+      .filter(item => selectedItems.has(item.cartItemId))
+      .reduce((total, item) => {
+        // For products, use selectedVariant price if available
+        const itemPrice = item.selectedVariant?.salePrice || item.price || item.salePrice;
+        return total + itemPrice * (item.quantity || 1);
+      }, 0);
+  }, [filteredCart, selectedItems]);
 
   // Function to handle quantity change
   const handleQuantityChange = (cartItemId, newQuantity) => {
@@ -112,13 +148,16 @@ export default function CartScreen() {
 
   // Function to handle checkout
   const handleCheckout = () => {
-    if (filteredCart.length === 0) {
-      showAlert(t("cart.emptyCart"), t("cart.addPackageBeforePayment"));
+    if (selectedItems.size === 0) {
+      showAlert(t("cart.noItemsSelected") || "No items selected", t("cart.selectItemsBeforeCheckout") || "Please select items before proceeding to checkout");
       return;
     }
+    
+    const selectedCartItems = filteredCart.filter(item => selectedItems.has(item.cartItemId));
+    
     navigation.navigate("PaymentScreen", {
       total: tabTotalPrice,
-      items: filteredCart,
+      items: selectedCartItems,
     });
   };
 
@@ -169,6 +208,29 @@ export default function CartScreen() {
 
       {filteredCart.length > 0 ? (
         <>
+          {/* Select All Header */}
+          <View style={styles.selectAllContainer}>
+            <TouchableOpacity
+              style={styles.selectAllButton}
+              onPress={toggleSelectAll}
+            >
+              <Checkbox
+                value={selectedItems.size === filteredCart.length && filteredCart.length > 0}
+                onValueChange={toggleSelectAll}
+                color={selectedItems.size === filteredCart.length && filteredCart.length > 0 ? "#ED2A46" : undefined}
+                style={styles.checkbox}
+              />
+              <Text style={styles.selectAllText}>
+                {selectedItems.size === filteredCart.length && filteredCart.length > 0
+                  ? t("cart.deselectAll") || "Deselect All"
+                  : t("cart.selectAll") || "Select All"}
+              </Text>
+            </TouchableOpacity>
+            <Text style={styles.selectedCountText}>
+              {selectedItems.size} / {filteredCart.length} {t("cart.selected") || "selected"}
+            </Text>
+          </View>
+          
           <View style={{ flex: 1 }}>
             <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
               {filteredCart.map((item, index) => {
@@ -180,6 +242,12 @@ export default function CartScreen() {
                   
                   return (
                     <View key={item.cartItemId || index} style={styles.productCartItem}>
+                      <Checkbox
+                        value={selectedItems.has(item.cartItemId)}
+                        onValueChange={() => toggleItemSelection(item.cartItemId)}
+                        color={selectedItems.has(item.cartItemId) ? "#ED2A46" : undefined}
+                        style={styles.productCheckbox}
+                      />
                       <Image
                         source={{ uri: displayImage }}
                         style={styles.productCartImage}
@@ -241,9 +309,16 @@ export default function CartScreen() {
                 
                 // Render gym/PT courses using CartCard
                 return (
-                  <CartCard
-                    key={item.cartItemId || index}
-                    product={{
+                  <View key={item.cartItemId || index} style={styles.cartCardContainer}>
+                    <Checkbox
+                      value={selectedItems.has(item.cartItemId)}
+                      onValueChange={() => toggleItemSelection(item.cartItemId)}
+                      color={selectedItems.has(item.cartItemId) ? "#ED2A46" : undefined}
+                      style={styles.cartCardCheckbox}
+                    />
+                    <View style={{ flex: 1 }}>
+                      <CartCard
+                        product={{
                       gymId: item.gymId,
                       gymName: item.gymName,
                       rating: 5, // Default since we don't have ratings in cart items
@@ -272,6 +347,8 @@ export default function CartScreen() {
                     }
                     onRemove={() => handleRemoveItem(item.cartItemId)}
                   />
+                    </View>
+                  </View>
                 );
               })}
             </ScrollView>
@@ -280,7 +357,9 @@ export default function CartScreen() {
           <View style={styles.orderSummary}>
             <View style={styles.proceedContainer}>
               <View>
-                <Text style={{ fontSize: 15 }}>{t("cart.totalPayment")}</Text>
+                <Text style={{ fontSize: 15 }}>
+                  {t("cart.totalPayment")} ({selectedItems.size} {t("cart.items") || "items"})
+                </Text>
                 <Text
                   style={{ fontSize: 20, fontWeight: "bold", color: "#ED2A46" }}
                 >
@@ -470,6 +549,36 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 16,
   },
+  // Select all container
+  selectAllContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "#F8F9FA",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E5E5",
+  },
+  selectAllButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  selectAllText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
+  },
+  selectedCountText: {
+    fontSize: 14,
+    color: "#666",
+  },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 4,
+  },
   // Product cart item styles
   productCartItem: {
     flexDirection: "row",
@@ -483,6 +592,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    alignItems: "center",
+    gap: 8,
+  },
+  productCheckbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 4,
   },
   productCartImage: {
     width: 100,
@@ -540,5 +656,18 @@ const styles = StyleSheet.create({
   },
   productRemoveButton: {
     padding: 8,
+  },
+  // Cart card with checkbox styles
+  cartCardContainer: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    paddingLeft: 16,
+    gap: 8,
+  },
+  cartCardCheckbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 4,
+    marginTop: 12,
   },
 });

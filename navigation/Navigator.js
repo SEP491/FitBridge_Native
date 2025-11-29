@@ -352,7 +352,14 @@ export default function Navigator({
           name="ProductDetailsScreen"
           component={ProductDetailsScreen}
           options={{
-            headerShown: false,
+            headerShown: true,
+            title: t("screenTitles.productDetail"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
           }}
         />
         <Stack.Screen
@@ -879,7 +886,14 @@ export default function Navigator({
           name="ProductDetailsScreen"
           component={ProductDetailsScreen}
           options={{
-            headerShown: false,
+            headerShown: true,
+            title: t("screenTitles.productDetail"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
           }}
         />
       </Stack.Navigator>
@@ -1357,6 +1371,20 @@ export default function Navigator({
           options={{
             headerShown: true,
             title: t("screenTitles.account"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="CartScreen"
+          component={CartScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.cart"),
             headerTitleAlign: "center",
             headerTitleStyle: {
               fontWeight: "bold",

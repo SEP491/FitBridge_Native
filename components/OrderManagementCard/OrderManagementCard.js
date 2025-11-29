@@ -13,6 +13,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { Link, useNavigation } from "@react-navigation/native";
 import { useTranslation } from "../../hooks/useTranslation";
+import { useCart } from "../../context/CartContext";
 import FeedbackModal from "./FeedbackModal";
 import paymentService from "../../services/paymentService";
 import orderService from "../../services/orderService";
@@ -21,6 +22,7 @@ import { Button } from "react-native-web";
 const OrderManagementCard = ({ order, onRefresh }) => {
   const navigation = useNavigation();
   const { t } = useTranslation();
+  const { addToCart } = useCart();
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
   const [unreviewedItems, setUnreviewedItems] = useState([]);
   const [cancelModalVisible, setCancelModalVisible] = useState(false);
@@ -233,6 +235,53 @@ const OrderManagementCard = ({ order, onRefresh }) => {
     }
   };
 
+  const handleRebuy = () => {
+    try {
+      // Add all product items from the order to cart
+      order.orderItems.forEach((item) => {
+        if (item.productDetail) {
+          const productToAdd = {
+            id: item.productDetail.productId,
+            name: item.productDetail.flavourName,
+            imageUrl: item.productDetail.imageUrl,
+            salePrice: item.productDetail.salePrice,
+            displayPrice: item.productDetail.displayPrice,
+            selectedVariant: {
+              id: item.productDetail.id,
+              flavourName: item.productDetail.flavourName,
+              weightValue: item.productDetail.weightValue,
+              weightUnit: item.productDetail.weightUnit,
+              salePrice: item.productDetail.salePrice,
+              displayPrice: item.productDetail.displayPrice,
+              imageUrl: item.productDetail.imageUrl,
+              quantity: item.productDetail.quantity,
+            },
+            quantity: item.quantity,
+          };
+          addToCart(productToAdd);
+        }
+      });
+
+      Alert.alert(
+        t("cart.addedToCart"),
+        t("orders.productsAddedToCart"),
+        [
+          {
+            text: t("common.continueShopping"),
+            style: "cancel",
+          },
+          {
+            text: t("cart.viewCart"),
+            onPress: () => navigation.navigate("CartScreen", { initialTab: "product" }),
+          },
+        ]
+      );
+    } catch (error) {
+      console.error("Error adding products to cart:", error);
+      Alert.alert(t("common.error"), t("orders.errorAddingToCart"));
+    }
+  };
+
   return (
     <View style={styles.card}>
       {/* Status Header */}
@@ -426,6 +475,14 @@ const OrderManagementCard = ({ order, onRefresh }) => {
           )}
           {order.currentStatus === "Finished" &&
             order.orderItems.some((item) => !item.isFeedback) && (
+               <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                flex: 1,
+                gap: 8,
+              }}
+            >
               <TouchableOpacity
                 style={[styles.actionButton, styles.feedbackButton]}
                 onPress={handleOpenFeedbackModal}
@@ -435,7 +492,27 @@ const OrderManagementCard = ({ order, onRefresh }) => {
                   {t("orders.leaveFeedback")}
                 </Text>
               </TouchableOpacity>
+              <TouchableOpacity
+              style={[styles.actionButton, styles.rebuyButton]}
+              onPress={handleRebuy}
+            >
+              <Ionicons name="cart-outline" size={18} color="#fff" />
+              <Text style={styles.rebuyButtonText}>
+                {t("orders.rebuy")}
+              </Text>
+            </TouchableOpacity>
+              </View>
             )}
+            {order.currentStatus === "Cancelled" && 
+            <TouchableOpacity
+              style={[styles.actionButton, styles.rebuyButton]}
+              onPress={handleRebuy}
+            >
+              <Ionicons name="cart-outline" size={18} color="#fff" />
+              <Text style={styles.rebuyButtonText}>
+                {t("orders.rebuy")}
+              </Text>
+            </TouchableOpacity>}
         </View>
       </View>
 
@@ -754,6 +831,17 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     marginTop: 14,
   },
+  rebuyButton: {
+    backgroundColor: "#ED2A46",
+    borderWidth: 1,
+    borderColor: "#ED2A46",
+  },
+  rebuyButtonText: {
+    fontSize: 13,
+    color: "#fff",
+    fontWeight: "600",
+  },
+
   actionButton: {
     flexDirection: "row",
     alignItems: "center",

@@ -348,7 +348,7 @@ const ManageOrderScreen = ({ route }) => {
     >
       <Ionicons
         name={item.icon}
-        size={32}
+        size={25}
         color={selectedStatus === item.status ? "#fff" : item.color}
       />
       <Text
@@ -391,6 +391,8 @@ const ManageOrderScreen = ({ route }) => {
             ? orderSummary?.summaryProductOrder?.totalShipping
             : item.status === "Finished"
             ? orderSummary?.summaryProductOrder?.totalFinished
+            : item.status === "Cancelled"
+            ? orderSummary?.summaryProductOrder?.totalCancelled
             : item.filterFeedback
             ? orderSummary?.productOrders?.items.filter(
                 (order) =>
@@ -517,7 +519,7 @@ const styles = StyleSheet.create({
     width: 90,
   },
   statusButtonText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "600",
     color: "#333",
     marginTop: 6,

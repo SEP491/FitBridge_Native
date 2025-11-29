@@ -22,6 +22,7 @@ import { useNavigation } from "@react-navigation/native";
 import ReportService from "../../../services/reportService";
 import uploadImageService from "../../../services/uploadImageService";
 import * as ImagePicker from "expo-image-picker";
+import PackageFeedbackModal from "../../../components/OrderManagementCard/PackageFeedbackModal";
 
 export default function MyPackageScreen() {
   const { t } = useTranslation();
@@ -36,6 +37,10 @@ export default function MyPackageScreen() {
   const [reportDescription, setReportDescription] = useState("");
   const [reportImages, setReportImages] = useState([]);
   const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+
+  // Feedback Modal States
+  const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
+  const [selectedPackageForFeedback, setSelectedPackageForFeedback] = useState(null);
 
   useEffect(() => {
     const fetchPackages = async () => {
@@ -183,6 +188,64 @@ export default function MyPackageScreen() {
 
   const handleRemoveImage = (index) => {
     setReportImages(reportImages.filter((_, i) => i !== index));
+  };
+
+  const handleOpenFeedbackModal = (item) => {
+    // Check if package is expired or has no available sessions
+    const expired = isPackageExpired(item.expirationDate);
+    const noSessionsLeft = item.availableSessions === 0;
+    
+    if (!expired && !noSessionsLeft) {
+      Alert.alert(
+        t("myPackage.feedback.notAvailableTitle") || "Not Available",
+        t("myPackage.feedback.notAvailableMessage") || "Feedback is only available for expired or completed packages."
+      );
+      return;
+    }
+
+    setSelectedPackageForFeedback(item);
+    setFeedbackModalVisible(true);
+  };
+
+  const handleCloseFeedbackModal = (success) => {
+    setFeedbackModalVisible(false);
+    setSelectedPackageForFeedback(null);
+    
+    if (success) {
+      // Refresh packages list after successful feedback submission
+      const fetchPackages = async () => {
+        try {
+          const response = await packageService.getPackages();
+          if (response.status === "200") {
+            const gymCourseItems = response.data.gymCourse?.items || [];
+            const freelancePtItems = response.data.freelancePtPackage?.items || [];
+
+            const mappedGymCourses = gymCourseItems.map((item) => {
+              const hasPTAssigned = item.ptId !== null || item.ptName !== null || item.ptImageUrl !== null;
+              return {
+                ...item,
+                type: hasPTAssigned ? "gymCourseWithPT" : "gymCourseNormal",
+                packageType: hasPTAssigned ? "Gym + PT" : "Gym Membership",
+                toExtend: true,
+              };
+            });
+
+            const mappedFreelancePt = freelancePtItems.map((item) => ({
+              ...item,
+              type: "freelancePT",
+              packageType: "Freelance PT",
+              toExtend: true,
+            }));
+
+            const allPackages = [...mappedGymCourses, ...mappedFreelancePt];
+            setPackages(allPackages);
+          }
+        } catch (error) {
+          console.error("Error refreshing packages:", error);
+        }
+      };
+      fetchPackages();
+    }
   };
 
   const handleSubmitReport = async () => {
@@ -465,7 +528,7 @@ export default function MyPackageScreen() {
         </View>
 
         {/* Second Row: Action Buttons */}
-        {!expired && (
+        {!expired ? (
           <View style={styles.actionButtonsRow}>
             <TouchableOpacity
               style={[
@@ -488,6 +551,28 @@ export default function MyPackageScreen() {
               <Text style={styles.reportButtonText}>Report</Text>
             </TouchableOpacity>
           </View>
+        ) : (
+          <View style={styles.actionButtonsRow}>
+            <TouchableOpacity
+              style={styles.feedbackButton}
+              onPress={() => handleOpenFeedbackModal(item)}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="star" size={18} color="#FF9800" />
+              <Text style={styles.feedbackButtonText}>
+                {item.hasReviewed ? t("myPackage.viewFeedback") : t("myPackage.leaveFeedback")}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.reportButton}
+              onPress={() => handleReport(item)}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="flag-outline" size={18} color={colors.red} />
+              <Text style={styles.reportButtonText}>Report</Text>
+            </TouchableOpacity>
+          </View>
         )}
       </View>
     );
@@ -495,6 +580,15 @@ export default function MyPackageScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Feedback Modal */}
+      {selectedPackageForFeedback && (
+        <PackageFeedbackModal
+          visible={feedbackModalVisible}
+          onClose={handleCloseFeedbackModal}
+          packageItem={selectedPackageForFeedback}
+        />
+      )}
+
       {/* Report Modal */}
       <Modal
         visible={reportModalVisible}
@@ -1007,6 +1101,32 @@ const styles = StyleSheet.create({
   reportButtonText: {
     fontSize: 14,
     color: colors.red,
+    fontWeight: "700",
+    letterSpacing: 0.3,
+  },
+  feedbackButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    borderRadius: 10,
+    backgroundColor: "#FFF3E0",
+    borderWidth: 1.5,
+    borderColor: "#FF9800",
+    gap: 6,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  feedbackButtonText: {
+    fontSize: 14,
+    color: "#FF9800",
     fontWeight: "700",
     letterSpacing: 0.3,
   },
