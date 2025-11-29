@@ -53,6 +53,7 @@ export default function ProductDetailsScreen() {
   const [reviewsTotalPages, setReviewsTotalPages] = useState(1);
   const [reviewsLoading, setReviewsLoading] = useState(false);
 
+  console.log(selectedVariant);
   useEffect(() => {
     fetchProductDetails();
     fetchProductReviews();
@@ -359,20 +360,20 @@ export default function ProductDetailsScreen() {
     setVariantModalVisible(true);
   };
 
+  const getShortCountryName = (country) => {
+    if (!country) return "";
+    if(country.length <= 8)
+      return country;
+    return country
+      .split(' ')
+      .map((word) => word[0])
+      .join('')
+      .toUpperCase();
+  };
+
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <StatusBar backgroundColor={colors.red} barStyle="light-content" />
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Ionicons name="arrow-back" size={24} color="#333" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>{t("product.productDetails")}</Text>
-          <View style={styles.cartButton} />
-        </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.red} />
           <Text style={styles.loadingText}>{t("common.loading")}</Text>
@@ -383,25 +384,6 @@ export default function ProductDetailsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar backgroundColor={colors.red} barStyle="light-content" />
-
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="arrow-back" size={24} color="#333" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t("product.productDetails")}</Text>
-        <TouchableOpacity
-          style={styles.cartButton}
-          onPress={() => navigation.navigate("CartScreen")}
-        >
-          <Ionicons name="cart-outline" size={24} color="#333" />
-        </TouchableOpacity>
-      </View>
-
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Product Image */}
         <View style={styles.imageContainer}>
@@ -455,7 +437,7 @@ export default function ProductDetailsScreen() {
                 <Ionicons name="location-outline" size={16} color="#666" />
                 <Text style={styles.originLabel}>{t("product.origin")}:</Text>
                 <Text style={styles.originValue}>
-                  {product.countryOfOrigin}
+                  {getShortCountryName(product.countryOfOrigin)}
                 </Text>
               </View>
             )}
@@ -661,16 +643,14 @@ export default function ProductDetailsScreen() {
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>{t("product.weight")}:</Text>
               <Text style={styles.detailValue}>
-                {availableWeights
-                  .map((w) => w.weightValue + " " + w.weightUnit)
-                  .join(", ")}
+                {selectedVariant?.weightValue} {selectedVariant?.weightUnit}
               </Text>
             </View>
 
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>{t("product.flavour")}:</Text>
               <Text style={styles.detailValue}>
-                {availableFlavours.map((f) => f.flavourName).join(", ")}
+                {selectedVariant?.flavourName}
               </Text>
             </View>
 
@@ -685,37 +665,37 @@ export default function ProductDetailsScreen() {
               </View>
             )}
 
-            {productDetails?.productDetails[0]?.bcaaPerServingGrams && (
+            {selectedVariant?.bcaaPerServingGrams && (
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>
                   {t("product.bcaaPerServing")}:
                 </Text>
                 <Text style={styles.detailValue}>
-                  {productDetails?.productDetails[0]?.bcaaPerServingGrams}g/{" "}
+                  {selectedVariant?.bcaaPerServingGrams}g/{" "}
                   {t("product.perServingTime")}
                 </Text>
               </View>
             )}
 
-            {productDetails?.productDetails[0]?.caloriesPerServingKcal && (
+            {selectedVariant?.caloriesPerServingKcal && (
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>
                   {t("product.caloriesPerServingKcal")}:
                 </Text>
                 <Text style={styles.detailValue}>
-                  {productDetails?.productDetails[0]?.caloriesPerServingKcal}
+                  {selectedVariant?.caloriesPerServingKcal}
                   kcal/ {t("product.perServingTime")}
                 </Text>
               </View>
             )}
 
-            {productDetails?.productDetails[0]?.proteinPerServingGrams && (
+            {selectedVariant?.proteinPerServingGrams && (
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>
                   {t("product.proteinPerServingGrams")}:
                 </Text>
                 <Text style={styles.detailValue}>
-                  {productDetails?.productDetails[0]?.proteinPerServingGrams}g/{" "}
+                  {selectedVariant?.proteinPerServingGrams}g/{" "}
                   {t("product.perServingTime")}
                 </Text>
               </View>
@@ -973,11 +953,11 @@ export default function ProductDetailsScreen() {
                       {product.name}
                     </Text>
                     <Text style={styles.modalPreviewVariant}>
-                      {selectedVariant.weightValue} {selectedVariant.weightUnit}{" "}
-                      - {selectedVariant.flavourName}
+                      {selectedVariant?.weightValue} {selectedVariant?.weightUnit}{" "}
+                      - {selectedVariant?.flavourName}
                     </Text>
                     <Text style={styles.modalPreviewPrice}>
-                      {formatPrice(selectedVariant.salePrice)}
+                      {formatPrice(selectedVariant?.salePrice)}
                     </Text>
                     <Text style={styles.modalPreviewStock}>
                       {selectedVariant.quantity > 0

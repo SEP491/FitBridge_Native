@@ -18,6 +18,8 @@ import ptService from "../../../services/ptService";
 import { useTranslation } from "../../../hooks/useTranslation";
 import { showAlert, formatPrice } from "../../../lib";
 import { useCart } from "../../../context/CartContext";
+import reviewService from "../../../services/reviewService";
+import ReviewCard from "../../../components/ReviewCard/ReviewCard";
 
 const { width } = Dimensions.get("window");
 
@@ -25,7 +27,10 @@ export default function FreelancePTPackageDetailScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const { t } = useTranslation();
-
+  const [reviews, setReviews] = useState([]);
+  const [reviewsPage, setReviewsPage] = useState(1);
+  const [reviewsTotalPages, setReviewsTotalPages] = useState(1);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
   const [packageData, setPackageData] = useState(null);
   const [ptData, setPtData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -39,6 +44,7 @@ export default function FreelancePTPackageDetailScreen() {
   useEffect(() => {
     if (packageId) {
       fetchPackageDetail();
+      fetchPackageReview();
     } else {
       showAlert(
         t("error.title") || "Error",
@@ -71,6 +77,31 @@ export default function FreelancePTPackageDetailScreen() {
       );
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchPackageReview = async (pageNum = 1) => {
+    try {
+      setReviewsLoading(true);
+      const response = await reviewService.getItemReviewsById({
+        freelancePtCourseId: packageId,
+        pageNumber: pageNum,
+        pageSize: 10,
+      });
+      
+      if (response.data) {
+        if (pageNum === 1) {
+          setReviews(response.data.items || []);
+        } else {
+          setReviews(prev => [...prev, ...(response.data.items || [])]);
+        }
+        setReviewsPage(pageNum);
+        setReviewsTotalPages(response.data.totalPages || 1);
+      }
+    } catch (error) {
+      console.error("Error fetching package reviews:", error);
+    } finally {
+      setReviewsLoading(false);
     }
   };
 
@@ -424,6 +455,59 @@ export default function FreelancePTPackageDetailScreen() {
                 </View>
               </View>
             </View>
+          </View>
+
+          {/* Reviews Section */}
+          <View style={styles.reviewsSection}>
+            <View style={styles.sectionHeaderRow}>
+              <Ionicons name="star" size={24} color="#FFD700" />
+              <Text style={styles.sectionTitle}>
+                {t("freelancePT.reviews") || "Reviews"}
+                {reviews.length > 0 && ` (${reviews.length})`}
+              </Text>
+            </View>
+
+            {reviews.length > 0 ? (
+              <View>
+                {reviews.map((review, index) => (
+                  <ReviewCard
+                    key={review.id || index}
+                    review={review}
+                    t={t}
+                    showProductType={false}
+                  />
+                ))}
+
+                {reviewsPage < reviewsTotalPages && (
+                  <TouchableOpacity
+                    style={styles.loadMoreButton}
+                    onPress={() => fetchPackageReview(reviewsPage + 1)}
+                    disabled={reviewsLoading}
+                  >
+                    {reviewsLoading ? (
+                      <ActivityIndicator size="small" color="#ED2A46" />
+                    ) : (
+                      <>
+                        <Text style={styles.loadMoreText}>
+                          {t("common.loadMore") || "Load More"}
+                        </Text>
+                        <Ionicons name="chevron-down" size={20} color="#ED2A46" />
+                      </>
+                    )}
+                  </TouchableOpacity>
+                )}
+              </View>
+            ) : (
+              <View style={styles.reviewsEmpty}>
+                <Ionicons name="chatbox-ellipses-outline" size={48} color="#E0E0E0" />
+                <Text style={styles.reviewsEmptyText}>
+                  {t("freelancePT.noReviews") || "No reviews yet"}
+                </Text>
+                <Text style={styles.reviewsEmptySubtext}>
+                  {t("freelancePT.beFirstToReview") || "Be the first to share your experience with this package"}
+                </Text>
+              </View>
+            )}
           </View>
 
           {/* Trust Signals */}
@@ -863,6 +947,52 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#4CAF50",
     textAlign: "center",
+  },
+  reviewsSection: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: "#F0F0F0",
+  },
+  reviewsEmpty: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 40,
+  },
+  reviewsEmptyText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#666",
+    marginTop: 12,
+    textAlign: "center",
+  },
+  reviewsEmptySubtext: {
+    fontSize: 13,
+    color: "#999",
+    marginTop: 8,
+    textAlign: "center",
+    paddingHorizontal: 20,
+    lineHeight: 20,
+  },
+  loadMoreButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: "#ED2A46",
+    backgroundColor: "#FFFFFF",
+    gap: 8,
+    marginTop: 8,
+  },
+  loadMoreText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#ED2A46",
   },
   bottomBar: {
     position: "absolute",

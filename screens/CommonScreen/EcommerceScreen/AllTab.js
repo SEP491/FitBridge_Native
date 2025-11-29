@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderLeftWidth: 4,
     borderLeftColor: "#ED2A46",
-    marginBottom: 0,
+    marginBottom: 10,
   },
   sectionHeaderContent: {
     flexDirection: "row",
@@ -252,7 +252,6 @@ const styles = StyleSheet.create({
   },
   flatListRow: {
     justifyContent: "space-between",
-    paddingHorizontal: 20,
     marginBottom: 0,
   },
   productItem: {

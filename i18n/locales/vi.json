@@ -97,7 +97,8 @@
     "addressList": "Danh Sách Địa Chỉ",
     "addressSelection": "Chọn Địa Chỉ",
     "contracts": "Hợp Đồng",
-    "contractDetail": "Chi Tiết Hợp Đồng"
+    "contractDetail": "Chi Tiết Hợp Đồng",
+    "productDetail": "Chi Tiết Sản Phẩm"
   },
 
   "myPackage": {
@@ -132,7 +133,13 @@
       "assignedTrainer": "Huấn Luyện Viên",
       "fullGymAccess": "Truy Cập Gym Đầy Đủ",
       "ptAssignment": "Phân Công PT:"
-    }
+    },
+    "leaveFeedback":"Đánh Giá",
+    "shareExperience":"Chia Sẻ Trải Nghiệm Của Bạn Về Gói Tập Này",
+    "package":"Gói Tập",
+    "gymMembership":"Thành Viên Gym",
+    "gymWithPT":"Gym + PT",
+    "freelancePT":"PT Tự Do"
   },
 
   "home": {
@@ -365,7 +372,11 @@
     "ptAssignmentFee": "Phí giao PT:",
     "available": "Còn lại:",
     "expires": "Hết hạn:",
-    "unknownType": "Loại không xác định"
+    "unknownType": "Loại không xác định",
+    "deselectAll": "Bỏ chọn tất cả",
+    "selectAll": "Chọn tất cả",
+    "items": "sản phẩm",
+    "selected": "đã chọn"
   },
 
   "profile": {
@@ -1695,7 +1706,9 @@
     "alreadyPurchased": "Bạn Đã Có Gói Tập",
     "completeCurrentPackage": "Vui lòng hoàn thành gói hiện tại trước khi mua gói mới",
     "minutesPerSession": "phút/buổi",
-    "focusOnYourGoals": "Tập Trung Vào Mục Tiêu Của Bạn"
+    "focusOnYourGoals": "Tập Trung Vào Mục Tiêu Của Bạn",
+    "noReviews": "Chưa có đánh giá nào",
+    "beFirstToReview": "Hãy là người đầu tiên đánh giá gói tập này"
   },
   "trainingResults": {
     "title": "Thống Kê Luyện Tập",
@@ -2141,43 +2154,6 @@
     "errorMarkingNotReceived": "Không thể xác nhận chưa nhận được hàng. Vui lòng thử lại.",
     "orderCancelledSuccessfully": "Đơn hàng đã được hủy thành công",
     "errorCancellingOrder": "Không thể hủy đơn hàng. Vui lòng thử lại.",
-    "feedbackSuccess": "Cảm ơn bạn đã đánh giá!"
-  },
-
-  "contract": {
-    "title": "Hợp Đồng Của Tôi",
-    "contractsFound": "hợp đồng",
-    "noContracts": "Không Có Hợp Đồng",
-    "noContractsDesc": "Bạn chưa có hợp đồng nào",
-    "id": "Mã hợp đồng",
-    "statusCreated": "Đã tạo",
-    "statusCompanySigned": "Công ty đã ký",
-    "statusCustomerSigned": "Khách hàng đã ký",
-    "statusBothSigned": "Đã ký đầy đủ",
-    "statusFinished": "Hoàn thành",
-    "statusRejected": "Đã từ chối",
-    "typeGymOwner": "Chủ phòng tập",
-    "typeFreelancePT": "PT Tự do",
-    "commission": "Hoa hồng",
-    "needsSignature": "Cần chữ ký của bạn",
-    "createdAt": "Ngày tạo",
-    "error": "Lỗi",
-    "fetchError": "Không thể tải hợp đồng",
-    "signContract": "Ký Hợp Đồng",
-    "clearSignature": "Xóa Chữ Ký",
-    "submitSignature": "Gửi Chữ Ký",
-    "cancel": "Hủy",
-    "clear": "Xóa",
-    "signAbove": "Ký tên ở trên",
-    "confirmSignature": "Xác Nhận Chữ Ký",
-    "provideSignature": "Vui lòng cung cấp chữ ký của bạn",
-    "signSuccess": "Ký hợp đồng thành công",
-    "signError": "Không thể ký hợp đồng. Vui lòng thử lại.",
-    "contractNotFound": "Không tìm thấy hợp đồng",
-    "loadingContract": "Đang tải hợp đồng...",
-    "signed": "Đã ký",
-    "unsigned": "Chưa ký",
-    "signatureCreated": "Chữ ký đã tạo",
     "loadingMore": "Đang tải thêm..."
   }
 }

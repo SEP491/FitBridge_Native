@@ -37,24 +37,30 @@ export default function PaymentScreen({ navigation, route }) {
   } = useCart();
   const { t } = useTranslation();
 
-  // Check if this is a direct purchase
+  // Check if this is a direct purchase or selected cart items
   const directPurchaseItems = route?.params?.items || null;
   const directPurchaseAmount = route?.params?.totalAmount || 0;
   const isDirectPurchase = route?.params?.fromDirectPurchase || false;
   const customerPurchasedIdToExtend =
     route?.params?.customerPurchasedIdToExtend || null;
   const itemToExtend = route?.params?.itemToExtend || null;
+  
+  // Check if items are coming from cart checkout (selected items)
+  const isFromCartCheckout = route?.params?.items && !isDirectPurchase && !customerPurchasedIdToExtend;
+  
   console.log("Items to Extend:", [itemToExtend]);
-  // Use direct purchase items if available, otherwise use cart
+  console.log("Is from cart checkout:", isFromCartCheckout);
+  
+  // Use direct purchase items if available, otherwise use cart or selected items
   const displayItems =
     isDirectPurchase && customerPurchasedIdToExtend
       ? [itemToExtend]
-      : isDirectPurchase
+      : isDirectPurchase || isFromCartCheckout
       ? directPurchaseItems
       : cart;
 
   console.log("displayItems:", displayItems);
-  const totalPrice = isDirectPurchase ? directPurchaseAmount : getTotalPrice();
+  const totalPrice = (isDirectPurchase || isFromCartCheckout) ? (route?.params?.total || directPurchaseAmount) : getTotalPrice();
 
   // Calculate discount
   const voucherDiscount = selectedVoucher?.discountAmount || 0;
@@ -283,9 +289,13 @@ export default function PaymentScreen({ navigation, route }) {
       // Check if payment method is COD
       if (response && response.data.isCOD) {
         console.log("COD payment detected, navigating to PurchaseSuccessScreen");
-        if (!isDirectPurchase) {
+        // Clear cart only if not a direct purchase and not from cart checkout with selected items
+        if (!isDirectPurchase && !isFromCartCheckout) {
           clearCart();
         }
+        // For cart checkout with selected items, we would need to remove only selected items
+        // This would require a new method in CartContext to remove specific items
+        
         // Navigate to OrderSuccessScreen
         navigation.navigate("OrderSuccessScreen", {
           isCOD: true,
@@ -296,9 +306,11 @@ export default function PaymentScreen({ navigation, route }) {
         response.data.data &&
         response.data.data.checkoutUrl
       ) {
-        if (!isDirectPurchase) {
+        // Clear cart only if not a direct purchase and not from cart checkout
+        if (!isDirectPurchase && !isFromCartCheckout) {
           clearCart();
         }
+        
         // Open payment URL for online payment
         navigation.navigate("OrderSuccessScreen", {
           isOnlinePayment: true,
@@ -354,7 +366,7 @@ export default function PaymentScreen({ navigation, route }) {
                     key={item.cartItemId || item.id || index}
                     item={item}
                     onRemove={() => handleRemoveItem(item.cartItemId)}
-                    showRemove={!isDirectPurchase}
+                    showRemove={!isDirectPurchase && !isFromCartCheckout}
                   />
                 );
               }
@@ -365,7 +377,7 @@ export default function PaymentScreen({ navigation, route }) {
                   <Cart_FreelancePTCard
                     key={item.cartItemId || item.id || index}
                     item={item}
-                    showRemove={!isDirectPurchase}
+                    showRemove={!isDirectPurchase && !isFromCartCheckout}
                     onRemove={() => handleRemoveItem(item.cartItemId)}
                   />
                 );
@@ -378,7 +390,7 @@ export default function PaymentScreen({ navigation, route }) {
               // Use regular CartCard for other types (GymCourse, etc.)
               return (
                 <CartCard
-                  showRemove={!isDirectPurchase}
+                  showRemove={!isDirectPurchase && !isFromCartCheckout}
                   showQuantityControls={false}
                   key={item.cartItemId || item.id || index}
                   product={{
