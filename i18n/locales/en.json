@@ -231,7 +231,12 @@
     "loadingHistory": "Loading history...",
     "personalTrainer": "Personal Trainer",
     "bookedBy": "Booked by",
-    "yearsExperience": "years experience"
+    "yearsExperience": "years experience",
+    "all": "All",
+    "waitingForEdit": "Waiting for Edit",
+    "customer": "Customer",
+    "page": "Page",
+    "loadingMore": "Loading more..."
   },
 
   "bookingDetail": {

@@ -54,6 +54,8 @@ const accountService = {
 
   searchAllAccounts: (params) =>
     request("GET", "v1/accounts/search", null, {}, params),
+  getBookingHistory: (params) =>
+    request("GET", "v1/bookings/history", null, {}, params),
 };
 
 export default accountService;

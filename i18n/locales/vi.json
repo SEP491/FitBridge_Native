@@ -134,12 +134,12 @@
       "fullGymAccess": "Truy Cập Gym Đầy Đủ",
       "ptAssignment": "Phân Công PT:"
     },
-    "leaveFeedback":"Đánh Giá",
-    "shareExperience":"Chia Sẻ Trải Nghiệm Của Bạn Về Gói Tập Này",
-    "package":"Gói Tập",
-    "gymMembership":"Thành Viên Gym",
-    "gymWithPT":"Gym + PT",
-    "freelancePT":"PT Tự Do"
+    "leaveFeedback": "Đánh Giá",
+    "shareExperience": "Chia Sẻ Trải Nghiệm Của Bạn Về Gói Tập Này",
+    "package": "Gói Tập",
+    "gymMembership": "Thành Viên Gym",
+    "gymWithPT": "Gym + PT",
+    "freelancePT": "PT Tự Do"
   },
 
   "home": {
@@ -242,7 +242,12 @@
     "loadingHistory": "Đang tải lịch sử...",
     "personalTrainer": "Personal Trainer",
     "bookedBy": "Người đặt",
-    "yearsExperience": "năm kinh nghiệm"
+    "yearsExperience": "năm kinh nghiệm",
+    "all": "Tất cả",
+    "waitingForEdit": "Chờ chỉnh sửa",
+    "customer": "Khách hàng",
+    "page": "Trang",
+    "loadingMore": "Đang tải thêm..."
   },
 
   "bookingDetail": {
@@ -2044,7 +2049,7 @@
     "standardShipping": "Vận chuyển tiêu chuẩn",
     "selectAddress": "Chọn địa chỉ",
     "default": "Mặc định",
-    "productType":"Phân loại",
+    "productType": "Phân loại",
     "edited": "Đã chỉnh sửa"
   },
   "search": {
