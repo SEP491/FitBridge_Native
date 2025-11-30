@@ -13,7 +13,7 @@ import {
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useTranslation } from "../../hooks/useTranslation";
 import ProductCard from "../ProductCard/ProductCard";
-import { getItem, setItem, removeItem } from "../../lib/storage/storageUtils";
+import { getData, storeData, removeData } from "../../lib/storage/storageUtils";
 import productService from "../../services/productService";
 
 export default function ProductSearch({
@@ -104,8 +104,8 @@ export default function ProductSearch({
       setCurrentProductPage(page);
       setHasMoreProductData(page < productTotalPages);
 
-      // Get recommended products if no search results
-      if (productTotal === 0 && !append) {
+      // Always get recommended products, but filter out duplicates from search results
+      if (!append) {
         try {
           const recommendedResponse = await productService.searchProducts({
             page: 1,
@@ -114,8 +114,14 @@ export default function ProductSearch({
           const recommendedData = recommendedResponse.data?.items || [];
           const recommendedTotal = recommendedResponse.data?.total || 0;
           
-          setProductRecommendedResults(recommendedData);
-          setTotalProductRecommended(recommendedTotal);
+          // Filter out products that already appear in search results
+          const searchResultIds = new Set(productData.map(item => item.id));
+          const filteredRecommendedData = recommendedData.filter(
+            item => !searchResultIds.has(item.id)
+          );
+          
+          setProductRecommendedResults(filteredRecommendedData);
+          setTotalProductRecommended(filteredRecommendedData.length);
         } catch (error) {
           console.error("Error fetching recommended products:", error);
           setProductRecommendedResults([]);
@@ -148,7 +154,7 @@ export default function ProductSearch({
 
   const loadRecentSearches = async () => {
     try {
-      const searches = await getItem("recentProductSearches");
+      const searches = await getData("recentProductSearches");
       setRecentSearches(searches || []);
     } catch (error) {
       console.error("Error loading recent searches:", error);
@@ -163,10 +169,10 @@ export default function ProductSearch({
 
   const saveToRecentSearches = async (keyword) => {
     try {
-      const searches = await getItem("recentProductSearches");
+      const searches = await getData("recentProductSearches");
       const recentSearches = searches || [];
       const updatedSearches = [keyword, ...recentSearches.filter((s) => s !== keyword)].slice(0, 10);
-      await setItem("recentProductSearches", updatedSearches);
+      await storeData("recentProductSearches", updatedSearches);
       setRecentSearches(updatedSearches);
     } catch (error) {
       console.error("Error saving recent search:", error);
@@ -188,7 +194,7 @@ export default function ProductSearch({
   const handleRemoveRecentSearch = async (keyword) => {
     try {
       const updatedSearches = recentSearches.filter((s) => s !== keyword);
-      await setItem("recentProductSearches", updatedSearches);
+      await storeData("recentProductSearches", updatedSearches);
       setRecentSearches(updatedSearches);
     } catch (error) {
       console.error("Error removing recent search:", error);
@@ -197,7 +203,7 @@ export default function ProductSearch({
 
   const handleClearAllRecentSearches = async () => {
     try {
-      await removeItem("recentProductSearches");
+      await removeData("recentProductSearches");
       setRecentSearches([]);
     } catch (error) {
       console.error("Error clearing recent searches:", error);
@@ -336,15 +342,6 @@ export default function ProductSearch({
             }
             ListHeaderComponent={() => (
               <>
-                {/* Result Info */}
-                <View style={styles.resultInfo}>
-                  <Text style={styles.resultText}>
-                    {totalProductSearchResults > 0
-                      ? `${totalProductSearchResults} ${t("search.productsFound")}`
-                      : t("search.noProductsFound")}
-                  </Text>
-                </View>
-
                 {/* Search Results */}
                 {productSearchResults.length > 0 && (
                   <View style={styles.resultsContainer}>
@@ -374,43 +371,42 @@ export default function ProductSearch({
                 )}
 
                 {/* Recommended Products */}
-                {productSearchResults.length === 0 &&
-                  productRecommendedResults.length > 0 && (
-                    <View style={styles.resultsContainer}>
-                      <View style={styles.sectionWrapper}>
-                        <View
-                          style={[
-                            styles.sectionHeaderBar,
-                            styles.recommendedHeaderBar,
-                          ]}
-                        >
-                          <View style={styles.sectionHeaderContent}>
-                            <Ionicons name="star" size={20} color="#FF9500" />
-                            <Text style={styles.sectionHeaderTitle}>
-                              {t("search.recommendedProducts")}
+                {productRecommendedResults.length > 0 && (
+                  <View style={styles.resultsContainer}>
+                    <View style={styles.sectionWrapper}>
+                      <View
+                        style={[
+                          styles.sectionHeaderBar,
+                          styles.recommendedHeaderBar,
+                        ]}
+                      >
+                        <View style={styles.sectionHeaderContent}>
+                          <Ionicons name="star" size={20} color="#FF9500" />
+                          <Text style={styles.sectionHeaderTitle}>
+                            {t("search.recommendedProducts")}
+                          </Text>
+                          <View
+                            style={[styles.countBadge, styles.recommendedBadge]}
+                          >
+                            <Text style={styles.countBadgeText}>
+                              {totalProductRecommended}
                             </Text>
-                            <View
-                              style={[styles.countBadge, styles.recommendedBadge]}
-                            >
-                              <Text style={styles.countBadgeText}>
-                                {totalProductRecommended}
-                              </Text>
-                            </View>
                           </View>
                         </View>
-                        <View style={styles.productsGrid}>
-                          {productRecommendedResults.map((item) => (
-                            <View
-                              key={item.id}
-                              style={styles.productCardContainer}
-                            >
-                              <ProductCard product={item} />
-                            </View>
-                          ))}
-                        </View>
+                      </View>
+                      <View style={styles.productsGrid}>
+                        {productRecommendedResults.map((item) => (
+                          <View
+                            key={item.id}
+                            style={styles.productCardContainer}
+                          >
+                            <ProductCard product={item} />
+                          </View>
+                        ))}
                       </View>
                     </View>
-                  )}
+                  </View>
+                )}
 
                 {/* Load More Button */}
                 {hasMoreProductData && (
@@ -621,7 +617,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   resultsContainer: {
-    paddingBottom: 20,
+    paddingBottom: 0,
   },
   sectionWrapper: {},
   sectionHeaderBar: {
@@ -670,7 +666,7 @@ const styles = StyleSheet.create({
     paddingTop: 15,
   },
   productCardContainer: {
-    marginBottom: 15,
+    marginBottom: 5,
     width: "48%",
   },
   loadMoreContainer: {

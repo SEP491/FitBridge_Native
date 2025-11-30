@@ -92,20 +92,15 @@ export default function UserMenuScreen() {
 
   const getOrderCountByStatus = (status) => {
     if (status === "All") {
-      return orderSummary?.summaryProductOrder?.length || 0;
+      return orderSummary?.summaryProductOrder?.totalProductOrders || 0;
     } else if (status === "Feedback") {
       return orderSummary?.productOrders?.items?.filter(
         (order) =>
           order.currentStatus === "Finished" &&
           order.orderItems.some((item) => !item.isFeedback)
-      ).length;
-    } else if (
-      status === "Processing" ||
-      status === "Shipping" ||
-      status === "Pending" ||
-      status === "Finished"
-    ) {
-      return orderSummary?.summaryProductOrder?.[
+      ).length || 0;
+    } else if(status === "Processing" || status === "Shipping" || status === "Pending" || status === "Finished") {
+      return orderSummary?.summaryProductOrder?.[ 
         status === "Processing"
           ? "totalProcessing"
           : status === "Shipping"
@@ -113,8 +108,9 @@ export default function UserMenuScreen() {
           : status === "Pending"
           ? "totalPending"
           : "totalFinished"
-      ];
+      ] || 0;
     }
+    return 0;
   };
 
   let menuItems = [
@@ -150,7 +146,7 @@ export default function UserMenuScreen() {
     menuItems = [
       ...menuItems,
       {
-        icon: <Ionicons name="time-outline" size={28} color="#ED2A46" />,
+        icon: <Ionicons name="albums-outline" size={28} color="#ED2A46" />,
         label: t("userMenu.subscription"),
         navigation: "SubscriptionScreen",
         category: "services",
@@ -168,11 +164,17 @@ export default function UserMenuScreen() {
         category: "services",
       },
       {
-        icon: <Ionicons name="time-outline" size={28} color="#ED2A46" />,
+        icon: <Ionicons name="cube-outline" size={28} color="#ED2A46" />,
         label: t("userMenu.myPackage"),
         navigation: "MyPackageScreen",
         category: "services",
       },
+      {
+        icon: <Ionicons name="star-outline" size={28} color="#ED2A46" />,
+        label: t("userMenu.myReviews&Ratings"),
+        navigation: "MyReviewsRatingsScreen",
+        category: "services",
+      }
     ];
   }
 

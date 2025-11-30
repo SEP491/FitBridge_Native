@@ -59,7 +59,6 @@ export default function EcommerceScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar backgroundColor={colors.red} barStyle="light-content" />
 
       {/* Header with Search Bar and Cart */}
       <View style={styles.headerContainer}>

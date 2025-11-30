@@ -98,7 +98,8 @@
     "addressSelection": "Chọn Địa Chỉ",
     "contracts": "Hợp Đồng",
     "contractDetail": "Chi Tiết Hợp Đồng",
-    "productDetail": "Chi Tiết Sản Phẩm"
+    "productDetail": "Chi Tiết Sản Phẩm",
+    "myReviewsRatings": "Đánh Giá Của Tôi"
   },
 
   "myPackage": {
@@ -139,7 +140,10 @@
     "package":"Gói Tập",
     "gymMembership":"Thành Viên Gym",
     "gymWithPT":"Gym + PT",
-    "freelancePT":"PT Tự Do"
+    "freelancePT":"PT Tự Do",
+    "noReviewsYet": "Chưa Có Đánh Giá Gói Tập",
+    "reviewCoursesMessage": "Đánh giá gói tập của bạn sẽ hiển thị tại đây",
+    "viewFeedback":"Xem Đánh Giá"
   },
 
   "home": {
@@ -699,7 +703,8 @@
     "myOrders": "Đơn Hàng Của Tôi",
     "manageOrders": "Quản Lý Đơn Hàng",
     "myReports": "Phản hồi của tôi",
-    "contracts": "Hợp đồng của tôi"
+    "contracts": "Hợp đồng của tôi",
+    "myReviews&Ratings": "Đánh giá của tôi"
   },
 
   "updatePassword": {
@@ -2045,7 +2050,9 @@
     "selectAddress": "Chọn địa chỉ",
     "default": "Mặc định",
     "productType":"Phân loại",
-    "edited": "Đã chỉnh sửa"
+    "edited": "Đã chỉnh sửa",
+    "noReviewsYet": "Chưa Có Đánh Giá Sản Phẩm",
+    "reviewProductsMessage": "Đánh giá sản phẩm của bạn sẽ hiển thị tại đây"
   },
   "search": {
     "searchGymsAndPTs": "Tìm kiếm phòng gym và huấn luyện viên...",
@@ -2075,6 +2082,7 @@
     "rating3": "Bình thường",
     "rating4": "Tốt",
     "rating5": "Rất tốt",
+    "reviewed": "Đã đánh giá",
     "yourReview": "Nhận Xét Của Bạn",
     "reviewPlaceholder": "Chia sẻ trải nghiệm của bạn về sản phẩm này...",
     "addPhotos": "Thêm Ảnh",
@@ -2154,6 +2162,9 @@
     "errorMarkingNotReceived": "Không thể xác nhận chưa nhận được hàng. Vui lòng thử lại.",
     "orderCancelledSuccessfully": "Đơn hàng đã được hủy thành công",
     "errorCancellingOrder": "Không thể hủy đơn hàng. Vui lòng thử lại.",
-    "loadingMore": "Đang tải thêm..."
+    "loadingMore": "Đang tải thêm...",
+    "rebuy": "Mua Lại",
+    "productsAddedToCart": "Sản phẩm đã được thêm vào giỏ hàng",
+    "products":"Sản Phẩm"
   }
 }

@@ -10,6 +10,8 @@ import {
   Image,
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
@@ -22,7 +24,12 @@ const PackageFeedbackModal = ({ visible, onClose, packageItem }) => {
   const [content, setContent] = useState("");
   const [images, setImages] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  console.log("Package Item in Feedback Modal:", packageItem);
+  
+  // Extract orderItem - support both direct orderItem or nested structure
+  const orderItem = packageItem?.orderItem || packageItem;
+  console.log("Extracted orderItem:", orderItem);
+  console.log("OrderItem ID:", orderItem?.id);
   const handlePickImages = async () => {
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -38,7 +45,7 @@ const PackageFeedbackModal = ({ visible, onClose, packageItem }) => {
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsMultipleSelection: true,
         quality: 0.8,
-        selectionLimit: 5 - images.length,
+        selectionLimit: 3 - images.length,
       });
 
       if (!result.canceled && result.assets) {
@@ -53,6 +60,59 @@ const PackageFeedbackModal = ({ visible, onClose, packageItem }) => {
       console.error("Error picking images:", error);
       Alert.alert(t("errors.error"), t("errors.imagePickError"));
     }
+  };
+
+  const handleTakePicture = async () => {
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          t("errors.error"),
+          t("errors.cameraPermissionRequired") || "Camera permission is required to take photos"
+        );
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 0.8,
+        allowsEditing: false,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const newImage = {
+          uri: result.assets[0].uri,
+          type: result.assets[0].type || "image/jpeg",
+          name: result.assets[0].fileName || `image_${Date.now()}.jpg`,
+        };
+        setImages([...images, newImage]);
+      }
+    } catch (error) {
+      console.error("Error taking picture:", error);
+      Alert.alert(t("errors.error"), t("errors.cameraError") || "Failed to take picture. Please try again.");
+    }
+  };
+
+  const handleAddImage = () => {
+    Alert.alert(
+      t("orders.addPhoto") || "Add Photo",
+      t("orders.selectPhotoSource") || "Select photo source",
+      [
+        {
+          text: t("orders.takePhoto") || "Take Photo",
+          onPress: handleTakePicture,
+        },
+        {
+          text: t("orders.choosePhoto") || "Choose Photo",
+          onPress: handlePickImages,
+        },
+        {
+          text: t("common.cancel") || "Cancel",
+          style: "cancel",
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   const handleRemoveImage = (index) => {
@@ -71,11 +131,25 @@ const PackageFeedbackModal = ({ visible, onClose, packageItem }) => {
     }
 
     setIsSubmitting(true);
+
     try {
       const formData = new FormData();
-      
-      // Use customerPurchasedId as the identifier for the package
-      formData.append("orderItemId", packageItem.id);
+
+      // Use orderItem.id as orderItemId (from the API response structure)
+      const orderItemId = orderItem?.id;
+
+      if (!orderItemId) {
+        console.error("Missing orderItemId. OrderItem:", orderItem);
+        console.error("PackageItem:", packageItem);
+        Alert.alert(
+          t("errors.error") || "Error", 
+          "Invalid package item: Missing orderItemId"
+        );
+        setIsSubmitting(false);
+        return;
+      }
+
+      formData.append("orderItemId", orderItemId);
       formData.append("rating", rating.toString());
       formData.append("content", content.trim());
 
@@ -89,7 +163,7 @@ const PackageFeedbackModal = ({ visible, onClose, packageItem }) => {
       });
 
       console.log("Submitting package review with data:", {
-        orderItemId: packageItem.id,
+        orderItemId: orderItemId,
         rating: rating,
         content: content.trim(),
         images: images.length,
@@ -98,7 +172,7 @@ const PackageFeedbackModal = ({ visible, onClose, packageItem }) => {
       await reviewService.createReview(formData);
 
       Alert.alert(
-        t("success.success") || "Success",
+        t("common.success") || "Success",
         t("orders.feedbackSubmitted") || "Your feedback has been submitted successfully!",
         [
           {
@@ -112,9 +186,15 @@ const PackageFeedbackModal = ({ visible, onClose, packageItem }) => {
       );
     } catch (error) {
       console.error("Error submitting package feedback:", error);
+      console.error("Error details:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        orderItemId: orderItem?.id,
+      });
       Alert.alert(
         t("errors.error") || "Error",
-        error.response?.data?.message || t("orders.feedbackError") || "Failed to submit feedback. Please try again."
+        error.response?.data?.message || error.message || t("orders.feedbackError") || "Failed to submit feedback. Please try again."
       );
     } finally {
       setIsSubmitting(false);
@@ -153,10 +233,25 @@ const PackageFeedbackModal = ({ visible, onClose, packageItem }) => {
   };
 
   const getPackageName = () => {
-    return packageItem?.packageName || t("myPackage.package") || "Package";
+    // Use productName from orderItem, or fallback to packageName
+    return orderItem?.productName || packageItem?.packageName || t("myPackage.package") || "Package";
   };
 
   const getPackageType = () => {
+    // Determine type from orderItem structure
+    const isGymCourse = !!orderItem?.gymCourseId;
+    const gymCourse = orderItem?.gymCourse;
+    const freelancePTPackage = orderItem?.freelancePTPackage;
+    
+    if (!isGymCourse && freelancePTPackage) {
+      return t("myPackage.freelancePT") || "Freelance PT";
+    } else if (isGymCourse && (gymCourse?.ptPrice > 0 || gymCourse?.pt)) {
+      return t("myPackage.gymWithPT") || "Gym with PT";
+    } else if (isGymCourse) {
+      return t("myPackage.gymMembership") || "Gym Membership";
+    }
+    
+    // Fallback to packageItem type if available
     if (packageItem?.type === "freelancePT") {
       return t("myPackage.freelancePT") || "Freelance PT";
     } else if (packageItem?.type === "gymCourseWithPT") {
@@ -165,6 +260,13 @@ const PackageFeedbackModal = ({ visible, onClose, packageItem }) => {
       return t("myPackage.gymMembership") || "Gym Membership";
     }
     return "";
+  };
+
+  const getPackageImageUrl = () => {
+    // Get image from gymCourse or freelancePTPackage
+    return orderItem?.gymCourse?.imageUrl || 
+           orderItem?.freelancePTPackage?.imageUrl || 
+           packageItem?.courseImageUrl;
   };
 
   return (
@@ -198,9 +300,9 @@ const PackageFeedbackModal = ({ visible, onClose, packageItem }) => {
             {/* Package Info */}
             <View style={styles.packageSection}>
               <View style={styles.packageRow}>
-                {packageItem?.courseImageUrl && (
+                {getPackageImageUrl() && (
                   <Image
-                    source={{ uri: packageItem.courseImageUrl }}
+                    source={{ uri: getPackageImageUrl() }}
                     style={styles.packageImage}
                   />
                 )}
@@ -268,7 +370,7 @@ const PackageFeedbackModal = ({ visible, onClose, packageItem }) => {
             {/* Images Section */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>
-                {t("orders.addPhotos") || "Add Photos"} ({images.length}/5)
+                {t("orders.addPhotos") || "Add Photos"} ({images.length}/3)
               </Text>
               <View style={styles.imagesContainer}>
                 {images.map((image, index) => (
@@ -282,10 +384,10 @@ const PackageFeedbackModal = ({ visible, onClose, packageItem }) => {
                     </TouchableOpacity>
                   </View>
                 ))}
-                {images.length < 5 && (
+                {images.length < 3 && (
                   <TouchableOpacity
                     style={styles.addImageButton}
-                    onPress={handlePickImages}
+                    onPress={handleAddImage}
                   >
                     <Ionicons name="camera-outline" size={32} color="#999" />
                     <Text style={styles.addImageText}>
@@ -475,6 +577,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: "#999",
     marginTop: 4,
+    textAlign: "center",
   },
   footer: {
     paddingHorizontal: 20,
