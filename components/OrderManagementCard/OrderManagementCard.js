@@ -371,7 +371,7 @@ const OrderManagementCard = ({ order, onRefresh }) => {
                 )}
                 {!item.productDetail && (
                   <Text style={styles.itemText} numberOfLines={1}>
-                    • Quantity: {item.quantity} - {formatPrice(item.salePrice)}
+                    • Quantity: {item.quantity} - {formatPrice(item.price)}
                   </Text>
                 )}
               </View>

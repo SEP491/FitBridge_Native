@@ -95,6 +95,7 @@ import MessageScreen from "../screens/CommonScreen/ChatScreen/MessageScreen";
 import MessageDetailScreen from "../screens/CommonScreen/ChatScreen/MessageDetailScreen";
 import AddressListScreen from "../screens/CommonScreen/PaymentScreen/AddressListScreen";
 import AddressSelectionScreen from "../screens/CommonScreen/PaymentScreen/AddressSelectionScreen";
+import MyReviewsRatingsScreen from "../screens/CommonScreen/MyReviewsRatingsScreen/MyReviewsRatingsScreen";
 
 export default function Navigator({
   isAuthenticated: propIsAuthenticated,
@@ -1391,6 +1392,34 @@ export default function Navigator({
               fontSize: 20,
               color: "#ED2A46",
             },
+          }}
+        />
+        <Stack.Screen
+          name="MyReviewsRatingsScreen"
+          component={MyReviewsRatingsScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.myReviewsRatings"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="GymDetailScreen"
+          component={GymDetailScreen}
+          options={{
+            headerTitleAlign: "center",
+          }}
+        />
+        <Stack.Screen
+          name="FreelancePTPackageDetailScreen"
+          component={FreelancePTPackageDetailScreen}
+          options={{
+            headerTitleAlign: "center",
           }}
         />
         <Stack.Screen

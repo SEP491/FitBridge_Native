@@ -295,7 +295,7 @@ const ManageOrderScreen = ({ route }) => {
   const filterOrdersByStatus = () => {
     // This function is now only used for the Feedback special case
     if (selectedStatus === "Feedback") {
-      let filtered = orderSummary?.productOrders?.items.filter((order) => order.currentStatus === "Finished");
+      let filtered = orderSummary?.productOrders?.items?.filter((order) => order.currentStatus === "Finished") || [];
       filtered = filtered.filter((order) =>
         order.orderItems.some((item) => !item.isFeedback)
       );
@@ -372,33 +372,33 @@ const ManageOrderScreen = ({ route }) => {
           ]}
         >
           {item.status === "All"
-            ? orderSummary?.summaryProductOrder?.totalProductOrders
+            ? orderSummary?.summaryProductOrder?.totalProductOrders || 0
             : item.status === "Arrived"
-            ? orderSummary?.summaryProductOrder?.totalArrived + orderSummary?.summaryProductOrder?.totalCustomerNotReceived
+            ? (orderSummary?.summaryProductOrder?.totalArrived ?? 0) + (orderSummary?.summaryProductOrder?.totalCustomerNotReceived ?? 0)
             : item.status === "Processing"
-            ? orderSummary?.summaryProductOrder?.totalProcessing
+            ? orderSummary?.summaryProductOrder?.totalProcessing || 0
             : item.status === "Returned"
-            ? orderSummary?.summaryProductOrder?.totalReturned + orderSummary?.summaryProductOrder?.totalInReturn
+            ? (orderSummary?.summaryProductOrder?.totalReturned ?? 0) + (orderSummary?.summaryProductOrder?.totalInReturn ?? 0)
             : item.status === "Created"
-            ? orderSummary?.summaryProductOrder?.totalCreated
+            ? orderSummary?.summaryProductOrder?.totalCreated || 0
             : item.status === "Pending"
-            ? orderSummary?.summaryProductOrder?.totalPending
+            ? orderSummary?.summaryProductOrder?.totalPending || 0
             : item.status === "Assigning"
-            ? orderSummary?.summaryProductOrder?.totalAssigning
+            ? orderSummary?.summaryProductOrder?.totalAssigning || 0
             : item.status === "Accepted"
-            ? orderSummary?.summaryProductOrder?.totalAccepted
+            ? orderSummary?.summaryProductOrder?.totalAccepted || 0
             : item.status === "Shipping"
-            ? orderSummary?.summaryProductOrder?.totalShipping
+            ? orderSummary?.summaryProductOrder?.totalShipping || 0
             : item.status === "Finished"
-            ? orderSummary?.summaryProductOrder?.totalFinished
+            ? orderSummary?.summaryProductOrder?.totalFinished || 0
             : item.status === "Cancelled"
-            ? orderSummary?.summaryProductOrder?.totalCancelled
+            ? orderSummary?.summaryProductOrder?.totalCancelled || 0
             : item.filterFeedback
-            ? orderSummary?.productOrders?.items.filter(
+            ? orderSummary?.productOrders?.items?.filter(
                 (order) =>
                   order.currentStatus === 'Finished' &&
                   order.orderItems.some((i) => !i.isFeedback)
-              ).length
+              ).length || 0
             : orders.filter((order) => order.currentStatus === item.status)
                 .length}
         </Text>
