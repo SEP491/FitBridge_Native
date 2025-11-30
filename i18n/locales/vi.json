@@ -246,7 +246,12 @@
     "loadingHistory": "Đang tải lịch sử...",
     "personalTrainer": "Personal Trainer",
     "bookedBy": "Người đặt",
-    "yearsExperience": "năm kinh nghiệm"
+    "yearsExperience": "năm kinh nghiệm",
+    "all": "Tất cả",
+    "waitingForEdit": "Chờ chỉnh sửa",
+    "customer": "Khách hàng",
+    "page": "Trang",
+    "loadingMore": "Đang tải thêm..."
   },
 
   "bookingDetail": {
