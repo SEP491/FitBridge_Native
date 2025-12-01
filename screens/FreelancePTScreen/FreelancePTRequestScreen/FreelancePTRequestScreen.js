@@ -40,7 +40,6 @@ export default function FreelancePTRequestScreen({ route }) {
   // Date/Time picker states
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showStartTimePicker, setShowStartTimePicker] = useState(false);
-  const [showEndTimePicker, setShowEndTimePicker] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userRole, setUserRole] = useState(null);
   const { customerPurchasedId } = route.params;
@@ -100,7 +99,10 @@ export default function FreelancePTRequestScreen({ route }) {
     setShowDatePicker(false);
   };
 
-  const handleStartTimeConfirm = (time) => {
+  const handleStartTimeConfirm = () => {
+    // Always base start time on current time
+    const now = new Date();
+
     // Check if the selected date is today
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -109,50 +111,26 @@ export default function FreelancePTRequestScreen({ route }) {
 
     const isToday = selectedDateOnly.getTime() === today.getTime();
 
-    // If today, check if selected time is in the past
-    if (isToday) {
-      const now = new Date();
-      const selectedDateTime = new Date();
-      selectedDateTime.setHours(time.getHours(), time.getMinutes(), 0, 0);
-
-      if (selectedDateTime < now) {
-        Alert.alert(t("common.error"), t("bookingRequest.pastTimeError"));
-        return;
-      }
+    // If today, ensure "now" is not in the past (it never is) – for future dates we still use current time of day
+    if (!isToday) {
+      // If booking for a future date, we still take the current clock time as start time
+      // No extra validation needed here
     }
 
-    const hours = time.getHours().toString().padStart(2, "0");
-    const minutes = time.getMinutes().toString().padStart(2, "0");
-    setStartTime(`${hours}:${minutes}`);
+    // Format and save start time from current time
+    const startHours = now.getHours().toString().padStart(2, "0");
+    const startMinutes = now.getMinutes().toString().padStart(2, "0");
+    const startTimeString = `${startHours}:${startMinutes}`;
+    setStartTime(startTimeString);
+
+    // Automatically set end time to 1 hour after start time
+    const endDateTime = new Date(now);
+    endDateTime.setHours(endDateTime.getHours() + 1);
+    const endHours = endDateTime.getHours().toString().padStart(2, "0");
+    const endMinutes = endDateTime.getMinutes().toString().padStart(2, "0");
+    setEndTime(`${endHours}:${endMinutes}`);
+
     setShowStartTimePicker(false);
-  };
-
-  const handleEndTimeConfirm = (time) => {
-    if (!startTime) {
-      Alert.alert(t("common.error"), t("bookingRequest.selectStartTimeFirst"));
-      return;
-    }
-
-    // Parse start time
-    const [startHour, startMin] = startTime.split(":").map(Number);
-    const startMinutes = startHour * 60 + startMin;
-
-    // Parse end time
-    const endHour = time.getHours();
-    const endMin = time.getMinutes();
-    const endMinutes = endHour * 60 + endMin;
-
-    // Check if end time is at least 1 hour after start time
-    const diffMinutes = endMinutes - startMinutes;
-    if (diffMinutes < 60) {
-      Alert.alert(t("common.error"), t("bookingRequest.endTimeMinimum"));
-      return;
-    }
-
-    const hours = endHour.toString().padStart(2, "0");
-    const minutes = endMin.toString().padStart(2, "0");
-    setEndTime(`${hours}:${minutes}`);
-    setShowEndTimePicker(false);
   };
 
   const resetForm = () => {
@@ -438,16 +416,13 @@ export default function FreelancePTRequestScreen({ route }) {
               </TouchableOpacity>
             </View>
 
-            {/* End Time Picker */}
+            {/* End Time (auto 1 hour after start time) */}
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>
                 <Ionicons name="time-outline" size={16} color={colors.red} />{" "}
                 {t("bookingRequest.endTime")} *
               </Text>
-              <TouchableOpacity
-                style={styles.datePickerButton}
-                onPress={() => setShowEndTimePicker(true)}
-              >
+              <View style={styles.datePickerButton}>
                 <Text
                   style={[
                     styles.datePickerText,
@@ -456,8 +431,7 @@ export default function FreelancePTRequestScreen({ route }) {
                 >
                   {endTime || t("bookingRequest.selectEndTime")}
                 </Text>
-                <Ionicons name="chevron-down" size={20} color="#666" />
-              </TouchableOpacity>
+              </View>
             </View>
 
             {/* Submit Button */}
@@ -508,15 +482,6 @@ export default function FreelancePTRequestScreen({ route }) {
         mode="time"
         onConfirm={handleStartTimeConfirm}
         onCancel={() => setShowStartTimePicker(false)}
-        is24Hour={true}
-      />
-
-      {/* End Time Picker Modal */}
-      <DateTimePickerModal
-        isVisible={showEndTimePicker}
-        mode="time"
-        onConfirm={handleEndTimeConfirm}
-        onCancel={() => setShowEndTimePicker(false)}
         is24Hour={true}
       />
     </Modal>
