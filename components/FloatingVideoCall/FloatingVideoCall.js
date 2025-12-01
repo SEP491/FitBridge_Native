@@ -792,7 +792,6 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     zIndex: 9998,
-    elevation: 9998,
     pointerEvents: 'box-none', // Allow touches to pass through to content below
   },
   floatingContainer: {

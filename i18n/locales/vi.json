@@ -729,7 +729,8 @@
     "joining": "Đang kết nối...",
     "meetingInitError": "Không thể chuẩn bị cuộc gọi. Vui lòng thử lại.",
     "meetingNotReady": "Chưa có thông tin cuộc gọi. Vui lòng thử lại sau.",
-    "sessionNotReady": "Buổi tập chưa sẵn sàng."
+    "sessionNotReady": "Buổi tập chưa sẵn sàng.",
+    "meetingNoLongerAvailable": "Cuộc gọi không còn khả dụng."
   },
 
   "updatePassword": {
