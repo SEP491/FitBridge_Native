@@ -137,7 +137,7 @@ const SessionBookingCard = ({
       const bookingDate = new Date(bookingDateString);
 
       // Extract hours, minutes, and seconds from startTime (format: "HH:MM:SS")
-      const timeParts = startTime.split(":");
+      const timeParts = endTime.split(":");
       if (timeParts.length >= 2) {
         const hours = parseInt(timeParts[0], 10);
         const minutes = parseInt(timeParts[1], 10);
