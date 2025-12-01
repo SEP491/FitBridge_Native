@@ -103,9 +103,17 @@ export const CartProvider = ({ children }) => {
     );
   };
 
-  const clearCart = () => {
-    setCart([]);
-    setSelectedVoucher(null); // Clear voucher when clearing cart
+  const clearCart = (cartItemIds = null) => {
+    if (Array.isArray(cartItemIds) && cartItemIds.length > 0) {
+      // Remove only the specified items (used for partial checkout flows)
+      setCart((prevCart) =>
+        prevCart.filter((item) => !cartItemIds.includes(item.cartItemId))
+      );
+    } else {
+      // Fallback to clearing the entire cart
+      setCart([]);
+    }
+    setSelectedVoucher(null); // Reset voucher to avoid stale discounts
   };
 
   const getCartCount = () => {

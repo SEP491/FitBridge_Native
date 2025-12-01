@@ -23,6 +23,7 @@ import { useRevenueCat } from "../../../context/RevenueCatContext";
 import { useUser } from "../../../context/UserContext";
 import orderService from "../../../services/orderService";
 import { fetchUserFromStorage } from "../../../lib";
+import { useMeetingState } from "../../../context/meetingStateContext";
 
 export default function UserMenuScreen() {
   const [user, setUser] = useState(null);
@@ -35,6 +36,7 @@ export default function UserMenuScreen() {
   const { avatarUrl, clearAvatarUrl } = useUser();
   const [orderSummary, setOrderSummary] = useState(null);
   const navigation = useNavigation();
+  const { startCall, setCallInfo } = useMeetingState();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -555,6 +557,56 @@ export default function UserMenuScreen() {
               .map((item, index) => (
                 <MenuItem key={index} item={item} index={index} />
               ))}
+            
+            {/* Test Video Call Button */}
+            <TouchableOpacity
+              style={styles.testButton}
+              onPress={async () => {
+                try {
+                  // Set dummy booking info for testing
+                  const testBooking = {
+                    bookingId: "test-booking-123",
+                    bookingName: "Test Training Session",
+                    customerName: user?.fullName || "Test User",
+                    ptName: "Test Trainer",
+                    customerAvatarUrl: avatarUrl || user?.avatar,
+                    bookingDate: new Date().toISOString().split('T')[0],
+                    ptFreelanceStartTime: "10:00:00",
+                    ptFreelanceEndTime: "11:00:00",
+                  };
+                  
+                  // Store booking info in context
+                  if (setCallInfo) {
+                    setCallInfo({ booking: testBooking });
+                  }
+                  
+                  // Start test call with dummy room ID
+                  const testRoomId = "test-room-" + Date.now();
+                  const userName = user?.fullName || "Test User";
+                  await startCall(userName, testRoomId, 5000, false);
+                  
+                  Alert.alert(
+                    t("userMenu.testVideoCallAlertTitle"),
+                    t("userMenu.testVideoCallAlertMessage"),
+                    [{ text: t("common.ok") }]
+                  );
+                } catch (error) {
+                  console.error("Error starting test call:", error);
+                  Alert.alert(
+                    "Error",
+                    "Failed to start test call: " + error.message
+                  );
+                }
+              }}
+              activeOpacity={0.7}
+            >
+              <View style={styles.testButtonContent}>
+                <Ionicons name="videocam-outline" size={28} color="#ED2A46" />
+                <Text style={styles.testButtonText}>
+                  {t("userMenu.testVideoCall")}
+                </Text>
+              </View>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -831,5 +883,34 @@ const styles = {
     fontWeight: "600",
     color: "#ED2A46",
     marginRight: 8,
+  },
+  testButton: {
+    backgroundColor: "white",
+    paddingVertical: 18,
+    paddingHorizontal: 20,
+    borderRadius: 16,
+    marginTop: 12,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+    borderWidth: 2,
+    borderColor: "#ED2A46",
+    borderStyle: "dashed",
+  },
+  testButtonContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  testButtonText: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#ED2A46",
+    marginLeft: 16,
   },
 };

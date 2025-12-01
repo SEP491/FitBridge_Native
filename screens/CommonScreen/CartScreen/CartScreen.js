@@ -158,6 +158,7 @@ export default function CartScreen() {
     navigation.navigate("PaymentScreen", {
       total: tabTotalPrice,
       items: selectedCartItems,
+      selectedCartItemIds: selectedCartItems.map((item) => item.cartItemId),
     });
   };
 

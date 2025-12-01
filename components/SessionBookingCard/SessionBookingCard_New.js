@@ -1,8 +1,18 @@
-import React, { use } from "react";
-import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  ActivityIndicator,
+} from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import colors from "../../constants/color";
 import { useNavigation } from "@react-navigation/native";
+import signalR_webrtcService from "../../services/signalR/signalR-webrtcService";
+import meetingService from "../../services/meetingService";
 
 const SessionBookingCard = ({
   booking,
@@ -22,6 +32,9 @@ const SessionBookingCard = ({
   const sessionStatus = booking.sessionStatus;
   const navigation = useNavigation();
   console.log("Booking data in SessionBookingCard:", booking);
+  const [isJoiningMeeting, setIsJoiningMeeting] = useState(false);
+  const [isMeetingButtonEnabled, setIsMeetingButtonEnabled] = useState(false);
+  const [meetingErrorMessage, setMeetingErrorMessage] = useState("");
   // Use gym slot times from the API response
   const startTime = booking.startTime || booking.ptFreelanceStartTime;
   const endTime = booking.endTime || booking.ptFreelanceEndTime;
@@ -74,7 +87,43 @@ const SessionBookingCard = ({
 
   const isActionDisabled =
     sessionStatus?.toLowerCase() === "cancelled" ||
-    sessionStatus?.toLowerCase() === "completed";
+    sessionStatus?.toLowerCase() === "completed" ||
+    isJoiningMeeting;
+
+  // Compute Date for start time (today's booking date + startTime)
+  const getStartDateTime = () => {
+    try {
+      const bookingDateString = booking.bookingDate || booking.date;
+      if (!bookingDateString || !startTime) return null;
+
+      const bookingDate = new Date(bookingDateString);
+      const timeParts = startTime.split(":");
+      if (timeParts.length >= 2) {
+        const hours = parseInt(timeParts[0], 10);
+        const minutes = parseInt(timeParts[1], 10);
+        const seconds = timeParts.length > 2 ? parseInt(timeParts[2], 10) : 0;
+        bookingDate.setHours(hours, minutes, seconds, 0);
+        return bookingDate;
+      }
+      return null;
+    } catch (error) {
+      console.log("Error parsing start datetime:", error);
+      return null;
+    }
+  };
+
+  // Keep current time in state to compare with start time
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 30 * 1000); // update every 30 seconds
+
+    return () => clearInterval(intervalId);
+  }, []);
+
+  const sessionStartDateTime = getStartDateTime();
 
   // Check if the booking startTime is in the past
   const isBookingInPast = (() => {
@@ -108,13 +157,115 @@ const SessionBookingCard = ({
     }
   })();
 
+  // Determine if we are exactly at or after the start time (and before end time)
+  const isSessionReady = (() => {
+    if (!sessionStartDateTime) return false;
+    // Enable when current time is at or after start time, and not in the past beyond endTime check above
+    return currentTime >= sessionStartDateTime && !isBookingInPast;
+  })();
+
+  // Update meeting button enabled state based on time and any previous meeting error
+  useEffect(() => {
+    // After end time: always disabled, keep any existing message but don't auto-set
+    if (isBookingInPast) {
+      setIsMeetingButtonEnabled(false);
+      return;
+    }
+
+    if (!isSessionReady) {
+      setIsMeetingButtonEnabled(false);
+      setMeetingErrorMessage(
+        t ? t("videoCallPrep.sessionNotReady") : "Session not ready yet."
+      );
+    } else if (meetingErrorMessage) {
+      // Session time reached but we previously failed to create/find meeting
+      setIsMeetingButtonEnabled(false);
+    } else {
+      setIsMeetingButtonEnabled(true);
+      setMeetingErrorMessage("");
+    }
+  }, [isSessionReady, isBookingInPast, meetingErrorMessage, t]);
+
   // Hide button if booking is in the past or disabled by status
   const shouldHideButton = isBookingInPast || isActionDisabled;
 
-  const handleJoinMeeting = () => {
-    navigation.navigate("VideoCallPrep", {
-      booking: booking,
-    });
+  const handleJoinMeeting = async () => {
+    // Prevent action when disabled by status or time
+    if (isJoiningMeeting || !isSessionReady || !isMeetingButtonEnabled) {
+      return;
+    }
+
+    if (!booking?.bookingId) {
+      Alert.alert(
+        t ? t("errors.error") : "Error",
+        t ? t("videoCallPrep.meetingInitError") : "Unable to prepare the call. Please try again."
+      );
+      return;
+    }
+
+    try {
+      setIsJoiningMeeting(true);
+      await signalR_webrtcService.startConnection();
+
+      let meetingId = null;
+      try {
+        const response = await meetingService.getMeetingById(booking.bookingId);
+        meetingId = response?.data?.id;
+      } catch (error) {
+        console.log("Meeting not found, will create new one.", error);
+      }
+
+      if (!meetingId) {
+        try {
+          const createResponse = await meetingService.createMeeting({
+            bookingId: booking.bookingId,
+          });
+          meetingId = createResponse?.data?.id;
+        } catch (createError) {
+          console.error("Error creating meeting:", createError);
+          // Mark as not available and disable button
+          setMeetingErrorMessage(
+            t
+              ? t("videoCallPrep.meetingNoLongerAvailable")
+              : "Online meeting no longer available."
+          );
+          setIsMeetingButtonEnabled(false);
+          Alert.alert(
+            t ? t("errors.error") : "Error",
+            t
+              ? t("videoCallPrep.meetingNoLongerAvailable")
+              : "Online meeting no longer available."
+          );
+          return;
+        }
+      }
+
+      if (!meetingId) {
+        throw new Error("Meeting ID not available");
+      }
+
+      navigation.navigate("VideoCallPrep", {
+        booking: booking,
+        meetingId,
+      });
+    } catch (error) {
+      console.error("Error preparing meeting:", error);
+      Alert.alert(
+        t ? t("errors.error") : "Error",
+        t
+          ? t("videoCallPrep.meetingInitError")
+          : "Unable to prepare the call. Please try again."
+      );
+      // Any other error should keep the button disabled with generic message
+      setMeetingErrorMessage(
+        t
+          ? t("videoCallPrep.meetingInitError")
+          : "Unable to prepare the call. Please try again."
+      );
+      setIsMeetingButtonEnabled(false);
+    } finally {
+      setIsJoiningMeeting(false);
+    }
   };
 
   return (
@@ -186,29 +337,71 @@ const SessionBookingCard = ({
         <TouchableOpacity
           style={[
             styles.meetingButton,
-            (isBookingInPast || isActionDisabled) &&
+            (isBookingInPast ||
+              isActionDisabled ||
+              !isSessionReady ||
+              !isMeetingButtonEnabled) &&
               styles.disabledMeetingButton,
           ]}
           onPress={handleJoinMeeting}
-          disabled={isBookingInPast || isActionDisabled}
+          disabled={
+            isBookingInPast ||
+            isActionDisabled ||
+            !isSessionReady ||
+            !isMeetingButtonEnabled
+          }
         >
-          <Ionicons
-            name={
-              isBookingInPast || isActionDisabled
-                ? "ban-outline"
-                : "videocam-outline"
-            }
-            size={18}
-            color={isBookingInPast || isActionDisabled ? "#999" : colors.white}
-          />
+          {isJoiningMeeting ? (
+            <ActivityIndicator size="small" color={colors.white} />
+          ) : (
+            <Ionicons
+              name={
+                isBookingInPast ||
+                isActionDisabled ||
+                !isSessionReady ||
+                !isMeetingButtonEnabled
+                  ? "ban-outline"
+                  : "videocam-outline"
+              }
+              size={18}
+              color={
+                isBookingInPast ||
+                isActionDisabled ||
+                !isSessionReady ||
+                !isMeetingButtonEnabled
+                  ? "#999"
+                  : colors.white
+              }
+            />
+          )}
           <Text
             style={[
               styles.meetingButtonText,
-              (isBookingInPast || isActionDisabled) &&
+              (isBookingInPast ||
+                isActionDisabled ||
+                !isSessionReady ||
+                !isMeetingButtonEnabled) &&
                 styles.disabledMeetingButtonText,
             ]}
           >
-            {t ? t("calendar.meetingOnline") : "Join Meeting Online"}
+            {isJoiningMeeting
+              ? t
+                ? t("videoCallPrep.joining")
+                : "Joining..."
+              : isBookingInPast
+              ? // After end time: always show join text but keep button disabled
+                t
+                ? t("calendar.meetingOnline")
+                : "Join Meeting Online"
+              : !isSessionReady
+              ? t
+                ? t("videoCallPrep.sessionNotReady")
+                : "Session not ready yet."
+              : meetingErrorMessage
+              ? meetingErrorMessage
+              : t
+              ? t("calendar.meetingOnline")
+              : "Join Meeting Online"}
           </Text>
         </TouchableOpacity>
 

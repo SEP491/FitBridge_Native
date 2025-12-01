@@ -493,7 +493,7 @@ const styles = StyleSheet.create({
   },
   videoContainer: {
     width: '100%',
-    height: '100%',
+    height: '85%',
   },
   remoteVideo: {
     flex: 1,
@@ -609,7 +609,7 @@ const styles = StyleSheet.create({
   },
   controlsContainer: {
     position: 'absolute',
-    bottom: 23,
+    bottom: 45,
     left: 20,
     right: 20,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',

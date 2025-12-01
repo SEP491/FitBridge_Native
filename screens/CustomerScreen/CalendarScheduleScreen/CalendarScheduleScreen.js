@@ -12,9 +12,9 @@ import {
   TextInput,
   Platform,
 } from "react-native";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "../../../hooks/useTranslation";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import colors from "../../../constants/color";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import SessionBookingCard from "../../../components/SessionBookingCard/SessionBookingCard_New";
@@ -92,10 +92,12 @@ export default function CalendarScheduleScreen() {
   };
 
   // Load bookings when component mounts
-  useEffect(() => {
+useFocusEffect(
+  useCallback(() => {
     setLoading(true);
     loadBookingOfUser();
-  }, []);
+  }, [])
+);
 
   // Debug: Log picker state changes
   useEffect(() => {

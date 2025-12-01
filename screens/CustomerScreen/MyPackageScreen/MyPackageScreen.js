@@ -97,12 +97,21 @@ export default function MyPackageScreen() {
   const getPackageOrderInfo = async (customerPurchasedId) => {
     try {
       const response = await orderService.getPackageOrder(customerPurchasedId);
-      setSelectedPackageForFeedback(response.data);
+      if (response.data) {
+        setSelectedPackageForFeedback(response.data);
+        setFeedbackModalVisible(true);
+      } else {
+        Alert.alert(
+          t("errors.error") || "Error",
+          t("myPackage.feedback.errorLoadingOrder") || "Failed to load order information. Please try again."
+        );
+      }
     } catch (error) {
       console.error("Error fetching package order info:", error);
-    }
-    finally {
-      setFeedbackModalVisible(true);
+      Alert.alert(
+        t("errors.error") || "Error",
+        t("myPackage.feedback.errorLoadingOrder") || "Failed to load order information. Please try again."
+      );
     }
   };
 

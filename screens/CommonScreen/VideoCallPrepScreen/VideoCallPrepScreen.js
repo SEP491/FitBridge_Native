@@ -1,4 +1,4 @@
-import React, { useState, useEffect, use } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -20,8 +20,7 @@ import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { useMeetingState } from '../../../context/meetingStateContext';
-import signalR_webrtcService from '../../../services/signalR/signalR-webrtcService';
-import meetingService from '../../../services/meetingService';
+import { useTranslation } from '../../../hooks/useTranslation';
 
 // Check if running in Expo Go
 const isExpoGo = Constants.appOwnership === 'expo';
@@ -41,63 +40,29 @@ if (!isExpoGo) {
 const { width, height } = Dimensions.get('window');
 
 export default function VideoCallPrepScreen({ navigation, route }) {
-  const [roomId, setRoomId] = useState('e1d7ae1c-b7d5-43d7-8811-a13e8aec983a');
+  const { t, i18n } = useTranslation();
+  const locale = i18n?.language?.startsWith('vi') ? 'vi-VN' : 'en-US';
   const [previewStream, setPreviewStream] = useState(null);
   const [isAudioMuted, setIsAudioMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingPreview, setLoadingPreview] = useState(true);
   const [error, setError] = useState('');
-  const [meetingID, setMeetingID] = useState(null);
-  const [isCheckingMeeting, setIsCheckingMeeting] = useState(false);
-  const [meetingStatus, setMeetingStatus] = useState(''); // 'checking', 'creating', 'ready'
 
-  const { booking } = route.params || {};
+  const { booking, meetingId } = route.params || {};
   const { startCall, setCallInfo } = useMeetingState();
   console.log("VideoCallPrepScreen: booking =", booking);
-
-  const checkMeetingExists = async (booking) => {
-    setIsCheckingMeeting(true);
-    setMeetingStatus('checking');
-    try {
-      await signalR_webrtcService.startConnection();  
-      const response = await meetingService.getMeetingById(booking.bookingId);
-      if (response.data) {
-        setMeetingID(response.data.id);
-        setMeetingStatus('ready');
-      } 
-    } catch (error) {
-      setMeetingStatus('');
-      setIsCheckingMeeting(false);
-      createMeeting();
-      return null;
-    } finally {
-      setIsCheckingMeeting(false);
-    }
-  };
-
-  const createMeeting = async () => {
-    setIsCheckingMeeting(true);
-    setMeetingStatus('creating');
-    try {
-      const response = await meetingService.createMeeting({
-        bookingId: booking.bookingId,
-      });
-      setMeetingID(response.data.id);
-      setMeetingStatus('ready');
-    } catch (error) {
-      console.error('Error creating meeting:', error);
-      setMeetingStatus('');
-    } finally {
-      setIsCheckingMeeting(false);
-    }
-  };
+  const [currentMeetingId, setCurrentMeetingId] = useState(meetingId || null);
 
   useEffect(() => {
-    if (booking.bookingId) {
-      checkMeetingExists(booking);
+    setCurrentMeetingId(meetingId || null);
+  }, [meetingId]);
+
+  useEffect(() => {
+    if (booking?.bookingId && !meetingId) {
+      console.log("VideoCallPrepScreen: Meeting ID not provided for booking", booking.bookingId);
     }
-  }, [booking]);
+  }, [booking, meetingId]);
 
 
   // Initialize preview stream
@@ -186,7 +151,7 @@ export default function VideoCallPrepScreen({ navigation, route }) {
       previewStream.getTracks().forEach(track => track.stop());
       setPreviewStream(null);
     }
-    if (meetingID) {
+    if (currentMeetingId) {
       try {
         setLoading(true);
         // Get username from AsyncStorage
@@ -199,7 +164,10 @@ export default function VideoCallPrepScreen({ navigation, route }) {
         }
         
         // Start the call using context
-        await startCall(userName, meetingID.trim(), 5000, false);
+        await startCall(userName, currentMeetingId.trim(), 5000, false);
+        
+        // Reset loading state before navigating
+        setLoading(false);
         
         // FloatingVideoCall will automatically show as a modal overlay
         // No navigation needed - it's always rendered at root level
@@ -209,11 +177,16 @@ export default function VideoCallPrepScreen({ navigation, route }) {
         setLoading(false);
         Alert.alert('Error', 'Failed to start video call: ' + error.message);
       }
+    } else {
+      Alert.alert(
+        t('errors.error'),
+        t('videoCallPrep.meetingNotReady')
+      );
     }
   };
 
   // Check if form is valid
-  const isFormValid = meetingID !== null && !isCheckingMeeting;
+  const isFormValid = currentMeetingId !== null && !loading;
 
 
 
@@ -322,7 +295,7 @@ export default function VideoCallPrepScreen({ navigation, route }) {
             <View style={styles.bookingCard}>
               <View style={styles.bookingHeader}>
                 <Ionicons name="calendar" size={24} color="#ED2A46" />
-                <Text style={styles.bookingTitle}>Session Details</Text>
+                <Text style={styles.bookingTitle}>{t('videoCallPrep.sessionDetails')}</Text>
               </View>
 
               {/* Session Name */}
@@ -331,8 +304,8 @@ export default function VideoCallPrepScreen({ navigation, route }) {
                   <Ionicons name="fitness" size={20} color="#ED2A46" />
                 </View>
                 <View style={styles.bookingInfo}>
-                  <Text style={styles.bookingLabel}>Session</Text>
-                  <Text style={styles.bookingValue}>{booking.bookingName || 'Training Session'}</Text>
+                  <Text style={styles.bookingLabel}>{t('videoCallPrep.session')}</Text>
+                  <Text style={styles.bookingValue}>{booking.bookingName || t('videoCallPrep.trainingSession')}</Text>
                 </View>
               </View>
 
@@ -342,8 +315,12 @@ export default function VideoCallPrepScreen({ navigation, route }) {
                   <Ionicons name="person" size={20} color="#ED2A46" />
                 </View>
                 <View style={styles.bookingInfo}>
-                  <Text style={styles.bookingLabel}>Client</Text>
-                  <Text style={styles.bookingValue}>{booking.customerName || 'Client'}</Text>
+                  <Text style={styles.bookingLabel}>
+                    {booking.customerName ? t('common.customer') : t('common.personalTrainer')}
+                  </Text>
+                  <Text style={styles.bookingValue}>
+                    {booking.customerName || booking.ptName || t('videoCallPrep.notSpecified')}
+                  </Text>
                 </View>
               </View>
 
@@ -353,14 +330,14 @@ export default function VideoCallPrepScreen({ navigation, route }) {
                   <Ionicons name="calendar-outline" size={20} color="#ED2A46" />
                 </View>
                 <View style={styles.bookingInfo}>
-                  <Text style={styles.bookingLabel}>Date</Text>
+                  <Text style={styles.bookingLabel}>{t('videoCallPrep.date')}</Text>
                   <Text style={styles.bookingValue}>
-                    {booking.bookingDate ? new Date(booking.bookingDate).toLocaleDateString('en-US', {
-                      weekday: 'short',
+                    {booking.bookingDate ? new Date(booking.bookingDate).toLocaleDateString(locale, {
+                      weekday: 'long',
                       year: 'numeric',
                       month: 'short',
                       day: 'numeric'
-                    }) : 'Not specified'}
+                    }) : t('videoCallPrep.notSpecified')}
                   </Text>
                 </View>
               </View>
@@ -371,11 +348,11 @@ export default function VideoCallPrepScreen({ navigation, route }) {
                   <Ionicons name="time-outline" size={20} color="#ED2A46" />
                 </View>
                 <View style={styles.bookingInfo}>
-                  <Text style={styles.bookingLabel}>Time</Text>
+                  <Text style={styles.bookingLabel}>{t('videoCallPrep.time')}</Text>
                   <Text style={styles.bookingValue}>
-                    {booking.ptFreelanceStartTime && booking.ptFreelanceEndTime
-                      ? `${booking.ptFreelanceStartTime.substring(0, 5)} - ${booking.ptFreelanceEndTime.substring(0, 5)}`
-                      : 'Not specified'}
+                    {booking.startTime && booking.endTime
+                      ? `${booking.startTime.substring(0, 5)} - ${booking.endTime.substring(0, 5)}`
+                      : t('videoCallPrep.notSpecified')}
                   </Text>
                 </View>
               </View>
@@ -387,7 +364,7 @@ export default function VideoCallPrepScreen({ navigation, route }) {
                     <Ionicons name="document-text-outline" size={20} color="#667eea" />
                   </View>
                   <View style={styles.bookingInfo}>
-                    <Text style={styles.bookingLabel}>Note</Text>
+                    <Text style={styles.bookingLabel}>{t('videoCallPrep.note')}</Text>
                     <Text style={styles.bookingNoteText}>{booking.note}</Text>
                   </View>
                 </View>
@@ -398,28 +375,12 @@ export default function VideoCallPrepScreen({ navigation, route }) {
                 <View style={styles.nutritionTipContainer}>
                   <View style={styles.nutritionTipHeader}>
                     <Ionicons name="nutrition" size={18} color="#4CAF50" />
-                    <Text style={styles.nutritionTipTitle}>Nutrition Tip</Text>
+                    <Text style={styles.nutritionTipTitle}>{t('videoCallPrep.nutritionTip')}</Text>
                   </View>
                   <Text style={styles.nutritionTipText}>{booking.nutritionTip}</Text>
                 </View>
               )}
 
-              {/* Meeting Status */}
-              {isCheckingMeeting && (
-                <View style={styles.statusContainer}>
-                  <ActivityIndicator size="small" color="#ED2A46" />
-                  <Text style={styles.statusText}>
-                    {meetingStatus === 'checking' ? 'Checking for existing meeting...' : 'Creating meeting...'}
-                  </Text>
-                </View>
-              )}
-
-              {meetingStatus === 'ready' && !isCheckingMeeting && (
-                <View style={styles.readyContainer}>
-                  <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
-                  <Text style={styles.readyText}>Ready to join</Text>
-                </View>
-              )}
             </View>
           )}
           
@@ -430,6 +391,15 @@ export default function VideoCallPrepScreen({ navigation, route }) {
               <Text style={styles.errorText}>{error}</Text>
             </View>
           ) : null}
+
+          {!currentMeetingId && (
+            <View style={styles.warningContainer}>
+              <Ionicons name="alert-circle" size={20} color="#FFA000" />
+              <Text style={styles.warningText}>
+                {t('videoCallPrep.meetingNotReady')}
+              </Text>
+            </View>
+          )}
         </ScrollView>
 
         {/* Join Button */}
@@ -437,24 +407,20 @@ export default function VideoCallPrepScreen({ navigation, route }) {
           <TouchableOpacity
             style={[
               styles.joinButton,
-              (!isFormValid || isCheckingMeeting) && styles.joinButtonDisabled,
+              (!isFormValid || loading) && styles.joinButtonDisabled,
             ]}
             onPress={handleSubmit}
-            disabled={!isFormValid || loading || isCheckingMeeting}
+            disabled={!isFormValid || loading}
           >
-            {loading || isCheckingMeeting ? (
+            {loading ? (
               <>
                 <ActivityIndicator color="#FFF" />
-                <Text style={styles.joinButtonText}>
-                  {meetingStatus === 'checking' && 'Checking Meeting...'}
-                  {meetingStatus === 'creating' && 'Creating Meeting...'}
-                  {loading && !meetingStatus && 'Loading...'}
-                </Text>
+                <Text style={styles.joinButtonText}>{t('videoCallPrep.joining')}</Text>
               </>
             ) : (
               <>
                 <MaterialIcons name="video-call" size={24} color="#FFF" />
-                <Text style={styles.joinButtonText}>Join Call</Text>
+                <Text style={styles.joinButtonText}>{t('videoCallPrep.joinCall')}</Text>
               </>
             )}
           </TouchableOpacity>
@@ -656,36 +622,6 @@ const styles = StyleSheet.create({
     color: '#2E7D32',
     lineHeight: 20,
   },
-  statusContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 16,
-    padding: 12,
-    backgroundColor: '#FFF0F2',
-    borderRadius: 10,
-  },
-  statusText: {
-    fontSize: 14,
-    color: '#ED2A46',
-    marginLeft: 8,
-    fontWeight: '500',
-  },
-  readyContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 16,
-    padding: 12,
-    backgroundColor: '#E8F5E9',
-    borderRadius: 10,
-  },
-  readyText: {
-    fontSize: 14,
-    color: '#4CAF50',
-    marginLeft: 8,
-    fontWeight: '600',
-  },
   bottomSection: {
     borderTopWidth: 1,
     borderTopColor: '#E0E0E0',
@@ -773,6 +709,20 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: '#c62828',
+    fontSize: 14,
+    marginLeft: 8,
+    flex: 1,
+  },
+  warningContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF7E6',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+  },
+  warningText: {
+    color: '#B26A00',
     fontSize: 14,
     marginLeft: 8,
     flex: 1,

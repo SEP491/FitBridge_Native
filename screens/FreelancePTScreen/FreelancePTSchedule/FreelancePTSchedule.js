@@ -12,9 +12,9 @@ import {
   TextInput,
   Platform,
 } from "react-native";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "../../../hooks/useTranslation";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import colors from "../../../constants/color";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import SessionBookingCard from "../../../components/SessionBookingCard/SessionBookingCard_New";
@@ -58,6 +58,7 @@ export default function FreelancePTSchedule() {
     };
     fetchUser();
   }, []);
+
   const loadBookingOfFreelancePT = async (date = selectedDate) => {
     try {
       setLoading(true);
@@ -85,11 +86,12 @@ export default function FreelancePTSchedule() {
     loadBookingOfFreelancePT(date);
   };
 
-  // Load bookings when component mounts
-  useEffect(() => {
+useFocusEffect(
+  useCallback(() => {
     setLoading(true);
     loadBookingOfFreelancePT();
-  }, []);
+  }, [])
+);
 
   // Debug: Log picker state changes
   useEffect(() => {
