@@ -418,20 +418,32 @@ class FitnessTrackingService {
 
   // Update derived metrics (distance, calories)
   updateDerivedMetrics() {
-    this.todayDistance = this.calculateDistance(this.todaySteps);
-    this.todayCalories = this.calculateCalories(
-      this.todaySteps,
-      this.todayDistance
-    );
+    // Ensure steps is a valid number
+    const steps = isNaN(this.todaySteps) ? 0 : this.todaySteps;
+
+    this.todayDistance = this.calculateDistance(steps);
+    this.todayCalories = this.calculateCalories(steps, this.todayDistance);
+
+    // Final validation to ensure no NaN values
+    this.todayDistance = isNaN(this.todayDistance) ? 0 : this.todayDistance;
+    this.todayCalories = isNaN(this.todayCalories) ? 0 : this.todayCalories;
   }
 
   // Calculate walking distance based on steps
   calculateDistance(steps) {
+    // Default values if user profile is missing
+    const defaultHeight = 170; // Default height in cm (average)
+    const defaultGender = "Male"; // Default gender
+
+    // Get height with fallback to default
+    const height = this.userProfile?.height || defaultHeight;
+    const gender = this.userProfile?.gender || defaultGender;
+
     // More accurate step length calculation based on height
-    const heightInMeters = this.userProfile.height / 100;
+    const heightInMeters = height / 100;
     let stepLength;
 
-    if (this.userProfile.gender === "Female") {
+    if (gender === "Female") {
       stepLength = heightInMeters * 0.413; // Slightly shorter for women
     } else {
       stepLength = heightInMeters * 0.415; // Standard for men
@@ -441,12 +453,19 @@ class FitnessTrackingService {
     stepLength = Math.max(stepLength, 0.6);
     stepLength = Math.min(stepLength, 0.85);
 
-    return (steps * stepLength) / 1000; // Return in kilometers
+    const distance = (steps * stepLength) / 1000; // Return in kilometers
+
+    // Ensure we don't return NaN
+    return isNaN(distance) ? 0 : distance;
   }
 
   // Calculate calories burned
   calculateCalories(steps, distance) {
-    const weight = this.userProfile.weight;
+    // Default weight if user profile is missing
+    const defaultWeight = 70; // Default weight in kg (average)
+
+    // Get weight with fallback to default
+    const weight = this.userProfile?.weight || defaultWeight;
     const timeInMinutes = steps / 100; // Rough estimate: 100 steps per minute
 
     // MET formula for walking
@@ -461,7 +480,9 @@ class FitnessTrackingService {
     // Use average of both methods
     const totalCalories = (caloriesFromMET + caloriesFromSteps) / 2;
 
-    return Math.round(Math.max(totalCalories, 0));
+    // Ensure we don't return NaN
+    const result = Math.round(Math.max(totalCalories, 0));
+    return isNaN(result) ? 0 : result;
   }
 
   // Get current fitness data
