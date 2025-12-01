@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  StatusBar,
   Image,
   Modal,
   ActivityIndicator,
@@ -2068,7 +2067,6 @@ export default function MessageDetailScreen({ route, navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
       {renderHeader()}
 
       <KeyboardAvoidingView

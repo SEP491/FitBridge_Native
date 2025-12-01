@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   TextInput,
   SafeAreaView,
-  StatusBar,
 } from "react-native";
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
@@ -67,8 +66,6 @@ export default function ChoosingCourseScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-
       <View style={styles.container}>
         <View style={styles.searchContainer}>
           <View style={styles.searchBox}>

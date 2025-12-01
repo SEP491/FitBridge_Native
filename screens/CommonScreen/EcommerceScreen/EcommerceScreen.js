@@ -3,7 +3,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  StatusBar,
   ScrollView,
   SafeAreaView,
   RefreshControl,
@@ -29,7 +28,7 @@ export default function EcommerceScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [products, setProducts] = useState([]);
 
-  const fetchProducts = async () => { 
+  const fetchProducts = async () => {
     try {
       const response = await productService.searchProducts();
       setProducts(response.data.items);
@@ -59,7 +58,6 @@ export default function EcommerceScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-
       {/* Header with Search Bar and Cart */}
       <View style={styles.headerContainer}>
         <TouchableOpacity
@@ -88,8 +86,8 @@ export default function EcommerceScreen() {
       </View>
 
       {/* Main Content */}
-      <ScrollView 
-        style={styles.content} 
+      <ScrollView
+        style={styles.content}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -106,10 +104,7 @@ export default function EcommerceScreen() {
       </ScrollView>
 
       {/* Product Search */}
-      <ProductSearch
-        visible={showSearch}
-        onClose={handleCloseSearch}
-      />
+      <ProductSearch visible={showSearch} onClose={handleCloseSearch} />
     </SafeAreaView>
   );
 }
@@ -309,39 +304,39 @@ const styles = StyleSheet.create({
     top: 20,
   },
   sectionHeaderBar: {
-    backgroundColor: '#FFF5F6',
+    backgroundColor: "#FFF5F6",
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderLeftWidth: 4,
-    borderLeftColor: '#ED2A46',
+    borderLeftColor: "#ED2A46",
     marginBottom: 0,
   },
   featuredBadge: {
-    backgroundColor: '#FF9500',
+    backgroundColor: "#FF9500",
   },
   sectionHeaderContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
   sectionHeaderTitle: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#333',
+    fontWeight: "700",
+    color: "#333",
     flex: 1,
   },
   countBadge: {
-    backgroundColor: '#ED2A46',
+    backgroundColor: "#ED2A46",
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
     minWidth: 32,
-    alignItems: 'center',
+    alignItems: "center",
   },
   countBadgeText: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#fff',
+    fontWeight: "700",
+    color: "#fff",
   },
   resultsGrid: {
     paddingHorizontal: 20,
@@ -349,12 +344,12 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   ptGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingTop: 15,
-    width: '100%',
+    width: "100%",
   },
   gymCardContainer: {
     marginBottom: 15,
@@ -363,85 +358,85 @@ const styles = StyleSheet.create({
   },
   ptCardContainer: {
     marginBottom: 15,
-    width: '48%',
+    width: "48%",
   },
   flatListRow: {
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
     paddingHorizontal: 20,
     marginBottom: 0,
   },
   flatListGymItem: {
-    width: '48%',
+    width: "48%",
     marginBottom: 15,
   },
   flatListPTItem: {
-    width: '48%',
+    width: "48%",
     marginBottom: 15,
   },
   loadingMoreContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     paddingVertical: 20,
     gap: 10,
   },
   loadingMoreText: {
     fontSize: 14,
-    color: '#6B6B6B',
-    fontWeight: '500',
+    color: "#6B6B6B",
+    fontWeight: "500",
   },
   loadMoreButton: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     paddingVertical: 16,
     paddingHorizontal: 20,
     marginHorizontal: 20,
     marginTop: 10,
     marginBottom: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: "#E0E0E0",
     gap: 8,
   },
   loadMoreText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.red,
   },
   emptyStateContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingVertical: 80,
     paddingHorizontal: 40,
   },
   emptyStateTitle: {
     fontSize: 20,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
     marginTop: 20,
-    textAlign: 'center',
+    textAlign: "center",
   },
   emptyStateSubtitle: {
     fontSize: 14,
-    color: '#6B6B6B',
+    color: "#6B6B6B",
     marginTop: 8,
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: 20,
   },
   loadingStateContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingVertical: 60,
   },
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#6B6B6B',
-    fontWeight: '500',
+    color: "#6B6B6B",
+    fontWeight: "500",
   },
   featuredContainer: {
     backgroundColor: "#FFFFFF",

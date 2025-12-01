@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Dimensions,
-  StatusBar,
   Alert,
   Platform,
   Modal,
@@ -22,7 +21,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const isExpoGo = Constants.appOwnership === "expo";
 const defaultAvatar = require("../../../assets/images/LogoColor.png");
 
-
 // Conditionally import WebRTC (only in development builds)
 let RTCView;
 if (!isExpoGo) {
@@ -38,9 +36,7 @@ const { width, height } = Dimensions.get("window");
 
 export default function VideoCallScreen({ route, navigation }) {
   // Get params from navigation
-  const { roomId, booking } =
-    route.params || {};
-
+  const { roomId, booking } = route.params || {};
 
   const [callDuration, setCallDuration] = useState(0);
   const [showExpoGoWarning, setShowExpoGoWarning] = useState(false);
@@ -72,12 +68,12 @@ export default function VideoCallScreen({ route, navigation }) {
     console.log("🎥 [VideoCallScreen] localMediaStream changed:", {
       exists: !!localMediaStream,
       stream: localMediaStream,
-      tracks: localMediaStream?.getTracks().map(t => ({
+      tracks: localMediaStream?.getTracks().map((t) => ({
         kind: t.kind,
         id: t.id,
         enabled: t.enabled,
-        readyState: t.readyState
-      }))
+        readyState: t.readyState,
+      })),
     });
   }, [localMediaStream]);
 
@@ -85,12 +81,12 @@ export default function VideoCallScreen({ route, navigation }) {
     console.log("🎥 [VideoCallScreen] remoteMediaStream changed:", {
       exists: !!remoteMediaStream,
       stream: remoteMediaStream,
-      tracks: remoteMediaStream?.getTracks().map(t => ({
+      tracks: remoteMediaStream?.getTracks().map((t) => ({
         kind: t.kind,
         id: t.id,
         enabled: t.enabled,
-        readyState: t.readyState
-      }))
+        readyState: t.readyState,
+      })),
     });
   }, [remoteMediaStream]);
 
@@ -102,20 +98,21 @@ export default function VideoCallScreen({ route, navigation }) {
       isVideoMuted,
       hasLocalStream: !!localMediaStream,
       hasRemoteStream: !!remoteMediaStream,
-      error
+      error,
     });
   }, [isInCall, isLoading, isAudioMuted, isVideoMuted, error]);
-
 
   // Initialize call on mount
   useEffect(() => {
     const initializeCall = async () => {
       console.log("📞 [VideoCallScreen] Initializing call...");
       console.log("📞 [VideoCallScreen] Route params:", { roomId, booking });
-      
+
       // Check if running in Expo Go
       if (isExpoGo) {
-        console.warn("⚠️ [VideoCallScreen] Running in Expo Go - WebRTC not available");
+        console.warn(
+          "⚠️ [VideoCallScreen] Running in Expo Go - WebRTC not available"
+        );
         setShowExpoGoWarning(true);
         return;
       }
@@ -123,7 +120,10 @@ export default function VideoCallScreen({ route, navigation }) {
       // Check if RTCView is available
       if (!RTCView) {
         console.error("❌ [VideoCallScreen] RTCView component not available!");
-        Alert.alert("Error", "WebRTC components not available. Please use a development build.");
+        Alert.alert(
+          "Error",
+          "WebRTC components not available. Please use a development build."
+        );
         return;
       }
       console.log("✅ [VideoCallScreen] RTCView component available");
@@ -131,7 +131,7 @@ export default function VideoCallScreen({ route, navigation }) {
       try {
         const user = await AsyncStorage.getItem("user");
         console.log("👤 [VideoCallScreen] User from AsyncStorage:", user);
-        
+
         const userName = user ? JSON.parse(user).fullName : "Guest";
         setUsername(userName);
         console.log("👤 [VideoCallScreen] Username set to:", userName);
@@ -143,7 +143,10 @@ export default function VideoCallScreen({ route, navigation }) {
         }
         console.log("🔑 [VideoCallScreen] Room ID:", roomId);
 
-        console.log("🚀 [VideoCallScreen] Starting call with:", { userName, roomId });
+        console.log("🚀 [VideoCallScreen] Starting call with:", {
+          userName,
+          roomId,
+        });
         await startCall(userName, roomId, 5000, false);
         console.log("✅ [VideoCallScreen] startCall completed");
 
@@ -159,7 +162,10 @@ export default function VideoCallScreen({ route, navigation }) {
           });
           console.log("✅ [VideoCallScreen] Audio mode set: Speaker ON");
         } catch (audioError) {
-          console.error("❌ [VideoCallScreen] Error setting audio mode:", audioError);
+          console.error(
+            "❌ [VideoCallScreen] Error setting audio mode:",
+            audioError
+          );
         }
       } catch (error) {
         console.error("❌ [VideoCallScreen] Error starting call:", error);
@@ -179,7 +185,7 @@ export default function VideoCallScreen({ route, navigation }) {
           endCall();
         }
       } catch (error) {
-        console.error('❌ [VideoCallScreen] Error during cleanup:', error);
+        console.error("❌ [VideoCallScreen] Error during cleanup:", error);
       }
     };
   }, []);
@@ -214,13 +220,19 @@ export default function VideoCallScreen({ route, navigation }) {
 
   // Toggle microphone
   const toggleMicrophone = () => {
-    console.log("🎤 [VideoCallScreen] Toggling microphone, current state:", isAudioMuted);
+    console.log(
+      "🎤 [VideoCallScreen] Toggling microphone, current state:",
+      isAudioMuted
+    );
     onToggleAudio();
   };
 
   // Toggle camera
   const toggleCamera = () => {
-    console.log("📹 [VideoCallScreen] Toggling camera, current state:", isVideoMuted);
+    console.log(
+      "📹 [VideoCallScreen] Toggling camera, current state:",
+      isVideoMuted
+    );
     onToggleVideo();
   };
 
@@ -289,7 +301,6 @@ export default function VideoCallScreen({ route, navigation }) {
   if (showExpoGoWarning) {
     return (
       <View style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor="#000" />
         <View style={styles.expoGoWarningContainer}>
           <LinearGradient
             colors={["#667eea", "#764ba2"]}
@@ -324,7 +335,6 @@ export default function VideoCallScreen({ route, navigation }) {
   if (isLoading) {
     return (
       <View style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor="#000" />
         <View style={styles.loadingContainer}>
           <LinearGradient
             colors={["#667eea", "#764ba2"]}
@@ -341,7 +351,6 @@ export default function VideoCallScreen({ route, navigation }) {
   if (error) {
     return (
       <View style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor="#000" />
         <View style={styles.errorContainer}>
           <LinearGradient
             colors={["#f093fb", "#f5576c"]}
@@ -368,7 +377,6 @@ export default function VideoCallScreen({ route, navigation }) {
       activeOpacity={1}
       onPress={handleScreenTouch}
     >
-      <StatusBar barStyle="light-content" backgroundColor="#000" />
       {/* Top bar with call info */}
       <View style={styles.topBar}>
         <View style={styles.middleSection}>
@@ -379,11 +387,13 @@ export default function VideoCallScreen({ route, navigation }) {
                 hasStream: !!localMediaStream,
                 isVideoMuted,
                 streamURL: localMediaStream?.toURL?.(),
-                RTCViewAvailable: !!RTCView
+                RTCViewAvailable: !!RTCView,
               });
-              
+
               if (localMediaStream && !isVideoMuted) {
-                console.log("✅ [VideoCallScreen] Rendering RTCView for local stream");
+                console.log(
+                  "✅ [VideoCallScreen] Rendering RTCView for local stream"
+                );
                 return (
                   <RTCView
                     streamURL={localMediaStream.toURL()}
@@ -393,7 +403,9 @@ export default function VideoCallScreen({ route, navigation }) {
                   />
                 );
               } else {
-                console.log("⚠️ [VideoCallScreen] Showing local video off placeholder");
+                console.log(
+                  "⚠️ [VideoCallScreen] Showing local video off placeholder"
+                );
                 return (
                   <View style={styles.localVideoOff}>
                     <Ionicons name="videocam-off" size={32} color="#FFF" />
@@ -405,7 +417,13 @@ export default function VideoCallScreen({ route, navigation }) {
         </View>
         <View style={styles.callInfo}>
           <View style={styles.callerDetails}>
-            <Text style={styles.callerNameText}>{booking.customerName ? booking.customerName : booking.ptName ? booking.ptName : 'NaN'}</Text>
+            <Text style={styles.callerNameText}>
+              {booking.customerName
+                ? booking.customerName
+                : booking.ptName
+                ? booking.ptName
+                : "NaN"}
+            </Text>
             <Text style={styles.callDurationText}>
               {formatDuration(callDuration)}
             </Text>
@@ -417,7 +435,6 @@ export default function VideoCallScreen({ route, navigation }) {
         >
           <Ionicons name="remove-outline" size={24} color="#FFF" />
         </TouchableOpacity>
-        
       </View>
 
       {/* Video container - fills entire screen */}
@@ -428,11 +445,13 @@ export default function VideoCallScreen({ route, navigation }) {
             hasStream: !!remoteMediaStream,
             streamURL: remoteMediaStream?.toURL?.(),
             RTCViewAvailable: !!RTCView,
-            tracks: remoteMediaStream?.getTracks()
+            tracks: remoteMediaStream?.getTracks(),
           });
-          
+
           if (remoteMediaStream) {
-            console.log("✅ [VideoCallScreen] Rendering RTCView for remote stream");
+            console.log(
+              "✅ [VideoCallScreen] Rendering RTCView for remote stream"
+            );
             return (
               <RTCView
                 streamURL={remoteMediaStream.toURL()}
@@ -443,7 +462,9 @@ export default function VideoCallScreen({ route, navigation }) {
               />
             );
           } else {
-            console.log("⚠️ [VideoCallScreen] Showing waiting placeholder for remote video");
+            console.log(
+              "⚠️ [VideoCallScreen] Showing waiting placeholder for remote video"
+            );
             return (
               <LinearGradient
                 colors={["#667eea", "#d1ced4ff"]}
@@ -451,18 +472,25 @@ export default function VideoCallScreen({ route, navigation }) {
               >
                 <View style={styles.avatarLarge}>
                   <Image
-                    source={booking?.customerAvatarUrl ? { uri: booking.customerAvatarUrl } : defaultAvatar}
+                    source={
+                      booking?.customerAvatarUrl
+                        ? { uri: booking.customerAvatarUrl }
+                        : defaultAvatar
+                    }
                     style={styles.avatarLargeImage}
                   />
                 </View>
-                <Text style={styles.callerName}>{booking ? booking.customerName : 'Customer'}</Text>
-                <Text style={styles.waitingText}>Waiting for connection...</Text>
+                <Text style={styles.callerName}>
+                  {booking ? booking.customerName : "Customer"}
+                </Text>
+                <Text style={styles.waitingText}>
+                  Waiting for connection...
+                </Text>
               </LinearGradient>
             );
           }
         })()}
       </View>
-
 
       {/* Bottom controls - absolute positioned with auto-hide */}
       {showControls && (
@@ -597,7 +625,7 @@ const styles = StyleSheet.create({
   },
   topBar: {
     paddingBottom: 20,
-    marginTop: StatusBar.currentHeight + 60 || 40,
+    marginTop: 60,
     paddingHorizontal: 20,
     borderRadius: 30,
     backgroundColor: "rgba(255, 255, 255, 0.15)",
@@ -703,7 +731,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 20,
     elevation: 10,
-
   },
   controls: {
     flexDirection: "row",

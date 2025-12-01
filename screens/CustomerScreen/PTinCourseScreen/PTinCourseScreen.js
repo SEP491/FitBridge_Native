@@ -5,7 +5,6 @@ import {
   ScrollView,
   Alert,
   SafeAreaView,
-  StatusBar,
   TextInput,
   TouchableOpacity,
 } from "react-native";
@@ -130,8 +129,6 @@ export default function PTinCourseScreen({ route }) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-
       <View style={styles.container}>
         <View style={styles.searchContainer}>
           <View style={styles.searchBox}>

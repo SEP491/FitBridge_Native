@@ -7,7 +7,6 @@ import {
   TextInput,
   TouchableOpacity,
   RefreshControl,
-  StatusBar,
   ActivityIndicator,
   Image,
 } from "react-native";
@@ -557,8 +556,6 @@ export default function MessageScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
-
       {/* Connection status banner */}
       {connectionStatus !== "connected" && (
         <View

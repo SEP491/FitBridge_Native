@@ -94,21 +94,30 @@ export default function UserMenuScreen() {
     if (status === "All") {
       return orderSummary?.summaryProductOrder?.totalProductOrders || 0;
     } else if (status === "Feedback") {
-      return orderSummary?.productOrders?.items?.filter(
-        (order) =>
-          order.currentStatus === "Finished" &&
-          order.orderItems.some((item) => !item.isFeedback)
-      ).length || 0;
-    } else if(status === "Processing" || status === "Shipping" || status === "Pending" || status === "Finished") {
-      return orderSummary?.summaryProductOrder?.[ 
-        status === "Processing"
-          ? "totalProcessing"
-          : status === "Shipping"
-          ? "totalShipping"
-          : status === "Pending"
-          ? "totalPending"
-          : "totalFinished"
-      ] || 0;
+      return (
+        orderSummary?.productOrders?.items?.filter(
+          (order) =>
+            order.currentStatus === "Finished" &&
+            order.orderItems.some((item) => !item.isFeedback)
+        ).length || 0
+      );
+    } else if (
+      status === "Processing" ||
+      status === "Shipping" ||
+      status === "Pending" ||
+      status === "Finished"
+    ) {
+      return (
+        orderSummary?.summaryProductOrder?.[
+          status === "Processing"
+            ? "totalProcessing"
+            : status === "Shipping"
+            ? "totalShipping"
+            : status === "Pending"
+            ? "totalPending"
+            : "totalFinished"
+        ] || 0
+      );
     }
     return 0;
   };
@@ -127,12 +136,7 @@ export default function UserMenuScreen() {
       navigation: "ProfileScreen",
       category: "account",
     },
-    {
-      icon: <Ionicons name="person-outline" size={28} color="#ED2A46" />,
-      label: t("userMenu.contracts"),
-      navigation: "ContractScreen",
-      category: "account",
-    },
+
     {
       icon: <Ionicons name="settings-outline" size={28} color="#ED2A46" />,
       label: t("userMenu.settings"),
@@ -157,6 +161,7 @@ export default function UserMenuScreen() {
       //   navigation: "VoucherScreen",
       //   category: "services",
       // },
+
       {
         icon: <Ionicons name="time-outline" size={28} color="#ED2A46" />,
         label: t("userMenu.transactionHistory"),
@@ -174,10 +179,20 @@ export default function UserMenuScreen() {
         label: t("userMenu.myReviews&Ratings"),
         navigation: "MyReviewsRatingsScreen",
         category: "services",
-      }
+      },
     ];
   }
-
+  if (user && user.role === "FreelancePT") {
+    menuItems = [
+      ...menuItems,
+      {
+        icon: <Ionicons name="person-outline" size={28} color="#ED2A46" />,
+        label: t("userMenu.contracts"),
+        navigation: "ContractScreen",
+        category: "account",
+      },
+    ];
+  }
   // Add remaining menu items
   menuItems = [
     ...menuItems,

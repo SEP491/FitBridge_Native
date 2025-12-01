@@ -4,7 +4,6 @@ import {
   StyleSheet,
   Dimensions,
   TouchableOpacity,
-  StatusBar,
   ScrollView,
   ActivityIndicator,
   Alert,
@@ -381,8 +380,6 @@ export default function FreelancePTSchedule() {
   return (
     <>
       <View style={styles.container}>
-        <StatusBar backgroundColor={colors.red} barStyle="light-content" />
-
         {/* Calendar */}
         <View style={styles.calendarContainer}>
           {/* Week View Container */}

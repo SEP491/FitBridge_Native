@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
-  StatusBar,
   Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";

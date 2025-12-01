@@ -130,7 +130,12 @@
       "assignedTrainer": "Assigned Trainer",
       "fullGymAccess": "Gym Access Membership",
       "ptAssignment": "PT Assignment:"
-    }
+    },
+    "noReviewsYet": "No Course Reviews Yet",
+    "reviewCoursesMessage": "Your course reviews will appear here",
+    "package": "Course",
+    "viewFeedback": "View Feedback",
+    "report": "Report"
   },
 
   "home": {
@@ -771,7 +776,8 @@
     "myOrders": "My Orders",
     "manageOrders": "Manage Orders",
     "myReports": "My Feedback",
-    "contracts": "Contracts"
+    "contracts": "Contracts",
+    "myReviews&Ratings": "My Reviews & Ratings"
   },
 
   "updatePassword": {
@@ -2065,7 +2071,9 @@
     "bcaaPerServing": "BCAA Per Serving",
     "perServingTime": "serving",
     "caloriesPerServingKcal": "Calories Per Serving",
-    "proteinPerServingGrams": "Protein Per Serving"
+    "proteinPerServingGrams": "Protein Per Serving",
+    "noReviewsYet": "No Product Reviews Yet",
+    "reviewProductsMessage": "Your product reviews will appear here"
   },
   "search": {
     "searchGymsAndPTs": "Search gyms and personal trainers...",
@@ -2079,6 +2087,7 @@
     "tryDifferentKeywords": "Try searching with different keywords"
   },
   "orders": {
+    "products": "Product",
     "pleaseSelectRating": "Please select a rating",
     "pleaseEnterFeedback": "Please enter your feedback",
     "feedbackSubmitted": "Thank you for your feedback!",
@@ -2158,7 +2167,24 @@
       "vnpay": "VNPay",
       "momo": "MoMo",
       "zalopay": "ZaloPay"
-    }
+    },
+    "confirmReceived": "Confirm Received",
+    "areYouSureReceived": "Are you sure you have received the order?",
+    "orderReceivedSuccessfully": "Order received confirmed successfully",
+    "errorConfirmingReceived": "Failed to confirm order received. Please try again.",
+    "notReceived": "Not Received",
+    "notReceivedOrder": "Not Received",
+    "notReceivedDescription": "If you have not received the order, please contact us for support.",
+    "enterNotReceivedDescription": "Please enter problem description...",
+    "areYouSureNotReceived": "Are you sure you have not received the order?",
+    "orderMarkedNotReceived": "Order marked as not received successfully. We will check and contact you soon.",
+    "errorMarkingNotReceived": "Failed to mark order as not received. Please try again.",
+    "orderCancelledSuccessfully": "Order cancelled successfully",
+    "errorCancellingOrder": "Failed to cancel order. Please try again.",
+    "rebuy": "Rebuy",
+    "productsAddedToCart": "Products have been added to cart",
+    "errorAddingToCart": "Failed to add products to cart. Please try again.",
+    "itemQuantityLabel": "Quantity"
   },
 
   "contract": {

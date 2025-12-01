@@ -143,7 +143,8 @@
     "freelancePT": "PT Tự Do",
     "noReviewsYet": "Chưa Có Đánh Giá Gói Tập",
     "reviewCoursesMessage": "Đánh giá gói tập của bạn sẽ hiển thị tại đây",
-    "viewFeedback": "Xem Đánh Giá"
+    "viewFeedback": "Xem Đánh Giá",
+    "report": "Báo Cáo"
   },
 
   "home": {
@@ -2071,6 +2072,7 @@
     "tryDifferentKeywords": "Thử tìm kiếm với từ khóa khác"
   },
   "orders": {
+    "products": "Sản phẩm",
     "pleaseSelectRating": "Vui lòng chọn đánh giá",
     "pleaseEnterFeedback": "Vui lòng nhập đánh giá của bạn",
     "feedbackSubmitted": "Cảm ơn bạn đã đánh giá!",
@@ -2158,6 +2160,7 @@
     "confirmReceived": "Xác nhận đã nhận hàng",
     "areYouSureReceived": "Bạn có chắc chắn đã nhận được hàng?",
     "orderReceivedSuccessfully": "Xác nhận đã nhận hàng thành công",
+    "errorConfirmingReceived": "Không thể xác nhận đã nhận hàng. Vui lòng thử lại.",
     "notReceived": "Xác nhận chưa nhận được hàng",
     "notReceivedOrder": "Chưa nhận được hàng",
     "notReceivedDescription": "Nếu bạn chưa nhận được hàng, vui lòng liên hệ với chúng tôi để được hỗ trợ.",
@@ -2170,7 +2173,9 @@
     "loadingMore": "Đang tải thêm...",
     "rebuy": "Mua Lại",
     "productsAddedToCart": "Sản phẩm đã được thêm vào giỏ hàng",
+    "errorAddingToCart": "Không thể thêm sản phẩm vào giỏ hàng. Vui lòng thử lại.",
     "products": "Sản Phẩm",
+    "itemQuantityLabel": "Số lượng",
     "takePhoto": "Chụp ảnh",
     "choosePhoto": "Chọn ảnh từ thư viện",
     "selectPhotoSource": "Bạn muốn chọn ảnh từ đâu ?"

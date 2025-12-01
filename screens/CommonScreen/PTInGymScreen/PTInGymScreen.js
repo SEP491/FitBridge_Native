@@ -5,7 +5,6 @@ import {
   ScrollView,
   TextInput,
   SafeAreaView,
-  StatusBar,
   TouchableOpacity,
 } from "react-native";
 import React, { useEffect, useState } from "react";
@@ -72,8 +71,6 @@ export default function PTInGymScreen({ route }) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-
       <View style={styles.container}>
         <View style={styles.searchContainer}>
           <View style={styles.searchBox}>

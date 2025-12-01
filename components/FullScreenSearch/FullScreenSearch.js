@@ -5,7 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  StatusBar,
   SafeAreaView,
   Keyboard,
   ActivityIndicator,
@@ -35,42 +34,49 @@ export default function FullScreenSearch({
   showBackButton = true,
   searchText: controlledSearchText,
   onSearchTextChange,
-  initialTab = 'gyms',
+  initialTab = "gyms",
 }) {
-  const [internalSearchText, setInternalSearchText] = useState(initialSearchText);
-  const searchText = controlledSearchText !== undefined ? controlledSearchText : internalSearchText;
+  const [internalSearchText, setInternalSearchText] =
+    useState(initialSearchText);
+  const searchText =
+    controlledSearchText !== undefined
+      ? controlledSearchText
+      : internalSearchText;
   const setSearchText = onSearchTextChange || setInternalSearchText;
-  
+
   const { t } = useTranslation();
   const searchInputRef = useRef(null);
   const [keywords, setKeywords] = useState([]);
-  
+
   // Search results states
   const [gymSearchResults, setGymSearchResults] = useState([]);
   const [freelancePTSearchResults, setFreelancePTSearchResults] = useState([]);
   const [gymRecommendedResults, setGymRecommendedResults] = useState([]);
-  const [freelancePTRecommendedResults, setFreelancePTRecommendedResults] = useState([]);
+  const [freelancePTRecommendedResults, setFreelancePTRecommendedResults] =
+    useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [totalGymSearchResults, setTotalGymSearchResults] = useState(0);
-  const [totalFreelancePTSearchResults, setTotalFreelancePTSearchResults] = useState(0);
+  const [totalFreelancePTSearchResults, setTotalFreelancePTSearchResults] =
+    useState(0);
   const [totalGymRecommended, setTotalGymRecommended] = useState(0);
-  const [totalFreelancePTRecommended, setTotalFreelancePTRecommended] = useState(0);
+  const [totalFreelancePTRecommended, setTotalFreelancePTRecommended] =
+    useState(0);
   const [currentGymPage, setCurrentGymPage] = useState(1);
   const [currentFreelancePTPage, setCurrentFreelancePTPage] = useState(1);
   const [hasMoreGymData, setHasMoreGymData] = useState(false);
   const [hasMoreFreelancePTData, setHasMoreFreelancePTData] = useState(false);
   const [activeTab, setActiveTab] = useState(initialTab); // 'gyms' or 'freelancePts'
   const [showFilterModal, setShowFilterModal] = useState(false);
-  
+
   // Filter states
   const [filters, setFilters] = useState({
-    priceRange: { min: '', max: '' },
-    experienceYears: { min: '', max: '' },
+    priceRange: { min: "", max: "" },
+    experienceYears: { min: "", max: "" },
     rating: 0,
-    sortBy: 'relevance',
+    sortBy: "relevance",
   });
 
   const [recentSearches, setRecentSearches] = useState([]);
@@ -108,7 +114,12 @@ export default function FullScreenSearch({
     }
   }, [visible, initialTab]);
 
-  const performSearch = async (query, gymPage = 1, freelancePTPage = 1, append = false) => {
+  const performSearch = async (
+    query,
+    gymPage = 1,
+    freelancePTPage = 1,
+    append = false
+  ) => {
     if (!query.trim()) {
       Alert.alert(
         t("errors.notification"),
@@ -127,19 +138,19 @@ export default function FullScreenSearch({
       const searchParams = {
         searchTerm: query.trim(),
         size: 10,
-        page: activeTab === 'gyms' ? gymPage : freelancePTPage,
+        page: activeTab === "gyms" ? gymPage : freelancePTPage,
       };
 
       // Build filter parameters for all data (without search term)
       const allDataParams = {
         size: 10,
-        page: activeTab === 'gyms' ? gymPage : freelancePTPage,
+        page: activeTab === "gyms" ? gymPage : freelancePTPage,
       };
 
       // Add filter parameters only for Freelance PT tab
-      if (activeTab === 'freelancePts') {
+      if (activeTab === "freelancePts") {
         const filterParams = {};
-        
+
         if (filters.priceRange.min) {
           filterParams.fromPrice = parseFloat(filters.priceRange.min);
         }
@@ -152,12 +163,13 @@ export default function FullScreenSearch({
         if (filters.experienceYears.min) {
           filterParams.experienceYears = parseInt(filters.experienceYears.min);
         }
-        if (filters.sortBy && filters.sortBy !== 'relevance') {
+        if (filters.sortBy && filters.sortBy !== "relevance") {
           filterParams.sortBy = filters.sortBy;
         }
-        if (filters.sortBy === 'priceAsc' || filters.sortBy === 'priceDesc') {
-          filterParams.sortOrder = filters.sortBy === 'priceAsc' ? 'asc' : 'desc';
-          filterParams.sortBy = 'price';
+        if (filters.sortBy === "priceAsc" || filters.sortBy === "priceDesc") {
+          filterParams.sortOrder =
+            filters.sortBy === "priceAsc" ? "asc" : "desc";
+          filterParams.sortBy = "price";
         }
 
         // Apply filters to both params
@@ -168,7 +180,7 @@ export default function FullScreenSearch({
       // Call API twice: once with search term, once without
       const [searchResponse, allDataResponse] = await Promise.all([
         accountService.searchAllAccounts(searchParams),
-        accountService.searchAllAccounts(allDataParams)
+        accountService.searchAllAccounts(allDataParams),
       ]);
 
       console.log("Search results response:", searchResponse.data);
@@ -179,57 +191,78 @@ export default function FullScreenSearch({
 
       // Filter out search results from all data to get only recommended items
       const getRecommendedItems = (searchItems, allItems) => {
-        const searchIds = new Set(searchItems.map(item => item.id));
-        return allItems.filter(item => !searchIds.has(item.id));
+        const searchIds = new Set(searchItems.map((item) => item.id));
+        return allItems.filter((item) => !searchIds.has(item.id));
       };
 
       // Update gym results
-      if (activeTab === 'gyms') {
+      if (activeTab === "gyms") {
         const recommendedGyms = getRecommendedItems(
           searchData.gyms.items || [],
           allData.gyms.items || []
         );
 
         if (append) {
-          setGymSearchResults((prev) => [...prev, ...(searchData.gyms.items || [])]);
+          setGymSearchResults((prev) => [
+            ...prev,
+            ...(searchData.gyms.items || []),
+          ]);
           setGymRecommendedResults((prev) => [...prev, ...recommendedGyms]);
         } else {
           setGymSearchResults(searchData.gyms.items || []);
           setGymRecommendedResults(recommendedGyms);
         }
-        
+
         setTotalGymSearchResults(searchData.gyms.total || 0);
-        setTotalGymRecommended(allData.gyms.total - (searchData.gyms.total || 0));
+        setTotalGymRecommended(
+          allData.gyms.total - (searchData.gyms.total || 0)
+        );
         setCurrentGymPage(gymPage);
         setHasMoreGymData(
-          (searchData.gyms.items?.length === 10 || recommendedGyms.length === 10) &&
-          gymSearchResults.length + gymRecommendedResults.length + 
-          (searchData.gyms.items?.length || 0) + recommendedGyms.length < allData.gyms.total
+          (searchData.gyms.items?.length === 10 ||
+            recommendedGyms.length === 10) &&
+            gymSearchResults.length +
+              gymRecommendedResults.length +
+              (searchData.gyms.items?.length || 0) +
+              recommendedGyms.length <
+              allData.gyms.total
         );
       }
 
       // Update freelance PT results
-      if (activeTab === 'freelancePts') {
+      if (activeTab === "freelancePts") {
         const recommendedPTs = getRecommendedItems(
           searchData.freelancePts.items || [],
           allData.freelancePts.items || []
         );
 
         if (append) {
-          setFreelancePTSearchResults((prev) => [...prev, ...(searchData.freelancePts.items || [])]);
-          setFreelancePTRecommendedResults((prev) => [...prev, ...recommendedPTs]);
+          setFreelancePTSearchResults((prev) => [
+            ...prev,
+            ...(searchData.freelancePts.items || []),
+          ]);
+          setFreelancePTRecommendedResults((prev) => [
+            ...prev,
+            ...recommendedPTs,
+          ]);
         } else {
           setFreelancePTSearchResults(searchData.freelancePts.items || []);
           setFreelancePTRecommendedResults(recommendedPTs);
         }
-        
+
         setTotalFreelancePTSearchResults(searchData.freelancePts.total || 0);
-        setTotalFreelancePTRecommended(allData.freelancePts.total - (searchData.freelancePts.total || 0));
+        setTotalFreelancePTRecommended(
+          allData.freelancePts.total - (searchData.freelancePts.total || 0)
+        );
         setCurrentFreelancePTPage(freelancePTPage);
         setHasMoreFreelancePTData(
-          (searchData.freelancePts.items?.length === 10 || recommendedPTs.length === 10) &&
-          freelancePTSearchResults.length + freelancePTRecommendedResults.length + 
-          (searchData.freelancePts.items?.length || 0) + recommendedPTs.length < allData.freelancePts.total
+          (searchData.freelancePts.items?.length === 10 ||
+            recommendedPTs.length === 10) &&
+            freelancePTSearchResults.length +
+              freelancePTRecommendedResults.length +
+              (searchData.freelancePts.items?.length || 0) +
+              recommendedPTs.length <
+              allData.freelancePts.total
         );
       }
 
@@ -243,7 +276,9 @@ export default function FullScreenSearch({
         setGymSearchResults(searchData.gyms.items || []);
         setGymRecommendedResults(gymRecommended);
         setTotalGymSearchResults(searchData.gyms.total || 0);
-        setTotalGymRecommended(allData.gyms.total - (searchData.gyms.total || 0));
+        setTotalGymRecommended(
+          allData.gyms.total - (searchData.gyms.total || 0)
+        );
 
         // For freelance PTs
         const ptRecommended = getRecommendedItems(
@@ -253,16 +288,25 @@ export default function FullScreenSearch({
         setFreelancePTSearchResults(searchData.freelancePts.items || []);
         setFreelancePTRecommendedResults(ptRecommended);
         setTotalFreelancePTSearchResults(searchData.freelancePts.total || 0);
-        setTotalFreelancePTRecommended(allData.freelancePts.total - (searchData.freelancePts.total || 0));
+        setTotalFreelancePTRecommended(
+          allData.freelancePts.total - (searchData.freelancePts.total || 0)
+        );
 
         // Auto-navigate to other tab if current tab has no results
-        if (activeTab === 'gyms' && searchData.gyms.total === 0 && searchData.freelancePts.total > 0) {
-          setActiveTab('freelancePts');
-        } else if (activeTab === 'freelancePts' && searchData.freelancePts.total === 0 && searchData.gyms.total > 0) {
-          setActiveTab('gyms');
+        if (
+          activeTab === "gyms" &&
+          searchData.gyms.total === 0 &&
+          searchData.freelancePts.total > 0
+        ) {
+          setActiveTab("freelancePts");
+        } else if (
+          activeTab === "freelancePts" &&
+          searchData.freelancePts.total === 0 &&
+          searchData.gyms.total > 0
+        ) {
+          setActiveTab("gyms");
         }
       }
-
     } catch (error) {
       console.error("Error searching:", error);
       Alert.alert(t("errors.error"), t("errors.cannotSearch"));
@@ -273,10 +317,24 @@ export default function FullScreenSearch({
   };
 
   const loadMoreData = () => {
-    if (activeTab === 'gyms' && hasMoreGymData && !loading) {
-      performSearch(searchText, currentGymPage + 1, currentFreelancePTPage, true);
-    } else if (activeTab === 'freelancePts' && hasMoreFreelancePTData && !loading) {
-      performSearch(searchText, currentGymPage, currentFreelancePTPage + 1, true);
+    if (activeTab === "gyms" && hasMoreGymData && !loading) {
+      performSearch(
+        searchText,
+        currentGymPage + 1,
+        currentFreelancePTPage,
+        true
+      );
+    } else if (
+      activeTab === "freelancePts" &&
+      hasMoreFreelancePTData &&
+      !loading
+    ) {
+      performSearch(
+        searchText,
+        currentGymPage,
+        currentFreelancePTPage + 1,
+        true
+      );
     }
   };
 
@@ -302,10 +360,10 @@ export default function FullScreenSearch({
 
   const resetFilters = () => {
     setFilters({
-      priceRange: { min: '', max: '' },
-      experienceYears: { min: '', max: '' },
+      priceRange: { min: "", max: "" },
+      experienceYears: { min: "", max: "" },
       rating: 0,
-      sortBy: 'relevance',
+      sortBy: "relevance",
     });
     setShowFilterModal(false);
     setCurrentGymPage(1);
@@ -320,19 +378,25 @@ export default function FullScreenSearch({
   };
 
   const getCurrentSearchResults = () => {
-    return activeTab === 'gyms' ? gymSearchResults : freelancePTSearchResults;
+    return activeTab === "gyms" ? gymSearchResults : freelancePTSearchResults;
   };
 
   const getCurrentRecommendedResults = () => {
-    return activeTab === 'gyms' ? gymRecommendedResults : freelancePTRecommendedResults;
+    return activeTab === "gyms"
+      ? gymRecommendedResults
+      : freelancePTRecommendedResults;
   };
 
   const getCurrentSearchTotal = () => {
-    return activeTab === 'gyms' ? totalGymSearchResults : totalFreelancePTSearchResults;
+    return activeTab === "gyms"
+      ? totalGymSearchResults
+      : totalFreelancePTSearchResults;
   };
 
   const getCurrentRecommendedTotal = () => {
-    return activeTab === 'gyms' ? totalGymRecommended : totalFreelancePTRecommended;
+    return activeTab === "gyms"
+      ? totalGymRecommended
+      : totalFreelancePTRecommended;
   };
 
   const getCurrentTotal = () => {
@@ -340,7 +404,7 @@ export default function FullScreenSearch({
   };
 
   const getCurrentHasMore = () => {
-    return activeTab === 'gyms' ? hasMoreGymData : hasMoreFreelancePTData;
+    return activeTab === "gyms" ? hasMoreGymData : hasMoreFreelancePTData;
   };
 
   const loadRecentSearches = async () => {
@@ -405,7 +469,7 @@ export default function FullScreenSearch({
     setCurrentFreelancePTPage(1);
     setHasMoreGymData(false);
     setHasMoreFreelancePTData(false);
-    setActiveTab('gyms');
+    setActiveTab("gyms");
   };
 
   const handleRemoveRecentSearch = async (keyword) => {
@@ -434,7 +498,6 @@ export default function FullScreenSearch({
 
   return (
     <View style={styles.container}>
-      <StatusBar backgroundColor="#FFFFFF" barStyle="dark-content" />
       <SafeAreaView style={styles.safeArea}>
         {/* Search Header */}
         <View style={styles.searchHeader}>
@@ -493,36 +556,44 @@ export default function FullScreenSearch({
           <View style={styles.tabsContainer}>
             <View style={styles.tabsWrapper}>
               <TouchableOpacity
-                style={[styles.tab, activeTab === 'gyms' && styles.activeTab]}
-                onPress={() => setActiveTab('gyms')}
+                style={[styles.tab, activeTab === "gyms" && styles.activeTab]}
+                onPress={() => setActiveTab("gyms")}
               >
-                <Ionicons 
-                  name="fitness" 
-                  size={18} 
-                  color={activeTab === 'gyms' ? '#ED2A46' : '#999'} 
+                <Ionicons
+                  name="fitness"
+                  size={18}
+                  color={activeTab === "gyms" ? "#ED2A46" : "#999"}
                 />
-                <Text style={[
-                  styles.tabText,
-                  activeTab === 'gyms' && styles.activeTabText
-                ]}>
-                  {t('common.gym', 'Gyms')} ({totalGymSearchResults})
+                <Text
+                  style={[
+                    styles.tabText,
+                    activeTab === "gyms" && styles.activeTabText,
+                  ]}
+                >
+                  {t("common.gym", "Gyms")} ({totalGymSearchResults})
                 </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.tab, activeTab === 'freelancePts' && styles.activeTab]}
-                onPress={() => setActiveTab('freelancePts')}
+                style={[
+                  styles.tab,
+                  activeTab === "freelancePts" && styles.activeTab,
+                ]}
+                onPress={() => setActiveTab("freelancePts")}
               >
-                <Ionicons 
-                  name="person" 
-                  size={18} 
-                  color={activeTab === 'freelancePts' ? '#ED2A46' : '#999'} 
+                <Ionicons
+                  name="person"
+                  size={18}
+                  color={activeTab === "freelancePts" ? "#ED2A46" : "#999"}
                 />
-                <Text style={[
-                  styles.tabText,
-                  activeTab === 'freelancePts' && styles.activeTabText
-                ]}>
-                  {t('common.freelancePT', 'Freelance PT')} ({totalFreelancePTSearchResults})
+                <Text
+                  style={[
+                    styles.tabText,
+                    activeTab === "freelancePts" && styles.activeTabText,
+                  ]}
+                >
+                  {t("common.freelancePT", "Freelance PT")} (
+                  {totalFreelancePTSearchResults})
                 </Text>
               </TouchableOpacity>
             </View>
@@ -531,16 +602,21 @@ export default function FullScreenSearch({
             <TouchableOpacity
               style={[
                 styles.filterButton,
-                (filters.priceRange.min || filters.priceRange.max || 
-                 filters.experienceYears.min || filters.rating > 0 || 
-                 filters.sortBy !== 'relevance') && styles.filterButtonActive
+                (filters.priceRange.min ||
+                  filters.priceRange.max ||
+                  filters.experienceYears.min ||
+                  filters.rating > 0 ||
+                  filters.sortBy !== "relevance") &&
+                  styles.filterButtonActive,
               ]}
               onPress={() => setShowFilterModal(true)}
             >
               <Ionicons name="filter" size={20} color="#ED2A46" />
-              {(filters.priceRange.min || filters.priceRange.max || 
-                filters.experienceYears.min || filters.rating > 0 || 
-                filters.sortBy !== 'relevance') && (
+              {(filters.priceRange.min ||
+                filters.priceRange.max ||
+                filters.experienceYears.min ||
+                filters.rating > 0 ||
+                filters.sortBy !== "relevance") && (
                 <View style={styles.filterBadge} />
               )}
             </TouchableOpacity>
@@ -561,12 +637,18 @@ export default function FullScreenSearch({
             />
           }
           onScroll={({ nativeEvent }) => {
-            const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
+            const { layoutMeasurement, contentOffset, contentSize } =
+              nativeEvent;
             const isCloseToBottom =
               layoutMeasurement.height + contentOffset.y >=
               contentSize.height - 20;
 
-            if (isCloseToBottom && getCurrentHasMore() && !loading && hasSearched) {
+            if (
+              isCloseToBottom &&
+              getCurrentHasMore() &&
+              !loading &&
+              hasSearched
+            ) {
               loadMoreData();
             }
           }}
@@ -578,17 +660,19 @@ export default function FullScreenSearch({
           {/* Show search results if searched */}
           {hasSearched ? (
             <>
-              
-
               {/* Loading State */}
-              {loading && !refreshing && getCurrentSearchResults()?.length === 0 && getCurrentRecommendedResults()?.length === 0 ? (
+              {loading &&
+              !refreshing &&
+              getCurrentSearchResults()?.length === 0 &&
+              getCurrentRecommendedResults()?.length === 0 ? (
                 <View style={styles.loadingContainer}>
                   <ActivityIndicator size="large" color="#ED2A46" />
                   <Text style={styles.loadingText}>
                     {t("searchGymScreen.searching")}
                   </Text>
                 </View>
-              ) : getCurrentSearchResults()?.length === 0 && getCurrentRecommendedResults()?.length === 0 ? (
+              ) : getCurrentSearchResults()?.length === 0 &&
+                getCurrentRecommendedResults()?.length === 0 ? (
                 <View style={styles.emptyContainer}>
                   <Ionicons name="search" size={80} color="#E0E0E0" />
                   <Text style={styles.emptyTitle}>
@@ -607,7 +691,10 @@ export default function FullScreenSearch({
                         <View style={styles.sectionHeaderContent}>
                           <Ionicons name="search" size={20} color="#ED2A46" />
                           <Text style={styles.sectionHeaderTitle}>
-                            {t('searchGymScreen.searchResults', 'Search Results')}
+                            {t(
+                              "searchGymScreen.searchResults",
+                              "Search Results"
+                            )}
                           </Text>
                           <View style={styles.countBadge}>
                             <Text style={styles.countBadgeText}>
@@ -618,22 +705,31 @@ export default function FullScreenSearch({
                       </View>
 
                       <View style={styles.resultsGrid}>
-                        {activeTab === 'gyms' 
-                          ? gymSearchResults.map((gym, index) => (
-                              <View key={gym.id || `search-gym-${index}`} style={styles.gymCardContainer}>
-                                <GymCard gym={gym} fullWidth={true} height={200} />
-                              </View>
-                            ))
-                          : (
-                            <View style={styles.ptGrid}>
-                              {freelancePTSearchResults.map((pt, index) => (
-                                <View key={pt.id || `search-pt-${index}`} style={styles.ptCardContainer}>
-                                  <FreelancePTProfileCard pt={pt} />
-                                </View>
-                              ))}
+                        {activeTab === "gyms" ? (
+                          gymSearchResults.map((gym, index) => (
+                            <View
+                              key={gym.id || `search-gym-${index}`}
+                              style={styles.gymCardContainer}
+                            >
+                              <GymCard
+                                gym={gym}
+                                fullWidth={true}
+                                height={200}
+                              />
                             </View>
-                          )
-                        }
+                          ))
+                        ) : (
+                          <View style={styles.ptGrid}>
+                            {freelancePTSearchResults.map((pt, index) => (
+                              <View
+                                key={pt.id || `search-pt-${index}`}
+                                style={styles.ptCardContainer}
+                              >
+                                <FreelancePTProfileCard pt={pt} />
+                              </View>
+                            ))}
+                          </View>
+                        )}
                       </View>
                     </View>
                   )}
@@ -641,13 +737,23 @@ export default function FullScreenSearch({
                   {/* Recommended Section */}
                   {getCurrentRecommendedResults()?.length > 0 && (
                     <View style={styles.sectionWrapper}>
-                      <View style={[styles.sectionHeaderBar, styles.recommendedHeaderBar]}>
+                      <View
+                        style={[
+                          styles.sectionHeaderBar,
+                          styles.recommendedHeaderBar,
+                        ]}
+                      >
                         <View style={styles.sectionHeaderContent}>
                           <Ionicons name="star" size={20} color="#FF9500" />
                           <Text style={styles.sectionHeaderTitle}>
-                            {t('searchGymScreen.recommended', 'Recommended for You')}
+                            {t(
+                              "searchGymScreen.recommended",
+                              "Recommended for You"
+                            )}
                           </Text>
-                          <View style={[styles.countBadge, styles.recommendedBadge]}>
+                          <View
+                            style={[styles.countBadge, styles.recommendedBadge]}
+                          >
                             <Text style={styles.countBadgeText}>
                               {getCurrentRecommendedTotal()}
                             </Text>
@@ -656,22 +762,31 @@ export default function FullScreenSearch({
                       </View>
 
                       <View style={styles.resultsGrid}>
-                        {activeTab === 'gyms' 
-                          ? gymRecommendedResults.map((gym, index) => (
-                              <View key={gym.id || `rec-gym-${index}`} style={styles.gymCardContainer}>
-                                <GymCard gym={gym} fullWidth={true} height={200} />
-                              </View>
-                            ))
-                          : (
-                            <View style={styles.ptGrid}>
-                              {freelancePTRecommendedResults.map((pt, index) => (
-                                <View key={pt.id || `rec-pt-${index}`} style={styles.ptCardContainer}>
-                                  <FreelancePTProfileCard pt={pt} />
-                                </View>
-                              ))}
+                        {activeTab === "gyms" ? (
+                          gymRecommendedResults.map((gym, index) => (
+                            <View
+                              key={gym.id || `rec-gym-${index}`}
+                              style={styles.gymCardContainer}
+                            >
+                              <GymCard
+                                gym={gym}
+                                fullWidth={true}
+                                height={200}
+                              />
                             </View>
-                          )
-                        }
+                          ))
+                        ) : (
+                          <View style={styles.ptGrid}>
+                            {freelancePTRecommendedResults.map((pt, index) => (
+                              <View
+                                key={pt.id || `rec-pt-${index}`}
+                                style={styles.ptCardContainer}
+                              >
+                                <FreelancePTProfileCard pt={pt} />
+                              </View>
+                            ))}
+                          </View>
+                        )}
                       </View>
                     </View>
                   )}
@@ -716,9 +831,17 @@ export default function FullScreenSearch({
                         onPress={() => handleKeywordSelect(item)}
                         activeOpacity={0.7}
                       >
-                        <Ionicons name="search-outline" size={16} color="#999" />
+                        <Ionicons
+                          name="search-outline"
+                          size={16}
+                          color="#999"
+                        />
                         <Text style={styles.recentText}>{item}</Text>
-                        <Ionicons name="arrow-up-outline" size={16} color="#999" />
+                        <Ionicons
+                          name="arrow-up-outline"
+                          size={16}
+                          color="#999"
+                        />
                       </TouchableOpacity>
                       <TouchableOpacity
                         style={styles.removeButton}
@@ -757,7 +880,9 @@ export default function FullScreenSearch({
                             size={18}
                             color={getTrendColor("hot")}
                           />
-                          <Text style={styles.keywordText}>{keyword.gymName}</Text>
+                          <Text style={styles.keywordText}>
+                            {keyword.gymName}
+                          </Text>
                         </View>
                       </TouchableOpacity>
                     ))}
@@ -780,40 +905,47 @@ export default function FullScreenSearch({
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
-                {t('common.filter', 'Filter')}
+                {t("common.filter", "Filter")}
               </Text>
               <TouchableOpacity onPress={() => setShowFilterModal(false)}>
                 <Ionicons name="close" size={24} color="#333" />
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={styles.filterContent} showsVerticalScrollIndicator={false}>
+            <ScrollView
+              style={styles.filterContent}
+              showsVerticalScrollIndicator={false}
+            >
               {/* Price Range Filter */}
               <View style={styles.filterSection}>
                 <Text style={styles.filterSectionTitle}>
-                  {t('common.priceRange', 'Price Range')}
+                  {t("common.priceRange", "Price Range")}
                 </Text>
                 <View style={styles.rangeInputs}>
                   <TextInput
                     style={styles.rangeInput}
-                    placeholder={t('common.min', 'Min')}
+                    placeholder={t("common.min", "Min")}
                     value={filters.priceRange.min}
-                    onChangeText={(text) => setFilters({
-                      ...filters,
-                      priceRange: { ...filters.priceRange, min: text }
-                    })}
+                    onChangeText={(text) =>
+                      setFilters({
+                        ...filters,
+                        priceRange: { ...filters.priceRange, min: text },
+                      })
+                    }
                     keyboardType="numeric"
                     placeholderTextColor="#999"
                   />
                   <Text style={styles.rangeSeparator}>-</Text>
                   <TextInput
                     style={styles.rangeInput}
-                    placeholder={t('common.max', 'Max')}
+                    placeholder={t("common.max", "Max")}
                     value={filters.priceRange.max}
-                    onChangeText={(text) => setFilters({
-                      ...filters,
-                      priceRange: { ...filters.priceRange, max: text }
-                    })}
+                    onChangeText={(text) =>
+                      setFilters({
+                        ...filters,
+                        priceRange: { ...filters.priceRange, max: text },
+                      })
+                    }
                     keyboardType="numeric"
                     placeholderTextColor="#999"
                   />
@@ -821,32 +953,42 @@ export default function FullScreenSearch({
               </View>
 
               {/* Experience Years Filter (for Freelance PT only) */}
-              {activeTab === 'freelancePts' && (
+              {activeTab === "freelancePts" && (
                 <View style={styles.filterSection}>
                   <Text style={styles.filterSectionTitle}>
-                    {t('common.experienceYears', 'Experience (Years)')}
+                    {t("common.experienceYears", "Experience (Years)")}
                   </Text>
                   <View style={styles.rangeInputs}>
                     <TextInput
                       style={styles.rangeInput}
-                      placeholder={t('common.min', 'Min')}
+                      placeholder={t("common.min", "Min")}
                       value={filters.experienceYears.min}
-                      onChangeText={(text) => setFilters({
-                        ...filters,
-                        experienceYears: { ...filters.experienceYears, min: text }
-                      })}
+                      onChangeText={(text) =>
+                        setFilters({
+                          ...filters,
+                          experienceYears: {
+                            ...filters.experienceYears,
+                            min: text,
+                          },
+                        })
+                      }
                       keyboardType="numeric"
                       placeholderTextColor="#999"
                     />
                     <Text style={styles.rangeSeparator}>-</Text>
                     <TextInput
                       style={styles.rangeInput}
-                      placeholder={t('common.max', 'Max')}
+                      placeholder={t("common.max", "Max")}
                       value={filters.experienceYears.max}
-                      onChangeText={(text) => setFilters({
-                        ...filters,
-                        experienceYears: { ...filters.experienceYears, max: text }
-                      })}
+                      onChangeText={(text) =>
+                        setFilters({
+                          ...filters,
+                          experienceYears: {
+                            ...filters.experienceYears,
+                            max: text,
+                          },
+                        })
+                      }
                       keyboardType="numeric"
                       placeholderTextColor="#999"
                     />
@@ -857,7 +999,7 @@ export default function FullScreenSearch({
               {/* Rating Filter */}
               <View style={styles.filterSection}>
                 <Text style={styles.filterSectionTitle}>
-                  {t('common.minRating', 'Minimum Rating')}
+                  {t("common.minRating", "Minimum Rating")}
                 </Text>
                 <View style={styles.ratingButtons}>
                   {[0, 1, 2, 3, 4, 5].map((rating) => (
@@ -865,19 +1007,22 @@ export default function FullScreenSearch({
                       key={rating}
                       style={[
                         styles.ratingButton,
-                        filters.rating === rating && styles.activeRatingButton
+                        filters.rating === rating && styles.activeRatingButton,
                       ]}
                       onPress={() => setFilters({ ...filters, rating })}
                     >
-                      <Ionicons 
-                        name="star" 
-                        size={16} 
-                        color={filters.rating === rating ? '#fff' : '#FFD700'} 
+                      <Ionicons
+                        name="star"
+                        size={16}
+                        color={filters.rating === rating ? "#fff" : "#FFD700"}
                       />
-                      <Text style={[
-                        styles.ratingButtonText,
-                        filters.rating === rating && styles.activeRatingButtonText
-                      ]}>
+                      <Text
+                        style={[
+                          styles.ratingButtonText,
+                          filters.rating === rating &&
+                            styles.activeRatingButtonText,
+                        ]}
+                      >
                         {rating}+
                       </Text>
                     </TouchableOpacity>
@@ -888,34 +1033,61 @@ export default function FullScreenSearch({
               {/* Sort By Filter */}
               <View style={styles.filterSection}>
                 <Text style={styles.filterSectionTitle}>
-                  {t('common.sortBy', 'Sort By')}
+                  {t("common.sortBy", "Sort By")}
                 </Text>
                 <View style={styles.sortOptions}>
                   {[
-                    { value: 'relevance', label: t('common.relevance', 'Relevance') },
-                    ...(activeTab === 'freelancePts' ? [
-                      { value: 'priceAsc', label: t('common.priceAsc', 'Price: Low to High') },
-                      { value: 'priceDesc', label: t('common.priceDesc', 'Price: High to Low') },
-                      { value: 'rating', label: t('common.rating', 'Highest Rating') },
-                      { value: 'experienceYears', label: t('common.experience', 'Most Experience') },
-                    ] : [])
+                    {
+                      value: "relevance",
+                      label: t("common.relevance", "Relevance"),
+                    },
+                    ...(activeTab === "freelancePts"
+                      ? [
+                          {
+                            value: "priceAsc",
+                            label: t("common.priceAsc", "Price: Low to High"),
+                          },
+                          {
+                            value: "priceDesc",
+                            label: t("common.priceDesc", "Price: High to Low"),
+                          },
+                          {
+                            value: "rating",
+                            label: t("common.rating", "Highest Rating"),
+                          },
+                          {
+                            value: "experienceYears",
+                            label: t("common.experience", "Most Experience"),
+                          },
+                        ]
+                      : []),
                   ].map((option) => (
                     <TouchableOpacity
                       key={option.value}
                       style={[
                         styles.sortOption,
-                        filters.sortBy === option.value && styles.activeSortOption
+                        filters.sortBy === option.value &&
+                          styles.activeSortOption,
                       ]}
-                      onPress={() => setFilters({ ...filters, sortBy: option.value })}
+                      onPress={() =>
+                        setFilters({ ...filters, sortBy: option.value })
+                      }
                     >
-                      <Text style={[
-                        styles.sortOptionText,
-                        filters.sortBy === option.value && styles.activeSortOptionText
-                      ]}>
+                      <Text
+                        style={[
+                          styles.sortOptionText,
+                          filters.sortBy === option.value &&
+                            styles.activeSortOptionText,
+                        ]}
+                      >
                         {option.label}
                       </Text>
                       {filters.sortBy === option.value && (
-                        <Ionicons name="checkmark-circle" size={20} color="#ED2A46" />
+                        <Ionicons
+                          name="checkmark-circle"
+                          size={20}
+                          color="#ED2A46"
+                        />
                       )}
                     </TouchableOpacity>
                   ))}
@@ -929,7 +1101,7 @@ export default function FullScreenSearch({
                 onPress={resetFilters}
               >
                 <Text style={styles.resetButtonText}>
-                  {t('common.reset', 'Reset')}
+                  {t("common.reset", "Reset")}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -937,7 +1109,7 @@ export default function FullScreenSearch({
                 onPress={applyFilters}
               >
                 <Text style={styles.applyButtonText}>
-                  {t('common.apply', 'Apply')}
+                  {t("common.apply", "Apply")}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -1126,54 +1298,54 @@ const styles = StyleSheet.create({
   },
   // Search Results Styles
   tabsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
     borderBottomWidth: 1,
-    borderBottomColor: '#E9ECEF',
+    borderBottomColor: "#E9ECEF",
     paddingHorizontal: 16,
   },
   tabsWrapper: {
     flex: 1,
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   tab: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 14,
     paddingHorizontal: 16,
     gap: 6,
     borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
+    borderBottomColor: "transparent",
   },
   activeTab: {
-    borderBottomColor: '#ED2A46',
+    borderBottomColor: "#ED2A46",
   },
   tabText: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#999',
+    fontWeight: "500",
+    color: "#999",
   },
   activeTabText: {
-    color: '#ED2A46',
-    fontWeight: '600',
+    color: "#ED2A46",
+    fontWeight: "600",
   },
   filterButton: {
     padding: 12,
-    position: 'relative',
+    position: "relative",
   },
   filterButtonActive: {
-    backgroundColor: '#FFF5F6',
+    backgroundColor: "#FFF5F6",
     borderRadius: 8,
   },
   filterBadge: {
-    position: 'absolute',
+    position: "absolute",
     top: 8,
     right: 8,
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#ED2A46',
+    backgroundColor: "#ED2A46",
   },
   resultInfo: {
     paddingHorizontal: 20,
@@ -1223,45 +1395,44 @@ const styles = StyleSheet.create({
   resultsContainer: {
     paddingBottom: 20,
   },
-  sectionWrapper: {
-  },
+  sectionWrapper: {},
   sectionHeaderBar: {
-    backgroundColor: '#FFF5F6',
+    backgroundColor: "#FFF5F6",
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderLeftWidth: 4,
-    borderLeftColor: '#ED2A46',
+    borderLeftColor: "#ED2A46",
   },
   recommendedHeaderBar: {
-    backgroundColor: '#FFF9F0',
-    borderLeftColor: '#FF9500',
+    backgroundColor: "#FFF9F0",
+    borderLeftColor: "#FF9500",
   },
   sectionHeaderContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
   sectionHeaderTitle: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#333',
+    fontWeight: "700",
+    color: "#333",
     flex: 1,
   },
   countBadge: {
-    backgroundColor: '#ED2A46',
+    backgroundColor: "#ED2A46",
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
     minWidth: 32,
-    alignItems: 'center',
+    alignItems: "center",
   },
   recommendedBadge: {
-    backgroundColor: '#FF9500',
+    backgroundColor: "#FF9500",
   },
   countBadgeText: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#fff',
+    fontWeight: "700",
+    color: "#fff",
   },
   resultsGrid: {
     paddingHorizontal: 20,
@@ -1269,10 +1440,10 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   ptGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    width: '100%',
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    width: "100%",
   },
   gymCardContainer: {
     marginBottom: 15,
@@ -1281,7 +1452,7 @@ const styles = StyleSheet.create({
   },
   ptCardContainer: {
     marginBottom: 15,
-    width: '48%',
+    width: "48%",
   },
   loadMoreContainer: {
     flexDirection: "row",
@@ -1298,28 +1469,28 @@ const styles = StyleSheet.create({
   // Filter Modal Styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 20,
-    width: '90%',
-    maxHeight: '80%',
+    width: "90%",
+    maxHeight: "80%",
   },
   modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    borderBottomColor: "#F0F0F0",
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
   },
   filterContent: {
     padding: 20,
@@ -1329,117 +1500,117 @@ const styles = StyleSheet.create({
   },
   filterSectionTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
     marginBottom: 12,
   },
   rangeInputs: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
   },
   rangeInput: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: "#F8F9FA",
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
-    color: '#333',
+    color: "#333",
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: "#E0E0E0",
   },
   rangeSeparator: {
     fontSize: 16,
-    color: '#666',
-    fontWeight: '600',
+    color: "#666",
+    fontWeight: "600",
   },
   ratingButtons: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 8,
   },
   ratingButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: "#F8F9FA",
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: "#E0E0E0",
   },
   activeRatingButton: {
-    backgroundColor: '#ED2A46',
-    borderColor: '#ED2A46',
+    backgroundColor: "#ED2A46",
+    borderColor: "#ED2A46",
   },
   ratingButtonText: {
     fontSize: 14,
-    color: '#333',
-    fontWeight: '500',
+    color: "#333",
+    fontWeight: "500",
   },
   activeRatingButtonText: {
-    color: '#fff',
+    color: "#fff",
   },
   sortOptions: {
     gap: 8,
   },
   sortOption: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 12,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: "#F8F9FA",
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: "#E0E0E0",
   },
   activeSortOption: {
-    backgroundColor: '#FFF5F6',
-    borderColor: '#ED2A46',
+    backgroundColor: "#FFF5F6",
+    borderColor: "#ED2A46",
   },
   sortOptionText: {
     fontSize: 14,
-    color: '#333',
-    fontWeight: '500',
+    color: "#333",
+    fontWeight: "500",
   },
   activeSortOptionText: {
-    color: '#ED2A46',
-    fontWeight: '600',
+    color: "#ED2A46",
+    fontWeight: "600",
   },
   modalFooter: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
     padding: 20,
     borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
+    borderTopColor: "#F0F0F0",
   },
   resetButton: {
     flex: 1,
     paddingVertical: 14,
     borderRadius: 12,
-    backgroundColor: '#F8F9FA',
-    alignItems: 'center',
+    backgroundColor: "#F8F9FA",
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: "#E0E0E0",
   },
   resetButtonText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#666',
+    fontWeight: "600",
+    color: "#666",
   },
   applyButton: {
     flex: 1,
     paddingVertical: 14,
     borderRadius: 12,
-    backgroundColor: '#ED2A46',
-    alignItems: 'center',
+    backgroundColor: "#ED2A46",
+    alignItems: "center",
   },
   applyButtonText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
+    fontWeight: "600",
+    color: "#fff",
   },
 });

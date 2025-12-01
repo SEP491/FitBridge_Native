@@ -95,7 +95,6 @@ const OrderManagementCard = ({ order, onRefresh }) => {
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("vi-VN", {
-      
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -262,20 +261,17 @@ const OrderManagementCard = ({ order, onRefresh }) => {
         }
       });
 
-      Alert.alert(
-        t("cart.addedToCart"),
-        t("orders.productsAddedToCart"),
-        [
-          {
-            text: t("common.continueShopping"),
-            style: "cancel",
-          },
-          {
-            text: t("cart.viewCart"),
-            onPress: () => navigation.navigate("CartScreen", { initialTab: "product" }),
-          },
-        ]
-      );
+      Alert.alert(t("cart.addedToCart"), t("orders.productsAddedToCart"), [
+        {
+          text: t("common.continueShopping"),
+          style: "cancel",
+        },
+        {
+          text: t("cart.viewCart"),
+          onPress: () =>
+            navigation.navigate("CartScreen", { initialTab: "product" }),
+        },
+      ]);
     } catch (error) {
       console.error("Error adding products to cart:", error);
       Alert.alert(t("common.error"), t("orders.errorAddingToCart"));
@@ -338,7 +334,8 @@ const OrderManagementCard = ({ order, onRefresh }) => {
                       </Text>
                       <View style={styles.itemDetails}>
                         <Text style={styles.itemQuantity} numberOfLines={1}>
-                          {item.productDetail.flavourName || "Product"}
+                          {item.productDetail.flavourName ||
+                            t("orders.product")}
                           {item.productDetail.weightValue > 0 &&
                             ` - ${item.productDetail.weightValue}${
                               item.productDetail.weightUnit || ""
@@ -364,15 +361,16 @@ const OrderManagementCard = ({ order, onRefresh }) => {
                           </Text>
                         </View>
                       </View>
-                          <Text style={styles.itemNutrition}>
-                            {t("orders.quantity")}: {item.quantity}
-                          </Text>
+                      <Text style={styles.itemNutrition}>
+                        {t("orders.quantity")}: {item.quantity}
+                      </Text>
                     </View>
                   </>
                 )}
                 {!item.productDetail && (
                   <Text style={styles.itemText} numberOfLines={1}>
-                    • Quantity: {item.quantity} - {formatPrice(item.price)}
+                    • {t("orders.itemQuantityLabel")}: {item.quantity} -{" "}
+                    {formatPrice(item.price)}
                   </Text>
                 )}
               </View>
@@ -401,129 +399,132 @@ const OrderManagementCard = ({ order, onRefresh }) => {
         </TouchableOpacity>
 
         {/* Action Buttons */}
-      {order.currentStatus !== "Cancelled" 
-      && order.orderItems.some((item) => !item.isFeedback)
-      && order.currentStatus !== "Processing"  
-      && order.currentStatus !== "Shipping" 
-      && order.currentStatus !== "InReturn"
-      && order.currentStatus !== "Returned"
+        {order.currentStatus !== "Cancelled" &&
+          order.orderItems.some((item) => !item.isFeedback) &&
+          order.currentStatus !== "Processing" &&
+          order.currentStatus !== "Shipping" &&
+          order.currentStatus !== "InReturn" &&
+          order.currentStatus !== "Returned" && (
+            <View style={styles.actionButtons}>
+              {order.currentStatus === "Created" && order.checkoutUrl && (
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.checkoutButton]}
+                  onPress={handleCheckoutAgain}
+                >
+                  <Ionicons name="card-outline" size={18} color="#4CAF50" />
+                  <Text style={styles.checkoutButtonText}>
+                    {t("orders.completePayment")}
+                  </Text>
+                </TouchableOpacity>
+              )}
 
-      && (
-        <View style={styles.actionButtons}>
-          {order.currentStatus === "Created" && order.checkoutUrl && (
-            <TouchableOpacity
-              style={[styles.actionButton, styles.checkoutButton]}
-              onPress={handleCheckoutAgain}
-            >
-              <Ionicons name="card-outline" size={18} color="#4CAF50" />
-              <Text style={styles.checkoutButtonText}>
-                {t("orders.completePayment")}
-              </Text>
-            </TouchableOpacity>
-          )}
+              {order.currentStatus === "Pending" && !order.checkoutUrl && (
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.trackButton]}
+                  onPress={handleOpenCancelModal}
+                >
+                  <Ionicons name="close-outline" size={18} color="#00BCD4" />
+                  <Text style={styles.trackButtonText}>
+                    {t("orders.cancelOrder")}
+                  </Text>
+                </TouchableOpacity>
+              )}
 
-          {order.currentStatus === "Pending" && !order.checkoutUrl && (
-            <TouchableOpacity
-              style={[styles.actionButton, styles.trackButton]}
-              onPress={handleOpenCancelModal}
-            >
-              <Ionicons name="close-outline" size={18} color="#00BCD4" />
-              <Text style={styles.trackButtonText}>
-                {t("orders.cancelOrder")}
-              </Text>
-            </TouchableOpacity>
-          )}
-
-          {order.currentStatus === "Arrived" && (
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                flex: 1,
-                gap: 8,
-              }}
-            >
-              <TouchableOpacity
-                style={[styles.actionButton, styles.trackButton]}
-                onPress={handleReceivedConfirmation}
-              >
-                <Ionicons
-                  name="checkmark-done-outline"
-                  size={18}
-                  color="#00BCD4"
-                />
-                <Text style={styles.trackButtonText}>
-                  {t("orders.confirmReceived")}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.actionButton, styles.notReceivedButton]}
-                onPress={() => setNotReceivedModalVisible(true)}
-              >
-                <Ionicons name="close-outline" size={18} color="#ffffffff" />
-                <Text style={styles.notReceivedButtonText}>
-                  {t("orders.notReceivedOrder")}
-                </Text>
-              </TouchableOpacity>
+              {order.currentStatus === "Arrived" && (
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    flex: 1,
+                    gap: 8,
+                  }}
+                >
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.trackButton]}
+                    onPress={handleReceivedConfirmation}
+                  >
+                    <Ionicons
+                      name="checkmark-done-outline"
+                      size={18}
+                      color="#00BCD4"
+                    />
+                    <Text style={styles.trackButtonText}>
+                      {t("orders.confirmReceived")}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.notReceivedButton]}
+                    onPress={() => setNotReceivedModalVisible(true)}
+                  >
+                    <Ionicons
+                      name="close-outline"
+                      size={18}
+                      color="#ffffffff"
+                    />
+                    <Text style={styles.notReceivedButtonText}>
+                      {t("orders.notReceivedOrder")}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+              {order.currentStatus === "CustomerNotReceived" && (
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.trackButton]}
+                  onPress={handleReceivedConfirmation}
+                >
+                  <Ionicons
+                    name="checkmark-done-outline"
+                    size={18}
+                    color="#00BCD4"
+                  />
+                  <Text style={styles.trackButtonText}>
+                    {t("orders.confirmReceived")}
+                  </Text>
+                </TouchableOpacity>
+              )}
+              {order.currentStatus === "Finished" &&
+                order.orderItems.some((item) => !item.isFeedback) && (
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      flex: 1,
+                      gap: 8,
+                    }}
+                  >
+                    <TouchableOpacity
+                      style={[styles.actionButton, styles.feedbackButton]}
+                      onPress={handleOpenFeedbackModal}
+                    >
+                      <Ionicons name="star-outline" size={18} color="#FF9800" />
+                      <Text style={styles.feedbackButtonText}>
+                        {t("orders.leaveFeedback")}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.actionButton, styles.rebuyButton]}
+                      onPress={handleRebuy}
+                    >
+                      <Ionicons name="cart-outline" size={18} color="#fff" />
+                      <Text style={styles.rebuyButtonText}>
+                        {t("orders.rebuy")}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              {order.currentStatus === "Cancelled" && (
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.rebuyButton]}
+                  onPress={handleRebuy}
+                >
+                  <Ionicons name="cart-outline" size={18} color="#fff" />
+                  <Text style={styles.rebuyButtonText}>
+                    {t("orders.rebuy")}
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
           )}
-          {order.currentStatus === "CustomerNotReceived" && (
-            <TouchableOpacity
-              style={[styles.actionButton, styles.trackButton]}
-              onPress={handleReceivedConfirmation}
-            >
-              <Ionicons
-                name="checkmark-done-outline"
-                size={18}
-                color="#00BCD4"
-              />
-              <Text style={styles.trackButtonText}>
-                {t("orders.confirmReceived")}
-              </Text>
-            </TouchableOpacity>
-          )}
-          {order.currentStatus === "Finished" &&
-            order.orderItems.some((item) => !item.isFeedback) && (
-               <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                flex: 1,
-                gap: 8,
-              }}
-            >
-              <TouchableOpacity
-                style={[styles.actionButton, styles.feedbackButton]}
-                onPress={handleOpenFeedbackModal}
-              >
-                <Ionicons name="star-outline" size={18} color="#FF9800" />
-                <Text style={styles.feedbackButtonText}>
-                  {t("orders.leaveFeedback")}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-              style={[styles.actionButton, styles.rebuyButton]}
-              onPress={handleRebuy}
-            >
-              <Ionicons name="cart-outline" size={18} color="#fff" />
-              <Text style={styles.rebuyButtonText}>
-                {t("orders.rebuy")}
-              </Text>
-            </TouchableOpacity>
-              </View>
-            )}
-            {order.currentStatus === "Cancelled" && 
-            <TouchableOpacity
-              style={[styles.actionButton, styles.rebuyButton]}
-              onPress={handleRebuy}
-            >
-              <Ionicons name="cart-outline" size={18} color="#fff" />
-              <Text style={styles.rebuyButtonText}>
-                {t("orders.rebuy")}
-              </Text>
-            </TouchableOpacity>}
-        </View>
-      )}
       </View>
 
       {/* Feedback Modal */}
@@ -806,7 +807,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "#E0E0E0",
     paddingTop: 14,
-    
   },
   priceRow: {
     flexDirection: "row",

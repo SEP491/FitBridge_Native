@@ -3,7 +3,6 @@ import {
   Text,
   Alert,
   ScrollView,
-  StatusBar,
   KeyboardAvoidingView,
   Platform,
   Linking,
@@ -96,7 +95,6 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#FF914D" />
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === "ios" ? "padding" : "height"}

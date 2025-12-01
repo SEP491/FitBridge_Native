@@ -6,7 +6,6 @@ import {
   Platform,
   Keyboard,
   TouchableWithoutFeedback,
-  StatusBar,
   Alert,
   Modal,
 } from "react-native";
@@ -110,7 +109,6 @@ export default function RegisterScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#FF914D" />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardAvoidingView}

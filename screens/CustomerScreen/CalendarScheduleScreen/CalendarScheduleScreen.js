@@ -4,7 +4,6 @@ import {
   StyleSheet,
   Dimensions,
   TouchableOpacity,
-  StatusBar,
   ScrollView,
   ActivityIndicator,
   Alert,
@@ -387,8 +386,6 @@ export default function CalendarScheduleScreen() {
   return (
     <>
       <View style={styles.container}>
-        <StatusBar backgroundColor={colors.red} barStyle="light-content" />
-
         {/* Calendar */}
         <View style={styles.calendarContainer}>
           {/* Week View Container */}
@@ -399,19 +396,19 @@ export default function CalendarScheduleScreen() {
               onDateSelect={handleDateSelect}
               initialDate={selectedDate}
             />
-          {/* Book Session Button */}
-        <View style={styles.bookingButtonContainer}>
-          <TouchableOpacity
-            style={styles.bookSessionButton}
-            onPress={() => navigation.navigate("ChoosingCourseScreen")}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="add-circle" size={24} color="#FFFFFF" />
-            <Text style={styles.bookSessionButtonText}>
-              {t("schedule.bookNewSession")}
-            </Text>
-          </TouchableOpacity>
-        </View>
+            {/* Book Session Button */}
+            <View style={styles.bookingButtonContainer}>
+              <TouchableOpacity
+                style={styles.bookSessionButton}
+                onPress={() => navigation.navigate("ChoosingCourseScreen")}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="add-circle" size={24} color="#FFFFFF" />
+                <Text style={styles.bookSessionButtonText}>
+                  {t("schedule.bookNewSession")}
+                </Text>
+              </TouchableOpacity>
+            </View>
             {/* Sessions List */}
             <ScrollView
               style={styles.scrollView}

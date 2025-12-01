@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import colors from "../../constants/color";
 
@@ -258,10 +252,7 @@ export default function PackageCard({
       {!expired ? (
         <View style={styles.actionButtonsRow}>
           <TouchableOpacity
-            style={[
-              styles.renewButton,
-              { backgroundColor: typeConfig.color },
-            ]}
+            style={[styles.renewButton, { backgroundColor: typeConfig.color }]}
             onPress={() => onRenew(item)}
             activeOpacity={0.8}
           >
@@ -275,7 +266,7 @@ export default function PackageCard({
             activeOpacity={0.8}
           >
             <Ionicons name="flag-outline" size={18} color={colors.red} />
-            <Text style={styles.reportButtonText}>Report</Text>
+            <Text style={styles.reportButtonText}>{t("myPackage.report")}</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -299,7 +290,7 @@ export default function PackageCard({
             activeOpacity={0.8}
           >
             <Ionicons name="flag-outline" size={18} color={colors.red} />
-            <Text style={styles.reportButtonText}>Report</Text>
+            <Text style={styles.reportButtonText}>{t("myPackage.report")}</Text>
           </TouchableOpacity>
         </View>
       )}

@@ -7,7 +7,6 @@ import {
   Image,
   TouchableOpacity,
   SafeAreaView,
-  StatusBar,
   Alert,
   ActivityIndicator,
   Modal,
@@ -362,12 +361,11 @@ export default function ProductDetailsScreen() {
 
   const getShortCountryName = (country) => {
     if (!country) return "";
-    if(country.length <= 8)
-      return country;
+    if (country.length <= 8) return country;
     return country
-      .split(' ')
+      .split(" ")
       .map((word) => word[0])
-      .join('')
+      .join("")
       .toUpperCase();
   };
 
@@ -742,7 +740,11 @@ export default function ProductDetailsScreen() {
                   review={review}
                   t={t}
                   showProductType={true}
-                  productTypeText={`${t("product.productType")}: ${review?.productDetail.flavourName || ""} - ${review?.productDetail.weightValue || ""} ${review?.productDetail.weightUnit || ""}`}
+                  productTypeText={`${t("product.productType")}: ${
+                    review?.productDetail.flavourName || ""
+                  } - ${review?.productDetail.weightValue || ""} ${
+                    review?.productDetail.weightUnit || ""
+                  }`}
                 />
               ))}
 
@@ -953,8 +955,9 @@ export default function ProductDetailsScreen() {
                       {product.name}
                     </Text>
                     <Text style={styles.modalPreviewVariant}>
-                      {selectedVariant?.weightValue} {selectedVariant?.weightUnit}{" "}
-                      - {selectedVariant?.flavourName}
+                      {selectedVariant?.weightValue}{" "}
+                      {selectedVariant?.weightUnit} -{" "}
+                      {selectedVariant?.flavourName}
                     </Text>
                     <Text style={styles.modalPreviewPrice}>
                       {formatPrice(selectedVariant?.salePrice)}
@@ -1562,8 +1565,7 @@ const styles = StyleSheet.create({
     color: "#999",
     marginTop: 12,
   },
-  reviewsSection: {
-  },
+  reviewsSection: {},
   loadMoreButton: {
     flexDirection: "row",
     alignItems: "center",

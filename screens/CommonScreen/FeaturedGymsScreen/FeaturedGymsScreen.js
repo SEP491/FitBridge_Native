@@ -7,7 +7,6 @@ import {
   RefreshControl,
   ActivityIndicator,
   SafeAreaView,
-  StatusBar,
 } from "react-native";
 import { useTranslation } from "../../../hooks/useTranslation";
 import gymService from "../../../services/gymService";
@@ -55,8 +54,6 @@ export default function FeaturedGymsScreen() {
   return (
     <>
       <SafeAreaView style={styles.container}>
-        <StatusBar backgroundColor="#FFFFFF" barStyle="dark-content" />
-
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerContent}>

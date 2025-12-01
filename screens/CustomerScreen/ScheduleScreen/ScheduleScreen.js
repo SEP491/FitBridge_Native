@@ -8,7 +8,6 @@ import {
   ActivityIndicator,
   RefreshControl,
   SafeAreaView,
-  StatusBar,
   Dimensions,
 } from "react-native";
 import React, { useState, useEffect } from "react";
@@ -175,19 +174,13 @@ export default function ScheduleScreen({ route }) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.red} />
-
       <View style={styles.container}>
-        
-
         {/* Week Calendar Component */}
         <WeekCalendar
           selectedDate={selectedDate}
           onDateSelect={handleDateSelect}
           initialDate={selectedDate}
         />
-
-        
 
         {/* Sessions List */}
         <ScrollView
@@ -200,7 +193,6 @@ export default function ScheduleScreen({ route }) {
             />
           }
         >
-        
           {loading ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color={colors.red} />

@@ -10,7 +10,6 @@ import {
   ActivityIndicator,
   RefreshControl,
   SafeAreaView,
-  StatusBar,
   Platform,
 } from "react-native";
 import React, { useEffect, useState } from "react";
@@ -538,7 +537,6 @@ export default function ScheduleFreelanceScreen({ route }) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.red} />
       <View style={styles.container}>
         {/* Filter Tabs */}
         <View style={styles.filterContainer}>

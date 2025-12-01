@@ -3,7 +3,6 @@ import {
   Text,
   StyleSheet,
   Dimensions,
-  StatusBar,
   ScrollView,
   ActivityIndicator,
 } from "react-native";
@@ -162,8 +161,6 @@ export default function CalendarPTScreen() {
   return (
     <>
       <View style={styles.container}>
-        <StatusBar backgroundColor={colors.red} barStyle="light-content" />
-
         {/* Calendar */}
         <View style={styles.calendarContainer}>
           {/* Week View Container */}

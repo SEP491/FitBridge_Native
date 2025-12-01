@@ -13,7 +13,6 @@ import {
   ActivityIndicator,
   Alert,
   Dimensions,
-  StatusBar,
   ActionSheetIOS,
   Platform,
 } from "react-native";
@@ -362,8 +361,6 @@ const AccountScreen = () => {
 
   return (
     <View style={styles.container}>
-      <StatusBar backgroundColor="#ED2A46" barStyle="light-content" />
-
       {/* Header with Avatar */}
       <LinearGradient
         colors={["#ED2A46", "#FF914D"]}

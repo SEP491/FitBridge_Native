@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   TextInput,
   SafeAreaView,
-  StatusBar,
   RefreshControl,
 } from "react-native";
 import React, { useEffect, useState } from "react";
@@ -73,8 +72,6 @@ export default function FreelanceChoosingCourseScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-
       <View style={styles.container}>
         {/* Search Bar */}
         <View style={styles.searchContainer}>

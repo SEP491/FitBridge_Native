@@ -8,7 +8,6 @@ import {
   ActivityIndicator,
   RefreshControl,
   SafeAreaView,
-  StatusBar,
   Dimensions,
 } from "react-native";
 import React, { useState, useEffect } from "react";
@@ -184,8 +183,6 @@ export default function SchedulePTScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.red} />
-
       <View style={styles.container}>
         {/* Week Calendar Component */}
         <WeekCalendar
