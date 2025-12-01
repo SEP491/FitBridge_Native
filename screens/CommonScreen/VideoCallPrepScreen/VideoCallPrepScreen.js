@@ -53,6 +53,7 @@ export default function VideoCallPrepScreen({ navigation, route }) {
   const [meetingStatus, setMeetingStatus] = useState(''); // 'checking', 'creating', 'ready'
 
   const { booking } = route.params || {};
+  const { startCall, setCallInfo } = useMeetingState();
   console.log("VideoCallPrepScreen: booking =", booking);
 
   const checkMeetingExists = async (booking) => {
@@ -179,18 +180,35 @@ export default function VideoCallPrepScreen({ navigation, route }) {
   };
 
   // Handle join button press
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // Stop preview stream before joining
     if (previewStream) {
       previewStream.getTracks().forEach(track => track.stop());
       setPreviewStream(null);
     }
     if (meetingID) {
-      // Navigate to video call screen
-      navigation.navigate('VideoCallScreen', {
-        roomId: meetingID.trim(),
-        booking: booking,
-      });
+      try {
+        setLoading(true);
+        // Get username from AsyncStorage
+        const user = await AsyncStorage.getItem('user');
+        const userName = user ? JSON.parse(user).fullName : 'Guest';
+        
+        // Store booking info in context before starting call
+        if (setCallInfo && booking) {
+          setCallInfo({ booking });
+        }
+        
+        // Start the call using context
+        await startCall(userName, meetingID.trim(), 5000, false);
+        
+        // FloatingVideoCall will automatically show as a modal overlay
+        // No navigation needed - it's always rendered at root level
+        navigation.goBack();
+      } catch (error) {
+        console.error('Error starting call:', error);
+        setLoading(false);
+        Alert.alert('Error', 'Failed to start video call: ' + error.message);
+      }
     }
   };
 

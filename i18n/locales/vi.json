@@ -2170,6 +2170,9 @@
     "loadingMore": "Đang tải thêm...",
     "rebuy": "Mua Lại",
     "productsAddedToCart": "Sản phẩm đã được thêm vào giỏ hàng",
-    "products":"Sản Phẩm"
+    "products":"Sản Phẩm",
+    "takePhoto": "Chụp ảnh",
+    "choosePhoto": "Chọn ảnh từ thư viện",
+    "selectPhotoSource": "Bạn muốn chọn ảnh từ đâu ?"
   }
 }

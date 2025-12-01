@@ -72,7 +72,7 @@ import ForgotPasswordScreen2 from "../screens/AuthenticationScreen/ForgotPasswor
 import ForgotPasswordScreen3 from "../screens/AuthenticationScreen/ForgotPasswordScreen/ForgotPasswordScreen3";
 import RegisterScreen from "../screens/AuthenticationScreen/RegisterScreen/RegisterScreen";
 import VoucherDetailScreen from "../screens/FreelancePTScreen/VoucherDetailScreen/VoucherDetailScreen";
-import VideoCallScreen from "../screens/CommonScreen/VideoCallScreen/VideoCallScreenNew";
+import FloatingVideoCallScreen from "../screens/CommonScreen/FloatingVideoCallScreen/FloatingVideoCallScreen";
 import VideoCallPrepScreen from "../screens/CommonScreen/VideoCallPrepScreen/VideoCallPrepScreen";
 
 import NotificationScreen from "../screens/CommonScreen/NotificationScreen/NotificationScreen";
@@ -370,7 +370,7 @@ export default function Navigator({
         />
         <Stack.Screen
           name="JoinCallVideoScreen"
-          component={VideoCallScreen}
+          component={FloatingVideoCallScreen}
           options={{
             headerShown: false,
             orientation: "portrait",
@@ -378,7 +378,15 @@ export default function Navigator({
         />
         <Stack.Screen
           name="VideoCallScreen"
-          component={VideoCallScreen}
+          component={FloatingVideoCallScreen}
+          options={{
+            headerShown: false,
+            orientation: "portrait",
+          }}
+        />
+        <Stack.Screen
+          name="FloatingVideoCallScreen"
+          component={FloatingVideoCallScreen}
           options={{
             headerShown: false,
             orientation: "portrait",
@@ -518,7 +526,15 @@ export default function Navigator({
         />
         <Stack.Screen
           name="VideoCallScreen"
-          component={VideoCallScreen}
+          component={FloatingVideoCallScreen}
+          options={{
+            headerShown: false,
+            orientation: "portrait",
+          }}
+        />
+        <Stack.Screen
+          name="FloatingVideoCallScreen"
+          component={FloatingVideoCallScreen}
           options={{
             headerShown: false,
             orientation: "portrait",
@@ -650,7 +666,7 @@ export default function Navigator({
       >
         {/* <Stack.Screen
           name="VideoCallScreen"
-          component={VideoCallScreen}
+          component={FloatingVideoCallScreen}
           options={{
             headerShown: false,
             orientation: "portrait",
@@ -762,7 +778,7 @@ export default function Navigator({
         />
         <Stack.Screen
           name="VideoCallScreen"
-          component={VideoCallScreen}
+          component={FloatingVideoCallScreen}
           options={{
             headerShown: false,
             orientation: "portrait",
@@ -1013,7 +1029,7 @@ export default function Navigator({
         />
         <Stack.Screen
           name="VideoCallScreen"
-          component={VideoCallScreen}
+          component={FloatingVideoCallScreen}
           options={{
             headerShown: false,
             orientation: "portrait",
@@ -1063,7 +1079,7 @@ export default function Navigator({
         />
         <Stack.Screen
           name="VideoCallScreen"
-          component={VideoCallScreen}
+          component={FloatingVideoCallScreen}
           options={{
             headerShown: false,
             orientation: "portrait",
@@ -1174,7 +1190,15 @@ export default function Navigator({
         />
         <Stack.Screen
           name="VideoCallScreen"
-          component={VideoCallScreen}
+          component={FloatingVideoCallScreen}
+          options={{
+            headerShown: false,
+            orientation: "portrait",
+          }}
+        />
+        <Stack.Screen
+          name="FloatingVideoCallScreen"
+          component={FloatingVideoCallScreen}
           options={{
             headerShown: false,
             orientation: "portrait",
@@ -1298,7 +1322,7 @@ export default function Navigator({
         />
         <Stack.Screen
           name="VideoCallScreen"
-          component={VideoCallScreen}
+          component={FloatingVideoCallScreen}
           options={{
             headerShown: false,
             orientation: "portrait",
@@ -1684,7 +1708,7 @@ export default function Navigator({
         />
         <Stack.Screen
           name="VideoCallScreen"
-          component={VideoCallScreen}
+          component={FloatingVideoCallScreen}
           options={{
             headerShown: false,
             orientation: "portrait",

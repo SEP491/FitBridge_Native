@@ -55,7 +55,7 @@ const FeedbackModal = ({ visible, onClose, orderItems = [] }) => {
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsMultipleSelection: true,
         quality: 0.8,
-        selectionLimit: 5 - currentFeedback.images.length,
+        selectionLimit: 3 - currentFeedback.images.length,
       });
 
       if (!result.canceled && result.assets) {
@@ -72,6 +72,61 @@ const FeedbackModal = ({ visible, onClose, orderItems = [] }) => {
       console.error("Error picking images:", error);
       Alert.alert(t("errors.error"), t("errors.imagePickError"));
     }
+  };
+
+  const handleTakePicture = async () => {
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          t("errors.error"),
+          t("errors.cameraPermissionRequired") || "Camera permission is required to take photos"
+        );
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 0.8,
+        allowsEditing: false,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const newImage = {
+          uri: result.assets[0].uri,
+          type: result.assets[0].type || "image/jpeg",
+          name: result.assets[0].fileName || `image_${Date.now()}.jpg`,
+        };
+        updateCurrentFeedback({
+          images: [...currentFeedback.images, newImage],
+        });
+      }
+    } catch (error) {
+      console.error("Error taking picture:", error);
+      Alert.alert(t("errors.error"), t("errors.cameraError") || "Failed to take picture. Please try again.");
+    }
+  };
+
+  const handleAddImage = () => {
+    Alert.alert(
+      t("orders.addPhoto") || "Add Photo",
+      t("orders.selectPhotoSource") || "Select photo source",
+      [
+        {
+          text: t("orders.takePhoto") || "Take Photo",
+          onPress: handleTakePicture,
+        },
+        {
+          text: t("orders.choosePhoto") || "Choose Photo",
+          onPress: handlePickImages,
+        },
+        {
+          text: t("common.cancel") || "Cancel",
+          style: "cancel",
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   const handleRemoveImage = (index) => {
@@ -340,7 +395,7 @@ const FeedbackModal = ({ visible, onClose, orderItems = [] }) => {
             {/* Images Section */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>
-                {t("orders.addPhotos")} ({currentFeedback.images.length}/5)
+                {t("orders.addPhotos")} ({currentFeedback.images.length}/3)
               </Text>
               <View style={styles.imagesContainer}>
                 {currentFeedback.images.map((image, index) => (
@@ -354,10 +409,10 @@ const FeedbackModal = ({ visible, onClose, orderItems = [] }) => {
                     </TouchableOpacity>
                   </View>
                 ))}
-                {currentFeedback.images.length < 5 && (
+                {currentFeedback.images.length < 3 && (
                   <TouchableOpacity
                     style={styles.addImageButton}
-                    onPress={handlePickImages}
+                    onPress={handleAddImage}
                   >
                     <Ionicons name="camera-outline" size={32} color="#999" />
                     <Text style={styles.addImageText}>{t("orders.addPhoto")}</Text>
