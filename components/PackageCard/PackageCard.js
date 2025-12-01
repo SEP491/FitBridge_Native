@@ -15,6 +15,7 @@ export default function PackageCard({
   onReport,
   onFeedback,
   t,
+  mode = "package", // "package" for MyPackage, "review" for MyReviewsRatings
 }) {
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -82,6 +83,7 @@ export default function PackageCard({
   const isFreelancePT = item.type === "freelancePT";
   const isGymWithPT = item.type === "gymCourseWithPT";
   const isGymNormal = item.type === "gymCourseNormal";
+  const isReviewMode = mode === "review";
 
   return (
     <View style={[styles.packageCard, expired && styles.expiredCard]}>
@@ -119,7 +121,8 @@ export default function PackageCard({
                 {item.packageName}
               </Text>
 
-              {!expired && daysRemaining >= 0 && (
+              {/* In review mode we don't show remaining days badge, only for active packages */}
+              {!isReviewMode && !expired && daysRemaining >= 0 && (
                 <View
                   style={[
                     styles.statusBadge,
@@ -245,7 +248,9 @@ export default function PackageCard({
                     {formatDate(item.expirationDate)}
                   </Text>
                   <Text style={styles.statLabel}>
-                    {t("myPackage.expiresOn")}
+                    {isReviewMode
+                      ? t("myPackage.purchasedOn") || t("myPackage.expiresOn")
+                      : t("myPackage.expiresOn")}
                   </Text>
                 </View>
               </View>
@@ -255,14 +260,30 @@ export default function PackageCard({
       </View>
 
       {/* Second Row: Action Buttons */}
-      {!expired ? (
+      {isReviewMode ? (
+        // Review mode: only feedback action is relevant
+        <View style={styles.actionButtonsRow}>
+          <TouchableOpacity
+            style={styles.feedbackButton}
+            onPress={() => onFeedback && onFeedback(item)}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="star" size={18} color="#FF9800" />
+            <Text style={styles.feedbackButtonText}>
+              {item.hasReviewed
+                ? t("myPackage.viewFeedback")
+                : t("myPackage.leaveFeedback")}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      ) : !expired ? (
         <View style={styles.actionButtonsRow}>
           <TouchableOpacity
             style={[
               styles.renewButton,
               { backgroundColor: typeConfig.color },
             ]}
-            onPress={() => onRenew(item)}
+            onPress={() => onRenew && onRenew(item)}
             activeOpacity={0.8}
           >
             <Ionicons name="refresh" size={18} color="#fff" />
@@ -271,7 +292,7 @@ export default function PackageCard({
 
           <TouchableOpacity
             style={styles.reportButton}
-            onPress={() => onReport(item)}
+            onPress={() => onReport && onReport(item)}
             activeOpacity={0.8}
           >
             <Ionicons name="flag-outline" size={18} color={colors.red} />
@@ -282,7 +303,7 @@ export default function PackageCard({
         <View style={styles.actionButtonsRow}>
           <TouchableOpacity
             style={styles.feedbackButton}
-            onPress={() => onFeedback(item)}
+            onPress={() => onFeedback && onFeedback(item)}
             activeOpacity={0.8}
           >
             <Ionicons name="star" size={18} color="#FF9800" />
@@ -295,7 +316,7 @@ export default function PackageCard({
 
           <TouchableOpacity
             style={styles.reportButton}
-            onPress={() => onReport(item)}
+            onPress={() => onReport && onReport(item)}
             activeOpacity={0.8}
           >
             <Ionicons name="flag-outline" size={18} color={colors.red} />

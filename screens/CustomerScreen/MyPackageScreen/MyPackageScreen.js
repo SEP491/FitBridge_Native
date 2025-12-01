@@ -293,6 +293,7 @@ export default function MyPackageScreen() {
         onReport={handleReport}
         onFeedback={handleOpenFeedbackModal}
         t={t}
+        mode="package"
       />
     );
   };

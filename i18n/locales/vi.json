@@ -143,7 +143,9 @@
     "freelancePT":"PT Tự Do",
     "noReviewsYet": "Chưa Có Đánh Giá Gói Tập",
     "reviewCoursesMessage": "Đánh giá gói tập của bạn sẽ hiển thị tại đây",
-    "viewFeedback":"Xem Đánh Giá"
+    "viewFeedback":"Xem Đánh Giá",
+    "gymPackage":"Gói Tập Gym",
+    "purchasedOn":"Mua vào ngày"
   },
 
   "home": {

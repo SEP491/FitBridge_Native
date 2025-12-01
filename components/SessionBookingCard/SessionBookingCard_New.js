@@ -173,12 +173,14 @@ const SessionBookingCard = ({
     }
 
     if (!isSessionReady) {
+      console.log("Session not ready");
       setIsMeetingButtonEnabled(false);
       setMeetingErrorMessage(
         t ? t("videoCallPrep.sessionNotReady") : "Session not ready yet."
       );
     } else if (meetingErrorMessage) {
       // Session time reached but we previously failed to create/find meeting
+      console.log("Session time reached but we previously failed to create/find meeting");
       setIsMeetingButtonEnabled(false);
     } else {
       setIsMeetingButtonEnabled(true);
