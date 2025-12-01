@@ -178,7 +178,10 @@ export default function BookingDetailContent({
         });
       }
     } catch (error) {
-      console.error("Error fetching customer and packages:", error);
+      console.error(
+        "Error fetching customer and packages:",
+        error.response?.data?.message
+      );
     }
   };
 
@@ -225,7 +228,7 @@ export default function BookingDetailContent({
       console.log(response);
       setSessionState("in-progress");
     } catch (error) {
-      console.error("Error starting session:", error);
+      console.error("Error starting session:", error.response?.data?.message);
       Alert.alert(
         "Error",
         error.response?.data?.message ||
@@ -242,7 +245,7 @@ export default function BookingDetailContent({
       console.log(response);
       setSessionState("completed");
     } catch (error) {
-      console.error("Error ending session:", error);
+      console.error("Error ending session:", error.response?.data?.message);
       Alert.alert(
         "Error",
         error.response?.data?.message ||

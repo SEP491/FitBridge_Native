@@ -84,10 +84,10 @@ export default function LoginScreen() {
         return;
       }
     } catch (error) {
-      Alert.alert(t("auth.loginFailed"), error.response.data.message, [
+      Alert.alert(t("auth.loginFailed"), error.response?.data?.message, [
         { text: "OK" },
       ]);
-      console.error("Login error:", error.response.data);
+      console.error("Login error:", error.response?.data?.message);
     } finally {
       setIsLoading(false);
     }

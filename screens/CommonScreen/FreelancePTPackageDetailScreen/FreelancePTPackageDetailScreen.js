@@ -88,12 +88,12 @@ export default function FreelancePTPackageDetailScreen() {
         pageNumber: pageNum,
         pageSize: 10,
       });
-      
+
       if (response.data) {
         if (pageNum === 1) {
           setReviews(response.data.items || []);
         } else {
-          setReviews(prev => [...prev, ...(response.data.items || [])]);
+          setReviews((prev) => [...prev, ...(response.data.items || [])]);
         }
         setReviewsPage(pageNum);
         setReviewsTotalPages(response.data.totalPages || 1);
@@ -491,7 +491,11 @@ export default function FreelancePTPackageDetailScreen() {
                         <Text style={styles.loadMoreText}>
                           {t("common.loadMore") || "Load More"}
                         </Text>
-                        <Ionicons name="chevron-down" size={20} color="#ED2A46" />
+                        <Ionicons
+                          name="chevron-down"
+                          size={20}
+                          color="#ED2A46"
+                        />
                       </>
                     )}
                   </TouchableOpacity>
@@ -499,12 +503,17 @@ export default function FreelancePTPackageDetailScreen() {
               </View>
             ) : (
               <View style={styles.reviewsEmpty}>
-                <Ionicons name="chatbox-ellipses-outline" size={48} color="#E0E0E0" />
+                <Ionicons
+                  name="chatbox-ellipses-outline"
+                  size={48}
+                  color="#E0E0E0"
+                />
                 <Text style={styles.reviewsEmptyText}>
                   {t("freelancePT.noReviews") || "No reviews yet"}
                 </Text>
                 <Text style={styles.reviewsEmptySubtext}>
-                  {t("freelancePT.beFirstToReview") || "Be the first to share your experience with this package"}
+                  {t("freelancePT.beFirstToReview") ||
+                    "Be the first to share your experience with this package"}
                 </Text>
               </View>
             )}

@@ -264,7 +264,7 @@ const AddMeasurementScreen = ({ route, navigation }) => {
         t("common.error", "Error"),
         t(
           "bodyMeasurements.failedToProcessMeasurements",
-          `Failed to process measurements: ${error.message}`
+          `Failed to process measurements: ${error.response?.data?.message}`
         ),
         [
           {

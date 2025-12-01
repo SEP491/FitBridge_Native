@@ -98,10 +98,10 @@ export default function RegisterScreen() {
         },
       ]);
     } catch (error) {
-      Alert.alert(t("errors.error"), error.response.data.message, [
+      Alert.alert(t("errors.error"), error.response?.data?.message, [
         { text: "OK" },
       ]);
-      console.error("Registration error:", error.response.data);
+      console.error("Registration error:", error.response?.data?.message);
     } finally {
       setIsLoading(false);
     }

@@ -89,7 +89,7 @@ export default function FullScreenSearch({
       setKeywords(response.data.items);
       console.log("Keywords Data:", response.data.items);
     } catch (error) {
-      console.error("Error loading keywords:", error);
+      console.error("Error loading keywords:", error.response?.data?.message);
     }
   };
 
@@ -308,8 +308,11 @@ export default function FullScreenSearch({
         }
       }
     } catch (error) {
-      console.error("Error searching:", error);
-      Alert.alert(t("errors.error"), t("errors.cannotSearch"));
+      console.error("Error searching:", error.response?.data?.message);
+      Alert.alert(
+        t("errors.error"),
+        error.response?.data?.message || t("errors.cannotSearch")
+      );
     } finally {
       setLoading(false);
       setRefreshing(false);

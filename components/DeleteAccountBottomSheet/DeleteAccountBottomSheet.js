@@ -101,10 +101,13 @@ const DeleteAccountBottomSheet = ({
                 );
               }
             } catch (error) {
-              console.error("Error deleting account:", error);
+              console.error(
+                "Error deleting account:",
+                error.response?.data?.message
+              );
               Alert.alert(
                 t("deleteAccount.error"),
-                t("deleteAccount.deleteFailed")
+                error.response?.data?.message || t("deleteAccount.deleteFailed")
               );
             } finally {
               setIsLoading(false);

@@ -155,8 +155,11 @@ const OrderManagementCard = ({ order, onRefresh }) => {
         }
       }
     } catch (error) {
-      console.error("Error cancelling order:", error);
-      Alert.alert(t("common.error"), t("orders.errorCancellingOrder"));
+      console.error("Error cancelling order:", error.response?.data?.message);
+      Alert.alert(
+        t("common.error"),
+        error.response?.data?.message || t("orders.errorCancellingOrder")
+      );
     }
   };
 
@@ -185,8 +188,15 @@ const OrderManagementCard = ({ order, onRefresh }) => {
               }
             }
           } catch (error) {
-            console.error("Error confirming received:", error);
-            Alert.alert(t("common.error"), t("orders.errorConfirmingReceived"));
+            console.error(
+              "Error confirming received:",
+              error.response?.data?.message
+            );
+            Alert.alert(
+              t("common.error"),
+              error.response?.data?.message ||
+                t("orders.errorConfirmingReceived")
+            );
           }
         },
       },
