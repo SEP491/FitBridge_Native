@@ -333,6 +333,11 @@
     "kg": "Kg",
     "reps": "Reps",
     "seconds": "Sec",
+    "distance": "Distance",
+    "meters": "m",
+    "distanceCompleted": "Meters completed",
+    "enterDistance": "Enter meters completed",
+    "plannedDistanceLabel": "Target: {{value}} m",
     "rest": "Rest",
     "completedStatus": "Completed",
     "start": "Start",
@@ -544,7 +549,9 @@
     "comingSoon": "Coming Soon",
     "loadMore": "Load More",
     "no": "No",
-    "lastUpdate": "Last Update"
+    "lastUpdate": "Last Update",
+    "later": "Later",
+    "validation": "Validation"
   },
 
   "freelancePT": {
@@ -1775,7 +1782,9 @@
     "waist": "Waist",
     "hip": "Hip",
     "shoulder": "Shoulder",
-    "weight": "Weight"
+    "weight": "Weight",
+    "back": "Back",
+    "glutes": "Glutes"
   },
 
   "userGoals": {
@@ -1805,11 +1814,13 @@
     "fillTargetFields": "Please fill in all target fields",
     "goalCreatedSuccessfully": "User goal created successfully!",
     "failedToCreateGoal": "Failed to create user goal. Please try again.",
+    "imageUploadError": "Failed to upload image",
     "currentUserStats": "Current User Stats",
     "measurements": "measurements",
     "latest": "Latest",
     "noMeasurements": "No Measurements Yet",
     "addMeasurements": "Add body measurements to track your progress",
+    "addMeasurementsToTrack": "Add body measurements to track your progress over time",
     "noDataAvailable": "No Data Available",
     "addMeasurementsToSeeChart": "Add body measurements to see progress chart",
     "recorded": "recorded",
@@ -1851,7 +1862,9 @@
     "reviewPhotos": "Review Your Photos",
     "processMeasurements": "Analyze Measurements",
     "processing": "Processing...",
-    "processingDescription": "This may take a few moments. Please wait."
+    "processingDescription": "This may take a few moments. Please wait.",
+    "viewHistory": "View History",
+    "measurementHistory": "Measurement History"
   },
 
   "bookingRequest": {

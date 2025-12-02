@@ -344,6 +344,11 @@
     "no_limit": "Không giới hạn",
     "reps": "Lượt",
     "seconds": "Giây",
+    "distance": "Quãng đường",
+    "meters": "m",
+    "distanceCompleted": "Số mét đã hoàn thành",
+    "enterDistance": "Nhập số mét đã hoàn thành",
+    "plannedDistanceLabel": "Mục tiêu: {{value}} m",
     "rest": "Nghỉ",
     "completedStatus": "Đã Hoàn Thành",
     "start": "Bắt Đầu",
@@ -560,7 +565,8 @@
     "comingSoon": "Sắp ra mắt",
     "loadMore": "Tải thêm",
     "lastUpdate": "Cập nhật lần cuối",
-    "continueShopping": "Tiếp tục mua sắm"
+    "continueShopping": "Tiếp tục mua sắm",
+    "validation": "Xác thực"
   },
 
   "account": {
@@ -1819,12 +1825,14 @@
     "fillTargetFields": "Vui lòng điền tất cả các trường mục tiêu",
     "goalCreatedSuccessfully": "Mục tiêu đã được tạo thành công!",
     "failedToCreateGoal": "Không thể tạo mục tiêu. Vui lòng thử lại.",
+    "imageUploadError": "Không thể tải ảnh lên",
     "latest": "Mới Nhất",
     "measurements": "Số Đo",
     "progress": "Tiến Độ",
     "currentUserStats": "Số Liệu Hiện Tại",
     "noMeasurements": "Chưa Có Số Đo Nào",
     "addMeasurements": "Thêm số đo cơ thể để theo dõi tiến độ của bạn",
+    "addMeasurementsToTrack": "Thêm số đo cơ thể để theo dõi tiến độ theo thời gian",
     "noDataAvailable": "Không Có Dữ Liệu",
     "addMeasurementsToSeeChart": "Thêm số đo cơ thể để xem biểu đồ tiến độ",
     "recorded": "Ghi nhận"

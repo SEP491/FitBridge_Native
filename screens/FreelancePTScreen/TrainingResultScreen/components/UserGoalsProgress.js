@@ -603,7 +603,7 @@ export const UserGoalsProgress = ({
 
 const styles = StyleSheet.create({
   buttonContainer: {
-    flexDirection: "row",
+    // flexDirection: "row",
     justifyContent: "space-between",
   },
   viewHistoryButton: {

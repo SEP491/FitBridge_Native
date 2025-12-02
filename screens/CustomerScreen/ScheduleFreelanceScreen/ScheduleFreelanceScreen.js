@@ -40,7 +40,6 @@ export default function ScheduleFreelanceScreen({ route }) {
   // Date/Time picker states
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showStartTimePicker, setShowStartTimePicker] = useState(false);
-  const [showEndTimePicker, setShowEndTimePicker] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userRole, setUserRole] = useState(null);
 
@@ -51,16 +50,6 @@ export default function ScheduleFreelanceScreen({ route }) {
     return now;
   };
 
-  // Helper function to get default end time (start time + 1 hour)
-  const getDefaultEndTime = () => {
-    if (!startTime) return new Date();
-
-    const [hours, minutes] = startTime.split(":").map(Number);
-    const endDate = new Date();
-    endDate.setHours(hours, minutes, 0, 0);
-    endDate.setHours(endDate.getHours() + 1); // Add 1 hour
-    return endDate;
-  };
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -142,35 +131,15 @@ export default function ScheduleFreelanceScreen({ route }) {
     const hours = time.getHours().toString().padStart(2, "0");
     const minutes = time.getMinutes().toString().padStart(2, "0");
     setStartTime(`${hours}:${minutes}`);
+
+    // Auto-set end time to 1 hour after selected start time
+    const endDateTime = new Date(time);
+    endDateTime.setHours(endDateTime.getHours() + 1);
+    const endHours = endDateTime.getHours().toString().padStart(2, "0");
+    const endMinutes = endDateTime.getMinutes().toString().padStart(2, "0");
+    setEndTime(`${endHours}:${endMinutes}`);
+
     setShowStartTimePicker(false);
-  };
-
-  const handleEndTimeConfirm = (time) => {
-    if (!startTime) {
-      Alert.alert(t("common.error"), t("bookingRequest.selectStartTimeFirst"));
-      return;
-    }
-
-    // Parse start time
-    const [startHour, startMin] = startTime.split(":").map(Number);
-    const startMinutes = startHour * 60 + startMin;
-
-    // Parse end time
-    const endHour = time.getHours();
-    const endMin = time.getMinutes();
-    const endMinutes = endHour * 60 + endMin;
-
-    // Check if end time is at least 1 hour after start time
-    const diffMinutes = endMinutes - startMinutes;
-    if (diffMinutes < 60) {
-      Alert.alert(t("common.error"), t("bookingRequest.endTimeMinimum"));
-      return;
-    }
-
-    const hours = endHour.toString().padStart(2, "0");
-    const minutes = endMin.toString().padStart(2, "0");
-    setEndTime(`${hours}:${minutes}`);
-    setShowEndTimePicker(false);
   };
 
   const resetForm = () => {
@@ -436,16 +405,13 @@ export default function ScheduleFreelanceScreen({ route }) {
               </TouchableOpacity>
             </View>
 
-            {/* End Time Picker */}
+            {/* End Time (auto 1 hour after start time) */}
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>
                 <Ionicons name="time-outline" size={16} color={colors.red} />{" "}
                 {t("bookingRequest.endTime")} *
               </Text>
-              <TouchableOpacity
-                style={styles.datePickerButton}
-                onPress={() => setShowEndTimePicker(true)}
-              >
+              <View style={styles.datePickerButton}>
                 <Text
                   style={[
                     styles.datePickerText,
@@ -454,8 +420,7 @@ export default function ScheduleFreelanceScreen({ route }) {
                 >
                   {endTime || t("bookingRequest.selectEndTime")}
                 </Text>
-                <Ionicons name="chevron-down" size={20} color="#666" />
-              </TouchableOpacity>
+              </View>
             </View>
 
             {/* Submit Button */}
@@ -508,16 +473,6 @@ export default function ScheduleFreelanceScreen({ route }) {
         onCancel={() => setShowStartTimePicker(false)}
         is24Hour={true}
         date={getDefaultStartTime()}
-      />
-
-      {/* End Time Picker Modal */}
-      <DateTimePickerModal
-        isVisible={showEndTimePicker}
-        mode="time"
-        onConfirm={handleEndTimeConfirm}
-        onCancel={() => setShowEndTimePicker(false)}
-        is24Hour={true}
-        date={getDefaultEndTime()}
       />
     </Modal>
   );
