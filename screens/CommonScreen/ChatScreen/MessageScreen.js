@@ -13,6 +13,7 @@ import {
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ConversationCard from "../../../components/ChatComponents/ConversationCard";
+import ConversationSkeleton from "../../../components/ChatComponents/ConversationSkeleton";
 import colors from "../../../constants/color";
 import messageService from "../../../services/messageService";
 import { useMessagingState } from "../../../context/messagingStateContext";
@@ -33,6 +34,7 @@ export default function MessageScreen({ navigation }) {
   const [userPresences, setUserPresences] = useState({});
   const [currentUserId, setCurrentUserId] = useState(null);
   const [currentUserRole, setCurrentUserRole] = useState(null);
+  const [testSkeleton, setTestSkeleton] = useState(false); // For testing skeleton
 
   useEffect(() => {
     // Fetch current user ID from your auth context or service
@@ -76,7 +78,7 @@ export default function MessageScreen({ navigation }) {
 
   // Fetch conversations on mount
   useEffect(() => {
-    fetchConversations(true);
+    fetchConversations(false);
   }, []);
 
   // Sync filteredConversations with conversations when there's no search
@@ -280,7 +282,7 @@ export default function MessageScreen({ navigation }) {
     // Handle reconnecting
     const handleReconnecting = () => {
       console.log("MessageScreen: Reconnecting, refetching conversations");
-      fetchConversations(true);
+      fetchConversations(false);
     };
 
     // Handle user presence update
@@ -349,7 +351,6 @@ export default function MessageScreen({ navigation }) {
 
         // Process conversations to handle deleted messages
         const newConversations = fetchedConversations.map((conv) => {
-          // Check if the last message is deleted based on status or isDeleted flag
           const isLastMessageDeleted =
             conv.lastMessageStatus === "Deleted" || conv.lastMessageIsDeleted;
 
@@ -389,8 +390,10 @@ export default function MessageScreen({ navigation }) {
         console.error("Error fetching conversations:", error);
         // Keep existing data on error
       } finally {
-        setLoading(false);
-        setRefreshing(false);
+        setTimeout(() => {
+          setLoading(false);
+          setRefreshing(false);
+        }, 1500);
       }
     },
     [pageNumber]
@@ -398,7 +401,7 @@ export default function MessageScreen({ navigation }) {
 
   // Handle refresh
   const onRefresh = useCallback(() => {
-    fetchConversations(true);
+    fetchConversations(false);
   }, [fetchConversations]);
 
   // Handle load more
@@ -519,39 +522,15 @@ export default function MessageScreen({ navigation }) {
     </TouchableOpacity>
   );
 
-  // Render loading state
+  // Render loading state with skeleton
   const renderLoadingState = () => (
-    <View style={styles.loadingContainer}>
-      <ActivityIndicator size="large" color={colors.red} />
-      <Text style={styles.loadingText}>{t("loading")}</Text>
-    </View>
-  );
-
-  // Render empty state
-  const renderEmptyState = () => (
-    <View style={styles.emptyContainer}>
-      <Ionicons name="chatbubbles-outline" size={80} color="#D1D5DB" />
-      <Text style={styles.emptyTitle}>
-        {searchQuery
-          ? t("messageScreen.noConversations")
-          : t("messageScreen.noMessages")}
-      </Text>
-      <Text style={styles.emptySubtitle}>
-        {searchQuery
-          ? t("messageScreen.tryDifferentName")
-          : t("messageScreen.startConversation")}
-      </Text>
-      {!searchQuery && (
-        <TouchableOpacity
-          style={styles.emptyButton}
-          onPress={handleCreateConversation}
-        >
-          <Text style={styles.emptyButtonText}>
-            {t("messageScreen.startConversationButton")}
-          </Text>
-        </TouchableOpacity>
-      )}
-    </View>
+    <FlatList
+      data={Array.from({ length: 8 })}
+      renderItem={() => <ConversationSkeleton />}
+      keyExtractor={(_, index) => `skeleton-${index}`}
+      contentContainerStyle={styles.skeletonContainer}
+      showsVerticalScrollIndicator={false}
+    />
   );
 
   return (
@@ -592,7 +571,7 @@ export default function MessageScreen({ navigation }) {
 
       {renderSearchBar()}
 
-      {loading && !refreshing ? (
+      {(loading && !refreshing) || testSkeleton ? (
         renderLoadingState()
       ) : (
         <>
@@ -608,10 +587,6 @@ export default function MessageScreen({ navigation }) {
               />
             )}
             keyExtractor={(item, index) => item.id || `conversation-${index}`}
-            contentContainerStyle={
-              filteredConversations.length === 0 && styles.emptyList
-            }
-            ListEmptyComponent={renderEmptyState}
             ListFooterComponent={
               loading && !refreshing ? (
                 <View style={styles.loadingFooter}>
@@ -673,6 +648,10 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontSize: 14,
     color: "#6B7280",
+  },
+  skeletonContainer: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
   },
   loadingFooter: {
     paddingVertical: 20,
@@ -746,39 +725,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#111827",
   },
-  emptyList: {
-    flexGrow: 1,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 32,
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: "#111827",
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  emptySubtitle: {
-    fontSize: 14,
-    color: "#6B7280",
-    textAlign: "center",
-    marginBottom: 24,
-  },
-  emptyButton: {
-    backgroundColor: colors.red,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  emptyButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "600",
-  },
   fab: {
     position: "absolute",
     right: 16,
@@ -797,5 +743,19 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.3,
     shadowRadius: 4.65,
+  },
+  testButton: {
+    backgroundColor: "#3B82F6",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginHorizontal: 16,
+    marginBottom: 8,
+    alignItems: "center",
+  },
+  testButtonText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "600",
   },
 });
