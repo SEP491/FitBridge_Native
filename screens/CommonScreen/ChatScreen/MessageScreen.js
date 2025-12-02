@@ -14,6 +14,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ConversationCard from "../../../components/ChatComponents/ConversationCard";
 import ConversationSkeleton from "../../../components/ChatComponents/ConversationSkeleton";
+import CreateConversationModal from "../../../components/ChatComponents/CreateConversationModal";
 import colors from "../../../constants/color";
 import messageService from "../../../services/messageService";
 import { useMessagingState } from "../../../context/messagingStateContext";
@@ -34,6 +35,7 @@ export default function MessageScreen({ navigation }) {
   const [userPresences, setUserPresences] = useState({});
   const [currentUserId, setCurrentUserId] = useState(null);
   const [currentUserRole, setCurrentUserRole] = useState(null);
+  const [createModalVisible, setCreateModalVisible] = useState(false);
 
   useEffect(() => {
     // Fetch current user ID from your auth context or service
@@ -287,9 +289,20 @@ export default function MessageScreen({ navigation }) {
     // Handle user presence update
     const handleUserPresenceUpdate = (presenceData) => {
       console.log("MessageScreen: User presence update", presenceData);
+
+      // Validate presence data
+      if (!presenceData || !presenceData.userId) {
+        console.warn(
+          "MessageScreen: Invalid presence data received",
+          presenceData
+        );
+        return;
+      }
+
+      // Update user presence state
       setUserPresences((prev) => ({
         ...prev,
-        [presenceData.id]: presenceData.isOnline,
+        [presenceData.userId]: presenceData.isOnline === true,
       }));
     };
 
@@ -470,10 +483,25 @@ export default function MessageScreen({ navigation }) {
   // Get unread count
   const unreadCount = conversations.filter((c) => !c.isRead).length;
 
-  // Handle create conversation (placeholder)
+  // Handle create conversation
   const handleCreateConversation = () => {
-    console.log("Create new conversation");
-    // TODO: Navigate to user selection screen or implement create conversation flow
+    setCreateModalVisible(true);
+  };
+
+  // Handle conversation created callback
+  const handleConversationCreated = (conversationData) => {
+    // Refresh conversations list
+    fetchConversations(true);
+
+    // Navigate to the new conversation
+    if (conversationData?.id) {
+      navigation.navigate("MessageDetailScreen", {
+        conversationId: conversationData.id,
+        conversationTitle: conversationData.title || "New Conversation",
+        conversationImg: conversationData.conversationImg || null,
+        members: conversationData.members || [],
+      });
+    }
   };
 
   // Render search bar
@@ -570,7 +598,7 @@ export default function MessageScreen({ navigation }) {
 
       {renderSearchBar()}
 
-      {(loading && !refreshing)  ? (
+      {loading && !refreshing ? (
         renderLoadingState()
       ) : (
         <>
@@ -616,6 +644,13 @@ export default function MessageScreen({ navigation }) {
       >
         <Ionicons name="create-outline" size={24} color="#FFFFFF" />
       </TouchableOpacity>
+
+      {/* Create Conversation Modal */}
+      <CreateConversationModal
+        visible={createModalVisible}
+        onClose={() => setCreateModalVisible(false)}
+        onConversationCreated={handleConversationCreated}
+      />
     </SafeAreaView>
   );
 }

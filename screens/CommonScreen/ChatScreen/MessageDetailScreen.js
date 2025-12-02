@@ -285,8 +285,16 @@ export default function MessageDetailScreen({ route, navigation }) {
     // Handle user presence update
     const handleUserPresenceUpdate = (presenceData) => {
       console.log("MessageDetailScreen: User presence update", presenceData);
+      // Validate presence data
+      if (!presenceData || !presenceData.userId) {
+        console.warn(
+          "MessageDetailScreen: Invalid presence data received",
+          presenceData
+        );
+        return;
+      }
       // Only update if it's not the current user
-      if (presenceData.id !== currentUserId) {
+      if (presenceData.userId !== currentUserId) {
         setUserPresence(presenceData);
       }
     };
