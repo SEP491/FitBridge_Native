@@ -4,6 +4,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  TextInput,
   Alert,
   Dimensions,
 } from "react-native";
@@ -27,6 +28,9 @@ export default function TrainingActivityScreen({ route, navigation }) {
 
   // For Reps tracking
   const [currentReps, setCurrentReps] = useState(0);
+
+  // For Distance tracking
+  const [currentDistance, setCurrentDistance] = useState("");
 
   // For Time tracking
   const [currentTime, setCurrentTime] = useState(0);
@@ -176,6 +180,8 @@ export default function TrainingActivityScreen({ route, navigation }) {
     } else if (activityDetail.activitySetType === "Time") {
       setCurrentTime(currentSet.plannedPracticeTime);
       setIsTimerRunning(true);
+    } else if (activityDetail.activitySetType === "Distance") {
+      setCurrentDistance("");
     }
   };
 
@@ -189,6 +195,11 @@ export default function TrainingActivityScreen({ route, navigation }) {
     if (isWorkoutActive && activityDetail?.activitySetType === "Reps") {
       setCurrentReps((prev) => (prev > 0 ? prev - 1 : 0));
     }
+  };
+
+  const handleDistanceChange = (value) => {
+    const sanitized = value.replace(/[^0-9]/g, "");
+    setCurrentDistance(sanitized);
   };
 
   const toggleTimer = () => {
@@ -225,6 +236,11 @@ export default function TrainingActivityScreen({ route, navigation }) {
         const actualPracticeTime = currentSet.plannedPracticeTime - currentTime;
         updateData.activitySet.practiceTime = actualPracticeTime;
         updateData.activitySet.numOfReps = 0;
+      } else if (activityDetail.activitySetType === "Distance") {
+        const distanceValue = Number(currentDistance) || 0;
+        updateData.activitySet.actualDistance = distanceValue;
+        updateData.activitySet.numOfReps = 0;
+        updateData.activitySet.practiceTime = 0;
       }
 
       console.log("Updating activity set:", updateData);
@@ -244,6 +260,10 @@ export default function TrainingActivityScreen({ route, navigation }) {
           activityDetail.activitySetType === "Time"
             ? currentSet.plannedPracticeTime - currentTime
             : updatedSets[currentSetIndex].practiceTime,
+        distance:
+          activityDetail.activitySetType === "Distance"
+            ? Number(currentDistance) || 0
+            : updatedSets[currentSetIndex].distance,
       };
 
       setActivityDetail({
@@ -254,6 +274,7 @@ export default function TrainingActivityScreen({ route, navigation }) {
       setHasUnsavedChanges(false);
       setIsResting(false);
       setActualRestTime(0);
+      setCurrentDistance("");
 
       // Find the next uncompleted set
       const nextUncompletedIndex = updatedSets.findIndex(
@@ -265,6 +286,7 @@ export default function TrainingActivityScreen({ route, navigation }) {
         setCurrentSetIndex(nextUncompletedIndex);
         setCurrentReps(0);
         setCurrentTime(0);
+        setCurrentDistance("");
       }
 
       Alert.alert(t("common.success"), t("trainingActivity.resultSaved"));
@@ -295,6 +317,7 @@ export default function TrainingActivityScreen({ route, navigation }) {
   const currentSet = activityDetail.activitySets[currentSetIndex];
   const isRepsMode = activityDetail.activitySetType === "Reps";
   const isTimeMode = activityDetail.activitySetType === "Time";
+  const isDistanceMode = activityDetail.activitySetType === "Distance";
 
   const completedSets = activityDetail.activitySets.filter(
     (set) => set.isCompleted
@@ -307,7 +330,7 @@ export default function TrainingActivityScreen({ route, navigation }) {
         <View style={styles.timerDisplayContainer}>
           {!isWorkoutActive && !isResting ? (
             <Text style={styles.mainTimerText}>
-              {isRepsMode ? "0" : "00:00"}
+              {isRepsMode ? "0" : isTimeMode ? "00:00" : "0 m"}
             </Text>
           ) : isResting ? (
             <View style={styles.mainTimerTouchable}>
@@ -353,6 +376,33 @@ export default function TrainingActivityScreen({ route, navigation }) {
                 <View style={styles.mainTimerTouchable}>
                   <Text style={styles.mainTimerText}>
                     {formatTime(currentTime).replace(":", ":")}
+                  </Text>
+                </View>
+              )}
+              {isDistanceMode && (
+                <View style={styles.distanceInputWrapper}>
+                  <Text style={styles.distanceInputLabel}>
+                    {t("trainingActivity.distanceCompleted")}
+                  </Text>
+                  <View style={styles.distanceInputRow}>
+                    <TextInput
+                      style={styles.distanceInput}
+                      value={currentDistance}
+                      onChangeText={handleDistanceChange}
+                      keyboardType="numeric"
+                      placeholder="0"
+                      placeholderTextColor="#94A3B8"
+                      editable={isWorkoutActive}
+                      returnKeyType="done"
+                    />
+                    <Text style={styles.distanceUnit}>
+                      {t("trainingActivity.meters")}
+                    </Text>
+                  </View>
+                  <Text style={styles.distancePlannedText}>
+                    {t("trainingActivity.plannedDistanceLabel", {
+                      value: currentSet?.plannedDistance || 0,
+                    })}
                   </Text>
                 </View>
               )}
@@ -415,6 +465,15 @@ export default function TrainingActivityScreen({ route, navigation }) {
             </View>
           )}
 
+          {isDistanceMode && (
+            <View style={styles.statItem}>
+              <Ionicons name="map-outline" size={22} color="#F97316" />
+              <Text style={styles.statLabel}>
+                {t("trainingActivity.meters")}
+              </Text>
+            </View>
+          )}
+
           <View style={styles.statItem}>
             <Ionicons name="pause-circle-outline" size={22} color="#F97316" />
             <Text style={styles.statLabel}>{t("trainingActivity.rest")}</Text>
@@ -446,6 +505,7 @@ export default function TrainingActivityScreen({ route, navigation }) {
                   setCurrentSetIndex(index);
                   setCurrentReps(0);
                   setCurrentTime(0);
+                  setCurrentDistance("");
                 }}
               >
                 {/* Set Number */}
@@ -487,6 +547,16 @@ export default function TrainingActivityScreen({ route, navigation }) {
                     ]}
                   >
                     {set.practiceTime || 0}s / {set.plannedPracticeTime}s
+                  </Text>
+                )}
+                {isDistanceMode && (
+                  <Text
+                    style={[
+                      styles.setRowText,
+                      isActive && styles.setRowTextActive,
+                    ]}
+                  >
+                    {set.actualDistance || 0}m / {set.plannedDistance || 0}m
                   </Text>
                 )}
 
@@ -634,6 +704,45 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#64748B",
     marginTop: 8,
+    fontWeight: "500",
+  },
+  distanceInputWrapper: {
+    width: "100%",
+    alignItems: "center",
+    gap: 12,
+  },
+  distanceInputLabel: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#1E293B",
+  },
+  distanceInputRow: {
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F8FAFC",
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: "#E2E8F0",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    gap: 12,
+  },
+  distanceInput: {
+    flex: 1,
+    fontSize: 48,
+    fontWeight: "300",
+    color: "#1E293B",
+    textAlign: "center",
+  },
+  distanceUnit: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#F97316",
+  },
+  distancePlannedText: {
+    fontSize: 14,
+    color: "#64748B",
     fontWeight: "500",
   },
   restLabel: {

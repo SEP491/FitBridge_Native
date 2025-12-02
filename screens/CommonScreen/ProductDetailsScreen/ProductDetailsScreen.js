@@ -810,7 +810,9 @@ export default function ProductDetailsScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Select Variant</Text>
+              <Text style={styles.modalTitle}>
+                {t("product.selectProductTypes")}
+              </Text>
               <TouchableOpacity
                 onPress={() => {
                   setVariantModalVisible(false);
@@ -825,7 +827,9 @@ export default function ProductDetailsScreen() {
             <ScrollView showsVerticalScrollIndicator={false}>
               {/* Weight Selection in Modal */}
               <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>Weight</Text>
+                <Text style={styles.modalSectionTitle}>
+                  {t("product.weight")}
+                </Text>
                 <View style={styles.modalOptionsGrid}>
                   {availableWeights.map((weight) => (
                     <TouchableOpacity
@@ -886,7 +890,9 @@ export default function ProductDetailsScreen() {
 
               {/* Flavour Selection in Modal */}
               <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>Flavour</Text>
+                <Text style={styles.modalSectionTitle}>
+                  {t("product.flavour")}
+                </Text>
                 <View style={styles.modalOptionsGrid}>
                   {availableFlavours.map((flavour) => {
                     const variant = findVariantBySelection(
@@ -1038,7 +1044,9 @@ export default function ProductDetailsScreen() {
                   disabled={selectedVariant.quantity === 0}
                 >
                   <Text style={styles.modalConfirmText}>
-                    {pendingAction === "addToCart" ? "Add to Cart" : "Buy Now"}
+                    {pendingAction === "addToCart"
+                      ? t("cart.addToCart")
+                      : t("product.buyNow")}
                   </Text>
                 </TouchableOpacity>
               </View>

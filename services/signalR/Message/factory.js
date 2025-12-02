@@ -40,8 +40,8 @@ export class SignalRServiceFactory {
       );
       const config = getServiceConfig(serviceName);
 
-      const url = process.env[config.urlEnvVar];
-
+      const url = process.env.EXPO_PUBLIC_API_CHAT_MESSAGE_URL;
+      console.log("url Message", url);
       if (!url) {
         throw new Error(
           `Environment variable ${config.urlEnvVar} not configured. ` +

@@ -34,13 +34,13 @@ const BodyMeasurementHistoryModal = ({ visible, onClose, measurements, t }) => {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    
+
     const options = {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
+      day: "numeric",
+      month: "numeric",
+      year: "numeric",
     };
     return date.toLocaleDateString("vi-VN", options);
   };
@@ -115,18 +115,30 @@ const BodyMeasurementHistoryModal = ({ visible, onClose, measurements, t }) => {
     return (
       <View key={measurement.id} style={styles.accordionItem}>
         <TouchableOpacity
-          style={[styles.accordionHeader, isFirst && styles.accordionHeaderFirst]}
+          style={[
+            styles.accordionHeader,
+            isFirst && styles.accordionHeaderFirst,
+          ]}
           onPress={() => toggleAccordion(measurement.id)}
           activeOpacity={0.7}
         >
           <View style={styles.accordionHeaderLeft}>
-            <View style={[styles.indexBadge, isFirst && styles.indexBadgeFirst]}>
-              <Text style={[styles.indexText, isFirst && styles.indexTextFirst]}>
+            <View
+              style={[styles.indexBadge, isFirst && styles.indexBadgeFirst]}
+            >
+              <Text
+                style={[styles.indexText, isFirst && styles.indexTextFirst]}
+              >
                 {index + 1}
               </Text>
             </View>
             <View style={styles.accordionHeaderInfo}>
-              <Text style={[styles.accordionDate, isFirst && styles.accordionDateFirst]}>
+              <Text
+                style={[
+                  styles.accordionDate,
+                  isFirst && styles.accordionDateFirst,
+                ]}
+              >
                 {formatDate(measurement.createdAt)}
               </Text>
               {isFirst && (
@@ -163,7 +175,11 @@ const BodyMeasurementHistoryModal = ({ visible, onClose, measurements, t }) => {
               </View>
               <View style={styles.primaryStatDivider} />
               <View style={styles.primaryStatCard}>
-                <Ionicons name="speedometer-outline" size={24} color="#ED2A46" />
+                <Ionicons
+                  name="speedometer-outline"
+                  size={24}
+                  color="#ED2A46"
+                />
                 <Text style={styles.primaryStatLabel}>
                   {t("userGoals.weight", "Weight")}
                 </Text>
@@ -180,7 +196,8 @@ const BodyMeasurementHistoryModal = ({ visible, onClose, measurements, t }) => {
             <View style={styles.measurementsGrid}>
               {measurementFields.map((field) => {
                 // Skip height and weight as they're shown in primary stats
-                if (field.key === "height" || field.key === "weight") return null;
+                if (field.key === "height" || field.key === "weight")
+                  return null;
 
                 const value = measurement[field.key];
                 if (value === null || value === undefined) return null;
@@ -210,7 +227,8 @@ const BodyMeasurementHistoryModal = ({ visible, onClose, measurements, t }) => {
             <View style={styles.timestampContainer}>
               <Ionicons name="time-outline" size={14} color="#999" />
               <Text style={styles.timestampText}>
-                {t("userGoals.recorded", "Recorded")} {formatDate(measurement.createdAt)}
+                {t("userGoals.recorded", "Recorded")}{" "}
+                {formatDate(measurement.createdAt)}
               </Text>
             </View>
           </View>

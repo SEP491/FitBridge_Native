@@ -47,8 +47,9 @@
   },
 
   "screenTitles": {
-    "ptList": "Danh sách PT",
+    "trainingResult": "Thống Kê Tập Luyện",
     "addMeasurement": "Đo Chỉ Số",
+    "ptList": "Danh sách PT",
     "blog": "Blog",
     "searchGym": "Tìm kiếm phòng gym",
     "ptInfo": "Thông tin PT",
@@ -89,7 +90,6 @@
     "packageDetail": "Chi Tiết Gói Tập",
     "bookingDetail": "Chi Tiết Đặt Lịch",
     "activityDetail": "Chi Tiết Bài Tập",
-    "trainingResult": "Thống Kê Tập Luyện",
     "myReports": "Báo Cáo Của Tôi",
     "orderDetails": "Chi Tiết Đơn Hàng",
     "manageOrders": "Quản Lý Đơn Hàng",
@@ -344,6 +344,11 @@
     "no_limit": "Không giới hạn",
     "reps": "Lượt",
     "seconds": "Giây",
+    "distance": "Quãng đường",
+    "meters": "m",
+    "distanceCompleted": "Số mét đã hoàn thành",
+    "enterDistance": "Nhập số mét đã hoàn thành",
+    "plannedDistanceLabel": "Mục tiêu: {{value}} m",
     "rest": "Nghỉ",
     "completedStatus": "Đã Hoàn Thành",
     "start": "Bắt Đầu",
@@ -386,7 +391,9 @@
     "deselectAll": "Bỏ chọn tất cả",
     "selectAll": "Chọn tất cả",
     "items": "sản phẩm",
-    "selected": "đã chọn"
+    "selected": "đã chọn",
+    "noItemsSelected": "Chưa chọn sản phẩm nào",
+    "selectItemsBeforeCheckout": "Vui lòng chọn sản phẩm trước khi thanh toán"
   },
 
   "profile": {
@@ -560,7 +567,8 @@
     "comingSoon": "Sắp ra mắt",
     "loadMore": "Tải thêm",
     "lastUpdate": "Cập nhật lần cuối",
-    "continueShopping": "Tiếp tục mua sắm"
+    "continueShopping": "Tiếp tục mua sắm",
+    "validation": "Xác thực"
   },
 
   "account": {
@@ -1819,12 +1827,14 @@
     "fillTargetFields": "Vui lòng điền tất cả các trường mục tiêu",
     "goalCreatedSuccessfully": "Mục tiêu đã được tạo thành công!",
     "failedToCreateGoal": "Không thể tạo mục tiêu. Vui lòng thử lại.",
+    "imageUploadError": "Không thể tải ảnh lên",
     "latest": "Mới Nhất",
     "measurements": "Số Đo",
     "progress": "Tiến Độ",
     "currentUserStats": "Số Liệu Hiện Tại",
     "noMeasurements": "Chưa Có Số Đo Nào",
     "addMeasurements": "Thêm số đo cơ thể để theo dõi tiến độ của bạn",
+    "addMeasurementsToTrack": "Thêm số đo cơ thể để theo dõi tiến độ theo thời gian",
     "noDataAvailable": "Không Có Dữ Liệu",
     "addMeasurementsToSeeChart": "Thêm số đo cơ thể để xem biểu đồ tiến độ",
     "recorded": "Ghi nhận"
@@ -2058,7 +2068,8 @@
     "productType": "Phân loại",
     "edited": "Đã chỉnh sửa",
     "noReviewsYet": "Chưa Có Đánh Giá Sản Phẩm",
-    "reviewProductsMessage": "Đánh giá sản phẩm của bạn sẽ hiển thị tại đây"
+    "reviewProductsMessage": "Đánh giá sản phẩm của bạn sẽ hiển thị tại đây",
+    "loadMoreReviews": "Tải thêm đánh giá"
   },
   "search": {
     "searchGymsAndPTs": "Tìm kiếm phòng gym và huấn luyện viên...",
@@ -2174,7 +2185,6 @@
     "rebuy": "Mua Lại",
     "productsAddedToCart": "Sản phẩm đã được thêm vào giỏ hàng",
     "errorAddingToCart": "Không thể thêm sản phẩm vào giỏ hàng. Vui lòng thử lại.",
-    "products": "Sản Phẩm",
     "itemQuantityLabel": "Số lượng",
     "takePhoto": "Chụp ảnh",
     "choosePhoto": "Chọn ảnh từ thư viện",
