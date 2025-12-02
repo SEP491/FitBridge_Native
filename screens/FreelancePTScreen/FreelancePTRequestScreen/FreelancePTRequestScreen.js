@@ -98,10 +98,14 @@ export default function FreelancePTRequestScreen({ route }) {
     setShowDatePicker(false);
   };
 
-  const handleStartTimeConfirm = () => {
-    // Always base start time on current time
+  // Helper function to get default start time (current time + 5 minutes)
+  const getDefaultStartTime = () => {
     const now = new Date();
+    now.setMinutes(now.getMinutes() + 5);
+    return now;
+  };
 
+  const handleStartTimeConfirm = (time) => {
     // Check if the selected date is today
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -110,20 +114,24 @@ export default function FreelancePTRequestScreen({ route }) {
 
     const isToday = selectedDateOnly.getTime() === today.getTime();
 
-    // If today, ensure "now" is not in the past (it never is) – for future dates we still use current time of day
-    if (!isToday) {
-      // If booking for a future date, we still take the current clock time as start time
-      // No extra validation needed here
+    // If today, check if selected time is in the past
+    if (isToday) {
+      const now = new Date();
+      const selectedDateTime = new Date();
+      selectedDateTime.setHours(time.getHours(), time.getMinutes(), 0, 0);
+
+      if (selectedDateTime < now) {
+        Alert.alert(t("common.error"), t("bookingRequest.pastTimeError"));
+        return;
+      }
     }
 
-    // Format and save start time from current time
-    const startHours = now.getHours().toString().padStart(2, "0");
-    const startMinutes = now.getMinutes().toString().padStart(2, "0");
-    const startTimeString = `${startHours}:${startMinutes}`;
-    setStartTime(startTimeString);
+    const hours = time.getHours().toString().padStart(2, "0");
+    const minutes = time.getMinutes().toString().padStart(2, "0");
+    setStartTime(`${hours}:${minutes}`);
 
-    // Automatically set end time to 1 hour after start time
-    const endDateTime = new Date(now);
+    // Auto-set end time to 1 hour after selected start time
+    const endDateTime = new Date(time);
     endDateTime.setHours(endDateTime.getHours() + 1);
     const endHours = endDateTime.getHours().toString().padStart(2, "0");
     const endMinutes = endDateTime.getMinutes().toString().padStart(2, "0");
@@ -482,6 +490,7 @@ export default function FreelancePTRequestScreen({ route }) {
         onConfirm={handleStartTimeConfirm}
         onCancel={() => setShowStartTimePicker(false)}
         is24Hour={true}
+        date={getDefaultStartTime()}
       />
     </Modal>
   );

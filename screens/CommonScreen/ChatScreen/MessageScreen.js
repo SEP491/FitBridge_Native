@@ -34,7 +34,6 @@ export default function MessageScreen({ navigation }) {
   const [userPresences, setUserPresences] = useState({});
   const [currentUserId, setCurrentUserId] = useState(null);
   const [currentUserRole, setCurrentUserRole] = useState(null);
-  const [testSkeleton, setTestSkeleton] = useState(false); // For testing skeleton
 
   useEffect(() => {
     // Fetch current user ID from your auth context or service
@@ -571,7 +570,7 @@ export default function MessageScreen({ navigation }) {
 
       {renderSearchBar()}
 
-      {(loading && !refreshing) || testSkeleton ? (
+      {(loading && !refreshing)  ? (
         renderLoadingState()
       ) : (
         <>
