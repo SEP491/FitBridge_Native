@@ -11,6 +11,7 @@ export default function PackageCard({
   t,
   mode = "package", // "package" for MyPackage, "review" for MyReviewsRatings
 }) {
+  console.log("item", item);  
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return `${date.getDate().toString().padStart(2, "0")}/${(
@@ -88,7 +89,9 @@ export default function PackageCard({
           <Image
             source={{
               uri:
-                item.courseImageUrl ||
+                item.gymCourse?.imageUrl ||
+                item.freelancePTPackage?.imageUrl ||
+                item.imageUrl ||
                 "https://fitness-nation.net/wp-content/uploads/2019/04/5-Things-to-Consider-When-Buying-a-Gym-Membership.jpg",
             }}
             style={styles.courseImage}

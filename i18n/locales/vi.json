@@ -173,6 +173,14 @@
     }
   },
 
+  "myReviewsRatings": {
+    "unreviewedContent": "Chưa Đánh Giá",
+    "reviewedContent": "Đã Đánh Giá",
+    "noReviewedContent": "Không tìm thấy nội dung đã đánh giá",
+    "GymCourse": "Khóa học Gym",
+    "FreelancePT": "Gói Tập Freelance PT"
+  },
+
   "home": {
     "findGym": "Tìm phòng gym hoàn hảo",
     "nearbyGyms": "Phòng gym gần đây",
@@ -594,7 +602,19 @@
     "loadMore": "Tải thêm",
     "lastUpdate": "Cập nhật lần cuối",
     "continueShopping": "Tiếp tục mua sắm",
-    "validation": "Xác thực"
+    "validation": "Xác thực",
+    "actions": "Hành động",
+    "confirmDelete": "Bạn có chắc chắn muốn xóa đánh giá này?",
+    "deleteReviewSuccess": "Xóa đánh giá thành công",
+    "deleteReviewError": "Không thể xóa đánh giá",
+    "enterReviewContent": "Vui lòng nhập nội dung đánh giá",
+    "updateReviewSuccess": "Cập nhật đánh giá thành công",
+    "updateReviewError": "Không thể cập nhật đánh giá",
+    "removeImage": "Xóa ảnh này?",
+    "editReview": "Chỉnh sửa đánh giá",
+    "reviewId": "Mã đánh giá",
+    "remove": "Xóa",
+    "maxImagesReached": "Đã đạt tối đa 3 ảnh"
   },
 
   "account": {
@@ -643,6 +663,8 @@
   "errors": {
     "photoPermissionRequired": "Cần quyền truy cập thư viện ảnh để tải lên hình ảnh",
     "imagePickError": "Không thể chọn ảnh. Vui lòng thử lại.",
+    "cameraPermissionRequired": "Cần quyền truy cập máy ảnh để chụp ảnh",
+    "cameraError": "Không thể chụp ảnh. Vui lòng thử lại.",
     "networkError": "Lỗi kết nối mạng",
     "invalidCredentials": "Email hoặc mật khẩu không hợp lệ",
     "emailRequired": "Email là bắt buộc",
