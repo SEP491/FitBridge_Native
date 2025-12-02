@@ -13,6 +13,7 @@ import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { useTranslation } from "../../../hooks/useTranslation";
 import orderService from "../../../services/orderService";
 import PackageCard from "../../../components/PackageCard/PackageCard";
+import { PackageCardSkeletonList } from "../../../components/PackageCard/PackageCardSkeleton";
 import PackageFeedbackModal from "../../../components/OrderManagementCard/PackageFeedbackModal";
 
 export default function GymPackageReviewsTab() {
@@ -198,9 +199,8 @@ export default function GymPackageReviewsTab() {
 
   if (loading && courseReviews.length === 0) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#ED2A46" />
-        <Text style={styles.loadingText}>{t("common.loading")}</Text>
+      <View style={styles.listContainer}>
+        <PackageCardSkeletonList count={4} />
       </View>
     );
   }

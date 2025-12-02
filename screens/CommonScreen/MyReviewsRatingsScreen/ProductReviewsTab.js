@@ -12,6 +12,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useTranslation } from "../../../hooks/useTranslation";
 import orderService from "../../../services/orderService";
 import OrderManagementCard from "../../../components/OrderManagementCard/OrderManagementCard";
+import { ProductCardSkeletonList } from "../../../components/ProductCard/ProductCardSkeleton";
 
 export default function ProductReviewsTab() {
   const { t } = useTranslation();
@@ -105,9 +106,8 @@ export default function ProductReviewsTab() {
 
   if (loading && productReviews.length === 0) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#ED2A46" />
-        <Text style={styles.loadingText}>{t("common.loading")}</Text>
+      <View style={styles.listContainer}>
+        <ProductCardSkeletonList count={4} />
       </View>
     );
   }

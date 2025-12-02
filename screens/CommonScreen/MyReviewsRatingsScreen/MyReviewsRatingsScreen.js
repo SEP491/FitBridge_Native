@@ -8,6 +8,7 @@ import FreelancePTReviewsTab from "./FreelancePTReviewsTab";
 import reviewService from "../../../services/reviewService";
 import { fetchUserFromStorage } from "../../../lib";
 import ReviewCard from "../../../components/ReviewCard/ReviewCard";
+import { ReviewCardSkeletonList } from "../../../components/ReviewCard/ReviewCardSkeleton";
 
 export default function MyReviewsRatingsScreen() {
   const { t } = useTranslation();
@@ -103,9 +104,12 @@ export default function MyReviewsRatingsScreen() {
   const renderReviewedContent = () => {
     if (loading) {
       return (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#ED2A46" />
-        </View>
+        <ScrollView
+          style={styles.contentContainer}
+          showsVerticalScrollIndicator={false}
+        >
+          <ReviewCardSkeletonList count={4} />
+        </ScrollView>
       );
     }
 

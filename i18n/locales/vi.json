@@ -2193,7 +2193,7 @@
     "all": "Tất Cả",
     "noOrdersFound": "Không Tìm Thấy Đơn Hàng",
     "noOrdersMessage": "Bạn chưa đặt đơn hàng nào",
-    "noStatusOrders": "Không có đơn hàng {{status}}",
+    "noStatusOrders": "Không có đơn hàng trong trạng thái",
     "loadingOrders": "Đang tải đơn hàng...",
     "orderDetails": "Chi Tiết Đơn Hàng",
     "orderId": "Mã Đơn Hàng",

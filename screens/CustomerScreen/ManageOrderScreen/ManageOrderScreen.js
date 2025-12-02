@@ -16,6 +16,7 @@ import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import orderService from "../../../services/orderService";
 import OrderManagementCard from "../../../components/OrderManagementCard";
 import { useTranslation } from "../../../hooks/useTranslation";
+import { ProductCardSkeletonList } from "../../../components/ProductCard/ProductCardSkeleton";
 
 const ManageOrderScreen = ({ route }) => {
   const navigation = useNavigation();
@@ -413,7 +414,7 @@ const ManageOrderScreen = ({ route }) => {
       <Text style={styles.emptySubtitle}>
         {selectedStatus === "All"
           ? t("orders.noOrdersMessage") || "You haven't placed any orders yet"
-          : `${t("orders.noStatusOrders").replace("{{status}}", selectedStatus.toLowerCase()) || `No ${selectedStatus.toLowerCase()} orders`}`}
+          : `${t("orders.noStatusOrders", { status: selectedStatus.toLowerCase() })}`}
       </Text>
     </View>
   );
@@ -449,14 +450,15 @@ const ManageOrderScreen = ({ route }) => {
 
       {/* Orders List */}
       {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#ED2A46" />
-          <Text style={styles.loadingText}>{t("orders.loadingOrders") || "Loading orders..."}</Text>
+        <View style={styles.listContent}>
+          <ProductCardSkeletonList count={4} />
         </View>
       ) : (
         <FlatList
           data={filteredOrders}
-          renderItem={({ item }) => <OrderManagementCard order={item} onRefresh={handleRefresh} />}
+          renderItem={({ item }) => (
+            <OrderManagementCard order={item} onRefresh={handleRefresh} />
+          )}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
