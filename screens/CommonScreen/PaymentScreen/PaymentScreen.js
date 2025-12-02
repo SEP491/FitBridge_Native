@@ -44,6 +44,7 @@ export default function PaymentScreen({ navigation, route }) {
   const customerPurchasedIdToExtend =
     route?.params?.customerPurchasedIdToExtend || null;
   const itemToExtend = route?.params?.itemToExtend || null;
+  const selectedCartItemIds = route?.params?.selectedCartItemIds || [];
   
   // Check if items are coming from cart checkout (selected items)
   const isFromCartCheckout = route?.params?.items && !isDirectPurchase && !customerPurchasedIdToExtend;
@@ -287,14 +288,17 @@ export default function PaymentScreen({ navigation, route }) {
       console.log("Cart processed successfully:", response);
 
       // Check if payment method is COD
-      if (response && response.data.isCOD) {
-        console.log("COD payment detected, navigating to PurchaseSuccessScreen");
-        // Clear cart only if not a direct purchase and not from cart checkout with selected items
-        if (!isDirectPurchase && !isFromCartCheckout) {
+      const cleanupCartAfterCheckout = () => {
+        if (isFromCartCheckout && selectedCartItemIds.length > 0) {
+          clearCart(selectedCartItemIds);
+        } else if (!isDirectPurchase && !isFromCartCheckout) {
           clearCart();
         }
-        // For cart checkout with selected items, we would need to remove only selected items
-        // This would require a new method in CartContext to remove specific items
+      };
+
+      if (response && response.data.isCOD) {
+        console.log("COD payment detected, navigating to PurchaseSuccessScreen");
+        cleanupCartAfterCheckout();
         
         // Navigate to OrderSuccessScreen
         navigation.navigate("OrderSuccessScreen", {
@@ -306,10 +310,7 @@ export default function PaymentScreen({ navigation, route }) {
         response.data.data &&
         response.data.data.checkoutUrl
       ) {
-        // Clear cart only if not a direct purchase and not from cart checkout
-        if (!isDirectPurchase && !isFromCartCheckout) {
-          clearCart();
-        }
+        cleanupCartAfterCheckout();
         
         // Open payment URL for online payment
         navigation.navigate("OrderSuccessScreen", {

@@ -144,7 +144,9 @@
     "noReviewsYet": "Chưa Có Đánh Giá Gói Tập",
     "reviewCoursesMessage": "Đánh giá gói tập của bạn sẽ hiển thị tại đây",
     "viewFeedback": "Xem Đánh Giá",
-    "report": "Báo Cáo"
+    "report": "Báo Cáo",
+    "gymPackage": "Gói Tập Gym",
+    "purchasedOn": "Mua vào ngày"
   },
 
   "home": {
@@ -718,7 +720,28 @@
     "manageOrders": "Quản Lý Đơn Hàng",
     "myReports": "Phản hồi của tôi",
     "contracts": "Hợp đồng của tôi",
-    "myReviews&Ratings": "Đánh giá của tôi"
+    "myReviews&Ratings": "Đánh giá của tôi",
+    "testVideoCall": "Test cuộc gọi video",
+    "testVideoCallAlertTitle": "Đã bắt đầu cuộc gọi thử nghiệm",
+    "testVideoCallAlertMessage": "FloatingVideoCall đã xuất hiện. Bạn có thể thu nhỏ hoặc phóng to."
+  },
+  "videoCallPrep": {
+    "sessionDetails": "Chi tiết buổi gọi",
+    "session": "Buổi tập",
+    "trainingSession": "Buổi tập luyện",
+    "date": "Ngày",
+    "time": "Thời gian",
+    "note": "Ghi chú",
+    "nutritionTip": "Gợi ý dinh dưỡng",
+    "notSpecified": "Chưa có",
+    "checkingMeeting": "Đang kiểm tra cuộc gọi...",
+    "creatingMeeting": "Đang tạo cuộc gọi...",
+    "joinCall": "Tham gia cuộc gọi",
+    "joining": "Đang kết nối...",
+    "meetingInitError": "Không thể chuẩn bị cuộc gọi. Vui lòng thử lại.",
+    "meetingNotReady": "Chưa có thông tin cuộc gọi. Vui lòng thử lại sau.",
+    "sessionNotReady": "Buổi tập chưa sẵn sàng.",
+    "meetingNoLongerAvailable": "Cuộc gọi không còn khả dụng."
   },
 
   "updatePassword": {

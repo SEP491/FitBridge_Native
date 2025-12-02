@@ -792,7 +792,26 @@
     "manageOrders": "Manage Orders",
     "myReports": "My Feedback",
     "contracts": "Contracts",
+    "testVideoCall": "Test Video Call",
+    "testVideoCallAlertTitle": "Test Call Started",
+    "testVideoCallAlertMessage": "FloatingVideoCall should now be visible. You can minimize or maximize it.",
     "myReviews&Ratings": "My Reviews & Ratings"
+  },
+  "videoCallPrep": {
+    "sessionDetails": "Session Details",
+    "session": "Session",
+    "trainingSession": "Training Session",
+    "date": "Date",
+    "time": "Time",
+    "note": "Note",
+    "nutritionTip": "Nutrition Tip",
+    "notSpecified": "Not specified",
+    "checkingMeeting": "Checking for existing meeting...",
+    "creatingMeeting": "Creating meeting...",
+    "joinCall": "Join Call",
+    "joining": "Connecting...",
+    "meetingInitError": "Unable to prepare the call. Please try again.",
+    "meetingNotReady": "Meeting information not available. Please try again later."
   },
 
   "updatePassword": {
