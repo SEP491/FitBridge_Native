@@ -95,7 +95,8 @@
     "manageOrders": "Manage Orders",
     "schedulePT": "Schedule",
     "contracts": "Contracts",
-    "contractDetail": "Contract Detail"
+    "contractDetail": "Contract Detail",
+    "productDetail": "Product Detail"
   },
 
   "myPackage": {
@@ -376,7 +377,13 @@
     "ptAssignmentFee": "PT Assignment Fee:",
     "available": "Available:",
     "expires": "Expires:",
-    "unknownType": "Unknown Type"
+    "unknownType": "Unknown Type",
+    "deselectAll": "Deselect All",
+    "selectAll": "Select All",
+    "selected": "selected",
+    "items": "items",
+    "noItemsSelected": "No items selected",
+    "selectItemsBeforeCheckout": "Please select items before proceeding to checkout"
   },
 
   "profile": {
@@ -551,7 +558,8 @@
     "no": "No",
     "lastUpdate": "Last Update",
     "later": "Later",
-    "validation": "Validation"
+    "validation": "Validation",
+    "continueShopping": "Continue Shopping"
   },
 
   "freelancePT": {
@@ -2079,6 +2087,7 @@
     "flavour": "Flavour",
     "countryOfOrigin": "Country of Origin",
     "selectProductTypes": "Select Product Types",
+    "selectWeight": "Select Weight",
     "options": "options",
     "selectFlavour": "Select Flavour",
     "bcaaPerServing": "BCAA Per Serving",
@@ -2086,7 +2095,10 @@
     "caloriesPerServingKcal": "Calories Per Serving",
     "proteinPerServingGrams": "Protein Per Serving",
     "noReviewsYet": "No Product Reviews Yet",
-    "reviewProductsMessage": "Your product reviews will appear here"
+    "reviewProductsMessage": "Your product reviews will appear here",
+    "reviewedProducts": "Reviewed Products",
+    "productType": "Product Type",
+    "loadMoreReviews": "Load More Reviews"
   },
   "search": {
     "searchGymsAndPTs": "Search gyms and personal trainers...",

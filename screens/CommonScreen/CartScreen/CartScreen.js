@@ -26,12 +26,10 @@ export default function CartScreen() {
   const { cart, removeFromCart, getTotalPrice, clearCart, updateQuantity } =
     useCart(); // Use the cart context
   const { t } = useTranslation();
-  
+
   // Set initial tab based on route params, default to gym
-  const [activeTab, setActiveTab] = useState(
-    route.params?.initialTab || "gym"
-  ); // gym, freelance, product
-  
+  const [activeTab, setActiveTab] = useState(route.params?.initialTab || "gym"); // gym, freelance, product
+
   // State for selected items (checkbox selection)
   const [selectedItems, setSelectedItems] = useState(new Set());
 
@@ -44,7 +42,7 @@ export default function CartScreen() {
 
   // Handle individual item selection
   const toggleItemSelection = (cartItemId) => {
-    setSelectedItems(prev => {
+    setSelectedItems((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(cartItemId)) {
         newSet.delete(cartItemId);
@@ -62,7 +60,7 @@ export default function CartScreen() {
       setSelectedItems(new Set());
     } else {
       // Select all
-      const allIds = new Set(filteredCart.map(item => item.cartItemId));
+      const allIds = new Set(filteredCart.map((item) => item.cartItemId));
       setSelectedItems(allIds);
     }
   };
@@ -115,10 +113,11 @@ export default function CartScreen() {
   // Calculate total price for selected items in active tab
   const tabTotalPrice = useMemo(() => {
     return filteredCart
-      .filter(item => selectedItems.has(item.cartItemId))
+      .filter((item) => selectedItems.has(item.cartItemId))
       .reduce((total, item) => {
         // For products, use selectedVariant price if available
-        const itemPrice = item.selectedVariant?.salePrice || item.price || item.salePrice;
+        const itemPrice =
+          item.selectedVariant?.salePrice || item.price || item.salePrice;
         return total + itemPrice * (item.quantity || 1);
       }, 0);
   }, [filteredCart, selectedItems]);
@@ -149,12 +148,18 @@ export default function CartScreen() {
   // Function to handle checkout
   const handleCheckout = () => {
     if (selectedItems.size === 0) {
-      showAlert(t("cart.noItemsSelected") || "No items selected", t("cart.selectItemsBeforeCheckout") || "Please select items before proceeding to checkout");
+      showAlert(
+        t("cart.noItemsSelected") || "No items selected",
+        t("cart.selectItemsBeforeCheckout") ||
+          "Please select items before proceeding to checkout"
+      );
       return;
     }
-    
-    const selectedCartItems = filteredCart.filter(item => selectedItems.has(item.cartItemId));
-    
+
+    const selectedCartItems = filteredCart.filter((item) =>
+      selectedItems.has(item.cartItemId)
+    );
+
     navigation.navigate("PaymentScreen", {
       total: tabTotalPrice,
       items: selectedCartItems,
@@ -168,19 +173,22 @@ export default function CartScreen() {
       <TouchableOpacity
         style={[styles.tabButton, isActive && styles.activeTabButton]}
         onPress={() => setActiveTab(tabKey)}
+        activeOpacity={0.7}
       >
-        <Text style={[styles.tabText, isActive && styles.activeTabText]}>
-          {label}
-        </Text>
-        {count > 0 && (
-          <View style={[styles.badge, isActive && styles.activeBadge]}>
-            <Text
-              style={[styles.badgeText, isActive && styles.activeBadgeText]}
-            >
-              {count}
-            </Text>
-          </View>
-        )}
+        <View style={styles.tabContent}>
+          <Text style={[styles.tabText, isActive && styles.activeTabText]}>
+            {label}
+          </Text>
+          {count > 0 && (
+            <View style={[styles.badge, isActive && styles.activeBadge]}>
+              <Text
+                style={[styles.badgeText, isActive && styles.activeBadgeText]}
+              >
+                {count}
+              </Text>
+            </View>
+          )}
+        </View>
       </TouchableOpacity>
     );
   };
@@ -215,22 +223,32 @@ export default function CartScreen() {
               onPress={toggleSelectAll}
             >
               <Checkbox
-                value={selectedItems.size === filteredCart.length && filteredCart.length > 0}
+                value={
+                  selectedItems.size === filteredCart.length &&
+                  filteredCart.length > 0
+                }
                 onValueChange={toggleSelectAll}
-                color={selectedItems.size === filteredCart.length && filteredCart.length > 0 ? "#ED2A46" : undefined}
+                color={
+                  selectedItems.size === filteredCart.length &&
+                  filteredCart.length > 0
+                    ? "#ED2A46"
+                    : undefined
+                }
                 style={styles.checkbox}
               />
               <Text style={styles.selectAllText}>
-                {selectedItems.size === filteredCart.length && filteredCart.length > 0
+                {selectedItems.size === filteredCart.length &&
+                filteredCart.length > 0
                   ? t("cart.deselectAll") || "Deselect All"
                   : t("cart.selectAll") || "Select All"}
               </Text>
             </TouchableOpacity>
             <Text style={styles.selectedCountText}>
-              {selectedItems.size} / {filteredCart.length} {t("cart.selected") || "selected"}
+              {selectedItems.size} / {filteredCart.length}{" "}
+              {t("cart.selected") || "selected"}
             </Text>
           </View>
-          
+
           <View style={{ flex: 1 }}>
             <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
               {filteredCart.map((item, index) => {
@@ -238,14 +256,26 @@ export default function CartScreen() {
                 if (activeTab === "product") {
                   const variantImage = item.selectedVariant?.imageUrl;
                   const productImage = item.imageUrl;
-                  const displayImage = (variantImage && variantImage !== null) ? variantImage : productImage;
-                  
+                  const displayImage =
+                    variantImage && variantImage !== null
+                      ? variantImage
+                      : productImage;
+
                   return (
-                    <View key={item.cartItemId || index} style={styles.productCartItem}>
+                    <View
+                      key={item.cartItemId || index}
+                      style={styles.productCartItem}
+                    >
                       <Checkbox
                         value={selectedItems.has(item.cartItemId)}
-                        onValueChange={() => toggleItemSelection(item.cartItemId)}
-                        color={selectedItems.has(item.cartItemId) ? "#ED2A46" : undefined}
+                        onValueChange={() =>
+                          toggleItemSelection(item.cartItemId)
+                        }
+                        color={
+                          selectedItems.has(item.cartItemId)
+                            ? "#ED2A46"
+                            : undefined
+                        }
                         style={styles.productCheckbox}
                       />
                       <Image
@@ -259,94 +289,134 @@ export default function CartScreen() {
                         </Text>
                         {item.selectedVariant && (
                           <Text style={styles.productCartVariant}>
-                            {item.selectedVariant.weightValue} {item.selectedVariant.weightUnit} - {item.selectedVariant.flavourName}
+                            {item.selectedVariant.weightValue}{" "}
+                            {item.selectedVariant.weightUnit} -{" "}
+                            {item.selectedVariant.flavourName}
                           </Text>
                         )}
                         <Text style={styles.productCartPrice}>
-                          {formatPrice(item.selectedVariant?.salePrice || item.salePrice)}
+                          {formatPrice(
+                            item.selectedVariant?.salePrice || item.salePrice
+                          )}
                         </Text>
-                        
+
                         <View style={styles.productCartActions}>
                           <View style={styles.productQuantityControls}>
                             <TouchableOpacity
                               style={styles.productQuantityButton}
-                              onPress={() => handleQuantityChange(item.cartItemId, (item.quantity || 1) - 1)}
+                              onPress={() =>
+                                handleQuantityChange(
+                                  item.cartItemId,
+                                  (item.quantity || 1) - 1
+                                )
+                              }
                               disabled={(item.quantity || 1) <= 1}
                             >
-                              <FontAwesome5 name="minus" size={12} color={(item.quantity || 1) <= 1 ? "#CCC" : "#666"} />
+                              <FontAwesome5
+                                name="minus"
+                                size={12}
+                                color={
+                                  (item.quantity || 1) <= 1 ? "#CCC" : "#666"
+                                }
+                              />
                             </TouchableOpacity>
-                            <Text style={styles.productQuantityText}>{item.quantity || 1}</Text>
+                            <Text style={styles.productQuantityText}>
+                              {item.quantity || 1}
+                            </Text>
                             <TouchableOpacity
                               style={styles.productQuantityButton}
                               onPress={() => {
-                                const maxQty = item.selectedVariant?.quantity || 99;
+                                const maxQty =
+                                  item.selectedVariant?.quantity || 99;
                                 const currentQty = item.quantity || 1;
                                 if (currentQty < maxQty) {
-                                  handleQuantityChange(item.cartItemId, currentQty + 1);
+                                  handleQuantityChange(
+                                    item.cartItemId,
+                                    currentQty + 1
+                                  );
                                 }
                               }}
-                              disabled={(item.quantity || 1) >= (item.selectedVariant?.quantity || 99)}
+                              disabled={
+                                (item.quantity || 1) >=
+                                (item.selectedVariant?.quantity || 99)
+                              }
                             >
-                              <FontAwesome5 
-                                name="plus" 
-                                size={12} 
-                                color={(item.quantity || 1) >= (item.selectedVariant?.quantity || 99) ? "#CCC" : "#666"} 
+                              <FontAwesome5
+                                name="plus"
+                                size={12}
+                                color={
+                                  (item.quantity || 1) >=
+                                  (item.selectedVariant?.quantity || 99)
+                                    ? "#CCC"
+                                    : "#666"
+                                }
                               />
                             </TouchableOpacity>
                           </View>
-                          
+
                           <TouchableOpacity
                             style={styles.productRemoveButton}
                             onPress={() => handleRemoveItem(item.cartItemId)}
                           >
-                            <FontAwesome5 name="trash-alt" size={16} color="#FF4D4F" />
+                            <FontAwesome5
+                              name="trash-alt"
+                              size={16}
+                              color="#FF4D4F"
+                            />
                           </TouchableOpacity>
                         </View>
                       </View>
                     </View>
                   );
                 }
-                
+
                 // Render gym/PT courses using CartCard
                 return (
-                  <View key={item.cartItemId || index} style={styles.cartCardContainer}>
+                  <View
+                    key={item.cartItemId || index}
+                    style={styles.cartCardContainer}
+                  >
                     <Checkbox
                       value={selectedItems.has(item.cartItemId)}
                       onValueChange={() => toggleItemSelection(item.cartItemId)}
-                      color={selectedItems.has(item.cartItemId) ? "#ED2A46" : undefined}
+                      color={
+                        selectedItems.has(item.cartItemId)
+                          ? "#ED2A46"
+                          : undefined
+                      }
                       style={styles.cartCardCheckbox}
                     />
                     <View style={{ flex: 1 }}>
                       <CartCard
                         product={{
-                      gymId: item.gymId,
-                      gymName: item.gymName,
-                      rating: 5, // Default since we don't have ratings in cart items
-                      address: item.gymAddress,
-                      image: item?.gymImage,
-                      quantity: item.quantity || 1, // Add quantity to product object
-                      selectedPackage: {
-                        packageId: item.id,
-                        packageName: item.name,
-                        packagePrice: item.price,
-                        type: item.type,
-                      },
-                      // Include PT information if it exists
-                      pt: item.pt
-                        ? {
-                            id: item.pt.id,
-                            fullName: item.pt.fullName,
-                            avatar: item.pt.avatar,
-                            gender: item.pt.gender,
-                            goalTraining: item.pt.goalTraining,
-                          }
-                        : null,
-                    }}
-                    onQuantityChange={(newQuantity) =>
-                      handleQuantityChange(item.cartItemId, newQuantity)
-                    }
-                    onRemove={() => handleRemoveItem(item.cartItemId)}
-                  />
+                          gymId: item.gymId,
+                          gymName: item.gymName,
+                          rating: 5, // Default since we don't have ratings in cart items
+                          address: item.gymAddress,
+                          image: item?.gymImage,
+                          quantity: item.quantity || 1, // Add quantity to product object
+                          selectedPackage: {
+                            packageId: item.id,
+                            packageName: item.name,
+                            packagePrice: item.price,
+                            type: item.type,
+                          },
+                          // Include PT information if it exists
+                          pt: item.pt
+                            ? {
+                                id: item.pt.id,
+                                fullName: item.pt.fullName,
+                                avatar: item.pt.avatar,
+                                gender: item.pt.gender,
+                                goalTraining: item.pt.goalTraining,
+                              }
+                            : null,
+                        }}
+                        onQuantityChange={(newQuantity) =>
+                          handleQuantityChange(item.cartItemId, newQuantity)
+                        }
+                        onRemove={() => handleRemoveItem(item.cartItemId)}
+                      />
                     </View>
                   </View>
                 );
@@ -358,7 +428,8 @@ export default function CartScreen() {
             <View style={styles.proceedContainer}>
               <View>
                 <Text style={{ fontSize: 15 }}>
-                  {t("cart.totalPayment")} ({selectedItems.size} {t("cart.items") || "items"})
+                  {t("cart.totalPayment")} ({selectedItems.size}{" "}
+                  {t("cart.items") || "items"})
                 </Text>
                 <Text
                   style={{ fontSize: 20, fontWeight: "bold", color: "#ED2A46" }}
@@ -420,77 +491,77 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: "row",
-    backgroundColor: "#ffffff",
-    paddingTop: 10,
-    paddingHorizontal: 10,
+    backgroundColor: "#F8F9FA",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     justifyContent: "space-between",
     alignItems: "center",
-    flexWrap: "wrap",
-    gap: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E5E5",
+    gap: 8,
   },
   tabButton: {
     flex: 1,
-    height: "100%",
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    borderBottomWidth: 2,
-    borderRightWidth: 2,
-    borderRadius: 120,
-    textAlign: "center",
-    fontWeight: "bold",
-    gap: 6,
-    borderColor: "#ED2A46",
-    borderWidth: 0.5,
-    // backgroundColor:'#ED2A46',
-
-    backgroundColor: "#ffffff",
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#E5E5E5",
+    minHeight: 50,
   },
   activeTabButton: {
     backgroundColor: "#ED2A46",
-    borderBottomWidth: 2,
-    borderRightWidth: 2,
-    borderColor: "#000",
-    borderWidth: 1,
+    borderColor: "#ED2A46",
     shadowColor: "#ED2A46",
-    shadowOpacity: 0.35,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  tabContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    position: "relative",
   },
   tabText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#666666",
     textAlign: "center",
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#ED2A46",
   },
   activeTabText: {
-    color: "#ffffff",
-    fontWeight: "800",
+    color: "#FFFFFF",
+    fontWeight: "700",
   },
   badge: {
     backgroundColor: "#E5E5E5",
-    borderRadius: 10,
-    minWidth: 25,
-    height: 25,
+    borderRadius: 12,
+    minWidth: 22,
+    height: 22,
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 6,
-    position: "absolute",
-    top: -5,
-    right: -10,
+    marginLeft: 4,
   },
   activeBadge: {
-    backgroundColor: "#FF914D",
+    backgroundColor: "#FFFFFF",
   },
   badgeText: {
-    fontSize: 12,
-    fontWeight: "bold",
-    color: "#6B6B6B",
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#666666",
   },
   activeBadgeText: {
-    color: "#FFFFFF",
+    color: "#ED2A46",
   },
   button: {
     backgroundColor: "#FF914D",
