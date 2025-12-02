@@ -101,6 +101,8 @@
 
   "myPackage": {
     "current": "Current",
+    "leaveFeedback": "Leave Feedback",
+    "shareExperience": "Share your experience with this package",
     "expired": "Expired",
     "today": "Today",
     "daysRemaining": "{{count}} days left",
@@ -136,7 +138,31 @@
     "reviewCoursesMessage": "Your course reviews will appear here",
     "package": "Course",
     "viewFeedback": "View Feedback",
-    "report": "Report"
+    "report": "Report",
+    "feedback": {
+      "errorLoadingOrder": "Failed to load order information. Please try again.",
+      "notAvailableTitle": "Not Available",
+      "notAvailableMessage": "Feedback is only available for expired or completed packages."
+    },
+    "reportModal": {
+      "modalTitle": "Report Package",
+      "reporting": "Reporting:",
+      "title": "Title *",
+      "titlePlaceholder": "Enter report title",
+      "description": "Description *",
+      "descriptionPlaceholder": "Describe the issue in detail",
+      "evidenceImages": "Evidence Images (Optional)",
+      "addImages": "Add Images",
+      "submitReport": "Submit Report",
+      "permissionRequired": "Permission Required",
+      "permissionMessage": "Permission to access camera roll is required!",
+      "failedToPickImage": "Failed to pick image",
+      "pleaseEnterTitle": "Please enter a report title",
+      "pleaseEnterDescription": "Please enter a report description",
+      "submitSuccess": "Report submitted successfully",
+      "submitFailed": "Failed to submit report",
+      "submitFailedRetry": "Failed to submit report. Please try again."
+    }
   },
 
   "home": {

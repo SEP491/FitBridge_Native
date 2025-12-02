@@ -146,7 +146,31 @@
     "viewFeedback": "Xem Đánh Giá",
     "report": "Báo Cáo",
     "gymPackage": "Gói Tập Gym",
-    "purchasedOn": "Mua vào ngày"
+    "purchasedOn": "Mua vào ngày",
+    "feedback": {
+      "errorLoadingOrder": "Không thể tải thông tin đơn hàng. Vui lòng thử lại.",
+      "notAvailableTitle": "Không khả dụng",
+      "notAvailableMessage": "Đánh giá chỉ có sẵn cho các gói đã hết hạn hoặc đã hoàn thành."
+    },
+    "reportModal": {
+      "modalTitle": "Báo Cáo Gói Tập",
+      "reporting": "Đang báo cáo:",
+      "title": "Tiêu đề *",
+      "titlePlaceholder": "Nhập tiêu đề báo cáo",
+      "description": "Mô tả *",
+      "descriptionPlaceholder": "Mô tả chi tiết vấn đề",
+      "evidenceImages": "Ảnh bằng chứng (Tùy chọn)",
+      "addImages": "Thêm Ảnh",
+      "submitReport": "Gửi Báo Cáo",
+      "permissionRequired": "Yêu Cầu Quyền Truy Cập",
+      "permissionMessage": "Cần quyền truy cập thư viện ảnh!",
+      "failedToPickImage": "Không thể chọn ảnh",
+      "pleaseEnterTitle": "Vui lòng nhập tiêu đề báo cáo",
+      "pleaseEnterDescription": "Vui lòng nhập mô tả báo cáo",
+      "submitSuccess": "Gửi báo cáo thành công",
+      "submitFailed": "Không thể gửi báo cáo",
+      "submitFailedRetry": "Không thể gửi báo cáo. Vui lòng thử lại."
+    }
   },
 
   "home": {

@@ -29,10 +29,11 @@ export default function MyPackageScreen() {
   const [packages, setPackages] = useState([]);
   const [activeTab, setActiveTab] = useState("current");
   const navigation = useNavigation();
-  
+
   // Report Modal States
   const [reportModalVisible, setReportModalVisible] = useState(false);
-  const [selectedPackageForReport, setSelectedPackageForReport] = useState(null);
+  const [selectedPackageForReport, setSelectedPackageForReport] =
+    useState(null);
   const [reportTitle, setReportTitle] = useState("");
   const [reportDescription, setReportDescription] = useState("");
   const [reportImages, setReportImages] = useState([]);
@@ -40,7 +41,8 @@ export default function MyPackageScreen() {
 
   // Feedback Modal States
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
-  const [selectedPackageForFeedback, setSelectedPackageForFeedback] = useState(null);
+  const [selectedPackageForFeedback, setSelectedPackageForFeedback] =
+    useState(null);
 
   useEffect(() => {
     fetchPackages();
@@ -53,8 +55,7 @@ export default function MyPackageScreen() {
 
       if (response.status === "200") {
         const gymCourseItems = response.data.gymCourse?.items || [];
-        const freelancePtItems =
-          response.data.freelancePtPackage?.items || [];
+        const freelancePtItems = response.data.freelancePtPackage?.items || [];
 
         // Map gym course packages - differentiate between normal and with PT
         const mappedGymCourses = gymCourseItems.map((item) => {
@@ -103,14 +104,16 @@ export default function MyPackageScreen() {
       } else {
         Alert.alert(
           t("errors.error") || "Error",
-          t("myPackage.feedback.errorLoadingOrder") || "Failed to load order information. Please try again."
+          t("myPackage.feedback.errorLoadingOrder") ||
+            "Failed to load order information. Please try again."
         );
       }
     } catch (error) {
       console.error("Error fetching package order info:", error);
       Alert.alert(
         t("errors.error") || "Error",
-        t("myPackage.feedback.errorLoadingOrder") || "Failed to load order information. Please try again."
+        t("myPackage.feedback.errorLoadingOrder") ||
+          "Failed to load order information. Please try again."
       );
     }
   };
@@ -167,10 +170,14 @@ export default function MyPackageScreen() {
 
   const handlePickImage = async () => {
     try {
-      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      
+      const permissionResult =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+
       if (permissionResult.granted === false) {
-        Alert.alert("Permission Required", "Permission to access camera roll is required!");
+        Alert.alert(
+          t("myPackage.reportModal.permissionRequired"),
+          t("myPackage.reportModal.permissionMessage")
+        );
         return;
       }
 
@@ -185,7 +192,10 @@ export default function MyPackageScreen() {
       }
     } catch (error) {
       console.error("Error picking image:", error);
-      Alert.alert("Error", "Failed to pick image");
+      Alert.alert(
+        t("errors.error"),
+        t("myPackage.reportModal.failedToPickImage")
+      );
     }
   };
 
@@ -197,11 +207,12 @@ export default function MyPackageScreen() {
     // Check if package is expired or has no available sessions
     const expired = isPackageExpired(item.expirationDate);
     const noSessionsLeft = item.availableSessions === 0;
-    
+
     if (!expired && !noSessionsLeft) {
       Alert.alert(
         t("myPackage.feedback.notAvailableTitle") || "Not Available",
-        t("myPackage.feedback.notAvailableMessage") || "Feedback is only available for expired or completed packages."
+        t("myPackage.feedback.notAvailableMessage") ||
+          "Feedback is only available for expired or completed packages."
       );
       return;
     }
@@ -212,7 +223,7 @@ export default function MyPackageScreen() {
   const handleCloseFeedbackModal = (success) => {
     setFeedbackModalVisible(false);
     setSelectedPackageForFeedback(null);
-    
+
     if (success) {
       // Refresh packages list after successful feedback submission
       fetchPackages();
@@ -221,11 +232,17 @@ export default function MyPackageScreen() {
 
   const handleSubmitReport = async () => {
     if (!reportTitle.trim()) {
-      Alert.alert("Error", "Please enter a report title");
+      Alert.alert(
+        t("errors.error"),
+        t("myPackage.reportModal.pleaseEnterTitle")
+      );
       return;
     }
     if (!reportDescription.trim()) {
-      Alert.alert("Error", "Please enter a report description");
+      Alert.alert(
+        t("errors.error"),
+        t("myPackage.reportModal.pleaseEnterDescription")
+      );
       return;
     }
 
@@ -268,18 +285,27 @@ export default function MyPackageScreen() {
       const response = await ReportService.createReport(reportData);
 
       if (response.status === "200" || response.status === "201") {
-        Alert.alert("Success", "Report submitted successfully");
+        Alert.alert(
+          t("common.success"),
+          t("myPackage.reportModal.submitSuccess")
+        );
         setReportModalVisible(false);
         setReportTitle("");
         setReportDescription("");
         setReportImages([]);
         setSelectedPackageForReport(null);
       } else {
-        Alert.alert("Error", response.message || "Failed to submit report");
+        Alert.alert(
+          t("errors.error"),
+          response.message || t("myPackage.reportModal.submitFailed")
+        );
       }
     } catch (error) {
       console.error("Error submitting report:", error);
-      Alert.alert("Error", "Failed to submit report. Please try again.");
+      Alert.alert(
+        t("errors.error"),
+        t("myPackage.reportModal.submitFailedRetry")
+      );
     } finally {
       setIsSubmittingReport(false);
     }
@@ -319,7 +345,9 @@ export default function MyPackageScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Report Package</Text>
+              <Text style={styles.modalTitle}>
+                {t("myPackage.reportModal.modalTitle")}
+              </Text>
               <TouchableOpacity
                 onPress={() => setReportModalVisible(false)}
                 style={styles.closeButton}
@@ -328,10 +356,15 @@ export default function MyPackageScreen() {
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+            <ScrollView
+              style={styles.modalBody}
+              showsVerticalScrollIndicator={false}
+            >
               {selectedPackageForReport && (
                 <View style={styles.reportPackageInfo}>
-                  <Text style={styles.reportPackageLabel}>Reporting:</Text>
+                  <Text style={styles.reportPackageLabel}>
+                    {t("myPackage.reportModal.reporting")}
+                  </Text>
                   <Text style={styles.reportPackageName}>
                     {selectedPackageForReport.packageName}
                   </Text>
@@ -339,10 +372,12 @@ export default function MyPackageScreen() {
               )}
 
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Title *</Text>
+                <Text style={styles.inputLabel}>
+                  {t("myPackage.reportModal.title")}
+                </Text>
                 <TextInput
                   style={styles.textInput}
-                  placeholder="Enter report title"
+                  placeholder={t("myPackage.reportModal.titlePlaceholder")}
                   value={reportTitle}
                   onChangeText={setReportTitle}
                   maxLength={100}
@@ -350,10 +385,14 @@ export default function MyPackageScreen() {
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Description *</Text>
+                <Text style={styles.inputLabel}>
+                  {t("myPackage.reportModal.description")}
+                </Text>
                 <TextInput
                   style={[styles.textInput, styles.textArea]}
-                  placeholder="Describe the issue in detail"
+                  placeholder={t(
+                    "myPackage.reportModal.descriptionPlaceholder"
+                  )}
                   value={reportDescription}
                   onChangeText={setReportDescription}
                   multiline
@@ -367,13 +406,17 @@ export default function MyPackageScreen() {
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Evidence Images (Optional)</Text>
+                <Text style={styles.inputLabel}>
+                  {t("myPackage.reportModal.evidenceImages")}
+                </Text>
                 <TouchableOpacity
                   style={styles.addImageButton}
                   onPress={handlePickImage}
                 >
                   <Ionicons name="image-outline" size={24} color={colors.red} />
-                  <Text style={styles.addImageText}>Add Images</Text>
+                  <Text style={styles.addImageText}>
+                    {t("myPackage.reportModal.addImages")}
+                  </Text>
                 </TouchableOpacity>
 
                 {reportImages.length > 0 && (
@@ -388,7 +431,11 @@ export default function MyPackageScreen() {
                           style={styles.removeImageButton}
                           onPress={() => handleRemoveImage(index)}
                         >
-                          <Ionicons name="close-circle" size={24} color="#fff" />
+                          <Ionicons
+                            name="close-circle"
+                            size={24}
+                            color="#fff"
+                          />
                         </TouchableOpacity>
                       </View>
                     ))}
@@ -403,7 +450,9 @@ export default function MyPackageScreen() {
                 onPress={() => setReportModalVisible(false)}
                 disabled={isSubmittingReport}
               >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
+                <Text style={styles.cancelButtonText}>
+                  {t("common.cancel")}
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -419,7 +468,9 @@ export default function MyPackageScreen() {
                 ) : (
                   <>
                     <Ionicons name="send" size={18} color="#fff" />
-                    <Text style={styles.submitButtonText}>Submit Report</Text>
+                    <Text style={styles.submitButtonText}>
+                      {t("myPackage.reportModal.submitReport")}
+                    </Text>
                   </>
                 )}
               </TouchableOpacity>
