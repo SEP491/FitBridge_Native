@@ -1359,6 +1359,15 @@ export default function MessageDetailScreen({ route, navigation }) {
     const otherUserId = getOtherUserId();
     const isOtherUserOnline = otherUserId ? userPresences[otherUserId] : false;
 
+    // Get first letter of conversationTitle for avatar placeholder
+    const getInitialLetter = () => {
+      if (!conversationTitle || conversationTitle.trim() === "") return "?";
+      return conversationTitle.trim().charAt(0).toUpperCase();
+    };
+
+    // Check if conversationImg is valid
+    const hasValidImage = conversationImg && conversationImg.trim() !== "";
+
     const getSubtitleColor = () => {
       if (typingStatus?.isTyping) return "#6B7280";
       if (isOtherUserOnline) return "#10B981";
@@ -1376,11 +1385,19 @@ export default function MessageDetailScreen({ route, navigation }) {
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.headerCenter} activeOpacity={0.7}>
-          <Image
-            source={{ uri: conversationImg }}
-            style={styles.headerAvatar}
-            resizeMode="cover"
-          />
+          {hasValidImage ? (
+            <Image
+              source={{ uri: conversationImg }}
+              style={styles.headerAvatar}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={styles.headerAvatarPlaceholder}>
+              <Text style={styles.headerAvatarPlaceholderText}>
+                {getInitialLetter()}
+              </Text>
+            </View>
+          )}
           <View style={styles.headerTextContainer}>
             <Text style={styles.headerTitle}>{conversationTitle}</Text>
             <View style={styles.headerSubtitleRow}>
@@ -2053,11 +2070,21 @@ export default function MessageDetailScreen({ route, navigation }) {
             ListHeaderComponent={
               typingStatus?.isTyping ? (
                 <View style={styles.typingIndicatorContainer}>
-                  <Image
-                    source={{ uri: conversationImg }}
-                    style={styles.typingAvatar}
-                    resizeMode="cover"
-                  />
+                  {conversationImg && conversationImg.trim() !== "" ? (
+                    <Image
+                      source={{ uri: conversationImg }}
+                      style={styles.typingAvatar}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View style={styles.typingAvatarPlaceholder}>
+                      <Text style={styles.typingAvatarPlaceholderText}>
+                        {conversationTitle && conversationTitle.trim() !== ""
+                          ? conversationTitle.trim().charAt(0).toUpperCase()
+                          : "?"}
+                      </Text>
+                    </View>
+                  )}
                   <View style={styles.typingBubble}>
                     <View style={styles.typingDot} />
                     <View style={[styles.typingDot, styles.typingDotDelay1]} />
@@ -2128,6 +2155,19 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     backgroundColor: "#E5E7EB",
+  },
+  headerAvatarPlaceholder: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#9CA3AF",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  headerAvatarPlaceholderText: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#FFFFFF",
   },
   headerTextContainer: {
     marginLeft: 12,
@@ -2246,6 +2286,20 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: "#E5E7EB",
     marginRight: 8,
+  },
+  typingAvatarPlaceholder: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#9CA3AF",
+    marginRight: 8,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  typingAvatarPlaceholderText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#FFFFFF",
   },
   typingBubble: {
     flexDirection: "row",

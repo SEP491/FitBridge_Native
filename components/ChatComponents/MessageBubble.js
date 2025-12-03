@@ -39,6 +39,15 @@ const MessageBubble = ({
     isDeleted,
   } = message;
 
+  // Get first letter of senderName for avatar placeholder
+  const getInitialLetter = () => {
+    if (!senderName || senderName.trim() === "") return "?";
+    return senderName.trim().charAt(0).toUpperCase();
+  };
+
+  // Check if senderAvatarUrl is valid
+  const hasValidAvatar = senderAvatarUrl && senderAvatarUrl.trim() !== "";
+
   // Handle long press with layout measurement
   const handleLongPress = () => {
     if (isUploading || !onLongPress) return;
@@ -84,13 +93,23 @@ const MessageBubble = ({
     >
       {/* Avatar for other user */}
       {!isCurrentUser && (
-        <Image
-          source={{
-            uri: senderAvatarUrl,
-          }}
-          style={styles.avatar}
-          resizeMode="cover"
-        />
+        <>
+          {hasValidAvatar ? (
+            <Image
+              source={{
+                uri: senderAvatarUrl,
+              }}
+              style={styles.avatar}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={styles.avatarPlaceholder}>
+              <Text style={styles.avatarPlaceholderText}>
+                {getInitialLetter()}
+              </Text>
+            </View>
+          )}
+        </>
       )}
 
       <View style={styles.bubbleWrapper}>
@@ -248,13 +267,23 @@ const MessageBubble = ({
 
       {/* Avatar for current user */}
       {isCurrentUser && (
-        <Image
-          source={{
-            uri: senderAvatarUrl,
-          }}
-          style={styles.avatar}
-          resizeMode="cover"
-        />
+        <>
+          {hasValidAvatar ? (
+            <Image
+              source={{
+                uri: senderAvatarUrl,
+              }}
+              style={styles.avatar}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={styles.avatarPlaceholder}>
+              <Text style={styles.avatarPlaceholderText}>
+                {getInitialLetter()}
+              </Text>
+            </View>
+          )}
+        </>
       )}
     </View>
   );
@@ -278,6 +307,20 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginHorizontal: 8,
     backgroundColor: "#E5E7EB",
+  },
+  avatarPlaceholder: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    marginHorizontal: 8,
+    backgroundColor: "#9CA3AF",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  avatarPlaceholderText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#FFFFFF",
   },
   bubbleWrapper: {
     maxWidth: width * 0.7,

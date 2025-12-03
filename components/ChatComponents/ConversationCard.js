@@ -41,6 +41,15 @@ const ConversationCard = ({
   const otherUserId = getOtherUserId();
   const isOnline = otherUserId ? userPresences[otherUserId] : false;
 
+  // Get first letter of title for avatar placeholder
+  const getInitialLetter = () => {
+    if (!title || title.trim() === "") return "?";
+    return title.trim().charAt(0).toUpperCase();
+  };
+
+  // Check if conversationImg is valid
+  const hasValidImage = conversationImg && conversationImg.trim() !== "";
+
   // Format the last message time
   const formatTime = (dateString) => {
     try {
@@ -85,11 +94,19 @@ const ConversationCard = ({
     >
       {/* Avatar */}
       <View style={styles.avatarContainer}>
-        <Image
-          source={{ uri: conversationImg }}
-          style={styles.avatar}
-          resizeMode="cover"
-        />
+        {hasValidImage ? (
+          <Image
+            source={{ uri: conversationImg }}
+            style={styles.avatar}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={styles.avatarPlaceholder}>
+            <Text style={styles.avatarPlaceholderText}>
+              {getInitialLetter()}
+            </Text>
+          </View>
+        )}
         {!isRead && <View style={styles.unreadBadge} />}
         {!isGroup && isOnline && <View style={styles.onlineIndicator} />}
       </View>
@@ -144,6 +161,19 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 28,
     backgroundColor: "#E5E7EB",
+  },
+  avatarPlaceholder: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "#9CA3AF",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  avatarPlaceholderText: {
+    fontSize: 24,
+    fontWeight: "600",
+    color: "#FFFFFF",
   },
   unreadBadge: {
     position: "absolute",
