@@ -477,6 +477,7 @@ export default function MessageScreen({ navigation }) {
       conversationTitle: conversation.title,
       conversationImg: conversation.conversationImg,
       members: conversation.members,
+      userPresences: userPresences,
     });
   };
 

@@ -394,13 +394,13 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   currentUserTimeText: {
-    color: "#9CA3AF",
+    color: "#FFFFFF",
   },
   otherUserTimeText: {
     color: "#9CA3AF",
   },
   currentUserEditedText: {
-    color: "rgba(255, 255, 255, 0.7)",
+    color: "#FFFFFF",
   },
   otherUserEditedText: {
     color: "#6B7280",

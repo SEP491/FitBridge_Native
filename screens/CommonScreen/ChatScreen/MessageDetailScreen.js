@@ -36,8 +36,13 @@ import { fetchUserFromStorage } from "../../../lib";
 
 export default function MessageDetailScreen({ route, navigation }) {
   const { t } = useTranslation();
-  const { conversationId, conversationTitle, conversationImg, members } =
-    route.params || {};
+  const {
+    conversationId,
+    conversationTitle,
+    conversationImg,
+    members,
+    userPresences: initialUserPresences,
+  } = route.params || {};
 
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState("");
@@ -71,7 +76,9 @@ export default function MessageDetailScreen({ route, navigation }) {
   });
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showStartTimePicker, setShowStartTimePicker] = useState(false);
-  const [userPresence, setUserPresence] = useState(null);
+  const [userPresences, setUserPresences] = useState(
+    initialUserPresences || {}
+  );
 
   const flatListRef = useRef(null);
   const typingTimeoutRef = useRef(null);
@@ -285,6 +292,7 @@ export default function MessageDetailScreen({ route, navigation }) {
     // Handle user presence update
     const handleUserPresenceUpdate = (presenceData) => {
       console.log("MessageDetailScreen: User presence update", presenceData);
+
       // Validate presence data
       if (!presenceData || !presenceData.userId) {
         console.warn(
@@ -293,10 +301,12 @@ export default function MessageDetailScreen({ route, navigation }) {
         );
         return;
       }
-      // Only update if it's not the current user
-      if (presenceData.userId !== currentUserId) {
-        setUserPresence(presenceData);
-      }
+
+      // Update user presence state
+      setUserPresences((prev) => ({
+        ...prev,
+        [presenceData.userId]: presenceData.isOnline === true,
+      }));
     };
 
     // Subscribe to events using the functional API
@@ -1334,9 +1344,24 @@ export default function MessageDetailScreen({ route, navigation }) {
 
   // Render header
   const renderHeader = () => {
+    // Get other user ID for 1-on-1 chats
+    const getOtherUserId = () => {
+      if (!members || members.length !== 2) return null;
+      const otherMember = members.find((m) => {
+        const memberId = typeof m === "string" ? m : m.userId || m.id;
+        return memberId !== currentUserId;
+      });
+      return typeof otherMember === "string"
+        ? otherMember
+        : otherMember?.userId || otherMember?.id;
+    };
+
+    const otherUserId = getOtherUserId();
+    const isOtherUserOnline = otherUserId ? userPresences[otherUserId] : false;
+
     const getSubtitleColor = () => {
       if (typingStatus?.isTyping) return "#6B7280";
-      if (userPresence?.isOnline) return "#10B981";
+      if (isOtherUserOnline) return "#10B981";
       if (connectionStatus === "reconnecting") return "#F59E0B";
       return "#9CA3AF";
     };
@@ -1364,7 +1389,7 @@ export default function MessageDetailScreen({ route, navigation }) {
                   style={[
                     styles.statusDot,
                     {
-                      backgroundColor: userPresence?.isOnline
+                      backgroundColor: isOtherUserOnline
                         ? "#10B981"
                         : "#9CA3AF",
                     },
@@ -1376,7 +1401,7 @@ export default function MessageDetailScreen({ route, navigation }) {
               >
                 {typingStatus?.isTyping
                   ? t("chat.typing")
-                  : userPresence?.isOnline
+                  : isOtherUserOnline
                   ? t("chat.online")
                   : connectionStatus === "reconnecting"
                   ? t("messageScreen.reconnecting")
@@ -1484,8 +1509,8 @@ export default function MessageDetailScreen({ route, navigation }) {
             )}
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity style={styles.inputButton}>
-            <Ionicons name="mic" size={24} color={colors.red} />
+          <TouchableOpacity style={styles.sendButton}>
+            <Ionicons name="send" size={20} color="#FFFFFF" />
           </TouchableOpacity>
         )}
       </View>
