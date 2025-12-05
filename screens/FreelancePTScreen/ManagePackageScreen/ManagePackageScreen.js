@@ -30,6 +30,14 @@ const ManagePackageScreen = ({ navigation }) => {
     total: 0,
     totalPages: 0,
   });
+  const [summary, setSummary] = useState({
+    totalPackages: 0,
+    totalPrices: 0,
+    averagePrice: 0,
+    avgSessions: 0,
+    ptMaxCourse: 0,
+    ptCurrentCourse: 0,
+  });
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState(null);
@@ -44,13 +52,31 @@ const ManagePackageScreen = ({ navigation }) => {
       const response = await freelancePTPackageService.getFreelancePTPackages({ page, size: 10 });
       console.log("Fetched Packages:", response.data);
       if (response.status === "200" && response.data) {
-        setPackages(response.data.items);
-        setPagination({
-          page: response.data.page,
-          size: response.data.size,
-          total: response.data.total,
-          totalPages: response.data.totalPages,
-        });
+        // Update packages from response.data.packages.items
+        setPackages(response.data.packages?.items || []);
+        
+        // Update pagination from response.data.packages
+        if (response.data.packages) {
+          setPagination({
+            page: response.data.packages.page || 1,
+            size: response.data.packages.size || 10,
+            total: response.data.packages.total || 0,
+            totalPages: response.data.packages.totalPages || 0,
+          });
+        }
+        
+        // Update summary from response.data.summary
+        if (response.data.summary) {
+          setSummary({
+            totalPackages: response.data.summary.totalPackages || 0,
+            totalPrices: response.data.summary.totalPrices || 0,
+            averagePrice: response.data.summary.averagePrice || 0,
+            avgSessions: response.data.summary.avgSessions || 0,
+            ptCurrentCourse: response.data.summary.ptCurrentCourse || 0,
+            ptMaxCourse: response.data.summary.ptMaxCourse || 0,
+
+          });
+        }
       }
     } catch (error) {
       console.error("Error fetching packages:", error);
@@ -76,8 +102,26 @@ const ManagePackageScreen = ({ navigation }) => {
 
   const handleEditPackage = async (packageId) => {
     try {
+      // First check if package has active users from the list
+      const packageItem = packages.find(pkg => pkg.id === packageId);
+      if (packageItem && packageItem.currentUserPurchased > 0) {
+        Alert.alert(
+          t("managePackage.cannotEdit"),
+          t("managePackage.cannotEditMessage")
+        );
+        return;
+      }
+
       const response = await freelancePTPackageService.getFreelancePTPackageById(packageId);
       if (response.status === "200" && response.data) {
+        // Double check from API response
+        if (response.data.currentUserPurchased > 0) {
+          Alert.alert(
+            t("managePackage.cannotEdit"),
+            t("managePackage.cannotEditMessage")
+          );
+          return;
+        }
         setSelectedPackage(response.data);
         setShowEditModal(true);
       }
@@ -87,9 +131,6 @@ const ManagePackageScreen = ({ navigation }) => {
     }
   };
 
-  const calculateTotalRevenue = () => {
-    return packages.reduce((sum, pkg) => sum + pkg.price, 0);
-  };
 
   if (loading && packages.length === 0) {
     return (
@@ -108,76 +149,72 @@ const ManagePackageScreen = ({ navigation }) => {
       <View style={styles.statsGrid}>
         <View style={styles.statCard}>
           <Ionicons name="cube" size={24} color="#ED2A46" />
-          <Text style={styles.statNumber}>{pagination.total}</Text>
+          <Text style={styles.statNumber}>{summary.totalPackages}</Text>
           <Text style={styles.statLabel}>
             {t("managePackage.totalPackages")}
           </Text>
         </View>
         <View style={styles.statCard}>
-          <Ionicons name="calendar" size={24} color="#4CAF50" />
-          <Text style={styles.statNumber}>
-            {packages.length > 0 
-              ? Math.round(packages.reduce((sum, p) => sum + p.durationInDays, 0) / packages.length)
-              : 0}
-          </Text>
-          <Text style={styles.statLabel}>{t("managePackage.averageDays")}</Text>
-        </View>
-        <View style={styles.statCard}>
-          <Ionicons name="barbell" size={24} color="#2196F3" />
-          <Text style={styles.statNumber}>
-            {packages.length > 0 
-              ? Math.round(packages.reduce((sum, p) => sum + p.numOfSessions, 0) / packages.length)
-              : 0}
-          </Text>
-          <Text style={styles.statLabel}>{t("managePackage.averageSessions")}</Text>
-        </View>
-        <View style={styles.statCard}>
           <Ionicons name="cash" size={24} color="#FF9800" />
           <Text style={styles.statNumber}>
-            {calculateTotalRevenue().toLocaleString('vi-VN', { maximumFractionDigits: 0 })}₫
+            {summary.totalPrices.toLocaleString('vi-VN', { maximumFractionDigits: 0 })}₫
           </Text>
           <Text style={styles.statLabel}>{t("managePackage.totalValue")}</Text>
         </View>
         <View style={styles.statCard}>
-          <Ionicons name="time" size={24} color="#9C27B0" />
-          <Text style={styles.statNumber}>
-            {packages.length > 0 
-              ? Math.round(packages.reduce((sum, p) => sum + p.sessionDurationInMinutes, 0) / packages.length)
-              : 0}
-          </Text>
-          <Text style={styles.statLabel}>{t("managePackage.averageMinutes")}</Text>
-        </View>
-        <View style={styles.statCard}>
           <Ionicons name="stats-chart" size={24} color="#00BCD4" />
           <Text style={styles.statNumber}>
-            {packages.length > 0 
-              ? Math.round(packages.reduce((sum, p) => sum + p.price, 0) / packages.length).toLocaleString('vi-VN', { maximumFractionDigits: 0 })
-              : 0}₫
+            {summary.averagePrice.toLocaleString('vi-VN', { maximumFractionDigits: 0 })}₫
           </Text>
           <Text style={styles.statLabel}>{t("managePackage.avgPrice")}</Text>
         </View>
+        <View style={styles.statCard}>
+          <Ionicons name="barbell" size={24} color="#2196F3" />
+          <Text style={styles.statNumber}>
+            {summary.avgSessions || 0}
+          </Text>
+          <Text style={styles.statLabel}>{t("managePackage.averageSessions")}</Text>
+        </View>
+        <View style={styles.statCard}>
+          <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
+          <Text style={styles.statNumber}>
+            {summary.ptCurrentCourse || 0}
+          </Text>
+          <Text style={styles.statLabel}>Current Courses</Text>
+        </View>
+        <View style={styles.statCard}>
+          <Ionicons name="trophy" size={24} color="#9C27B0" />
+          <Text style={styles.statNumber}>
+            {summary.ptMaxCourse || 0}
+          </Text>
+          <Text style={styles.statLabel}>Max Courses</Text>
+        </View>
+        
       </View>
 
       {/* Add New Package Button */}
-      <TouchableOpacity 
-        style={styles.addButton}
-        onPress={() => setShowCreateModal(true)}
-      >
-        <Ionicons name="add" size={20} color="#fff" />
-        <Text style={styles.addButtonText}>
-          {t("managePackage.createNewPackage")}
-        </Text>
-      </TouchableOpacity>
+      <View style={styles.addButtonContainer}>
+        <TouchableOpacity 
+          style={styles.addButton}
+          onPress={() => setShowCreateModal(true)}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="add" size={20} color="#fff" />
+          <Text style={styles.addButtonText}>
+            {t("managePackage.createNewPackage")}
+          </Text>
+        </TouchableOpacity>
+      </View>
 
       {/* Packages List */}
-      <SafeAreaView style={{ width: "100%", flex: 1, marginTop: -50 }}>
+      <View style={{ width: "100%", flex: 1, marginBottom: -20 }}>
         <FlatList
           data={packages}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
             <PackageCard 
               package={item}
-              onPress={() => navigation.navigate('PackageDetailScreen', { packageId: item.id })}
+              onPress={() => navigation.navigate('FreelancePTPackageDetailScreen', { packageId: item.id })}
               onEdit={() => handleEditPackage(item.id)}
             />
           )}
@@ -203,7 +240,7 @@ const ManagePackageScreen = ({ navigation }) => {
             </View>
           }
         />
-      </SafeAreaView>
+      </View>
 
       {/* Create Package Modal */}
       <CreatePackageModal
@@ -274,6 +311,49 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
   },
+  announcementSectionContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 12,
+    marginHorizontal: 16,
+    marginBottom: 16,  
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    backdropFilter: "blur(100px)",
+    borderWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+    boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
+    borderRadius: 35,
+    margin: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 4,
+  },
+  announcementTextContainer: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  announcementText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 4,
+  },
+  announcementText2: {
+    fontSize: 12,
+    color: '#666',
+    lineHeight: 18,
+  },
+  addButtonContainer: {
+    width: '100%',
+    alignItems: 'center',
+    zIndex: 10,
+    elevation: 5,
+    marginBottom: 8,
+  },
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -290,7 +370,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   packagesList: {
-    paddingBottom: 20,
+    paddingBottom: 0,
   },
   emptyContainer: {
     alignItems: 'center',

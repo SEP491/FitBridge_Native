@@ -40,7 +40,34 @@ export default function FreelancePTPackageDetailScreen() {
   const packageId =
     route.params?.packageId || route.params?.freelancePTPackageId;
   const purchasedPackage = route.params?.purchasedPackage || null;
-  console.log("Purchased Package:", purchasedPackage);
+  
+  // Get PT course info from route params (with fallback to packageData after fetch)
+  const [ptCurrentCourse, setPtCurrentCourse] = useState(
+    route.params?.ptCurrentCourse ?? null
+  );
+  const [ptMaxCourse, setPtMaxCourse] = useState(
+    route.params?.ptMaxCourse ?? null
+  );
+  
+  // Update state when route params change
+  useEffect(() => {
+    if (route.params?.ptCurrentCourse !== undefined) {
+      setPtCurrentCourse(route.params.ptCurrentCourse);
+    }
+    if (route.params?.ptMaxCourse !== undefined) {
+      setPtMaxCourse(route.params.ptMaxCourse);
+    }
+    
+    // Debug logging
+    console.log("=== Route Params Debug ===");
+    console.log("All route params:", route.params);
+    console.log("PT Current Course (from params):", route.params?.ptCurrentCourse);
+    console.log("PT Max Course (from params):", route.params?.ptMaxCourse);
+    console.log("Package ID:", packageId);
+    console.log("State ptCurrentCourse:", ptCurrentCourse);
+    console.log("State ptMaxCourse:", ptMaxCourse);
+  }, [route.params]);
+
   useEffect(() => {
     if (packageId) {
       fetchPackageDetail();
@@ -107,6 +134,15 @@ export default function FreelancePTPackageDetailScreen() {
 
   const handleBuyNow = async () => {
     if (!packageData) return;
+
+    // Check if PT is at full capacity
+    if (ptCurrentCourse !== null && ptMaxCourse !== null && ptCurrentCourse >= ptMaxCourse) {
+      showAlert(
+        t("freelancePT.trainerFull") || "Trainer is at Full Capacity",
+        t("freelancePT.trainerFullMessage") || "This trainer has reached the maximum number of students. Please check back later or explore other trainers."
+      );
+      return;
+    }
 
     try {
       setAddingToCart(true);
@@ -549,47 +585,81 @@ export default function FreelancePTPackageDetailScreen() {
 
       {/* Bottom Action Bar - Compact */}
       {!purchasedPackage ? (
-        <View style={styles.bottomBar}>
-          <View style={styles.priceInfoContainer}>
-            <Text style={styles.bottomPriceLabel}>
-              {t("freelancePT.totalInvestment") || "TOTAL INVESTMENT"}
-            </Text>
-            <Text style={styles.bottomPriceValue}>
-              {formatPrice(packageData.price)}
-            </Text>
-          </View>
-          <TouchableOpacity
-            style={[
-              styles.buyNowButton,
-              addingToCart && styles.buyNowButtonDisabled,
-            ]}
-            onPress={handleBuyNow}
-            disabled={addingToCart}
-            activeOpacity={0.85}
-          >
-            <LinearGradient
-              colors={
-                addingToCart ? ["#CCCCCC", "#CCCCCC"] : ["#ED2A46", "#FF6B6B"]
-              }
-              style={styles.buyNowGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-            >
-              {addingToCart ? (
-                <Text style={styles.buyNowText}>
-                  {t("common.loading") || "Loading..."}
+        // Check if PT is at full capacity
+        ptCurrentCourse !== null && ptMaxCourse !== null && ptCurrentCourse >= ptMaxCourse ? (
+          <View style={styles.fullCapacityBottomBar}>
+            <View style={styles.fullCapacityNotification}>
+              <View style={styles.fullCapacityIconContainer}>
+                <Ionicons name="information-circle" size={28} color="#FF9800" />
+              </View>
+              <View style={styles.fullCapacityContent}>
+                <Text style={styles.fullCapacityTitle}>
+                  {t("freelancePT.trainerFull") ||
+                    "Trainer is at Full Capacity"}
                 </Text>
-              ) : (
-                <>
-                  <Ionicons name="flash" size={20} color="#FFF" />
-                  <Text style={styles.buyNowText}>
-                    {t("freelancePT.buyNow") || "BUY NOW"}
+                <Text style={styles.fullCapacityMessage}>
+                  {t("freelancePT.trainerFullMessage") ||
+                    "This trainer has reached the maximum number of students. Please check back later or explore other trainers."}
+                </Text>
+                <View style={styles.fullCapacityWarning}>
+                  <Ionicons
+                    name="alert-circle-outline"
+                    size={16}
+                    color="#FF9800"
+                  />
+                  <Text style={styles.fullCapacityWarningText}>
+                    {t("freelancePT.comeBackLater") ||
+                      "Please come back later to register for a course with this trainer"}
                   </Text>
-                </>
-              )}
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
+                </View>
+              </View>
+            </View>
+          </View>
+        ) : (
+          <View style={styles.bottomBar}>
+            <View style={styles.priceInfoContainer}>
+              <Text style={styles.bottomPriceLabel}>
+                {t("freelancePT.totalInvestment") || "TOTAL INVESTMENT"}
+              </Text>
+              <Text style={styles.bottomPriceValue}>
+                {formatPrice(packageData.price)}
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={[
+                styles.buyNowButton,
+                (addingToCart || (ptCurrentCourse !== null && ptMaxCourse !== null && ptCurrentCourse >= ptMaxCourse)) && styles.buyNowButtonDisabled,
+              ]}
+              onPress={handleBuyNow}
+              disabled={addingToCart || (ptCurrentCourse !== null && ptMaxCourse !== null && ptCurrentCourse >= ptMaxCourse)}
+              activeOpacity={0.85}
+            >
+              <LinearGradient
+                colors={
+                  (addingToCart || (ptCurrentCourse !== null && ptMaxCourse !== null && ptCurrentCourse >= ptMaxCourse)) 
+                    ? ["#CCCCCC", "#CCCCCC"] 
+                    : ["#ED2A46", "#FF6B6B"]
+                }
+                style={styles.buyNowGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+              >
+                {addingToCart ? (
+                  <Text style={styles.buyNowText}>
+                    {t("common.loading") || "Loading..."}
+                  </Text>
+                ) : (
+                  <>
+                    <Ionicons name="flash" size={20} color="#FFF" />
+                    <Text style={styles.buyNowText}>
+                      {t("freelancePT.buyNow") || "BUY NOW"}
+                    </Text>
+                  </>
+                )}
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        )
       ) : (
         <View style={styles.purchasedBottomBar}>
           <View style={styles.purchasedNotification}>
@@ -1127,6 +1197,66 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   purchasedWarningText: {
+    flex: 1,
+    fontSize: 12,
+    color: "#E65100",
+    lineHeight: 16,
+    fontWeight: "600",
+  },
+  // Full Capacity Notification Styles
+  fullCapacityBottomBar: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "#FFF9F0",
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 20,
+    borderTopWidth: 2,
+    borderTopColor: "#FF9800",
+    elevation: 12,
+    shadowColor: "#FF9800",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+  },
+  fullCapacityNotification: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 12,
+  },
+  fullCapacityIconContainer: {
+    marginTop: 2,
+  },
+  fullCapacityContent: {
+    flex: 1,
+  },
+  fullCapacityTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#FF9800",
+    marginBottom: 6,
+    letterSpacing: 0.5,
+  },
+  fullCapacityMessage: {
+    fontSize: 13,
+    color: "#6B6B6B",
+    lineHeight: 18,
+    marginBottom: 10,
+  },
+  fullCapacityWarning: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    backgroundColor: "#FFF3E0",
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: "#FF9800",
+    gap: 8,
+  },
+  fullCapacityWarningText: {
     flex: 1,
     fontSize: 12,
     color: "#E65100",

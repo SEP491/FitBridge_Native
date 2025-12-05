@@ -1056,7 +1056,14 @@
     "failedToDelete": "Không thể xóa gói tập",
     "averageDays": "Ngày Trung Bình",
     "averageSessions": "Buổi Trung Bình",
-    "averageMinutes": "Phút Trung Bình"
+    "averageMinutes": "Phút Trung Bình",
+    "displayPackage": "Hiển Thị Gói Tập",
+    "displayPackageHelper": "Khi bật, gói tập này sẽ hiển thị cho khách hàng",
+    "displayed": "Đang hiển thị",
+    "hidden": "Đã ẩn",
+    "activeUsers": "khách hàng đang sử dụng",
+    "cannotEdit": "Không Thể Chỉnh Sửa Gói Tập",
+    "cannotEditMessage": "Bạn không thể chỉnh sửa gói tập này khi đang có khách hàng sử dụng. Vui lòng đợi cho đến khi tất cả khách hàng hoàn thành việc sử dụng gói tập này."
   },
 
   "languageSelect": {
@@ -1796,7 +1803,10 @@
     "minutesPerSession": "phút/buổi",
     "focusOnYourGoals": "Tập Trung Vào Mục Tiêu Của Bạn",
     "noReviews": "Chưa có đánh giá nào",
-    "beFirstToReview": "Hãy là người đầu tiên đánh giá gói tập này"
+    "beFirstToReview": "Hãy là người đầu tiên đánh giá gói tập này",
+    "trainerFull": "Huấn Luyện Viên Đủ Học Viên",
+    "trainerFullMessage": "Huấn luyện viên này đã đạt số lượng học viên tối đa. Vui lòng quay lại sau hoặc khám phá các huấn luyện viên khác.",
+    "comeBackLater": "Vui lòng quay lại sau để đăng ký khóa học với huấn luyện viên này"
   },
   "trainingResults": {
     "title": "Thống Kê Luyện Tập",

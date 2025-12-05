@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Linking,
+  Switch,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from '../../../hooks/useTranslation';
@@ -30,12 +31,21 @@ const CreatePackageModal = ({ visible, onClose, onPackageCreated }) => {
     durationInDays: '',
     sessionDurationInMinutes: '',
     numOfSessions: '',
+    isDisplayed: true,
   });
   const [selectedImage, setSelectedImage] = useState(null); // Local URI for preview
   const [uploadedImageUrl, setUploadedImageUrl] = useState(null); // API URL after upload
   const [uploadingImage, setUploadingImage] = useState(false);
   const scrollViewRef = useRef(null);
   const inputRefs = useRef({});
+
+  // Clear images when modal closes
+  useEffect(() => {
+    if (!visible) {
+      setSelectedImage(null);
+      setUploadedImageUrl(null);
+    }
+  }, [visible]);
 
   const handleInputChange = (field, value) => {
     if (field === 'price') {
@@ -202,6 +212,7 @@ const CreatePackageModal = ({ visible, onClose, onPackageCreated }) => {
         sessionDurationInMinutes: parseInt(formData.sessionDurationInMinutes),
         numOfSessions: parseInt(formData.numOfSessions),
         imageUrl: imageUrl,
+        isDisplayed: formData.isDisplayed,
       };
 
       const response = await freelancePTPackageService.createFreelancePTPackage(packageData);
@@ -237,6 +248,7 @@ const CreatePackageModal = ({ visible, onClose, onPackageCreated }) => {
       durationInDays: '',
       sessionDurationInMinutes: '',
       numOfSessions: '',
+      isDisplayed: true,
     });
     setSelectedImage(null);
     setUploadedImageUrl(null);
@@ -439,6 +451,27 @@ const CreatePackageModal = ({ visible, onClose, onPackageCreated }) => {
                 keyboardType="numeric"
               />
             </View>
+
+            {/* Display Package Toggle */}
+            <View style={styles.inputGroup}>
+              <View style={styles.switchContainer}>
+                <View style={styles.switchLabelContainer}>
+                  <Ionicons name="eye-outline" size={20} color="#333" />
+                  <Text style={styles.switchLabel}>
+                    {t("managePackage.displayPackage") || "Display Package"}
+                  </Text>
+                </View>
+                <Switch
+                  value={formData.isDisplayed}
+                  onValueChange={(value) => handleInputChange('isDisplayed', value)}
+                  trackColor={{ false: '#e5e7eb', true: '#ED2A46' }}
+                  thumbColor={formData.isDisplayed ? '#fff' : '#f4f3f4'}
+                />
+              </View>
+              <Text style={styles.switchHelperText}>
+                {t("managePackage.displayPackageHelper") || "When enabled, this package will be visible to customers"}
+              </Text>
+            </View>
           </ScrollView>
 
           {/* Footer Buttons */}
@@ -612,6 +645,29 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#fff',
+  },
+  switchContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  switchLabelContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+  },
+  switchLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+  },
+  switchHelperText: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
+    marginLeft: 28,
   },
 });
 

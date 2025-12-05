@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from '../../../hooks/useTranslation';
-
+const defaultImage = require('../../../assets/images/gymroom.jpg');
 const PackageCard = ({ package: pkg, onPress, onEdit }) => {
   const { t } = useTranslation();
 
@@ -19,13 +19,46 @@ const PackageCard = ({ package: pkg, onPress, onEdit }) => {
       activeOpacity={0.7}
     >
       {/* Package Image */}
-      {pkg.imageUrl && pkg.imageUrl !== 'string' && (
+      <View style={styles.imageContainer}>
         <Image 
-          source={{ uri: pkg.imageUrl }}
+          source={pkg.imageUrl ? { uri: pkg.imageUrl } : defaultImage}
           style={styles.packageImage}
           resizeMode="cover"
         />
-      )}
+        {/* Badges Container */}
+        <View style={styles.badgesContainer}>
+          {/* Display Status Badge */}
+          <View style={[
+            styles.statusBadge,
+            pkg.isDisplayed ? styles.displayedBadge : styles.hiddenBadge
+          ]}>
+            <Ionicons 
+              name={pkg.isDisplayed ? "eye" : "eye-off"} 
+              size={12} 
+              color="#fff" 
+            />
+            <Text style={styles.statusBadgeText}>
+              {pkg.isDisplayed 
+                ? (t('managePackage.displayed') || 'Displayed') 
+                : (t('managePackage.hidden') || 'Hidden')}
+            </Text>
+          </View>
+          
+          {/* Current Users Badge */}
+          {pkg.currentUserPurchased !== undefined && pkg.currentUserPurchased !== null && (
+            <View style={styles.usersBadge}>
+              <Ionicons 
+                name="people" 
+                size={12} 
+                color="#fff" 
+              />
+              <Text style={styles.statusBadgeText}>
+                {pkg.currentUserPurchased} {t('managePackage.activeUsers') || 'users'}
+              </Text>
+            </View>
+          )}
+        </View>
+      </View>
 
       <View style={styles.packageContent}>
         <View style={styles.packageHeader}>
@@ -82,10 +115,60 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 6,
   },
+  imageContainer: {
+    position: 'relative',
+    width: '100%',
+  },
   packageImage: {
     width: '100%',
     height: 180,
     backgroundColor: '#f0f0f0',
+  },
+  badgesContainer: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+    gap: 8,
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
+    gap: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  usersBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
+    gap: 4,
+    backgroundColor: '#2196F3',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  displayedBadge: {
+    backgroundColor: '#4CAF50',
+  },
+  hiddenBadge: {
+    backgroundColor: '#9E9E9E',
+  },
+  statusBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#fff',
   },
   packageContent: {
     padding: 16,

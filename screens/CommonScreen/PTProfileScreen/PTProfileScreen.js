@@ -157,6 +157,8 @@ const PTProfileScreen = ({ route, navigation }) => {
     // Navigate to booking screen or show available packages
     navigation.navigate("FreelancePTPackageDetailScreen", {
       freelancePTPackageId: pt?.packageId,
+      ptCurrentCourse: pt?.freelancePt?.ptCurrentCourse || 0,
+      ptMaxCourse: pt?.freelancePt?.ptMaxCourse || 0,
     });
   };
 
@@ -282,6 +284,40 @@ const PTProfileScreen = ({ route, navigation }) => {
         </View>
       </View>
 
+      {/* Available Announcements */}
+      <View style={[
+          styles.announcementSectionContainer,
+          { borderLeftColor: pt?.freelancePt?.ptCurrentCourse === pt?.freelancePt?.ptMaxCourse ? '#FF9800' : '#4CAF50',
+            borderBottomColor: pt?.freelancePt?.ptCurrentCourse === pt?.freelancePt?.ptMaxCourse ? '#FF9800' : '#4CAF50',
+           }
+        ]}>
+          {pt?.freelancePt?.ptCurrentCourse >= pt?.freelancePt?.ptMaxCourse ? (
+            <>
+              <Ionicons name="information-circle" size={24} color="#FF9800" />
+              <View style={styles.announcementTextContainer}>
+                <Text style={styles.announcementText}>
+                  Huấn luyện viên đã nhận đủ số lượng học viên
+                </Text>
+                <Text style={styles.announcementText2}>
+                  Hãy quay lại vào lần sau để đăng ký khóa học với PT này
+                </Text>
+              </View>
+            </>
+          ) : (
+            <>
+              <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
+              <View style={styles.announcementTextContainer}>
+                <Text style={styles.announcementText}>
+                  Hiện tại huấn luyện viên còn nhận {pt?.freelancePt?.ptMaxCourse - pt?.freelancePt?.ptCurrentCourse} học viên
+                </Text>
+                <Text style={styles.announcementText2}>
+                  Hãy đăng ký khóa học với PT này trong thời gian sớm nhất
+                </Text>
+              </View>
+            </>
+          )}
+        </View>
+
       {/* Tab Navigation */}
       <View style={styles.tabContainer}>
         <TouchableOpacity
@@ -308,7 +344,7 @@ const PTProfileScreen = ({ route, navigation }) => {
             ]}
           >
             {t("freelancePT.packagesTab")} (
-            {pt?.freelancePTPackages?.length || 0})
+            {pt?.freelancePTPackages?.filter((pkg) => pkg.isDisplayed === true || pkg.isDisplayed === "true").length || 0})
           </Text>
         </TouchableOpacity>
       </View>
@@ -316,6 +352,7 @@ const PTProfileScreen = ({ route, navigation }) => {
       {/* Profile Tab Content */}
       {activeTab === "profile" && (
         <>
+        
           {/* Price Information Section */}
           <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>{t("freelancePT.pricing")}</Text>
@@ -473,6 +510,7 @@ const PTProfileScreen = ({ route, navigation }) => {
           {pt?.freelancePTPackages && pt.freelancePTPackages.length > 0 ? (
             // Sort packages: purchased packages first, then unpurchased
             [...pt.freelancePTPackages]
+            .filter((pkg) => pkg.isDisplayed === true || pkg.isDisplayed === "true")
               .sort((a, b) => {
                 // If a is purchased and b is not, a comes first (return -1)
                 // If b is purchased and a is not, b comes first (return 1)
@@ -492,6 +530,8 @@ const PTProfileScreen = ({ route, navigation }) => {
                     navigation.navigate("FreelancePTPackageDetailScreen", {
                       freelancePTPackageId: packageItem.id,
                       purchasedPackage: purchasedPackage,
+                      ptCurrentCourse: pt?.freelancePt?.ptCurrentCourse || 0,
+                      ptMaxCourse: pt?.freelancePt?.ptMaxCourse || 0,
                     })
                   }
                 >
@@ -585,6 +625,8 @@ const PTProfileScreen = ({ route, navigation }) => {
                             {
                               freelancePTPackageId: packageItem.id,
                               purchasedPackage: purchasedPackage,
+                              ptCurrentCourse: pt?.freelancePt?.ptCurrentCourse || 0,
+                              ptMaxCourse: pt?.freelancePt?.ptMaxCourse || 0,
                             }
                           )
                         }
@@ -686,10 +728,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   gradientContainer: {
-    paddingVertical: 40,
+    paddingVertical: 30,
     paddingHorizontal: 20,
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
+    paddingBottom: 80,
   },
   profileHeader: {
     alignItems: "center",
@@ -768,8 +811,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-around",
     marginHorizontal: 20,
-    marginTop: -30,
-    marginBottom: 20,
+    marginTop: -60,
     zIndex: 10,
   },
   statCard: {
@@ -815,6 +857,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "700",
     color: "#333",
+    marginBottom: 10,
   },
   healthCard: {
     backgroundColor: "#f8f9fa",
@@ -1203,6 +1246,44 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#999",
     marginTop: 16,
+  },
+  // Announcement Section Styles
+  announcementSectionContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 12,
+    marginHorizontal: 16,
+    marginTop: 16,  
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    backdropFilter: "blur(100px)",
+    borderWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+    boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
+    borderRadius: 35,
+    margin: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 4,
+
+  },
+  announcementTextContainer: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  announcementText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 4,
+  },
+  announcementText2: {
+    fontSize: 12,
+    color: '#666',
+    lineHeight: 18,
   },
 });
 

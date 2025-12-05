@@ -687,7 +687,10 @@
     "totalInvestment": "TOTAL INVESTMENT",
     "premiumPackage": "Premium Package",
     "alreadyPurchased": "You Already Have a Package",
-    "completeCurrentPackage": "Please complete your current package before purchasing a new one"
+    "completeCurrentPackage": "Please complete your current package before purchasing a new one",
+    "trainerFull": "Trainer is at Full Capacity",
+    "trainerFullMessage": "This trainer has reached the maximum number of students. Please check back later or explore other trainers.",
+    "comeBackLater": "Please come back later to register for a course with this trainer"
   },
 
   "account": {
@@ -1123,7 +1126,14 @@
     "packageDeleted": "Package deleted successfully",
     "failedToCreate": "Failed to create package",
     "failedToUpdate": "Failed to update package",
-    "failedToDelete": "Failed to delete package"
+    "failedToDelete": "Failed to delete package",
+    "displayPackage": "Display Package",
+    "displayPackageHelper": "When enabled, this package will be visible to customers",
+    "displayed": "Displayed",
+    "hidden": "Hidden",
+    "activeUsers": "users",
+    "cannotEdit": "Cannot Edit Package",
+    "cannotEditMessage": "You cannot edit this package while customers are currently using it. Please wait until all customers have finished using this package."
   },
 
   "languageSelect": {
