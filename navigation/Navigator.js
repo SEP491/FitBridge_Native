@@ -1057,16 +1057,6 @@ export default function Navigator({
         <Stack.Screen
           name="FreelancePTDashboard"
           component={FreelancePTDashboard}
-          options={{
-            headerTitleAlign: "center",
-            headerShown: true,
-            title: "Dashboard",
-            headerTitleStyle: {
-              fontWeight: "bold",
-              fontSize: 20,
-              color: "#ED2A46",
-            },
-          }}
         />
 
         <Stack.Screen
