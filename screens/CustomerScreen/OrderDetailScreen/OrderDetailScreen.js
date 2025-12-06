@@ -321,6 +321,10 @@ const OrderDetailScreen = () => {
             <Text style={styles.summaryOrderIDValue} numberOfLines={1} ellipsizeMode="tail">{order.id}</Text>
           </View>
           <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>{t("orders.voucherId")}</Text>
+            <Text style={styles.summaryOrderIDValue} numberOfLines={1} ellipsizeMode="tail">{order.couponId}</Text>
+          </View>
+          <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>{t("orders.paymentMethod")}</Text>
             <Text style={styles.summaryValue}>{getPaymentMethod()}</Text>
           </View>
@@ -332,6 +336,15 @@ const OrderDetailScreen = () => {
               {formatPrice(order.subTotalPrice)}
             </Text>
           </View>
+
+          {order.totalAmount - (order.subTotalPrice + order.shippingFee) < 0 && (
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>{t("payment.discount")}</Text>
+            <Text style={styles.summaryValue}>
+                {formatPrice(order.totalAmount - (order.subTotalPrice + order.shippingFee) )}
+              </Text>
+            </View>
+          )}
 
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>{t("orders.shippingFee")}</Text>

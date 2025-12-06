@@ -52,8 +52,8 @@ export default function VoucherSection({
               style={styles.voucherInput}
               placeholder={t("payment.enterVoucherCode")}
               value={voucherCode}
-              onChangeText={onVoucherCodeChange}
-              autoCapitalize="characters"
+              onChangeText={(text) => onVoucherCodeChange(text.toUpperCase())}
+              autoCapitalize="words"
               editable={!isApplying}
             />
             <TouchableOpacity

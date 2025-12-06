@@ -2275,7 +2275,9 @@
     "itemQuantityLabel": "Số lượng",
     "takePhoto": "Chụp ảnh",
     "choosePhoto": "Chọn ảnh từ thư viện",
-    "selectPhotoSource": "Bạn muốn chọn ảnh từ đâu ?"
+    "selectPhotoSource": "Bạn muốn chọn ảnh từ đâu ?",
+    "voucherId": "Mã Voucher"
+
   },
   "contract": {
     "title": "Hợp đồng của tôi",
