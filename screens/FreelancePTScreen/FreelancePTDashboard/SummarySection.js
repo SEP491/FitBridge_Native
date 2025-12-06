@@ -5,7 +5,7 @@ import { mockedDataDashboard } from "./mockedDataDashboard";
 import SummaryCard from "../../../components/SummaryCards/SummaryCard";
 import PerformanceSummaryCard from "../../../components/SummaryCards/PerformanceSummaryCard";
 import RevenueSummaryCard from "../../../components/SummaryCards/RevenueSummaryCard";
-import SessionStatusCard from "../../../components/SummaryCards/SessionStatusCard";
+// import SessionStatusCard from "../../../components/SummaryCards/SessionStatusCard";
 
 const chunkArray = (items = [], chunkSize = 2) => {
   if (!items.length || chunkSize <= 0) return [];
@@ -61,7 +61,7 @@ const SummarySection = ({
           renderRevenueComparison={renderRevenueComparison}
         />
 
-        <SessionStatusCard sessionReport={sessionStatusReport} />
+          {/* <SessionStatusCard statusReport={sessionStatusReport} /> */}
       </View>
     </View>
   );
