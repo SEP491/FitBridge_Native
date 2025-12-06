@@ -170,6 +170,11 @@ export default function PaymentScreen({ navigation, route }) {
 
     setIsApplyingVoucher(true);
     try {
+      // Determine if this is a product (has selectedVariant and no gymId)
+      const hasProducts = displayItems.some(
+        (item) => item.selectedVariant && !item.gymId
+      );
+      
       // Determine if this is a freelance PT package
       const isFreelancePt = displayItems.some(
         (item) => item.type === "FreelancePT"
@@ -178,15 +183,36 @@ export default function PaymentScreen({ navigation, route }) {
         (item) => item.toExtend === true && item.packageType === "Freelance PT"
       );
 
+      // Determine productType and itemsId based on cart contents
+      let productType;
+      let itemsId;
+
+      if (hasProducts) {
+        // Handle products
+        productType = "Product";
+        itemsId = displayItems
+          .filter((item) => item.selectedVariant && !item.gymId)
+          .map((item) => item.selectedVariant.id);
+      } else if (isFreelancePt || isExtendingFreelancePT) {
+        // Handle Freelance PT packages
+        productType = "FreelancePTPackage";
+        itemsId = isExtendingFreelancePT
+          ? [itemToExtend.freelancePTPackageId]
+          : displayItems
+              .filter((item) => item.type === "FreelancePT")
+              .map((item) => item.id);
+      } else {
+        // Default to FreelancePTPackage for backward compatibility
+        productType = "FreelancePTPackage";
+        itemsId = displayItems.map((item) => item.id);
+      }
+
       // Call your voucher validation API here
-      // Replace this with your actual API call
       const requestData = {
         couponCode: voucherCode.trim(),
         totalPrice: isExtending ? orderToExtend.totalAmount : totalPrice,
-        productType: "FreelancePTPackage",
-        itemsId: isExtendingFreelancePT
-          ? [itemToExtend.freelancePTPackageId]
-          : displayItems.map((item) => item.id),
+        productType: productType,
+        itemsId: itemsId,
       };
       console.log("Applying voucher with data:", requestData);
       const response = await cartService.applyVoucher(requestData);

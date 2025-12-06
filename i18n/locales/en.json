@@ -1133,7 +1133,15 @@
     "hidden": "Hidden",
     "activeUsers": "users",
     "cannotEdit": "Cannot Edit Package",
-    "cannotEditMessage": "You cannot edit this package while customers are currently using it. Please wait until all customers have finished using this package."
+    "cannotEditMessage": "You cannot edit this package while customers are currently using it. Please wait until all customers have finished using this package.",
+    "currentCourses": "Current Courses",
+    "maxCourses": "Max Courses",
+    "packageDisplayed": "Package is now displayed",
+    "packageHidden": "Package is now hidden",
+    "confirmHide": "Confirm Hide Package",
+    "confirmHideMessage": "Are you sure you want to hide this package? The package will not be visible to customers after hiding.",
+    "hide": "Hide",
+    "cancel": "Cancel"
   },
 
   "languageSelect": {

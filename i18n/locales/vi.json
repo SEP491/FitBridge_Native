@@ -1063,7 +1063,15 @@
     "hidden": "Đã ẩn",
     "activeUsers": "khách hàng đang sử dụng",
     "cannotEdit": "Không Thể Chỉnh Sửa Gói Tập",
-    "cannotEditMessage": "Bạn không thể chỉnh sửa gói tập này khi đang có khách hàng sử dụng. Vui lòng đợi cho đến khi tất cả khách hàng hoàn thành việc sử dụng gói tập này."
+    "cannotEditMessage": "Bạn không thể chỉnh sửa gói tập này khi đang có khách hàng sử dụng. Vui lòng đợi cho đến khi tất cả khách hàng hoàn thành việc sử dụng gói tập này.",
+    "currentCourses": "Học Viên Hiện Tại",
+    "maxCourses": "Học Viên Tối Đa",
+    "packageDisplayed": "Gói tập đã được hiển thị",
+    "packageHidden": "Gói tập đã được ẩn",
+    "confirmHide": "Xác Nhận Ẩn Gói Tập",
+    "confirmHideMessage": "Bạn có chắc chắn muốn ẩn gói tập này? Gói tập sẽ không hiển thị cho khách hàng sau khi ẩn.",
+    "hide": "Ẩn",
+    "cancel": "Hủy"
   },
 
   "languageSelect": {

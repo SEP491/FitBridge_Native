@@ -131,6 +131,75 @@ const ManagePackageScreen = ({ navigation }) => {
     }
   };
 
+  const handleToggleDisplay = async (packageId, currentIsDisplayed) => {
+    const newIsDisplayed = !currentIsDisplayed;
+    
+    // If hiding the package, ask for confirmation
+    if (currentIsDisplayed && !newIsDisplayed) {
+      Alert.alert(
+        t("managePackage.confirmHide"),
+        t("managePackage.confirmHideMessage"),
+        [
+          {
+            text: t("managePackage.cancel"),
+            style: "cancel"
+          },
+          {
+            text: t("managePackage.hide"),
+            style: "destructive",
+            onPress: () => performToggleDisplay(packageId, newIsDisplayed)
+          }
+        ]
+      );
+    } else {
+      // Show package directly without confirmation
+      performToggleDisplay(packageId, newIsDisplayed);
+    }
+  };
+
+  const performToggleDisplay = async (packageId, newIsDisplayed) => {
+    try {
+      // Prepare request body with default values and only change isDisplayed
+      const updateData = {
+        name: "string",
+        price: 0,
+        durationInDays: 0,
+        sessionDurationInMinutes: 0,
+        numOfSessions: 0,
+        description: "string",
+        isDisplayed: newIsDisplayed,
+        imageUrl: "string"
+      };
+
+      const response = await freelancePTPackageService.updateFreelancePTPackage(
+        packageId,
+        updateData
+      );
+
+      if (response.status === "200") {
+        Alert.alert(
+          t("managePackage.success"),
+          newIsDisplayed 
+            ? t("managePackage.packageDisplayed") 
+            : t("managePackage.packageHidden")
+        );
+        // Refresh packages list
+        fetchPackages(pagination.page);
+      } else {
+        Alert.alert(
+          t("managePackage.error"),
+          response.message || t("managePackage.failedToUpdate")
+        );
+      }
+    } catch (error) {
+      console.error("Error toggling package display:", error);
+      Alert.alert(
+        t("managePackage.error"),
+        error.message || t("managePackage.failedToUpdate")
+      );
+    }
+  };
+
 
   if (loading && packages.length === 0) {
     return (
@@ -180,14 +249,14 @@ const ManagePackageScreen = ({ navigation }) => {
           <Text style={styles.statNumber}>
             {summary.ptCurrentCourse || 0}
           </Text>
-          <Text style={styles.statLabel}>Current Courses</Text>
+          <Text style={styles.statLabel}>{t("managePackage.currentCourses")}</Text>
         </View>
         <View style={styles.statCard}>
           <Ionicons name="trophy" size={24} color="#9C27B0" />
           <Text style={styles.statNumber}>
             {summary.ptMaxCourse || 0}
           </Text>
-          <Text style={styles.statLabel}>Max Courses</Text>
+          <Text style={styles.statLabel}>{t("managePackage.maxCourses")}</Text>
         </View>
         
       </View>
@@ -216,6 +285,7 @@ const ManagePackageScreen = ({ navigation }) => {
               package={item}
               onPress={() => navigation.navigate('FreelancePTPackageDetailScreen', { packageId: item.id })}
               onEdit={() => handleEditPackage(item.id)}
+              onToggleDisplay={() => handleToggleDisplay(item.id, item.isDisplayed)}
             />
           )}
           showsVerticalScrollIndicator={false}

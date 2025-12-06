@@ -9,7 +9,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from '../../../hooks/useTranslation';
 const defaultImage = require('../../../assets/images/gymroom.jpg');
-const PackageCard = ({ package: pkg, onPress, onEdit }) => {
+const PackageCard = ({ package: pkg, onPress, onEdit, onToggleDisplay }) => {
   const { t } = useTranslation();
 
   return (
@@ -88,6 +88,21 @@ const PackageCard = ({ package: pkg, onPress, onEdit }) => {
             <Text style={styles.priceLabel}>{t('managePackage.price')}</Text>
             <Text style={styles.priceValue}>{pkg.price?.toLocaleString('vi-VN')} ₫</Text>
           </View>
+          <TouchableOpacity 
+            style={styles.displayIconButton} 
+            onPress={(e) => {
+              e.stopPropagation();
+              if (onToggleDisplay) {
+                onToggleDisplay();
+              }
+            }}
+          >
+            <Ionicons 
+              name={pkg.isDisplayed ? "eye" : "eye-off"} 
+              size={18} 
+              color={pkg.isDisplayed ? "#4CAF50" : "#9E9E9E"} 
+            />
+          </TouchableOpacity>
           <TouchableOpacity 
             style={styles.editIconButton}
             onPress={(e) => {
@@ -224,6 +239,15 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     color: '#ED2A46',
+  },
+  displayIconButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#E8F5E9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
   },
   editIconButton: {
     width: 40,
