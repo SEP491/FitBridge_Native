@@ -758,7 +758,7 @@
     "cancel": "Hủy",
     "user": "Người dùng",
     "pleaseLogin": "Vui lòng đăng nhập",
-    "version": "Phiên bản 1.2",
+    "version": "Phiên bản 1.3",
     "account": "Tài khoản",
     "services": "Dịch vụ",
     "support": "Hỗ trợ",
@@ -2285,7 +2285,6 @@
     "choosePhoto": "Chọn ảnh từ thư viện",
     "selectPhotoSource": "Bạn muốn chọn ảnh từ đâu ?",
     "voucherId": "Mã Voucher"
-
   },
   "contract": {
     "title": "Hợp đồng của tôi",
