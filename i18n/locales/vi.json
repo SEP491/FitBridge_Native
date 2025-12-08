@@ -503,7 +503,10 @@
     "imagesToAdd": "Hình ảnh sẽ hiển thị",
     "addImage": "Thêm hình",
     "galleryEmptyHint": "Thêm hình ảnh để giới thiệu công việc của bạn",
-    "galleryEmptyTitle": "Chưa có hình ảnh"
+    "galleryEmptyTitle": "Chưa có hình ảnh",
+    "ptMaxCourse": "Số học viên tối đa có thể đăng ký",
+    "ptMaxCoursePlaceholder": "Nhập số học viên tối đa đồng thời có thể đăng ký",
+    "ptCurrentCourse": "Số học viên hiện tại"
   },
 
   "ptProfile": {

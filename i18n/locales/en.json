@@ -492,7 +492,10 @@
     "imagesToAdd": "Images to Add",
     "addImage": "Add image",
     "galleryEmptyHint": "Add images to showcase your work",
-    "galleryEmptyTitle": "No images yet"
+    "galleryEmptyTitle": "No images yet",
+    "ptMaxCourse": "Max members can register concurrently",
+    "ptMaxCoursePlaceholder": "Enter maximum concurrent members can register",
+    "ptCurrentCourse": "Current members"
   },
 
   "ptProfile": {

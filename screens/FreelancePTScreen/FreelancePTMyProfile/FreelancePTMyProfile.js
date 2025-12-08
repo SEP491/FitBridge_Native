@@ -44,6 +44,8 @@ const FreelancePTMyProfile = () => {
     citizenCardPermanentAddress: "",
     identityCardDate: "",
     businessAddress: "",
+    ptMaxCourse: 0,
+    ptCurrentCourse: 0,
     imagesToAdd: [],
     imagesToRemove: [],
   });
@@ -232,6 +234,8 @@ const FreelancePTMyProfile = () => {
         businessAddress: response.data.businessAddress || "",
         frontCitizenIdUrl: response.data.frontCitizenIdUrl || "",
         backCitizenIdUrl: response.data.backCitizenIdUrl || "",
+        ptMaxCourse: response.data.ptMaxCourse || 0,
+        ptCurrentCourse: response.data.ptCurrentCourse || 0,
         imagesToAdd: response.data.imagesToAdd || [],
         imagesToRemove: response.data.imagesToRemove || [],
       });
@@ -333,6 +337,12 @@ const FreelancePTMyProfile = () => {
         userProfile.citizenCardPermanentAddress || ""
       );
       formData.append("identityCardDate", userProfile.identityCardDate || "");
+      formData.append(
+        "ptMaxCourse",
+        Number.isFinite(parseInt(userProfile.ptMaxCourse, 10))
+          ? parseInt(userProfile.ptMaxCourse, 10)
+          : 0
+      );
 
       appendFileToFormData(
         formData,
@@ -370,7 +380,10 @@ const FreelancePTMyProfile = () => {
       }
     } catch (error) {
       console.error("Error updating profile:", error);
-      Alert.alert(t("profile.profileError"), t("profile.updateProfileError"));
+      Alert.alert(
+        t("profile.profileError"),
+        error.response?.data?.message || t("profile.updateProfileError")
+      );
     } finally {
       setIsSaving(false);
     }
@@ -786,6 +799,44 @@ const FreelancePTMyProfile = () => {
                   </Text>
                 </TouchableOpacity>
               )}
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>
+                <MaterialCommunityIcons
+                  name="progress-check"
+                  size={16}
+                  color="#FF914D"
+                />{" "}
+                {t("profile.ptCurrentCourse")}
+              </Text>
+              <TextInput
+                style={[styles.textInput, styles.disabledInput]}
+                value={userProfile.ptCurrentCourse?.toString()}
+                editable={false}
+                placeholder={t("profile.ptCurrentCourse")}
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>
+                <MaterialCommunityIcons
+                  name="counter"
+                  size={16}
+                  color="#FF914D"
+                />{" "}
+                {t("profile.ptMaxCourse")}
+              </Text>
+              <TextInput
+                style={[styles.textInput, !isEditMode && styles.disabledInput]}
+                value={userProfile.ptMaxCourse?.toString()}
+                onChangeText={(text) =>
+                  setUserProfile({ ...userProfile, ptMaxCourse: text })
+                }
+                placeholder={t("profile.ptMaxCoursePlaceholder")}
+                editable={isEditMode}
+                keyboardType="numeric"
+              />
             </View>
           </View>
         </View>
