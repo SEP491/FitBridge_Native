@@ -298,7 +298,7 @@ const CreateConversationModal = ({
           </View>
 
           {/* Group Toggle */}
-          <View style={styles.groupToggleContainer}>
+          {/* <View style={styles.groupToggleContainer}>
             <View style={styles.groupToggleInfo}>
               <Text style={styles.groupToggleLabel}>Group Conversation</Text>
               <Text style={styles.groupToggleHint}>
@@ -307,19 +307,19 @@ const CreateConversationModal = ({
                   : "Select one user for direct message"}
               </Text>
             </View>
-            <Switch
+            <Switch 
               value={isGroup}
               onValueChange={setIsGroup}
               trackColor={{ false: "#D1D5DB", true: colors.red }}
               thumbColor="#FFFFFF"
             />
-          </View>
+          </View> */}
 
           {/* Initial Message Input */}
           <View style={styles.messageInputContainer}>
             <TextInput
               style={styles.messageInput}
-              placeholder="Initial message (optional)"
+              placeholder="Send message (optional)"
               placeholderTextColor="#9CA3AF"
               value={initialMessage}
               onChangeText={setInitialMessage}

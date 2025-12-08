@@ -1250,7 +1250,7 @@
     "passwordMinLength": "Mật khẩu phải có ít nhất 6 ký tự",
     "passwordNotMatch": "Mật khẩu không khớp",
     "pleaseAgreeTerms": "Vui lòng đồng ý với điều khoản dịch vụ",
-    "accountCreated": "Tài khoản của bạn đã được tạo. Vui lòng đăng nhập để tiếp tục.",
+    "accountCreated": "Tài khoản của bạn đã được tạo thành công. Vui lòng kiểm tra email để xác thực tài khoản.",
     "registrationFailed": "Không thể đăng ký. Vui lòng kiểm tra thông tin và thử lại.",
     "agreeWithTerms": "Tôi đồng ý với",
     "termsOfService": "Điều khoản dịch vụ",

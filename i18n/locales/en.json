@@ -1319,7 +1319,7 @@
     "passwordMinLength": "Password must be at least 6 characters",
     "passwordNotMatch": "Passwords do not match",
     "pleaseAgreeTerms": "Please agree to the terms of service",
-    "accountCreated": "Your account has been created. Please login to continue.",
+    "accountCreated": "Your account has been created successfully. Please check your email to verify your account.",
     "registrationFailed": "Unable to register. Please check your information and try again.",
     "agreeWithTerms": "I agree with",
     "termsOfService": "Terms of Service",
