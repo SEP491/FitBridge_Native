@@ -46,6 +46,7 @@ const FreelancePTMyProfile = () => {
     businessAddress: "",
     ptMaxCourse: 0,
     ptCurrentCourse: 0,
+    freelancePtImages: [],
     imagesToAdd: [],
     imagesToRemove: [],
   });
@@ -236,6 +237,7 @@ const FreelancePTMyProfile = () => {
         backCitizenIdUrl: response.data.backCitizenIdUrl || "",
         ptMaxCourse: response.data.ptMaxCourse || 0,
         ptCurrentCourse: response.data.ptCurrentCourse || 0,
+        freelancePtImages: response.data.freelancePtImages || [],
         imagesToAdd: response.data.imagesToAdd || [],
         imagesToRemove: response.data.imagesToRemove || [],
       });
@@ -309,6 +311,32 @@ const FreelancePTMyProfile = () => {
       };
     });
   };
+
+  const handleRemoveExistingImage = (uri) => {
+    if (!uri) return;
+    setUserProfile((prev) => {
+      const remaining = (prev.freelancePtImages || []).filter(
+        (item) => item !== uri
+      );
+      const currentRemove = normalizeListInput(prev.imagesToRemove);
+      return {
+        ...prev,
+        freelancePtImages: remaining,
+        imagesToRemove: [...currentRemove, uri],
+      };
+    });
+  };
+
+  const portfolioImages = [
+    ...(userProfile.freelancePtImages || []).map((uri) => ({
+      uri,
+      existing: true,
+    })),
+    ...normalizeListInput(userProfile.imagesToAdd).map((uri) => ({
+      uri,
+      existing: false,
+    })),
+  ];
 
   const handleUpdateProfile = async () => {
     if (!isEditMode) {
@@ -738,11 +766,11 @@ const FreelancePTMyProfile = () => {
               <View style={styles.galleryHeader}>
                 <Text style={styles.inputLabel}>
                   <MaterialCommunityIcons
-                    name="image-multiple"
+                    name="image-frame"
                     size={16}
                     color="#FF914D"
                   />{" "}
-                  {t("profile.imagesToAdd")}
+                  {t("profile.currentImages")}
                 </Text>
                 {isEditMode && (
                   <TouchableOpacity
@@ -761,15 +789,22 @@ const FreelancePTMyProfile = () => {
                 )}
               </View>
 
-              {normalizeListInput(userProfile.imagesToAdd).length ? (
-                <View style={styles.galleryGrid}>
-                  {normalizeListInput(userProfile.imagesToAdd).map((uri) => (
-                    <View key={uri} style={styles.galleryItem}>
-                      <Image source={{ uri }} style={styles.galleryImage} />
+              {portfolioImages.length ? (
+                <View style={styles.galleryColumn}>
+                  {portfolioImages.map((item) => (
+                    <View key={item.uri} style={styles.galleryItemFull}>
+                      <Image
+                        source={{ uri: item.uri }}
+                        style={styles.galleryImage}
+                      />
                       {isEditMode && (
                         <TouchableOpacity
                           style={styles.galleryRemove}
-                          onPress={() => handleRemoveGalleryImage(uri)}
+                          onPress={() =>
+                            item.existing
+                              ? handleRemoveExistingImage(item.uri)
+                              : handleRemoveGalleryImage(item.uri)
+                          }
                         >
                           <MaterialCommunityIcons
                             name="close"
@@ -1541,6 +1576,10 @@ const styles = StyleSheet.create({
     marginHorizontal: -6,
     marginTop: 4,
   },
+  galleryColumn: {
+    flexDirection: "column",
+    gap: 12,
+  },
   galleryItem: {
     width: "48%",
     aspectRatio: 1.5,
@@ -1555,6 +1594,14 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     resizeMode: "cover",
+  },
+  galleryItemFull: {
+    width: "100%",
+    aspectRatio: 16 / 9,
+    borderRadius: 12,
+    overflow: "hidden",
+    backgroundColor: "#f8f9fa",
+    position: "relative",
   },
   galleryRemove: {
     position: "absolute",

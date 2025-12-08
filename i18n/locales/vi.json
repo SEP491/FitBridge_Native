@@ -506,7 +506,8 @@
     "galleryEmptyTitle": "Chưa có hình ảnh",
     "ptMaxCourse": "Số học viên tối đa có thể đăng ký",
     "ptMaxCoursePlaceholder": "Nhập số học viên tối đa đồng thời có thể đăng ký",
-    "ptCurrentCourse": "Số học viên hiện tại"
+    "ptCurrentCourse": "Số học viên hiện tại",
+    "currentImages": "Hình ảnh để giới thiệu công việc của bạn"
   },
 
   "ptProfile": {

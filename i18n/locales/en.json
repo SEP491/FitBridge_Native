@@ -495,7 +495,8 @@
     "galleryEmptyTitle": "No images yet",
     "ptMaxCourse": "Max members can register concurrently",
     "ptMaxCoursePlaceholder": "Enter maximum concurrent members can register",
-    "ptCurrentCourse": "Current members"
+    "ptCurrentCourse": "Current members",
+    "currentImages": "Images to showcase your work"
   },
 
   "ptProfile": {
