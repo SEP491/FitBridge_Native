@@ -5,6 +5,7 @@ import {
   TextInput,
   Image,
   TouchableOpacity,
+  ActivityIndicator,
   StyleSheet,
   ScrollView,
   Alert,
@@ -47,6 +48,7 @@ const GymPTMyProfile = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showIdentityDatePicker, setShowIdentityDatePicker] = useState(false);
   const [showGenderPicker, setShowGenderPicker] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [displayDate, setDisplayDate] = useState("");
   const [displayIdentityDate, setDisplayIdentityDate] = useState("");
 
@@ -150,6 +152,29 @@ const GymPTMyProfile = () => {
     setShowIdentityDatePicker(false);
   };
 
+  const normalizeListInput = (value) => {
+    if (!value) return [];
+    if (Array.isArray(value)) return value.filter(Boolean);
+    return value
+      .split(/[\n,]/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+  };
+
+  const appendFileToFormData = (formData, uri, fieldName) => {
+    if (!uri) return;
+    const isRemote = uri.startsWith("http");
+    if (isRemote) return;
+    const name = uri.split("/").pop() || `${fieldName}.jpg`;
+    const extension = name.split(".").pop() || "jpg";
+    const type = `image/${extension}`;
+    formData.append(fieldName, {
+      uri,
+      name,
+      type,
+    });
+  };
+
   const genderOptions = [
     { label: t("profile.genderOptions.male"), value: "Male" },
     { label: t("profile.genderOptions.female"), value: "Female" },
@@ -163,6 +188,7 @@ const GymPTMyProfile = () => {
   const calculateAge = (dob) => {
     if (!dob) return 0;
     const birthDate = new Date(dob);
+    if (isNaN(birthDate.getTime())) return 0;
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
@@ -172,14 +198,18 @@ const GymPTMyProfile = () => {
     ) {
       age--;
     }
-    return age;
+    return age < 0 ? 0 : age;
   };
 
   const fetchProfileData = async () => {
     try {
       const response = await accountService.getProfile();
       console.log("Profile response:", response);
-      setUserProfile(response.data);
+      setUserProfile({
+        ...response.data,
+        frontCitizenIdUrl: response.data.frontCitizenIdUrl || "",
+        backCitizenIdUrl: response.data.backCitizenIdUrl || "",
+      });
       if (response.data.id) {
         setUserId(response.data.id);
       }
@@ -231,29 +261,39 @@ const GymPTMyProfile = () => {
       setIsEditMode(true);
       return;
     }
+    if (isSaving) return;
 
     try {
-      const updateData = {
-        fullName: userProfile.fullName,
-        isMale: userProfile.gender === "Female" ? false : true,
-        dob: userProfile.dob,
-        citizenIdNumber: userProfile.citizenIdNumber || null,
-        identityCardPlace: userProfile.identityCardPlace || null,
-        citizenCardPermanentAddress:
-          userProfile.citizenCardPermanentAddress || null,
-        identityCardDate: userProfile.identityCardDate || null,
-        userDetail: {
-          height: parseFloat(userProfile.height) || 0,
-          weight: parseFloat(userProfile.weight) || 0,
-        },
-        // Note: Image uploads would typically be handled separately
-        // frontCitizenIdUrl and backCitizenIdUrl would need multipart/form-data upload
-      };
-
-      const response = await accountService.updateProfileUser(
-        userId,
-        updateData
+      setIsSaving(true);
+      const formData = new FormData();
+      formData.append("id", userProfile.id || userId || "");
+      formData.append("fullName", userProfile.fullName || "");
+      formData.append("email", userProfile.email || "");
+      formData.append("phone", userProfile.phone || "");
+      formData.append("dob", userProfile.dob || "");
+      formData.append("isMale", userProfile.gender === "Female" ? false : true);
+      formData.append("weight", parseFloat(userProfile.weight) || 0);
+      formData.append("height", parseFloat(userProfile.height) || 0);
+      formData.append("citizenIdNumber", userProfile.citizenIdNumber || "");
+      formData.append("identityCardPlace", userProfile.identityCardPlace || "");
+      formData.append(
+        "citizenCardPermanentAddress",
+        userProfile.citizenCardPermanentAddress || ""
       );
+      formData.append("identityCardDate", userProfile.identityCardDate || "");
+
+      appendFileToFormData(
+        formData,
+        userProfile.frontCitizenIdUrl,
+        "frontCitizenIdFile"
+      );
+      appendFileToFormData(
+        formData,
+        userProfile.backCitizenIdUrl,
+        "backCitizenIdFile"
+      );
+
+      const response = await accountService.updateProfileUser(formData);
       console.log("Update profile response:", response);
       if (global.updateNavigationUser) {
         global.updateNavigationUser();
@@ -274,6 +314,8 @@ const GymPTMyProfile = () => {
     } catch (error) {
       console.error("Error updating profile:", error);
       Alert.alert(t("profile.profileError"), t("profile.updateProfileError"));
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -430,9 +472,9 @@ const GymPTMyProfile = () => {
                 {t("profile.fullName")}
               </Text>
               <TextInput
-                style={[styles.textInput, styles.disabledInput]}
+                style={[styles.textInput, !isEditMode && styles.disabledInput]}
                 value={userProfile.fullName}
-                editable={false}
+                editable={isEditMode}
                 placeholder={t("profile.enterFullName")}
               />
             </View>
@@ -447,9 +489,9 @@ const GymPTMyProfile = () => {
                 {t("email")}
               </Text>
               <TextInput
-                style={[styles.textInput, styles.disabledInput]}
+                style={[styles.textInput, !isEditMode && styles.disabledInput]}
                 value={userProfile.email}
-                editable={false}
+                editable={isEditMode}
                 placeholder={t("email")}
               />
             </View>
@@ -632,9 +674,12 @@ const GymPTMyProfile = () => {
                 {t("profile.identityCardPlace")}
               </Text>
               <TextInput
-                style={[styles.textInput, styles.disabledInput]}
+                style={[styles.textInput, !isEditMode && styles.disabledInput]}
                 value={userProfile.identityCardPlace}
-                editable={false}
+                editable={isEditMode}
+                onChangeText={(text) =>
+                  setUserProfile({ ...userProfile, identityCardPlace: text })
+                }
                 placeholder={t("profile.enterIdentityCardPlace")}
               />
             </View>
@@ -785,16 +830,21 @@ const GymPTMyProfile = () => {
         {isEditMode && (
           <View style={styles.actionContainer}>
             <TouchableOpacity
-              style={styles.saveButton}
+              style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
               onPress={handleUpdateProfile}
+              disabled={isSaving}
             >
-              <MaterialCommunityIcons
-                name="content-save"
-                size={20}
-                color="#fff"
-              />
+              {isSaving ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <MaterialCommunityIcons
+                  name="content-save"
+                  size={20}
+                  color="#fff"
+                />
+              )}
               <Text style={styles.saveButtonText}>
-                {t("profile.saveChanges")}
+                {isSaving ? t("common.saving") : t("profile.saveChanges")}
               </Text>
             </TouchableOpacity>
 
@@ -1148,6 +1198,9 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 12,
     gap: 8,
+  },
+  saveButtonDisabled: {
+    opacity: 0.7,
   },
   saveButtonText: {
     color: "#fff",

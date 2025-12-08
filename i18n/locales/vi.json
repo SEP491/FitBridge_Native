@@ -496,7 +496,14 @@
     "frontCitizenId": "Mặt trước",
     "backCitizenId": "Mặt sau",
     "permissionDenied": "Quyền truy cập bị từ chối",
-    "permissionMessage": "Chúng tôi cần quyền truy cập vào thư viện ảnh của bạn để tải lên hình ảnh."
+    "permissionMessage": "Chúng tôi cần quyền truy cập vào thư viện ảnh của bạn để tải lên hình ảnh.",
+    "bioImagesSection": "Tiểu sử & Hình ảnh",
+    "bio": "Tiểu sử",
+    "enterBio": "Nhập tiểu sử",
+    "imagesToAdd": "Hình ảnh sẽ hiển thị",
+    "addImage": "Thêm hình",
+    "galleryEmptyHint": "Thêm hình ảnh để giới thiệu công việc của bạn",
+    "galleryEmptyTitle": "Chưa có hình ảnh"
   },
 
   "ptProfile": {
@@ -614,7 +621,8 @@
     "editReview": "Chỉnh sửa đánh giá",
     "reviewId": "Mã đánh giá",
     "remove": "Xóa",
-    "maxImagesReached": "Đã đạt tối đa 3 ảnh"
+    "maxImagesReached": "Đã đạt tối đa 3 ảnh",
+    "saving": "Đang lưu..."
   },
 
   "account": {

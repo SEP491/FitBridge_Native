@@ -485,7 +485,14 @@
     "frontCitizenId": "Front Side",
     "backCitizenId": "Back Side",
     "permissionDenied": "Permission Denied",
-    "permissionMessage": "We need permission to access your photo library to upload images."
+    "permissionMessage": "We need permission to access your photo library to upload images.",
+    "bioImagesSection": "Bio & Images",
+    "bio": "Bio",
+    "enterBio": "Enter your bio",
+    "imagesToAdd": "Images to Add",
+    "addImage": "Add image",
+    "galleryEmptyHint": "Add images to showcase your work",
+    "galleryEmptyTitle": "No images yet"
   },
 
   "ptProfile": {
@@ -604,7 +611,8 @@
     "editReview": "Edit Review",
     "reviewId": "Review ID",
     "remove": "Remove",
-    "maxImagesReached": "Maximum 3 images allowed"
+    "maxImagesReached": "Maximum 3 images allowed",
+    "saving": "Saving..."
   },
 
   "freelancePT": {

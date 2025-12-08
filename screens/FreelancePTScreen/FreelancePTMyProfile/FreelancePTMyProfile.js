@@ -5,6 +5,7 @@ import {
   TextInput,
   Image,
   TouchableOpacity,
+  ActivityIndicator,
   StyleSheet,
   ScrollView,
   Alert,
@@ -27,6 +28,7 @@ const FreelancePTMyProfile = () => {
   const [userId, setUserId] = useState("");
   const [userProfile, setUserProfile] = useState({
     fullName: "",
+    bio: "",
     email: "",
     phone: "",
     dob: "",
@@ -42,12 +44,15 @@ const FreelancePTMyProfile = () => {
     citizenCardPermanentAddress: "",
     identityCardDate: "",
     businessAddress: "",
+    imagesToAdd: [],
+    imagesToRemove: [],
   });
 
   const [isEditMode, setIsEditMode] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showIdentityDatePicker, setShowIdentityDatePicker] = useState(false);
   const [showGenderPicker, setShowGenderPicker] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [displayDate, setDisplayDate] = useState("");
   const [displayIdentityDate, setDisplayIdentityDate] = useState("");
 
@@ -151,6 +156,46 @@ const FreelancePTMyProfile = () => {
     setShowIdentityDatePicker(false);
   };
 
+  const normalizeListInput = (value) => {
+    if (!value) return [];
+    if (Array.isArray(value)) return value.filter(Boolean);
+    return value
+      .split(/[\n,]/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+  };
+
+  const appendFileToFormData = (formData, uri, fieldName) => {
+    if (!uri) return;
+    const isRemote = uri.startsWith("http");
+    if (isRemote) return;
+    const name = uri.split("/").pop() || `${fieldName}.jpg`;
+    const extension = name.split(".").pop() || "jpg";
+    const type = `image/${extension}`;
+    formData.append(fieldName, {
+      uri,
+      name,
+      type,
+    });
+  };
+
+  const appendGalleryImageToFormData = (formData, uri) => {
+    if (!uri) return;
+    const isRemote = uri.startsWith("http");
+    if (isRemote) {
+      formData.append("imagesToAdd", uri);
+      return;
+    }
+    const name = uri.split("/").pop() || "gallery.jpg";
+    const extension = name.split(".").pop() || "jpg";
+    const type = `image/${extension}`;
+    formData.append("imagesToAdd", {
+      uri,
+      name,
+      type,
+    });
+  };
+
   const genderOptions = [
     { label: t("profile.genderOptions.male"), value: "Male" },
     { label: t("profile.genderOptions.female"), value: "Female" },
@@ -164,6 +209,7 @@ const FreelancePTMyProfile = () => {
   const calculateAge = (dob) => {
     if (!dob) return 0;
     const birthDate = new Date(dob);
+    if (isNaN(birthDate.getTime())) return 0;
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
@@ -173,14 +219,22 @@ const FreelancePTMyProfile = () => {
     ) {
       age--;
     }
-    return age;
+    return age < 0 ? 0 : age;
   };
 
   const fetchProfileData = async () => {
     try {
       const response = await accountService.getProfile();
       console.log("Profile response:", response);
-      setUserProfile(response.data);
+      setUserProfile({
+        ...response.data,
+        bio: response.data.bio || "",
+        businessAddress: response.data.businessAddress || "",
+        frontCitizenIdUrl: response.data.frontCitizenIdUrl || "",
+        backCitizenIdUrl: response.data.backCitizenIdUrl || "",
+        imagesToAdd: response.data.imagesToAdd || [],
+        imagesToRemove: response.data.imagesToRemove || [],
+      });
       if (response.data.id) {
         setUserId(response.data.id);
       }
@@ -223,8 +277,33 @@ const FreelancePTMyProfile = () => {
           ...userProfile,
           backCitizenIdUrl: result.assets[0].uri,
         });
+      } else if (type === "galleryImage") {
+        setUserProfile((prev) => ({
+          ...prev,
+          imagesToAdd: [
+            ...(prev.imagesToAdd ? prev.imagesToAdd : []),
+            result.assets[0].uri,
+          ],
+        }));
       }
     }
+  };
+
+  const handleRemoveGalleryImage = (uri) => {
+    setUserProfile((prev) => {
+      const currentAdd = normalizeListInput(prev.imagesToAdd);
+      const filteredAdd = currentAdd.filter((item) => item !== uri);
+      const currentRemove = normalizeListInput(prev.imagesToRemove);
+      const shouldAddToRemove =
+        uri && typeof uri === "string" && uri.startsWith("http");
+      return {
+        ...prev,
+        imagesToAdd: filteredAdd,
+        imagesToRemove: shouldAddToRemove
+          ? [...currentRemove, uri]
+          : currentRemove,
+      };
+    });
   };
 
   const handleUpdateProfile = async () => {
@@ -232,30 +311,46 @@ const FreelancePTMyProfile = () => {
       setIsEditMode(true);
       return;
     }
+    if (isSaving) return;
 
     try {
-      const updateData = {
-        fullName: userProfile.fullName,
-        isMale: userProfile.gender === "Female" ? false : true,
-        dob: userProfile.dob,
-        citizenIdNumber: userProfile.citizenIdNumber || null,
-        identityCardPlace: userProfile.identityCardPlace || null,
-        citizenCardPermanentAddress:
-          userProfile.citizenCardPermanentAddress || null,
-        identityCardDate: userProfile.identityCardDate || null,
-        businessAddress: userProfile.businessAddress || null,
-        userDetail: {
-          height: parseFloat(userProfile.height) || 0,
-          weight: parseFloat(userProfile.weight) || 0,
-        },
-        // Note: Image uploads would typically be handled separately
-        // frontCitizenIdUrl and backCitizenIdUrl would need multipart/form-data upload
-      };
-
-      const response = await accountService.updateProfileUser(
-        userId,
-        updateData
+      setIsSaving(true);
+      const formData = new FormData();
+      formData.append("id", userProfile.id || userId || "");
+      formData.append("fullName", userProfile.fullName || "");
+      formData.append("email", userProfile.email || "");
+      formData.append("phone", userProfile.phone || "");
+      formData.append("dob", userProfile.dob || "");
+      formData.append("isMale", userProfile.gender === "Female" ? false : true);
+      formData.append("weight", parseFloat(userProfile.weight) || 0);
+      formData.append("height", parseFloat(userProfile.height) || 0);
+      formData.append("bio", userProfile.bio || "");
+      formData.append("businessAddress", userProfile.businessAddress || "");
+      formData.append("citizenIdNumber", userProfile.citizenIdNumber || "");
+      formData.append("identityCardPlace", userProfile.identityCardPlace || "");
+      formData.append(
+        "citizenCardPermanentAddress",
+        userProfile.citizenCardPermanentAddress || ""
       );
+      formData.append("identityCardDate", userProfile.identityCardDate || "");
+
+      appendFileToFormData(
+        formData,
+        userProfile.frontCitizenIdUrl,
+        "frontCitizenIdFile"
+      );
+      appendFileToFormData(
+        formData,
+        userProfile.backCitizenIdUrl,
+        "backCitizenIdFile"
+      );
+
+      const addList = normalizeListInput(userProfile.imagesToAdd);
+      addList.forEach((item) => appendGalleryImageToFormData(formData, item));
+      const removeList = normalizeListInput(userProfile.imagesToRemove);
+      removeList.forEach((item) => formData.append("imagesToRemove", item));
+
+      const response = await accountService.updateProfileUser(formData);
       console.log("Update profile response:", response);
       if (global.updateNavigationUser) {
         global.updateNavigationUser();
@@ -276,6 +371,8 @@ const FreelancePTMyProfile = () => {
     } catch (error) {
       console.error("Error updating profile:", error);
       Alert.alert(t("profile.profileError"), t("profile.updateProfileError"));
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -432,9 +529,9 @@ const FreelancePTMyProfile = () => {
                 {t("profile.fullName")}
               </Text>
               <TextInput
-                style={[styles.textInput, styles.disabledInput]}
+                style={[styles.textInput, !isEditMode && styles.disabledInput]}
                 value={userProfile.fullName}
-                editable={false}
+                editable={isEditMode}
                 placeholder={t("profile.enterFullName")}
               />
             </View>
@@ -449,9 +546,9 @@ const FreelancePTMyProfile = () => {
                 {t("email")}
               </Text>
               <TextInput
-                style={[styles.textInput, styles.disabledInput]}
+                style={[styles.textInput, !isEditMode && styles.disabledInput]}
                 value={userProfile.email}
-                editable={false}
+                editable={isEditMode}
                 placeholder={t("email")}
               />
             </View>
@@ -594,6 +691,105 @@ const FreelancePTMyProfile = () => {
           </View>
         </View>
 
+        {/* Bio & Portfolio Images */}
+        <View style={styles.sectionContainer}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>
+              {t("profile.bioImagesSection")}
+            </Text>
+          </View>
+
+          <View style={styles.formContainer}>
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>
+                <MaterialCommunityIcons name="text" size={16} color="#FF914D" />{" "}
+                {t("profile.bio")}
+              </Text>
+              <TextInput
+                style={[
+                  styles.textInput,
+                  !isEditMode && styles.disabledInput,
+                  { minHeight: 80 },
+                ]}
+                value={userProfile.bio}
+                onChangeText={(text) =>
+                  setUserProfile({ ...userProfile, bio: text })
+                }
+                placeholder={t("profile.enterBio")}
+                editable={isEditMode}
+                multiline
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <View style={styles.galleryHeader}>
+                <Text style={styles.inputLabel}>
+                  <MaterialCommunityIcons
+                    name="image-multiple"
+                    size={16}
+                    color="#FF914D"
+                  />{" "}
+                  {t("profile.imagesToAdd")}
+                </Text>
+                {isEditMode && (
+                  <TouchableOpacity
+                    style={styles.addImageButton}
+                    onPress={() => pickImage("galleryImage")}
+                  >
+                    <MaterialCommunityIcons
+                      name="image-plus"
+                      size={16}
+                      color="#fff"
+                    />
+                    <Text style={styles.addImageButtonText}>
+                      {t("profile.addImage")}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              {normalizeListInput(userProfile.imagesToAdd).length ? (
+                <View style={styles.galleryGrid}>
+                  {normalizeListInput(userProfile.imagesToAdd).map((uri) => (
+                    <View key={uri} style={styles.galleryItem}>
+                      <Image source={{ uri }} style={styles.galleryImage} />
+                      {isEditMode && (
+                        <TouchableOpacity
+                          style={styles.galleryRemove}
+                          onPress={() => handleRemoveGalleryImage(uri)}
+                        >
+                          <MaterialCommunityIcons
+                            name="close"
+                            size={14}
+                            color="#fff"
+                          />
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  ))}
+                </View>
+              ) : (
+                <TouchableOpacity
+                  style={styles.galleryEmpty}
+                  onPress={() => isEditMode && pickImage("galleryImage")}
+                  disabled={!isEditMode}
+                >
+                  <MaterialCommunityIcons
+                    name="image-plus"
+                    size={32}
+                    color="#ccc"
+                  />
+                  <Text style={styles.galleryEmptyText}>
+                    {isEditMode
+                      ? t("profile.galleryEmptyHint")
+                      : t("profile.galleryEmptyTitle")}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        </View>
+
         {/* Identity Information Section */}
         <View style={styles.sectionContainer}>
           <View style={styles.sectionHeader}>
@@ -715,9 +911,16 @@ const FreelancePTMyProfile = () => {
                 {t("profile.businessAddress")}
               </Text>
               <TextInput
-                style={[styles.textInput, styles.disabledInput]}
+                style={[
+                  styles.textInput,
+                  !isEditMode && styles.disabledInput,
+                  { minHeight: 60 },
+                ]}
                 value={userProfile.businessAddress}
-                editable={false}
+                editable={isEditMode}
+                onChangeText={(text) =>
+                  setUserProfile({ ...userProfile, businessAddress: text })
+                }
                 placeholder={t("profile.businessAddress")}
                 multiline
                 numberOfLines={2}
@@ -809,16 +1012,21 @@ const FreelancePTMyProfile = () => {
         {isEditMode && (
           <View style={styles.actionContainer}>
             <TouchableOpacity
-              style={styles.saveButton}
+              style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
               onPress={handleUpdateProfile}
+              disabled={isSaving}
             >
-              <MaterialCommunityIcons
-                name="content-save"
-                size={20}
-                color="#fff"
-              />
+              {isSaving ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <MaterialCommunityIcons
+                  name="content-save"
+                  size={20}
+                  color="#fff"
+                />
+              )}
               <Text style={styles.saveButtonText}>
-                {t("profile.saveChanges")}
+                {isSaving ? t("common.saving") : t("profile.saveChanges")}
               </Text>
             </TouchableOpacity>
 
@@ -1173,6 +1381,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     gap: 8,
   },
+  saveButtonDisabled: {
+    opacity: 0.7,
+  },
   saveButtonText: {
     color: "#fff",
     fontSize: 16,
@@ -1252,6 +1463,73 @@ const styles = StyleSheet.create({
   selectedOptionText: {
     color: "#FF914D",
     fontWeight: "600",
+  },
+  galleryHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  addImageButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FF914D",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    gap: 6,
+  },
+  addImageButtonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  galleryGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginHorizontal: -6,
+    marginTop: 4,
+  },
+  galleryItem: {
+    width: "48%",
+    aspectRatio: 1.5,
+    borderRadius: 12,
+    overflow: "hidden",
+    marginHorizontal: 6,
+    marginBottom: 12,
+    backgroundColor: "#f8f9fa",
+    position: "relative",
+  },
+  galleryImage: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+  },
+  galleryRemove: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  galleryEmpty: {
+    borderWidth: 1,
+    borderStyle: "dashed",
+    borderColor: "#e0e0e0",
+    borderRadius: 12,
+    padding: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#f8f9fa",
+  },
+  galleryEmptyText: {
+    marginTop: 8,
+    color: "#666",
+    textAlign: "center",
   },
 });
 

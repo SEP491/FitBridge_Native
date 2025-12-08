@@ -5,6 +5,7 @@ import {
   TextInput,
   Image,
   TouchableOpacity,
+  ActivityIndicator,
   StyleSheet,
   ScrollView,
   Alert,
@@ -38,6 +39,7 @@ const ProfileScreen = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showGenderPicker, setShowGenderPicker] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [displayDate, setDisplayDate] = useState("");
 
   const formatDisplayDate = (dateString) => {
@@ -171,6 +173,7 @@ const ProfileScreen = () => {
   const calculateAge = (dob) => {
     if (!dob) return 0;
     const birthDate = new Date(dob);
+    if (isNaN(birthDate.getTime())) return 0;
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
@@ -180,7 +183,7 @@ const ProfileScreen = () => {
     ) {
       age--;
     }
-    return age;
+    return age < 0 ? 0 : age;
   };
 
   const validateAge = (dateString) => {
@@ -219,22 +222,21 @@ const ProfileScreen = () => {
       setIsEditMode(true);
       return;
     }
+    if (isSaving) return;
 
     try {
-      const updateData = {
-        fullName: userProfile.fullName,
-        isMale: userProfile.gender === "Female" ? false : true,
-        dob: userProfile.dob,
-        userDetail: {
-          height: parseFloat(userProfile.height) || 0,
-          weight: parseFloat(userProfile.weight) || 0,
-        },
-      };
+      setIsSaving(true);
+      const formData = new FormData();
+      formData.append("id", userProfile.id || userId || "");
+      formData.append("fullName", userProfile.fullName || "");
+      formData.append("email", userProfile.email || "");
+      formData.append("phone", userProfile.phone || "");
+      formData.append("dob", userProfile.dob || "");
+      formData.append("isMale", userProfile.gender === "Female" ? false : true);
+      formData.append("weight", parseFloat(userProfile.weight) || 0);
+      formData.append("height", parseFloat(userProfile.height) || 0);
 
-      const response = await accountService.updateProfileUser(
-        userId,
-        updateData
-      );
+      const response = await accountService.updateProfileUser(formData);
       console.log("Cập nhật hồ sơ phản hồi:", response);
       if (global.updateNavigationUser) {
         global.updateNavigationUser();
@@ -255,6 +257,8 @@ const ProfileScreen = () => {
     } catch (error) {
       console.error("Lỗi khi cập nhật hồ sơ:", error);
       Alert.alert(t("profile.profileError"), t("profile.updateProfileError"));
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -467,9 +471,12 @@ const ProfileScreen = () => {
                 {t("email")}
               </Text>
               <TextInput
-                style={[styles.textInput, styles.disabledInput]}
+                style={[
+                  styles.textInput,
+                  !isEditMode && styles.disabledInput,
+                ]}
                 value={userProfile.email}
-                editable={false}
+                editable={isEditMode}
                 placeholder={t("email")}
               />
             </View>
@@ -616,16 +623,24 @@ const ProfileScreen = () => {
         {isEditMode && (
           <View style={styles.actionContainer}>
             <TouchableOpacity
-              style={styles.saveButton}
+              style={[
+                styles.saveButton,
+                isSaving && styles.saveButtonDisabled,
+              ]}
               onPress={handleUpdateProfile}
+              disabled={isSaving}
             >
-              <MaterialCommunityIcons
-                name="content-save"
-                size={20}
-                color="#fff"
-              />
+              {isSaving ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <MaterialCommunityIcons
+                  name="content-save"
+                  size={20}
+                  color="#fff"
+                />
+              )}
               <Text style={styles.saveButtonText}>
-                {t("profile.saveChanges")}
+                {isSaving ? t("common.saving") : t("profile.saveChanges")}
               </Text>
             </TouchableOpacity>
 
@@ -955,6 +970,9 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 12,
     gap: 8,
+  },
+  saveButtonDisabled: {
+    opacity: 0.7,
   },
   saveButtonText: {
     color: "#fff",

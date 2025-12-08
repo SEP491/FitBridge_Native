@@ -3,8 +3,10 @@ import { request } from "./request";
 
 const accountService = {
   getProfile: () => request("GET", "v1/accounts/profile"),
-  updateProfileUser: (userId, data) =>
-    request("PUT", `v1/accounts/update-profile/${userId}`, data),
+  updateProfileUser: (data) =>
+    request("PUT", "v1/accounts/update-profile", data, {
+      "Content-Type": "multipart/form-data",
+    }),
   uploadAvatar: (formData) =>
     request("PUT", "v1/accounts/update-avatar", formData, {
       "Content-Type": "multipart/form-data",
