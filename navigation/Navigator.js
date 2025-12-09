@@ -42,6 +42,7 @@ import PTBookingHistoryScreen from "../screens/GymPTScreen/PTBookingHistoryScree
 import ChatbotScreen from "../screens/CommonScreen/ChatScreen/ChatbotScreen";
 import WithdrawalScreen from "../screens/FreelancePTScreen/WithdrawalScreen/WithdrawalScreen";
 import FreelancePTDashboard from "./../screens/FreelancePTScreen/FreelancePTDashboard/FreelancePTDashboard";
+import BalanceDetailScreen from "../screens/FreelancePTScreen/BalanceDetailScreen/BalanceDetailScreen";
 import FreelancePTSchedule from "./../screens/FreelancePTScreen/FreelancePTSchedule/FreelancePTSchedule";
 import FreelancePTChatScreen from "./../screens/FreelancePTScreen/FreelancePTChatScreen/FreelancePTChatScreen";
 import UserMenuScreen from "../screens/CommonScreen/UserMenuScreen/UserMenuScreen";
@@ -1060,6 +1061,21 @@ export default function Navigator({
         />
 
         <Stack.Screen
+          name="BalanceDetailScreen"
+          component={BalanceDetailScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.balanceDetail"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+
+        <Stack.Screen
           name="VideoCallPrep"
           component={VideoCallPrepScreen}
           options={{
@@ -1397,6 +1413,20 @@ export default function Navigator({
           options={{
             headerShown: true,
             title: t("screenTitles.account"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="PTProfileScreen"
+          component={PTProfileScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.ptInfo"),
             headerTitleAlign: "center",
             headerTitleStyle: {
               fontWeight: "bold",

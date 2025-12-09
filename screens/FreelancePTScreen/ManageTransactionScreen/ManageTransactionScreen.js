@@ -178,6 +178,10 @@ const ManageTransactionScreen = ({ navigation }) => {
       case 'FAILED': 
       case 'CANCELLED':
         return '#F44336';
+        case 'RESOLVED':
+          return '#4CAF50';
+          case 'REJECTED':
+            return '#F44336';
       default: 
         return '#666';
     }
@@ -195,6 +199,10 @@ const ManageTransactionScreen = ({ navigation }) => {
         return t('transaction.failed', 'Failed');
       case 'CANCELLED':
         return t('transaction.cancelled', 'Cancelled');
+      case 'RESOLVED':
+        return t('transaction.resolved', 'Resolved');
+      case 'REJECTED':
+        return t('transaction.rejected', 'Rejected');
       default: 
         return status;
     }
