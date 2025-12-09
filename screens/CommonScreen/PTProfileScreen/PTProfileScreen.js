@@ -7,7 +7,6 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
-  ActivityIndicator,
   Linking,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
@@ -17,6 +16,7 @@ import { useTranslation } from "../../../hooks/useTranslation";
 import { SafeAreaView } from "react-native-safe-area-context";
 import accountService from "../../../services/accountService";
 import LogoColor from "../../../assets/images/LogoColor.png";
+import PTProfileScreenSkeleton from "./PTProfileScreenSkeleton";
 // Body part images mapping
 const bodyPartImages = {
   shoulder: require("../../../assets/images/bodyparts/shoulder.png"),
@@ -69,7 +69,9 @@ const PTProfileScreen = ({ route, navigation }) => {
       console.error("Error fetching PT detail:", error);
       Alert.alert(t("errors.error"), t("errors.failedToLoadPackage"));
     } finally {
-      setLoading(false);
+      setTimeout(() => {
+        setLoading(false);
+      }, 1000);
     }
   };
 
@@ -165,8 +167,7 @@ const PTProfileScreen = ({ route, navigation }) => {
   if (loading) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#FF914D" />
-        <Text style={styles.loadingText}>{t("common.loading")}</Text>
+        <PTProfileScreenSkeleton />
       </SafeAreaView>
     );
   }

@@ -14,6 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import orderService from "../../../services/orderService";
+import { fetchUserFromStorage } from "../../../lib";
 import OrderManagementCard from "../../../components/OrderManagementCard";
 import { useTranslation } from "../../../hooks/useTranslation";
 import { ProductCardSkeletonList } from "../../../components/ProductCard/ProductCardSkeleton";
@@ -33,6 +34,17 @@ const ManageOrderScreen = ({ route }) => {
   const [initialStatusSet, setInitialStatusSet] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
 
+  const [user, setUser] = useState(null);
+  useEffect(() => {
+    const fetchUser = async () => {
+      const userData = await fetchUserFromStorage();
+      console.log("Fetched user data:", userData);
+      if (userData) {
+        setUser(userData);
+      }
+    };
+    fetchUser();
+  }, []);
   // Status filters for the swiper
   const statusFilters = [
     {
@@ -124,6 +136,8 @@ const ManageOrderScreen = ({ route }) => {
   ];
   useFocusEffect(
     useCallback(() => {
+      if (!user?.id) return;
+
       if (selectedStatus === "Feedback") {
         filterOrdersByStatus();
         fetchOrdersSummary();
@@ -137,11 +151,12 @@ const ManageOrderScreen = ({ route }) => {
         fetchOrders(1, true);
         fetchOrdersSummary();
       }
-    }, [])
+    }, [selectedStatus, user])
   );
 
 
   useEffect(() => {
+    if (!user?.id) return;
     setPage(1); // Reset page when status changes
     if (selectedStatus === "Feedback") {
       // Special case: Feedback uses local filtering
@@ -150,9 +165,10 @@ const ManageOrderScreen = ({ route }) => {
       // All other statuses: fetch from API
       fetchOrdersByStatus(selectedStatus, 1, false);
     }
-  }, [selectedStatus]);
+  }, [selectedStatus, user]);
 
   const fetchOrders = async (pageNum = 1, isRefresh = false, isLoadMore = false) => {
+    if (!user?.id) return;
     try {
       if (isRefresh) {
         setRefreshing(true);
@@ -164,6 +180,7 @@ const ManageOrderScreen = ({ route }) => {
       const response = await orderService.getProductOrder({
         sortOrder: "dsc",
         pageNumber: pageNum,
+        customerId: user?.id,
       });
       const newItems = response.data.productOrders.items || [];
       
@@ -190,8 +207,9 @@ const ManageOrderScreen = ({ route }) => {
   };
 
   const fetchOrdersSummary = async () => {
+    if (!user?.id) return;
     try {
-      const response = await orderService.getProductOrder({ doApplyPaging: false });
+      const response = await orderService.getProductOrder({ doApplyPaging: false, customerId: user?.id });
       setOrderSummary(response.data || null);
     } catch (error) {
       console.error("Error fetching order summary:", error);
@@ -199,6 +217,7 @@ const ManageOrderScreen = ({ route }) => {
   };
 
   const fetchOrdersByStatus = async (status, pageNum = 1, isLoadMore = false) => {
+    if (!user?.id) return;
     try {
       if (isLoadMore) {
         setLoadingMore(true);
@@ -213,8 +232,8 @@ const ManageOrderScreen = ({ route }) => {
       }  else if (status === "Arrived") {
         // For Arrived, fetch Arrived + CustomerNotReceived
         const [arrivedRes, notReceivedRes] = await Promise.all([
-          orderService.getProductOrder({ status: "Arrived", sortOrder: "dsc", pageNumber: pageNum }),
-          orderService.getProductOrder({ status: "CustomerNotReceived", sortOrder: "dsc", pageNumber: pageNum })
+          orderService.getProductOrder({ status: "Arrived", sortOrder: "dsc", pageNumber: pageNum, customerId: user?.id }),
+          orderService.getProductOrder({ status: "CustomerNotReceived", sortOrder: "dsc", pageNumber: pageNum, customerId: user?.id })
         ]);
         const combined = [
           ...(arrivedRes.data.productOrders.items || []),
@@ -240,8 +259,8 @@ const ManageOrderScreen = ({ route }) => {
       } else if (status === "Returned") {
         // For Returned, fetch Returned + InReturn
         const [returnedRes, inReturnRes] = await Promise.all([
-          orderService.getProductOrder({ status: "Returned", sortOrder: "dsc", pageNumber: pageNum }),
-          orderService.getProductOrder({ status: "InReturn", sortOrder: "dsc", pageNumber: pageNum })
+          orderService.getProductOrder({ status: "Returned", sortOrder: "dsc", pageNumber: pageNum, customerId: user?.id }),
+          orderService.getProductOrder({ status: "InReturn", sortOrder: "dsc", pageNumber: pageNum, customerId: user?.id })
         ]);
         const combined = [
           ...(returnedRes.data.productOrders.items || []),
@@ -268,8 +287,8 @@ const ManageOrderScreen = ({ route }) => {
       
       // For other statuses, fetch directly
       const params = apiStatus 
-        ? { status: apiStatus, sortOrder: "dsc", pageNumber: pageNum } 
-        : { sortOrder: "dsc", pageNumber: pageNum };
+        ? { status: apiStatus, sortOrder: "dsc", pageNumber: pageNum, customerId: user?.id } 
+        : { sortOrder: "dsc", pageNumber: pageNum, customerId: user?.id };
       const response = await orderService.getProductOrder(params);
       const newItems = response.data.productOrders.items || [];
       

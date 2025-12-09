@@ -47,6 +47,7 @@
   },
 
   "screenTitles": {
+    "balanceDetail": "Chi tiết số dư",
     "trainingResult": "Thống Kê Tập Luyện",
     "addMeasurement": "Đo Chỉ Số",
     "ptList": "Danh sách PT",
@@ -769,7 +770,8 @@
     "myReviews&Ratings": "Đánh giá của tôi",
     "testVideoCall": "Test cuộc gọi video",
     "testVideoCallAlertTitle": "Đã bắt đầu cuộc gọi thử nghiệm",
-    "testVideoCallAlertMessage": "FloatingVideoCall đã xuất hiện. Bạn có thể thu nhỏ hoặc phóng to."
+    "testVideoCallAlertMessage": "FloatingVideoCall đã xuất hiện. Bạn có thể thu nhỏ hoặc phóng to.",
+    "viewMyPersonalScreen": "Xem trang cá nhân của tôi"
   },
   "videoCallPrep": {
     "sessionDetails": "Chi tiết buổi gọi",
@@ -851,14 +853,16 @@
     "statusDistribution": "Phân bổ trạng thái giao dịch",
     "monthlyRevenue": "Doanh thu theo tháng và trạng thái",
     "amountInThousands": "Số tiền tính bằng nghìn (VND)",
-    "filterByType": "Lọc theo loại"
+    "filterByType": "Lọc theo loại",
+    "resolved": "Đã giải quyết",
+    "rejected": "Đã từ chối"
   },
 
   "transactionType": {
     "all": "Tất cả loại",
     "freelancePTPackage": "Gói PT",
     "extendFreelancePTPackage": "Gia hạn gói PT",
-    "distributeProfit": "Phân phối lợi nhuận",
+    "distributeProfit": "Đã quyết toán",
     "withdraw": "Rút tiền",
     "other": "Khác",
     "ptPackage": "Gói PT",
@@ -866,7 +870,6 @@
     "profit": "Lợi nhuận",
     "FreelancePTPackage": "Gói PT",
     "ExtendFreelancePTPackage": "Gia hạn gói PT",
-    "DistributeProfit": "Phân phối lợi nhuận",
     "Withdraw": "Rút tiền"
   },
 
@@ -929,7 +932,7 @@
     "requestSuccess": "Gửi yêu cầu rút tiền thành công",
     "requestFailed": "Gửi yêu cầu rút tiền thất bại",
     "reason": "Lý do",
-    "hasProof": "Đã đính kèm chứng từ"
+    "hasProof": "Đã đính kèm minh chứng"
   },
 
   "voucher": {

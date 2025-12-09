@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, Animated, Alert } from "react-native";
+import { View, Text, ScrollView, Animated, Alert, Touchable } from "react-native";
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -69,7 +69,7 @@ export default function UserMenuScreen() {
   const fetchOrders = async () => {
     try {
       setLoadingOrders(true);
-      const response = await orderService.getProductOrder({ sortOrder: "dsc" });
+      const response = await orderService.getProductOrder({ customerId: user?.id, sortOrder: "dsc" });
       setOrders(response.data.productOrders.items || []);
     } catch (error) {
       console.error("Error fetching orders:", error);
@@ -82,13 +82,12 @@ export default function UserMenuScreen() {
     try {
       setLoadingOrders(true);
       const response = await orderService.getProductOrder({
+        customerId: user?.id,
         doApplyPaging: false,
       });
-      setOrderSummary(response.data);
+      setOrderSummary(response.data || null);
     } catch (error) {
-      console.error("Error fetching orders:", error);
-    } finally {
-      setLoadingOrders(false);
+      console.error("Error fetching order summary:", error);
     }
   };
 
@@ -337,7 +336,13 @@ export default function UserMenuScreen() {
                 </View>
               )}
             </View>
+            
           </Animated.View>
+          <View style={styles.viewMyPersonalScreenButtonContainer}>
+          <TouchableOpacity style={styles.viewMyPersonalScreenButton} onPress={() => navigation.navigate("PTProfileScreen", { ptId: user?.id })}>
+                <Text style={styles.viewMyPersonalScreenButtonText}>{t("userMenu.viewMyPersonalScreen")}</Text>
+            </TouchableOpacity>
+          </View>
         </LinearGradient>
 
         {/* Menu Items with Categories */}
@@ -653,7 +658,6 @@ const styles = {
   },
   headerGradient: {
     paddingTop: 20,
-    paddingBottom: 30,
     borderBottomLeftRadius: 25,
     borderBottomRightRadius: 25,
   },
@@ -687,6 +691,37 @@ const styles = {
   userTextContainer: {
     flex: 1,
     marginLeft: 16,
+  },
+  viewMyPersonalScreenButtonContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+    marginBottom: 15,
+  },
+  
+  viewMyPersonalScreenButton: {
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    backdropFilter: "blur(100px)",
+    borderWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+    boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
+    borderRadius: 35,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 4,
+    paddingHorizontal: 20,
+    paddingVertical: 5,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    marginTop: 20,
+  },
+  viewMyPersonalScreenButtonText: {
+    color: "white",
+    fontSize: 12,
+    fontWeight: "600",
   },
   userName: {
     color: "white",

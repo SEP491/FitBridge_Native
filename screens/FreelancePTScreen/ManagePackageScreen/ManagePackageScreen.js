@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
   statsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginBottom: 20,
+    marginBottom: 10,
     gap: 12,
     width: '100%',
   },
@@ -422,7 +422,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     zIndex: 10,
     elevation: 5,
-    marginBottom: 8,
+    marginBottom: 10,
   },
   addButton: {
     flexDirection: 'row',
@@ -431,7 +431,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ED2A46',
     borderRadius: 12,
     padding: 16,
-    width: '90%',
+    width: '100%',
   },
   addButtonText: {
     color: '#fff',

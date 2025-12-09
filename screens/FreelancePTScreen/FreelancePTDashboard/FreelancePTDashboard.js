@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   StyleSheet,
   ScrollView,
@@ -15,10 +15,14 @@ import QuickActions from "./QuickActions";
 import SummarySection from "./SummarySection";
 import UpcomingSessions from "./UpcomingSessions";
 import BestsellerPackages from "./BestsellerPackages";
+import dashBoardService from "../../../services/dashBoardService";
+import { useFocusEffect } from "@react-navigation/native";
 
 const FreelancePTDashboard = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [user, setUser] = useState(null);
+  const [availableBalance, setAvailableBalance] = useState(0);
+  const [pendingBalance, setPendingBalance] = useState(0);
 
   const quickActions = [
     {
@@ -44,6 +48,23 @@ const FreelancePTDashboard = ({ navigation }) => {
     },
   ];
 
+  useFocusEffect(
+    useCallback(() => {
+      fetchWalletData();
+    }, [])
+  );
+
+  const fetchWalletData = async () => {
+    try {
+      const response = await dashBoardService.getWalletBalance();
+      setAvailableBalance(response.data.totalAvailableBalance);
+      setPendingBalance(response.data.totalPendingBalance);
+    } catch (error) {
+      console.error("Error fetching wallet data:", error);
+      Alert.alert("Error", "Failed to fetch wallet data");
+    } 
+  };
+
   // Format currency to Vietnamese Dong
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("vi-VN").format(amount) + "₫";
@@ -53,7 +74,7 @@ const FreelancePTDashboard = ({ navigation }) => {
     {
       id: "availableBalance",
       label: "Số dư khả dụng",
-      value: formatCurrency(mockedDataDashboard[0]?.availableBalance || 0),
+      value: formatCurrency(availableBalance || 0),
       helper: "Có thể rút ngay",
       icon: "wallet",
       accent: "#FF914D",
@@ -62,7 +83,7 @@ const FreelancePTDashboard = ({ navigation }) => {
     {
       id: "pendingBalance",
       label: "Số dư chờ xử lý",
-      value: formatCurrency(mockedDataDashboard[0]?.pendingBalance || 0),
+      value: formatCurrency(pendingBalance || 0),
       helper: "Đang chờ thanh toán",
       icon: "timer-outline",
       accent: "#ED2A46",
