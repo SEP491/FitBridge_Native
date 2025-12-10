@@ -21,11 +21,9 @@ const SummarySection = ({
   summaryPerformanceStats,
   formatCurrency,
   renderRevenueComparison,
+  monthLyRevenue,
   onRefresh,
 }) => {
-  const monthLyRevenue = mockedDataDashboard[0]?.monthLyRevenue || {};
-  const sessionStatusReport = mockedDataDashboard[0]?.sessionStatusReport || {};
-
   const performanceStatRows = useMemo(
     () => chunkArray(summaryPerformanceStats, 2),
     [summaryPerformanceStats]
@@ -55,8 +53,8 @@ const SummarySection = ({
       {/* Row 3: Revenue & Session Status Chart */}
       <View style={styles.revenueChartRow}>
         <RevenueSummaryCard
-          totalRevenue={monthLyRevenue.totalRevenue || 0}
-          compareToLastMonth={monthLyRevenue.compareToLastMonth}
+          totalRevenue={monthLyRevenue?.totalRevenue || 0}
+          compareToLastMonth={monthLyRevenue?.compareWithLastMonth || null}
           formatCurrency={formatCurrency}
           renderRevenueComparison={renderRevenueComparison}
         />
