@@ -1177,7 +1177,13 @@
     "confirmHide": "Confirm Hide Package",
     "confirmHideMessage": "Are you sure you want to hide this package? The package will not be visible to customers after hiding.",
     "hide": "Hide",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "cannotChangeNumOfSessions": "Cannot be changed - package has active users",
+    "cannotDelete": "Cannot Delete Package",
+    "cannotDeleteMessage": "You cannot delete this package while customers are currently using it. Please wait until all customers have finished using this package.",
+    "deletePackage": "Delete Package",
+    "deletePackageMessage": "Are you sure you want to delete this package? This action cannot be undone.",
+    "delete": "Delete"
   },
 
   "languageSelect": {

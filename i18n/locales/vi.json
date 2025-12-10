@@ -1102,7 +1102,13 @@
     "confirmHide": "Xác Nhận Ẩn Gói Tập",
     "confirmHideMessage": "Bạn có chắc chắn muốn ẩn gói tập này? Gói tập sẽ không hiển thị cho khách hàng sau khi ẩn.",
     "hide": "Ẩn",
-    "cancel": "Hủy"
+    "cancel": "Hủy",
+    "cannotChangeNumOfSessions": "Không thể thay đổi - gói tập đang có khách hàng sử dụng",
+    "cannotDelete": "Không Thể Xóa Gói Tập",
+    "cannotDeleteMessage": "Bạn không thể xóa gói tập này khi đang có khách hàng sử dụng. Vui lòng đợi cho đến khi tất cả khách hàng hoàn thành việc sử dụng gói tập này.",
+    "deletePackage": "Xóa Gói Tập",
+    "deletePackageMessage": "Bạn có chắc chắn muốn xóa gói tập này? Hành động này không thể hoàn tác.",
+    "delete": "Xóa"
   },
 
   "languageSelect": {

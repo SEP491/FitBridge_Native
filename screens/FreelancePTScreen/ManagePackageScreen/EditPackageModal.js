@@ -13,7 +13,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   Linking,
-  Switch,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from '../../../hooks/useTranslation';
@@ -21,7 +20,7 @@ import freelancePTPackageService from '../../../services/freelancePTPackageServi
 import uploadImageService from '../../../services/uploadImageService';
 import * as ImagePicker from 'expo-image-picker';
 
-const EditPackageModal = ({ visible, onClose, packageData, onPackageUpdated }) => {
+const EditPackageModal = ({ visible, onClose, packageData, onPackageUpdated, disableNumOfSessions = false }) => {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -31,7 +30,6 @@ const EditPackageModal = ({ visible, onClose, packageData, onPackageUpdated }) =
     durationInDays: '',
     sessionDurationInMinutes: '',
     numOfSessions: '',
-    isDisplayed: true,
   });
   const [selectedImage, setSelectedImage] = useState(null); // Local URI for preview
   const [uploadedImageUrl, setUploadedImageUrl] = useState(null); // API URL after upload
@@ -48,9 +46,6 @@ const EditPackageModal = ({ visible, onClose, packageData, onPackageUpdated }) =
         durationInDays: packageData.durationInDays?.toString() || '',
         sessionDurationInMinutes: packageData.sessionDurationInMinutes?.toString() || '',
         numOfSessions: packageData.numOfSessions?.toString() || '',
-        isDisplayed: packageData.isDisplayed !== undefined 
-          ? (packageData.isDisplayed === true || packageData.isDisplayed === "true") 
-          : true,
       });
       if (packageData.imageUrl && packageData.imageUrl !== 'string') {
         setSelectedImage(packageData.imageUrl);
@@ -210,7 +205,8 @@ const EditPackageModal = ({ visible, onClose, packageData, onPackageUpdated }) =
           Alert.alert(t("managePackage.error"), "Session duration must be greater than 60 minutes");
           return false;
     }
-    if (!formData.numOfSessions || parseInt(formData.numOfSessions) <= 0) {
+    // Only validate numOfSessions if it's not disabled (no active users)
+    if (!disableNumOfSessions && (!formData.numOfSessions || parseInt(formData.numOfSessions) <= 0)) {
       Alert.alert(t("managePackage.error"), "Valid number of sessions is required");
       return false;
     }
@@ -226,16 +222,20 @@ const EditPackageModal = ({ visible, onClose, packageData, onPackageUpdated }) =
       // Use uploaded image URL or default
       const imageUrl = uploadedImageUrl || 'string';
       
+      // Build updatedData object, excluding numOfSessions if disabled
       const updatedData = {
         name: formData.name.trim(),
         description: formData.description.trim(),
         price: parseFloat(formData.price),
         durationInDays: parseInt(formData.durationInDays),
         sessionDurationInMinutes: parseInt(formData.sessionDurationInMinutes),
-        numOfSessions: parseInt(formData.numOfSessions),
         imageUrl: imageUrl,
-        isDisplayed: formData.isDisplayed,
       };
+      
+      // Only include numOfSessions if it's not disabled (no active users)
+      if (!disableNumOfSessions) {
+        updatedData.numOfSessions = parseInt(formData.numOfSessions);
+      }
 
       const response = await freelancePTPackageService.updateFreelancePTPackage(
         packageData.id,
@@ -273,16 +273,25 @@ const EditPackageModal = ({ visible, onClose, packageData, onPackageUpdated }) =
   };
 
   const handleDelete = () => {
+    // Check if package has active users
+    if (packageData?.currentUserPurchased > 0) {
+      Alert.alert(
+        t("managePackage.cannotDelete"),
+        t("managePackage.cannotDeleteMessage")
+      );
+      return;
+    }
+
     Alert.alert(
-      "Delete Package",
-      "Are you sure you want to delete this package? This action cannot be undone.",
+      t("managePackage.deletePackage"),
+      t("managePackage.deletePackageMessage"),
       [
         {
-          text: "Cancel",
+          text: t("managePackage.cancel"),
           style: "cancel"
         },
         {
-          text: "Delete",
+          text: t("managePackage.delete"),
           style: "destructive",
           onPress: async () => {
             try {
@@ -326,7 +335,6 @@ const EditPackageModal = ({ visible, onClose, packageData, onPackageUpdated }) =
       durationInDays: '',
       sessionDurationInMinutes: '',
       numOfSessions: '',
-      isDisplayed: true,
     });
     setSelectedImage(null);
     setUploadedImageUrl(null);
@@ -527,35 +535,20 @@ const EditPackageModal = ({ visible, onClose, packageData, onPackageUpdated }) =
                 {t("managePackage.numberOfSessions")} *
               </Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, disableNumOfSessions && styles.inputDisabled]}
                 value={formData.numOfSessions}
                 onChangeText={(value) => handleInputChange('numOfSessions', value)}
                 onFocus={() => scrollToInput('numOfSessions')}
                 placeholder="Enter number of sessions"
                 placeholderTextColor="#999"
                 keyboardType="numeric"
+                editable={!disableNumOfSessions}
               />
-            </View>
-
-            {/* Display Package Toggle */}
-            <View style={styles.inputGroup}>
-              <View style={styles.switchContainer}>
-                <View style={styles.switchLabelContainer}>
-                  <Ionicons name="eye-outline" size={20} color="#333" />
-                  <Text style={styles.switchLabel}>
-                    {t("managePackage.displayPackage") || "Display Package"}
-                  </Text>
-                </View>
-                <Switch
-                  value={formData.isDisplayed}
-                  onValueChange={(value) => handleInputChange('isDisplayed', value)}
-                  trackColor={{ false: '#e5e7eb', true: '#ED2A46' }}
-                  thumbColor={formData.isDisplayed ? '#fff' : '#f4f3f4'}
-                />
-              </View>
-              <Text style={styles.switchHelperText}>
-                {t("managePackage.displayPackageHelper") || "When enabled, this package will be visible to customers"}
-              </Text>
+              {disableNumOfSessions && (
+                <Text style={styles.disabledNote}>
+                  {t("managePackage.cannotChangeNumOfSessions")}
+                </Text>
+              )}
             </View>
           </ScrollView>
 
@@ -739,28 +732,16 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#fff',
   },
-  switchContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 8,
+  inputDisabled: {
+    backgroundColor: '#f3f4f6',
+    color: '#999',
+    opacity: 0.6,
   },
-  switchLabelContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    flex: 1,
-  },
-  switchLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
-  },
-  switchHelperText: {
+  disabledNote: {
     fontSize: 12,
-    color: '#666',
-    marginTop: 4,
-    marginLeft: 28,
+    color: '#FF9800',
+    marginTop: 6,
+    fontStyle: 'italic',
   },
 });
 

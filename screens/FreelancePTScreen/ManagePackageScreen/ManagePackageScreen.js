@@ -86,6 +86,7 @@ const ManagePackageScreen = ({ navigation }) => {
       setRefreshing(false);
     }
   };
+  console.log(packages);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -102,26 +103,8 @@ const ManagePackageScreen = ({ navigation }) => {
 
   const handleEditPackage = async (packageId) => {
     try {
-      // First check if package has active users from the list
-      const packageItem = packages.find(pkg => pkg.id === packageId);
-      if (packageItem && packageItem.currentUserPurchased > 0) {
-        Alert.alert(
-          t("managePackage.cannotEdit"),
-          t("managePackage.cannotEditMessage")
-        );
-        return;
-      }
-
       const response = await freelancePTPackageService.getFreelancePTPackageById(packageId);
       if (response.status === "200" && response.data) {
-        // Double check from API response
-        if (response.data.currentUserPurchased > 0) {
-          Alert.alert(
-            t("managePackage.cannotEdit"),
-            t("managePackage.cannotEditMessage")
-          );
-          return;
-        }
         setSelectedPackage(response.data);
         setShowEditModal(true);
       }
@@ -204,7 +187,7 @@ const ManagePackageScreen = ({ navigation }) => {
       </View>
     );
   }
-
+console.log(selectedPackage);
   return (
     <View style={styles.container}>
       {/* Header Stats - 3x2 Grid */}
@@ -321,7 +304,9 @@ const ManagePackageScreen = ({ navigation }) => {
         }}
         packageData={selectedPackage}
         onPackageUpdated={handlePackageUpdated}
+        disableNumOfSessions={selectedPackage?.currentUserPurchased > 0}
       />
+
     </View>
   );
 };
