@@ -24,7 +24,7 @@ import BookingRequestCard from "../../../components/BookingRequestCard";
 
 export default function ScheduleFreelanceScreen({ route }) {
   const { t } = useTranslation();
-  const { customerPurchasedId, ptId } = route.params;
+  const { customerPurchasedId, duration } = route.params;
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -132,9 +132,9 @@ export default function ScheduleFreelanceScreen({ route }) {
     const minutes = time.getMinutes().toString().padStart(2, "0");
     setStartTime(`${hours}:${minutes}`);
 
-    // Auto-set end time to 1 hour after selected start time
+    // Auto-set end time based on duration (minutes)
     const endDateTime = new Date(time);
-    endDateTime.setHours(endDateTime.getHours() + 1);
+    endDateTime.setMinutes(endDateTime.getMinutes() + duration);
     const endHours = endDateTime.getHours().toString().padStart(2, "0");
     const endMinutes = endDateTime.getMinutes().toString().padStart(2, "0");
     setEndTime(`${endHours}:${endMinutes}`);
@@ -170,8 +170,13 @@ export default function ScheduleFreelanceScreen({ route }) {
     const endMinutes = endHour * 60 + endMin;
     const diffMinutes = endMinutes - startMinutes;
 
-    if (diffMinutes < 60) {
-      Alert.alert(t("common.error"), t("bookingRequest.endTimeMinimum"));
+    if (diffMinutes < duration) {
+      Alert.alert(
+        t("common.error"),
+        t("bookingRequest.endTimeMinimumDynamic", {
+          minutes: duration,
+        })
+      );
       return false;
     }
 

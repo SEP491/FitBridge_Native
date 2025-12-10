@@ -14,7 +14,7 @@ const accountService = {
   changePassword: (data) =>
     request("PUT", "v1/identities/update-password", data),
   getCourseForUser: () =>
-    request("GET", "v1/customer-purchased/customer-schedule"),
+    request("GET", "v1/customer-purchased/customer-package"),
   getPTSlotforUser: (params) =>
     request("GET", `v1/bookings/get-gym-slot-for-booking`, null, {}, params),
   bookingSlot: (data) =>

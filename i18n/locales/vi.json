@@ -389,7 +389,8 @@
     "save": "Lưu",
     "pause": "Tạm Dừng",
     "resume": "Tiếp Tục",
-    "finish": "Kết Thúc"
+    "finish": "Kết Thúc",
+    "kg": "kg"
   },
 
   "cart": {
@@ -507,7 +508,7 @@
     "ptMaxCourse": "Số học viên tối đa có thể đăng ký",
     "ptMaxCoursePlaceholder": "Nhập số học viên tối đa đồng thời có thể đăng ký",
     "ptCurrentCourse": "Số học viên hiện tại",
-    "currentImages": "Hình ảnh để giới thiệu công việc của bạn"
+    "currentImages": "Hình ảnh hiện tại- "
   },
 
   "ptProfile": {
@@ -615,6 +616,7 @@
     "continueShopping": "Tiếp tục mua sắm",
     "validation": "Xác thực",
     "actions": "Hành động",
+    "useThisAddress": "Dùng địa chỉ này",
     "confirmDelete": "Bạn có chắc chắn muốn xóa đánh giá này?",
     "deleteReviewSuccess": "Xóa đánh giá thành công",
     "deleteReviewError": "Không thể xóa đánh giá",
@@ -1359,7 +1361,8 @@
     "sessions": "buổi",
     "yearsExperience": "năm kinh nghiệm",
     "male": "Nam",
-    "female": "Nữ"
+    "female": "Nữ",
+    "coursesFound": "khóa học"
   },
 
   "freelanceCourseScreen": {
@@ -2037,6 +2040,7 @@
     "pastTimeError": "Không thể chọn thời gian trong quá khứ",
     "selectStartTimeFirst": "Vui lòng chọn giờ bắt đầu trước",
     "endTimeMinimum": "Giờ kết thúc phải ít nhất 1 giờ sau giờ bắt đầu",
+    "endTimeMinimumDynamic": "Giờ kết thúc phải ít nhất {{minutes}} phút sau giờ bắt đầu",
     "loadSlotsError": "Tải yêu cầu thất bại",
     "noRequestsYet": "Bạn chưa có yêu cầu đặt lịch nào",
     "selectStartEndTime": "Vui lòng chọn cả giờ bắt đầu và giờ kết thúc",

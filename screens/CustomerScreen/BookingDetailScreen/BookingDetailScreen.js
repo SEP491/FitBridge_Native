@@ -87,7 +87,7 @@ export default function BookingDetailScreen({ route, navigation }) {
   const [activityType, setActivityType] = useState("WarmUp");
   const [activitySetType, setActivitySetType] = useState("Reps");
   const [activityName, setActivityName] = useState("");
-  const [selectedMuscles, setSelectedMuscles] = useState([]);
+  const [selectedMuscles, setSelectedMuscles] = useState(null);
   const [activitySets, setActivitySets] = useState([
     {
       plannedNumOfReps: "",
@@ -155,11 +155,8 @@ export default function BookingDetailScreen({ route, navigation }) {
   };
 
   const toggleMuscleGroup = (muscleId) => {
-    setSelectedMuscles((prev) =>
-      prev.includes(muscleId)
-        ? prev.filter((id) => id !== muscleId)
-        : [...prev, muscleId]
-    );
+    // Only allow a single muscle selection; tapping again clears it
+    setSelectedMuscles((prev) => (prev === muscleId ? null : muscleId));
   };
 
   const addSet = () => {
@@ -190,7 +187,7 @@ export default function BookingDetailScreen({ route, navigation }) {
     setActivityType("WarmUp");
     setActivitySetType("Reps");
     setActivityName("");
-    setSelectedMuscles([]);
+    setSelectedMuscles(null);
     setActivitySets([
       {
         plannedNumOfReps: "",
@@ -210,7 +207,7 @@ export default function BookingDetailScreen({ route, navigation }) {
       );
       return;
     }
-    if (selectedMuscles.length === 0) {
+    if (!selectedMuscles) {
       Alert.alert(
         t("bookingDetail.error"),
         t("bookingDetail.selectAtLeastOneMuscleGroup")
@@ -245,7 +242,7 @@ export default function BookingDetailScreen({ route, navigation }) {
         activityType: activityType,
         activitySetType: activitySetType,
         activityName: activityName.trim(),
-        muscleGroups: selectedMuscles,
+        muscleGroup: selectedMuscles,
         activitySets: validSets.map((set) => ({
           plannedNumOfReps:
             activitySetType === "Reps"
@@ -510,7 +507,7 @@ export default function BookingDetailScreen({ route, navigation }) {
                       key={muscle.id}
                       style={[
                         styles.muscleCardSelectable,
-                        selectedMuscles.includes(muscle.id) &&
+                        selectedMuscles === muscle.id &&
                           styles.muscleCardSelected,
                       ]}
                       onPress={() => toggleMuscleGroup(muscle.id)}

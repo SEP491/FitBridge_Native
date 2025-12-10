@@ -87,7 +87,7 @@ const SessionBookingCard = ({
 
   const isActionDisabled =
     sessionStatus?.toLowerCase() === "cancelled" ||
-    sessionStatus?.toLowerCase() === "completed" ||
+    sessionStatus?.toLowerCase() === "finished" ||
     isJoiningMeeting;
 
   // Compute Date for start time (today's booking date + startTime)
@@ -180,7 +180,9 @@ const SessionBookingCard = ({
       );
     } else if (meetingErrorMessage) {
       // Session time reached but we previously failed to create/find meeting
-      console.log("Session time reached but we previously failed to create/find meeting");
+      console.log(
+        "Session time reached but we previously failed to create/find meeting"
+      );
       setIsMeetingButtonEnabled(false);
     } else {
       setIsMeetingButtonEnabled(true);
@@ -200,7 +202,9 @@ const SessionBookingCard = ({
     if (!booking?.bookingId) {
       Alert.alert(
         t ? t("errors.error") : "Error",
-        t ? t("videoCallPrep.meetingInitError") : "Unable to prepare the call. Please try again."
+        t
+          ? t("videoCallPrep.meetingInitError")
+          : "Unable to prepare the call. Please try again."
       );
       return;
     }

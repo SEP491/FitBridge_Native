@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -21,6 +21,11 @@ import accountService from "../../../services/accountService";
 import { useTranslation } from "../../../hooks/useTranslation";
 import { formatNumber, formatDate, formatDateForAPI } from "../../../lib";
 import { useUser } from "../../../context/UserContext";
+import {
+  GOOGLE_MAPS_CONFIG,
+  buildAutocompleteUrl,
+  buildPlaceDetailsUrl,
+} from "../../../config/googleMaps";
 
 const FreelancePTMyProfile = () => {
   const { t } = useTranslation();
@@ -49,6 +54,8 @@ const FreelancePTMyProfile = () => {
     freelancePtImages: [],
     imagesToAdd: [],
     imagesToRemove: [],
+    longitude: 0,
+    latitude: 0,
   });
 
   const [isEditMode, setIsEditMode] = useState(false);
@@ -58,6 +65,10 @@ const FreelancePTMyProfile = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [displayDate, setDisplayDate] = useState("");
   const [displayIdentityDate, setDisplayIdentityDate] = useState("");
+  const [addressPredictions, setAddressPredictions] = useState([]);
+  const [showAddressPredictions, setShowAddressPredictions] = useState(false);
+  const addressSearchTimeout = useRef(null);
+  const isSelectingAddress = useRef(false);
 
   const formatDisplayDate = (dateString) => {
     if (!dateString) return "";
@@ -120,6 +131,14 @@ const FreelancePTMyProfile = () => {
       setDisplayIdentityDate(formatDisplayDate(userProfile.identityCardDate));
     }
   }, [userProfile.identityCardDate]);
+
+  useEffect(() => {
+    return () => {
+      if (addressSearchTimeout.current) {
+        clearTimeout(addressSearchTimeout.current);
+      }
+    };
+  }, []);
 
   const openDatePicker = () => {
     if (isEditMode) {
@@ -197,6 +216,94 @@ const FreelancePTMyProfile = () => {
       name,
       type,
     });
+  };
+
+  const fetchBusinessAddressPredictions = async (input) => {
+    if (!input || input.length < 3) {
+      setAddressPredictions([]);
+      setShowAddressPredictions(false);
+      return;
+    }
+
+    try {
+      const url = buildAutocompleteUrl(
+        input,
+        GOOGLE_MAPS_CONFIG.DEFAULT_LANGUAGE,
+        GOOGLE_MAPS_CONFIG.DEFAULT_COUNTRY
+      );
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (data.status === "OK" && data.predictions?.length) {
+        setAddressPredictions(data.predictions);
+        setShowAddressPredictions(true);
+      } else {
+        setAddressPredictions([]);
+        setShowAddressPredictions(false);
+      }
+    } catch (error) {
+      console.error("Error fetching business address predictions:", error);
+      setAddressPredictions([]);
+      setShowAddressPredictions(false);
+    }
+  };
+
+  const handleBusinessAddressChange = (text) => {
+    setUserProfile((prev) => ({ ...prev, businessAddress: text }));
+
+    if (!isEditMode) return;
+
+    if (addressSearchTimeout.current) {
+      clearTimeout(addressSearchTimeout.current);
+    }
+
+    if (text.length < 3) {
+      setAddressPredictions([]);
+      setShowAddressPredictions(false);
+      return;
+    }
+
+    addressSearchTimeout.current = setTimeout(() => {
+      fetchBusinessAddressPredictions(text);
+    }, GOOGLE_MAPS_CONFIG.SEARCH_DEBOUNCE_MS);
+  };
+
+  const handleSelectBusinessAddress = async (prediction) => {
+    try {
+      isSelectingAddress.current = true;
+      setShowAddressPredictions(false);
+      const url = buildPlaceDetailsUrl(prediction.place_id);
+      const response = await fetch(url);
+      const data = await response.json();
+
+      const formattedAddress =
+        data?.result?.formatted_address || prediction.description;
+      const longitude = data?.result?.geometry?.location?.lng;
+      const latitude = data?.result?.geometry?.location?.lat;
+      console.log("Longitude:", longitude);
+      console.log("Latitude:", latitude);
+      console.log("Formatted address:", formattedAddress);
+      console.log("Prediction:", prediction);
+      console.log("Data:", data);
+      setUserProfile((prev) => ({
+        ...prev,
+        businessAddress: formattedAddress,
+        longitude: longitude,
+        latitude: latitude,
+      }));
+    } catch (error) {
+      console.error("Error selecting business address:", error);
+      setUserProfile((prev) => ({
+        ...prev,
+        businessAddress: prediction.description,
+        longitude: 0,
+        latitude: 0,
+      }));
+    } finally {
+      setTimeout(() => {
+        isSelectingAddress.current = false;
+      }, 150);
+    }
   };
 
   const genderOptions = [
@@ -358,6 +465,8 @@ const FreelancePTMyProfile = () => {
       formData.append("height", parseFloat(userProfile.height) || 0);
       formData.append("bio", userProfile.bio || "");
       formData.append("businessAddress", userProfile.businessAddress || "");
+      formData.append("longitude", userProfile.longitude || 0);
+      formData.append("latitude", userProfile.latitude || 0);
       formData.append("citizenIdNumber", userProfile.citizenIdNumber || "");
       formData.append("identityCardPlace", userProfile.identityCardPlace || "");
       formData.append(
@@ -996,21 +1105,81 @@ const FreelancePTMyProfile = () => {
                 />{" "}
                 {t("profile.businessAddress")}
               </Text>
-              <TextInput
-                style={[
-                  styles.textInput,
-                  !isEditMode && styles.disabledInput,
-                  { minHeight: 60 },
-                ]}
-                value={userProfile.businessAddress}
-                editable={isEditMode}
-                onChangeText={(text) =>
-                  setUserProfile({ ...userProfile, businessAddress: text })
-                }
-                placeholder={t("profile.businessAddress")}
-                multiline
-                numberOfLines={2}
-              />
+              <View style={styles.autocompleteWrapper}>
+                <TextInput
+                  style={[
+                    styles.textInput,
+                    !isEditMode && styles.disabledInput,
+                    { minHeight: 60 },
+                  ]}
+                  value={userProfile.businessAddress}
+                  editable={isEditMode}
+                  onChangeText={handleBusinessAddressChange}
+                  onFocus={() => {
+                    if (addressPredictions.length > 0) {
+                      setShowAddressPredictions(true);
+                    }
+                  }}
+                  placeholder={t("profile.businessAddress")}
+                  multiline
+                  numberOfLines={2}
+                />
+                {isEditMode &&
+                  showAddressPredictions &&
+                  addressPredictions.length > 0 && (
+                    <View style={styles.addressSuggestionContainer}>
+                      <TouchableOpacity
+                        style={styles.addressSuggestionClose}
+                        onPress={() => setShowAddressPredictions(false)}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                      >
+                        <Text style={styles.addressSuggestionCloseText}>
+                          {t("common.close")}
+                        </Text>
+                      </TouchableOpacity>
+                      <ScrollView
+                        keyboardShouldPersistTaps="handled"
+                        style={styles.addressSuggestionScroll}
+                      >
+                        {addressPredictions.map((prediction) => (
+                          <TouchableOpacity
+                            key={prediction.place_id}
+                            style={styles.addressSuggestionItem}
+                            onPress={() =>
+                              handleSelectBusinessAddress(prediction)
+                            }
+                          >
+                            <Text style={styles.addressSuggestionPrimary}>
+                              {prediction.structured_formatting?.main_text ||
+                                prediction.description}
+                            </Text>
+                            {prediction.structured_formatting
+                              ?.secondary_text ? (
+                              <Text style={styles.addressSuggestionSecondary}>
+                                {
+                                  prediction.structured_formatting
+                                    .secondary_text
+                                }
+                              </Text>
+                            ) : null}
+                          </TouchableOpacity>
+                        ))}
+                        <TouchableOpacity
+                          style={styles.addressSuggestionItem}
+                          onPress={() => setShowAddressPredictions(false)}
+                        >
+                          <Text style={styles.addressSuggestionPrimary}>
+                            {t("common.useThisAddress")}
+                          </Text>
+                          <Text style={styles.addressSuggestionSecondary}>
+                            {userProfile.businessAddress ||
+                              t("profile.businessAddress")}
+                          </Text>
+                        </TouchableOpacity>
+                      </ScrollView>
+                    </View>
+                  )}
+              </View>
             </View>
 
             {/* Citizen ID Images */}
@@ -1386,6 +1555,48 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#333",
     backgroundColor: "#fff",
+  },
+
+  addressSuggestionContainer: {
+    marginTop: 6,
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+    borderRadius: 12,
+    backgroundColor: "#fff",
+    maxHeight: 220,
+    overflow: "hidden",
+    zIndex: 10,
+    elevation: 5,
+  },
+  addressSuggestionScroll: {
+    maxHeight: 200,
+  },
+  addressSuggestionClose: {
+    alignItems: "flex-end",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  addressSuggestionCloseText: {
+    color: "#FF914D",
+    fontWeight: "600",
+  },
+  addressSuggestionItem: {
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  addressSuggestionPrimary: {
+    fontSize: 15,
+    color: "#333",
+    fontWeight: "600",
+  },
+  addressSuggestionSecondary: {
+    fontSize: 13,
+    color: "#666",
+    marginTop: 2,
   },
   dateInput: {
     flexDirection: "row",

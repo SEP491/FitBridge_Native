@@ -41,7 +41,7 @@ export default function FreelancePTRequestScreen({ route }) {
   const [showStartTimePicker, setShowStartTimePicker] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userRole, setUserRole] = useState(null);
-  const { customerPurchasedId } = route.params;
+  const { customerPurchasedId, duration } = route.params;
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -130,9 +130,9 @@ export default function FreelancePTRequestScreen({ route }) {
     const minutes = time.getMinutes().toString().padStart(2, "0");
     setStartTime(`${hours}:${minutes}`);
 
-    // Auto-set end time to 1 hour after selected start time
+    // Auto-set end time based on duration (minutes)
     const endDateTime = new Date(time);
-    endDateTime.setHours(endDateTime.getHours() + 1);
+    endDateTime.setMinutes(endDateTime.getMinutes() + Number(duration || 45));
     const endHours = endDateTime.getHours().toString().padStart(2, "0");
     const endMinutes = endDateTime.getMinutes().toString().padStart(2, "0");
     setEndTime(`${endHours}:${endMinutes}`);
@@ -168,8 +168,13 @@ export default function FreelancePTRequestScreen({ route }) {
     const endMinutes = endHour * 60 + endMin;
     const diffMinutes = endMinutes - startMinutes;
 
-    if (diffMinutes < 60) {
-      Alert.alert(t("common.error"), t("bookingRequest.endTimeMinimum"));
+    if (diffMinutes < Number(duration || 60)) {
+      Alert.alert(
+        t("common.error"),
+        t("bookingRequest.endTimeMinimumDynamic", {
+          minutes: Number(duration || 60),
+        })
+      );
       return false;
     }
 

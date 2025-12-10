@@ -141,6 +141,7 @@ export default function FreelanceChoosingCourseScreen() {
                   navigation.navigate("FreelancePTRequestScreen", {
                     customerPurchasedId: purchase.id,
                     customerId: purchase.customerId,
+                    duration: purchase.sessionDurationInMinutes,
                   });
                 }}
               />

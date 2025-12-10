@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   TextInput,
   SafeAreaView,
+  RefreshControl,
 } from "react-native";
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
@@ -21,6 +22,7 @@ export default function ChoosingCourseScreen() {
   const [searchText, setSearchText] = useState("");
   const [courseList, setCourseList] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const navigation = useNavigation();
 
   const loadCourseForUser = async () => {
@@ -29,8 +31,64 @@ export default function ChoosingCourseScreen() {
       const response = await accountService.getCourseForUser();
       console.log("Course Data:", response.data);
 
-      if (response.data && response.data.items) {
-        setCourseList(response.data.items);
+      if (response.data) {
+        const now = new Date();
+        const today = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate()
+        );
+
+        const mapFreelancePackage = (item) => ({
+          id: item.id,
+          customerPurchasedId: item.id,
+          name: item.packageName,
+          availableSessions: item.availableSessions,
+          expirationDate: item.expirationDate,
+          sessionDurationInMinutes: item.sessionDurationInMinutes,
+          packageType: "FreelancePTPackage",
+          price: 0,
+          pt: item.ptId
+            ? {
+                id: item.ptId,
+                fullName: item.ptName,
+                avatarUrl: item.ptImageUrl,
+              }
+            : null,
+        });
+
+        const mapGymCourse = (item) => ({
+          id: item.id,
+          customerPurchasedId: item.id,
+          name: item.packageName,
+          availableSessions: item.availableSessions,
+          expirationDate: item.expirationDate,
+          packageType: "GymCourse",
+          price: item.ptAssignmentPrice || 0,
+          canAssignPT: item.canAssignPT,
+          gymCourseId: item.gymCourseId,
+          pt: item.ptId
+            ? {
+                id: item.ptId,
+                fullName: item.ptName,
+                avatarUrl: item.ptImageUrl,
+              }
+            : null,
+        });
+
+        const freelanceItems =
+          response.data.freelancePtPackage?.items?.map(mapFreelancePackage) ||
+          [];
+        const gymCourseItems =
+          response.data.gymCourse?.items?.map(mapGymCourse) || [];
+
+        const merged = [...freelanceItems, ...gymCourseItems].filter((item) => {
+          const expiration = new Date(item.expirationDate);
+          if (Number.isNaN(expiration.getTime())) return false;
+          return expiration >= today;
+        });
+
+        setCourseList(merged);
       }
     } catch (error) {
       console.error("Error loading courses:", error);
@@ -45,17 +103,22 @@ export default function ChoosingCourseScreen() {
     }, [])
   );
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadCourseForUser();
+    setRefreshing(false);
+  };
+
   const filteredCourses = courseList.filter(
     (item) =>
       item.name.toLowerCase().includes(searchText.toLowerCase()) ||
-      (item.gymPt &&
-        item.gymPt.fullName.toLowerCase().includes(searchText.toLowerCase()))
+      (item.pt &&
+        item.pt.fullName.toLowerCase().includes(searchText.toLowerCase()))
   );
 
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
       <Ionicons name="school-outline" size={64} color="#ccc" />
-      <Text style={styles.emptyTitle}>{t("courseScreen.noCourseFound")}</Text>
       <Text style={styles.emptySubtitle}>
         {searchText
           ? t("courseScreen.tryDifferentKeyword")
@@ -97,6 +160,14 @@ export default function ChoosingCourseScreen() {
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={[colors.orange]}
+              tintColor={colors.orange}
+            />
+          }
         >
           {loading ? (
             <View style={styles.loadingContainer}>
@@ -113,7 +184,7 @@ export default function ChoosingCourseScreen() {
                   if (course.packageType === "FreelancePTPackage") {
                     navigation.navigate("ScheduleFreelanceScreen", {
                       customerPurchasedId: course.customerPurchasedId,
-                      ptId: course.pt?.id,
+                      duration: course.sessionDurationInMinutes,
                     });
                   } else {
                     navigation.navigate("ScheduleScreen", {

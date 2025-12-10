@@ -575,52 +575,50 @@ export default function TrainingActivityScreen({ route, navigation }) {
         </View>
 
         {/* Control Buttons */}
-        {userRole === "Customer" && (
-          <View style={styles.controlsContainer}>
-            {!isWorkoutActive && !isResting ? (
-              <TouchableOpacity
-                style={[
-                  styles.actionButton,
-                  currentSet.isCompleted && styles.actionButtonDisabled,
-                ]}
-                onPress={startSet}
-                disabled={currentSet.isCompleted}
-              >
-                <Text style={styles.actionButtonText}>
-                  {currentSet.isCompleted
-                    ? t("trainingActivity.completedStatus")
-                    : t("trainingActivity.start")}
-                </Text>
-              </TouchableOpacity>
-            ) : isResting ? (
-              <TouchableOpacity style={styles.saveButton} onPress={saveChanges}>
-                <Text style={styles.saveButtonText}>
-                  {t("trainingActivity.save")}
-                </Text>
-              </TouchableOpacity>
-            ) : (
-              <>
-                {isTimeMode && (
-                  <TouchableOpacity
-                    style={styles.pauseButton}
-                    onPress={toggleTimer}
-                  >
-                    <Text style={styles.pauseButtonText}>
-                      {isTimerRunning
-                        ? t("trainingActivity.pause")
-                        : t("trainingActivity.resume")}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-                <TouchableOpacity style={styles.endButton} onPress={endSet}>
-                  <Text style={styles.endButtonText}>
-                    {t("trainingActivity.finish")}
+        <View style={styles.controlsContainer}>
+          {!isWorkoutActive && !isResting ? (
+            <TouchableOpacity
+              style={[
+                styles.actionButton,
+                currentSet.isCompleted && styles.actionButtonDisabled,
+              ]}
+              onPress={startSet}
+              disabled={currentSet.isCompleted}
+            >
+              <Text style={styles.actionButtonText}>
+                {currentSet.isCompleted
+                  ? t("trainingActivity.completedStatus")
+                  : t("trainingActivity.start")}
+              </Text>
+            </TouchableOpacity>
+          ) : isResting ? (
+            <TouchableOpacity style={styles.saveButton} onPress={saveChanges}>
+              <Text style={styles.saveButtonText}>
+                {t("trainingActivity.save")}
+              </Text>
+            </TouchableOpacity>
+          ) : (
+            <>
+              {isTimeMode && (
+                <TouchableOpacity
+                  style={styles.pauseButton}
+                  onPress={toggleTimer}
+                >
+                  <Text style={styles.pauseButtonText}>
+                    {isTimerRunning
+                      ? t("trainingActivity.pause")
+                      : t("trainingActivity.resume")}
                   </Text>
                 </TouchableOpacity>
-              </>
-            )}
-          </View>
-        )}
+              )}
+              <TouchableOpacity style={styles.endButton} onPress={endSet}>
+                <Text style={styles.endButtonText}>
+                  {t("trainingActivity.finish")}
+                </Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
       </ScrollView>
     </View>
   );

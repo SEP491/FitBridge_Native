@@ -42,42 +42,57 @@ const CourseCard = ({ course, onPress }) => {
           {/* Course Header */}
           <View style={styles.courseHeader}>
             <View style={styles.courseInfo}>
-              <Text style={styles.courseTitle} numberOfLines={1}>
-                {course.name}
-              </Text>
-              <Text style={styles.courseType}>
-                {course.packageType === "FreelancePTPackage"
-                  ? t("courseScreen.courseWithPTFreelance")
-                  : t("courseScreen.courseWithPT")}
-              </Text>
-              <Text style={styles.priceText}>{formatPrice(course.price)}</Text>
-            </View>
-
-            {/* Course Details */}
-            <View style={styles.courseDetails}>
-              <View style={styles.detailItem}>
-                <MaterialIcons
-                  name="event"
-                  size={14}
-                  color="rgba(255,255,255,0.9)"
-                />
-                <Text style={styles.detailValue}>
-                  {course.availableSessions}
+              <View style={styles.titleRow}>
+                <Text style={styles.courseTitle} numberOfLines={1}>
+                  {course.name}
                 </Text>
-                <Text style={styles.detailLabel}>
-                  {t("courseScreen.sessions")}
-                </Text>
+                <View style={styles.sessionsRow}>
+                  <MaterialIcons
+                    name="event"
+                    size={14}
+                    color="rgba(255,255,255,0.9)"
+                  />
+                  <Text style={styles.detailValue}>
+                    {course.availableSessions}
+                  </Text>
+                  <Text style={styles.detailLabel}>
+                    {t("courseScreen.sessions")}
+                  </Text>
+                </View>
               </View>
 
-              <View style={styles.detailItem}>
-                <MaterialIcons
-                  name="schedule"
-                  size={14}
-                  color="rgba(255,255,255,0.9)"
-                />
-                <Text style={styles.detailValue}>
-                  {formatDate(course.expirationDate)}
+              {course.price ? (
+                <Text style={styles.priceText}>
+                  {formatPrice(course.price)}
                 </Text>
+              ) : null}
+
+              <View style={styles.metaRow}>
+                <View
+                  style={[
+                    styles.badge,
+                    course.packageType === "FreelancePTPackage"
+                      ? styles.badgeFreelance
+                      : styles.badgeGym,
+                  ]}
+                >
+                  <Text style={styles.badgeText}>
+                    {course.packageType === "FreelancePTPackage"
+                      ? t("courseScreen.courseWithPTFreelance")
+                      : t("courseScreen.courseWithPT")}
+                  </Text>
+                </View>
+
+                <View style={styles.expireInfo}>
+                  <MaterialIcons
+                    name="schedule"
+                    size={14}
+                    color="rgba(255,255,255,0.9)"
+                  />
+                  <Text style={styles.detailValue}>
+                    {formatDate(course.expirationDate)}
+                  </Text>
+                </View>
               </View>
             </View>
           </View>
@@ -153,14 +168,17 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   courseHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
     marginBottom: 12,
   },
   courseInfo: {
     flex: 1,
     marginRight: 12,
+  },
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
   },
   courseTitle: {
     fontSize: 16,
@@ -168,22 +186,40 @@ const styles = StyleSheet.create({
     color: colors.white,
     marginBottom: 2,
   },
-  courseType: {
-    fontSize: 12,
-    color: "rgba(255,255,255,0.8)",
-    fontWeight: "500",
-    marginBottom: 4,
+  sessionsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  badge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  badgeFreelance: {
+    backgroundColor: "rgba(255,255,255,0.18)",
+  },
+  badgeGym: {
+    backgroundColor: "rgba(0,0,0,0.15)",
+  },
+  badgeText: {
+    color: colors.white,
+    fontSize: 10,
+    fontWeight: "700",
   },
   priceText: {
     color: colors.white,
     fontSize: 14,
     fontWeight: "600",
   },
-  courseDetails: {
-    alignItems: "flex-end",
-    gap: 4,
+  metaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+    marginTop: 6,
   },
-  detailItem: {
+  expireInfo: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
