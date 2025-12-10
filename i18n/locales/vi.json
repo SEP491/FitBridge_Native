@@ -785,7 +785,8 @@
     "testVideoCall": "Test cuộc gọi video",
     "testVideoCallAlertTitle": "Đã bắt đầu cuộc gọi thử nghiệm",
     "testVideoCallAlertMessage": "FloatingVideoCall đã xuất hiện. Bạn có thể thu nhỏ hoặc phóng to.",
-    "viewMyPersonalScreen": "Xem trang cá nhân của tôi"
+    "viewMyPersonalScreen": "Xem trang cá nhân của tôi",
+    "certificateManagement": "Quản lý chứng chỉ"
   },
   "videoCallPrep": {
     "sessionDetails": "Chi tiết buổi gọi",
@@ -2340,5 +2341,49 @@
     "signed": "Đã ký",
     "unsigned": "Chưa ký",
     "signatureCreated": "Đã tạo chữ ký"
+  },
+
+  "certificate": {
+    "title": "Chứng chỉ",
+    "noCertificates": "Chưa có chứng chỉ",
+    "noCertificatesDesc": "Thêm chứng chỉ chuyên nghiệp đầu tiên của bạn để bắt đầu",
+    "noCertificateTypes": "Không tìm thấy loại chứng chỉ",
+    "loadingCertificates": "Đang tải chứng chỉ...",
+    "loadingCertificateTypes": "Đang tải loại chứng chỉ...",
+    "addCertificate": "Thêm chứng chỉ",
+    "selectCertificateType": "Chọn loại chứng chỉ",
+    "certificateType": "Loại chứng chỉ",
+    "selectCertificateTypePlaceholder": "Chọn loại chứng chỉ",
+    "providedDate": "Ngày cấp",
+    "selectProvidedDate": "Chọn ngày cấp",
+    "expirationDate": "Ngày hết hạn",
+    "selectExpirationDate": "Chọn ngày hết hạn",
+    "certificateImage": "Ảnh chứng chỉ",
+    "gallery": "Thư viện",
+    "camera": "Máy ảnh",
+    "saveCertificate": "Lưu chứng chỉ",
+    "code": "Mã",
+    "type": "Loại",
+    "specializations": "Chuyên môn",
+    "provided": "NGÀY CẤP",
+    "expires": "HẾT HẠN",
+    "permissionRequired": "Cần cấp quyền",
+    "permissionMessage": "Vui lòng cho phép truy cập để tiếp tục.",
+    "missingInfo": "Thiếu thông tin",
+    "missingInfoMessage": "Vui lòng chọn loại chứng chỉ.",
+    "missingDate": "Thiếu ngày tháng",
+    "missingDateMessage": "Vui lòng nhập ngày cấp và ngày hết hạn.",
+    "missingImage": "Thiếu ảnh",
+    "missingImageMessage": "Vui lòng đính kèm ảnh chứng chỉ.",
+    "success": "Thành công",
+    "createSuccess": "Tạo chứng chỉ thành công.",
+    "error": "Lỗi",
+    "createError": "Không thể tạo chứng chỉ, vui lòng thử lại.",
+    "status": {
+      "waitingForReview": "Chờ duyệt",
+      "rejected": "Bị từ chối",
+      "active": "Đang hoạt động",
+      "expired": "Đã hết hạn"
+    }
   }
 }
