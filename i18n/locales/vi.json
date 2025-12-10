@@ -243,6 +243,8 @@
     "trainerList": "Danh Sách PT",
     "packages": "Gói Tập Luyện",
     "description": "Mô tả",
+    "equipment": "Thiết Bị",
+    "quantity": "SL",
     "location": "Vị trí",
     "viewFullMap": "Nhấn để xem bản đồ đầy đủ",
     "commentsReviews": "Bình Luận & Nhận Xét",

@@ -231,6 +231,8 @@
     "trainerList": "Trainer List",
     "packages": "Packages",
     "description": "Description",
+    "equipment": "Equipment",
+    "quantity": "Qty",
     "location": "Location",
     "viewFullMap": "Tap to view full map",
     "commentsReviews": "Comments & Reviews",

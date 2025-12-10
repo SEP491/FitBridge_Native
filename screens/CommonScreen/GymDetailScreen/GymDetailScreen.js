@@ -363,6 +363,91 @@ export default function GymDetailScreen({ route }) {
               </Text>
             </View>
 
+            {/* Gym Assets/Equipment Section */}
+            {gymDetail?.gymAssets && gymDetail.gymAssets.length > 0 && (
+              <View style={styles.sectionContainer}>
+                <View style={styles.sectionHeader}>
+                  <MaterialIcons
+                    name="fitness-center"
+                    size={20}
+                    color="#ED2A46"
+                  />
+                  <Text style={styles.sectionTitle}>
+                    {t("gymDetail.equipment") || "Equipment"}
+                  </Text>
+                  <View style={styles.equipmentCountBadge}>
+                    <Text style={styles.equipmentCountText}>
+                      {gymDetail.gymAssets.length}
+                    </Text>
+                  </View>
+                </View>
+
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.assetsScrollContainer}
+                >
+                  {gymDetail.gymAssets.map((asset) => (
+                    <View key={asset.id} style={styles.assetCard}>
+                      <Image
+                        source={{
+                          uri:
+                            asset.imageUrls &&
+                            asset.imageUrls.length > 0 &&
+                            !asset.imageUrls[0].includes("placeholder")
+                              ? asset.imageUrls[0]
+                              : "https://cdn-icons-png.flaticon.com/512/2548/2548530.png",
+                        }}
+                        style={styles.assetImage}
+                        resizeMode="cover"
+                      />
+                      <View style={styles.assetInfo}>
+                        <Text style={styles.assetName} numberOfLines={2}>
+                          {asset.assetName}
+                        </Text>
+                        <View style={styles.assetCategoryBadge}>
+                          <Text style={styles.assetCategoryText}>
+                            {asset.equipmentCategory}
+                          </Text>
+                        </View>
+                        <View style={styles.assetQuantityRow}>
+                          <Ionicons
+                            name="layers-outline"
+                            size={14}
+                            color="#666"
+                          />
+                          <Text style={styles.assetQuantity}>
+                            {t("gymDetail.quantity") || "Qty"}: {asset.quantity}
+                          </Text>
+                        </View>
+                        {asset.targetMuscularGroups &&
+                          asset.targetMuscularGroups.length > 0 && (
+                            <View style={styles.muscleGroupsContainer}>
+                              {asset.targetMuscularGroups
+                                .slice(0, 3)
+                                .map((muscle, index) => (
+                                  <View key={index} style={styles.muscleTag}>
+                                    <Text style={styles.muscleTagText}>
+                                      {muscle}
+                                    </Text>
+                                  </View>
+                                ))}
+                              {asset.targetMuscularGroups.length > 3 && (
+                                <View style={styles.muscleTagMore}>
+                                  <Text style={styles.muscleTagMoreText}>
+                                    +{asset.targetMuscularGroups.length - 3}
+                                  </Text>
+                                </View>
+                              )}
+                            </View>
+                          )}
+                      </View>
+                    </View>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
             {/* Enhanced Map Section */}
             <View style={styles.sectionContainer}>
               <View style={styles.sectionHeader}>
@@ -788,6 +873,114 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 22,
     color: "#666",
+  },
+
+  // Gym Assets/Equipment Styles
+  assetsScrollContainer: {
+    paddingRight: 16,
+    gap: 12,
+  },
+
+  assetCard: {
+    width: 160,
+    backgroundColor: "#F8F9FA",
+    borderRadius: 16,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+
+  assetImage: {
+    width: "100%",
+    height: 100,
+    backgroundColor: "#E0E0E0",
+  },
+
+  assetInfo: {
+    padding: 12,
+  },
+
+  assetName: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#1a1a1a",
+    marginBottom: 6,
+    minHeight: 36,
+  },
+
+  assetCategoryBadge: {
+    backgroundColor: "#ED2A46",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    alignSelf: "flex-start",
+    marginBottom: 8,
+  },
+
+  assetCategoryText: {
+    fontSize: 10,
+    color: "#FFF",
+    fontWeight: "600",
+  },
+
+  assetQuantityRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginBottom: 8,
+  },
+
+  assetQuantity: {
+    fontSize: 12,
+    color: "#666",
+  },
+
+  muscleGroupsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 4,
+  },
+
+  muscleTag: {
+    backgroundColor: "#E8F5E9",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+
+  muscleTagText: {
+    fontSize: 9,
+    color: "#388E3C",
+    fontWeight: "500",
+  },
+
+  muscleTagMore: {
+    backgroundColor: "#FFF3E0",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+
+  muscleTagMoreText: {
+    fontSize: 9,
+    color: "#F57C00",
+    fontWeight: "500",
+  },
+
+  equipmentCountBadge: {
+    backgroundColor: "#ED2A46",
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    marginLeft: 8,
+  },
+
+  equipmentCountText: {
+    color: "#FFF",
+    fontSize: 12,
+    fontWeight: "bold",
   },
 
   // Map Styles
