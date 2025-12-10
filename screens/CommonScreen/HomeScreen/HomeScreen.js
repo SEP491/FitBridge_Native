@@ -1,5 +1,5 @@
 import { View, StyleSheet, ScrollView, RefreshControl } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "../../../hooks/useTranslation";
 import { useLocationContext } from "../../../context/LocationContext";
 import { fetchUserFromStorage } from "../../../lib/async/asyncUtils";
@@ -13,6 +13,7 @@ import FreelancePTPackagesSection from "./FreelancePTPackagesSection";
 import FeaturedGymsSection from "./FeaturedGymsSection";
 import NearbyGymsSection from "./NearbyGymsSection";
 import BlogSection from "./BlogSection";
+import { useFocusEffect } from "@react-navigation/native";
 
 export default function HomeScreen() {
   const [user, setUser] = useState(null);
@@ -33,6 +34,7 @@ export default function HomeScreen() {
     }
   };
 
+
   const onRefresh = async () => {
     setRefreshing(true);
     try {
@@ -47,10 +49,11 @@ export default function HomeScreen() {
     }
   };
 
-  useEffect(() => {
+useFocusEffect(
+  useCallback(() => {
     loadUserData();
-  }, []);
-
+  }, [])
+);
   return (
     <View style={styles.container}>
       <HeaderHome 

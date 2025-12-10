@@ -28,7 +28,6 @@ export default function HeaderHome({ user, showFullScreenSearch, setShowFullScre
   const { location, coordinates, hasLocation } = useLocationContext();
   const [weather, setWeather] = useState({});
   const [coords, setCoords] = useState(null);
-
   const fetchWeather = async () => {
     setLoading(true);
     try {
@@ -232,7 +231,7 @@ export default function HeaderHome({ user, showFullScreenSearch, setShowFullScre
 
 const styles = StyleSheet.create({
   gradientContainer: {
-    paddingTop: 50,
+    paddingTop: 64,
     paddingBottom: 20,
   },
   overlay: {
@@ -246,7 +245,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 25,
+    marginBottom: 10,
   },
   welcomeText: {
     flex: 1,
@@ -269,16 +268,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#FFFFFF",
     opacity: 0.9,
-    fontWeight: "500",
+    fontWeight: "800",
   },
   statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    position: "absolute",
+    bottom: 0,
+    left: 30,
+    width: 10,
+    height: 10,
+    borderRadius: 20,
     backgroundColor: "#4AFF4A",
-    marginLeft: 8,
     shadowColor: "#4AFF4A",
     shadowOpacity: 0.8,
+    borderWidth: 0.7,
+    borderColor: "white",
     shadowRadius: 4,
     elevation: 3,
   },

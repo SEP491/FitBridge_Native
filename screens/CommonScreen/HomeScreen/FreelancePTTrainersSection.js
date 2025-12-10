@@ -68,7 +68,7 @@ export default function FreelancePTTrainersSection({ refreshTrigger, setShowFull
           renderItem={renderFreelancePTProfileCard}
           showsPagination={true}
           itemsPerSlide={2}
-          height={270}
+          height={300}
           loop={freelancePT.length > 2}
           dotStyle={styles.paginationDot}
           activeDotStyle={styles.activePaginationDot}

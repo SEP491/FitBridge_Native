@@ -98,7 +98,7 @@ export default function CartScreen() {
     };
 
     cart.forEach((item) => {
-      if (item.gymId && !item.selectedVariant) {
+      if (item.gymName && !item.selectedVariant) {
         counts.gym++;
       } else if (item.pt && item.type === "WithPt") {
         counts.freelance++;
@@ -203,11 +203,11 @@ export default function CartScreen() {
           t("cart.gymCourses") || "Gym Courses",
           tabCounts.gym
         )}
-        {renderTabButton(
+        {/* {renderTabButton(
           "freelance",
           t("cart.freelancePTCourses") || "Freelance PT Courses",
           tabCounts.freelance
-        )}
+        )} */}
         {renderTabButton(
           "product",
           t("cart.products") || "Products ",

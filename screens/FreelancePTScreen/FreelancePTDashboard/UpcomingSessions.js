@@ -1,19 +1,29 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/Ionicons";
-import { mockedDataDashboard } from "./mockedDataDashboard";
 
 const UpcomingSessionCard = ({ session }) => {
   if (!session) return null;
 
   const statusConfig = {
     completed: { label: "Hoàn thành", color: "#4CAF50" },
+    finished: { label: "Hoàn thành", color: "#4CAF50" },
     cancelled: { label: "Đã hủy", color: "#F44336" },
+    canceled: { label: "Đã hủy", color: "#F44336" },
     default: { label: "Sắp diễn ra", color: "#2196F3" },
   };
 
-  const config = statusConfig[session.sessionStatus] || statusConfig.default;
+  const config =
+    statusConfig[session.sessionStatus?.toLowerCase?.()] ||
+    statusConfig[session.sessionStatus] ||
+    statusConfig.default;
+
+  const formatTime = (timeString) => {
+    if (!timeString) return "00:00";
+    const parts = timeString.split(":");
+    return `${parts[0]}:${parts[1]}`;
+  };
 
   return (
     <LinearGradient
@@ -30,7 +40,7 @@ const UpcomingSessionCard = ({ session }) => {
         <View style={styles.sessionInfo}>
           <Text style={styles.sessionName}>{session.customerName}</Text>
           <Text style={styles.sessionTime}>
-            {session.startTime} - {session.endTime}
+            {formatTime(session.startTime)} - {formatTime(session.endTime)}
           </Text>
         </View>
       </View>
@@ -44,7 +54,7 @@ const UpcomingSessionCard = ({ session }) => {
   );
 };
 
-const UpcomingSessions = () => {
+const UpcomingSessions = ({ sessions = [], loading = false }) => {
   return (
     <View style={styles.upcomingSection}>
       <View style={styles.sectionHeader}>
@@ -54,8 +64,13 @@ const UpcomingSessions = () => {
           <Icon name="arrow-forward" size={16} color="#ED2A46" />
         </TouchableOpacity>
       </View>
-      {mockedDataDashboard[0]?.upcomingSchedule?.length ? (
-        mockedDataDashboard[0].upcomingSchedule.map((session) => (
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="small" color="#ED2A46" />
+          <Text style={styles.loadingText}>Đang tải...</Text>
+        </View>
+      ) : sessions.length ? (
+        sessions.map((session) => (
           <UpcomingSessionCard session={session} key={session.bookingId} />
         ))
       ) : (
@@ -139,6 +154,15 @@ const styles = StyleSheet.create({
   sessionStatusText: {
     fontSize: 12,
     fontWeight: "700",
+  },
+  loadingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  loadingText: {
+    fontSize: 13,
+    color: "#777",
   },
   emptyStateText: {
     fontSize: 13,

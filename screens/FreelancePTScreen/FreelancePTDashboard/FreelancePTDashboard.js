@@ -7,7 +7,7 @@ import {
   Text,
   Dimensions,
 } from "react-native";
-import { fetchUserFromStorage } from "../../../lib";
+import { fetchUserFromStorage, formatDateForAPI } from "../../../lib";
 import { mockedDataDashboard } from "./mockedDataDashboard";
 import Icon from "react-native-vector-icons/Ionicons";
 import DashboardHeader from "./DashboardHeader";
@@ -17,12 +17,15 @@ import UpcomingSessions from "./UpcomingSessions";
 import BestsellerPackages from "./BestsellerPackages";
 import dashBoardService from "../../../services/dashBoardService";
 import { useFocusEffect } from "@react-navigation/native";
+import accountService from "../../../services/accountService";
 
 const FreelancePTDashboard = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [user, setUser] = useState(null);
   const [availableBalance, setAvailableBalance] = useState(0);
   const [pendingBalance, setPendingBalance] = useState(0);
+  const [todaySessions, setTodaySessions] = useState([]);
+  const [loadingSessions, setLoadingSessions] = useState(false);
 
   const quickActions = [
     {
@@ -51,6 +54,7 @@ const FreelancePTDashboard = ({ navigation }) => {
   useFocusEffect(
     useCallback(() => {
       fetchWalletData();
+      loadTodaySessions();
     }, [])
   );
 
@@ -63,6 +67,21 @@ const FreelancePTDashboard = ({ navigation }) => {
       console.error("Error fetching wallet data:", error);
       Alert.alert("Error", "Failed to fetch wallet data");
     } 
+  };
+
+  const loadTodaySessions = async () => {
+    try {
+      setLoadingSessions(true);
+      const response = await accountService.getBookingForPT({
+        date: formatDateForAPI(new Date()),
+      });
+      setTodaySessions(response.data.items || []);
+    } catch (error) {
+      console.error("Error loading today's sessions:", error);
+      setTodaySessions([]);
+    } finally {
+      setLoadingSessions(false);
+    }
   };
 
   // Format currency to Vietnamese Dong
@@ -156,9 +175,9 @@ const FreelancePTDashboard = ({ navigation }) => {
 
   const onRefresh = () => {
     setRefreshing(true);
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 1000);
+    Promise.all([fetchWalletData(), loadTodaySessions()]).finally(() =>
+      setRefreshing(false)
+    );
   };
 
   // Render Revenue Comparison Info
@@ -259,7 +278,7 @@ const FreelancePTDashboard = ({ navigation }) => {
           onRefresh={onRefresh}
         />
 
-        <UpcomingSessions />
+        <UpcomingSessions sessions={todaySessions} loading={loadingSessions} />
 
         <BestsellerPackages
           formatCurrency={formatCurrency}

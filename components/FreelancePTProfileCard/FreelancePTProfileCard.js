@@ -165,6 +165,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     marginBottom: 16,
+    height: 280,
   },
   fullWidthCard: {
     width: "100%",

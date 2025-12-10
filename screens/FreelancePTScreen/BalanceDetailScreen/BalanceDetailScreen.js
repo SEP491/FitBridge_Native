@@ -118,7 +118,7 @@ const BalanceDetailScreen = () => {
   };
 
   const getTransactionDate = (item) => {
-    return item.actualDistributionDate || item.createdAt || item.transactionDate;
+    return item.actualDistributionDate || item.createdAt || item.transactionDate || item.withdrawDate;
   };
 
   const groupTransactionsByDate = (transactions) => {
@@ -253,15 +253,11 @@ const BalanceDetailScreen = () => {
             {item.description && (
               <Text style={styles.courseName}>{item.description}</Text>
             )}
-            {item.withdrawalRequestId && (
-              <Text style={styles.withdrawalRequest}>
-                Request: {item.withdrawalRequestId.substring(0, 12).toUpperCase()}
-              </Text>
-            )}
+
           </View> 
           <View style={styles.amountContainer}>
             <Text style={[styles.amount, { color }]}>
-              {isWithdraw ? "-" : "+"}{formatPrice(amount)}
+              {isWithdraw ? " " : "+"} {formatPrice(amount)}
             </Text>
             {item.balance !== undefined && (
               <Text style={styles.balanceText}>

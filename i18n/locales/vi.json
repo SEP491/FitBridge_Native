@@ -867,7 +867,9 @@
     "amountInThousands": "Số tiền tính bằng nghìn (VND)",
     "filterByType": "Lọc theo loại",
     "resolved": "Đã giải quyết",
-    "rejected": "Đã từ chối"
+    "rejected": "Đã từ chối",
+    "adminApproved": "Đã được thanh toán ",
+    "adminRejected": "Đã bị từ chối"
   },
 
   "transactionType": {
@@ -944,7 +946,14 @@
     "requestSuccess": "Gửi yêu cầu rút tiền thành công",
     "requestFailed": "Gửi yêu cầu rút tiền thất bại",
     "reason": "Lý do",
-    "hasProof": "Đã đính kèm minh chứng"
+    "hasProof": "Đã đính kèm minh chứng",
+    "amountTooLow": "Số tiền tối thiểu là 50.000 VND.",
+    "amountTooHigh": "Số tiền tối đa được rút là 20.000.000 VND.",
+    "confirmPaymentSuccess": "Xác nhận đã nhận tiền thành công",
+    "confirmPaymentFailed": "Xác nhận đã nhận tiền thất bại",
+    "confirmPayment": "Xác nhận đã nhận tiền",
+    "exceedBalance": "Số dư khả dụng không đủ",
+    "exceedBalanceMessage": "Số dư khả dụng không đủ để rút tiền. Vui lòng nhập số tiền ít hơn."
   },
 
   "voucher": {
@@ -1887,7 +1896,7 @@
   },
 
   "muscleGroups": {
-    "biceps": "Cơ Nhị Đầu",
+    "biceps": "Cơ Tay Trước",
     "foreArm": "Cẳng Tay",
     "thigh": "Đùi",
     "calf": "Bắp Chân",
@@ -1896,7 +1905,7 @@
     "hip": "Hông",
     "shoulder": "Vai",
     "weight": "Cân Nặng",
-    "triceps": "Cơ Tam Đầu",
+    "triceps": "Cơ Tay Sau",
     "back": "Lưng",
     "glutes": "Cơ Mông",
     "fullBody": "Toàn Thân"

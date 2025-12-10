@@ -13,6 +13,7 @@ import { useTranslation } from "../../../hooks/useTranslation";
 import orderService from "../../../services/orderService";
 import OrderManagementCard from "../../../components/OrderManagementCard/OrderManagementCard";
 import { ProductCardSkeletonList } from "../../../components/ProductCard/ProductCardSkeleton";
+import { fetchUserFromStorage } from "../../../lib";
 
 export default function ProductReviewsTab() {
   const { t } = useTranslation();
@@ -24,7 +25,16 @@ export default function ProductReviewsTab() {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchProductReviews = async (pageNum = 1, append = false) => {
+  const [user, setUser] = useState(null);
+  useEffect(() => {
+    const fetchUser = async () => {
+      const userData = await fetchUserFromStorage();
+      setUser(userData);
+    };
+    fetchUser();
+  }, []);
+
+  const fetchProductReviews = async (pageNum = 1, append = false, userId = null) => {
     try {
       if (!append) {
         setLoading(true);
@@ -34,11 +44,12 @@ export default function ProductReviewsTab() {
       const summaryResponse = await orderService.getProductOrder({
         doApplyPaging: false,
         sortOrder: "dsc",
+        customerId: userId,
       });
 
       const allOrders = summaryResponse.data?.productOrders?.items || [];
       let filtered = allOrders.filter(
-        (order) => order.currentStatus === "Finished"
+        (order) => order.currentStatus === "Finished" && order.customerId === userId
       );
       filtered = filtered.filter((order) =>
         order.orderItems.some((item) => !item.isFeedback)
@@ -65,25 +76,22 @@ export default function ProductReviewsTab() {
     }
   };
 
-  useEffect(() => {
-    fetchProductReviews();
-  }, []);
 
   useFocusEffect(
     useCallback(() => {
-      fetchProductReviews(1, false);
+      fetchProductReviews(1, false, user?.id);
     }, [])
   );
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchProductReviews(1, false);
+    await fetchProductReviews(1, false, user?.id);
     setRefreshing(false);
   };
 
   const loadMore = () => {
     if (productPage < productTotalPages && !productLoading) {
-      fetchProductReviews(productPage + 1, true);
+      fetchProductReviews(productPage + 1, true, user?.id);
     }
   };
 
