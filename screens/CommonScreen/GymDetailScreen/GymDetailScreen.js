@@ -189,6 +189,7 @@ export default function GymDetailScreen({ route }) {
     //   ]);
     //   return;
     // } else {
+    console.log("Gym Detail:", gymDetail);
     const gymPackage = {
       gymId: gymDetail.id,
       gymName: gymDetail.gymName,

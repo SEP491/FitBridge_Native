@@ -161,14 +161,7 @@ const ManagePackageScreen = ({ navigation }) => {
     try {
       // Prepare request body with default values and only change isDisplayed
       const updateData = {
-        name: "string",
-        price: 0,
-        durationInDays: 0,
-        sessionDurationInMinutes: 0,
-        numOfSessions: 0,
-        description: "string",
         isDisplayed: newIsDisplayed,
-        imageUrl: "string"
       };
 
       const response = await freelancePTPackageService.updateFreelancePTPackage(

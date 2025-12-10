@@ -339,9 +339,11 @@ export default function UserMenuScreen() {
             
           </Animated.View>
           <View style={styles.viewMyPersonalScreenButtonContainer}>
+          {user && user.role === "FreelancePT" && (
           <TouchableOpacity style={styles.viewMyPersonalScreenButton} onPress={() => navigation.navigate("PTProfileScreen", { ptId: user?.id })}>
                 <Text style={styles.viewMyPersonalScreenButtonText}>{t("userMenu.viewMyPersonalScreen")}</Text>
             </TouchableOpacity>
+          )}
           </View>
         </LinearGradient>
 
@@ -652,14 +654,14 @@ export default function UserMenuScreen() {
 
 const styles = {
   container: {
-    marginTop: 50,
     flex: 1,
     backgroundColor: "#F8F9FA",
   },
   headerGradient: {
-    paddingTop: 20,
-    borderBottomLeftRadius: 25,
-    borderBottomRightRadius: 25,
+    paddingTop: 64,
+    paddingBottom: 10,
+    borderBottomLeftRadius: 35,
+    borderBottomRightRadius: 35,
   },
   userInfo: {
     flexDirection: "row",

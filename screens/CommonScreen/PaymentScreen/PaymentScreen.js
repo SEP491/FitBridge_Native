@@ -466,6 +466,7 @@ export default function PaymentScreen({ navigation, route }) {
 
         {/* Payment Method Section */}
         <PaymentMethodSection
+          hasProducts={hasProducts}
           selectedMethod={selectedPaymentMethod}
           onSelectMethod={setSelectedPaymentMethod}
         />

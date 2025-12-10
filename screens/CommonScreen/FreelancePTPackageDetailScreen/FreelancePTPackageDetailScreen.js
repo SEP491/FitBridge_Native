@@ -650,7 +650,6 @@ export default function FreelancePTPackageDetailScreen() {
                   </Text>
                 ) : (
                   <>
-                    <Ionicons name="flash" size={20} color="#FFF" />
                     <Text style={styles.buyNowText}>
                       {t("freelancePT.buyNow") || "BUY NOW"}
                     </Text>

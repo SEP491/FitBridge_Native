@@ -340,6 +340,7 @@ const SessionBookingCard = ({
         </View>
 
         {/* Meeting Button Section */}
+        {sessionStatus?.toLowerCase() != "finished" && 
         <TouchableOpacity
           style={[
             styles.meetingButton,
@@ -410,6 +411,7 @@ const SessionBookingCard = ({
               : "Join Meeting Online"}
           </Text>
         </TouchableOpacity>
+      }
 
         {/* View Detail Button - Always visible */}
         {!booking.ptGymSlotId && viewDetailAction && (

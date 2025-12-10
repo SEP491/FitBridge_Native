@@ -940,7 +940,9 @@
     "amountInThousands": "Amount in thousands (VND)",
     "filterByType": "Filter by Type",
     "resolved": "Resolved",
-    "rejected": "Rejected"
+    "rejected": "Rejected",
+    "adminApproved": "Admin Approved",
+    "adminRejected": "Admin Rejected"
   },
 
   "transactionType": {
@@ -1018,7 +1020,14 @@
     "requestSuccess": "Withdrawal request submitted successfully",
     "requestFailed": "Failed to submit withdrawal request",
     "reason": "Reason",
-    "hasProof": "Proof attached"
+    "hasProof": "Proof attached",
+    "amountTooLow": "The minimum withdrawal amount is 50,000 VND.",
+    "amountTooHigh": "The maximum withdrawal amount is 20,000,000 VND.",
+    "confirmPaymentSuccess": "Confirm payment successful",
+    "confirmPaymentFailed": "Confirm payment failed",
+    "confirmPayment": "Confirm payment",
+    "exceedBalance": "Insufficient balance",
+    "exceedBalanceMessage": "Insufficient balance to withdraw. Please enter a smaller amount."
   },
 
   "voucher": {

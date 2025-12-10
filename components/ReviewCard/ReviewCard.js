@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import reviewService from "../../services/reviewService";
+import { fetchUserFromStorage } from "../../lib";
 
 const ReviewCard = ({
   review,
@@ -33,6 +34,14 @@ const ReviewCard = ({
   const [editImages, setEditImages] = useState(review.imageUrls || []);
   const [editImageFiles, setEditImageFiles] = useState([]); // New image files to upload
   const [isLoading, setIsLoading] = useState(false);
+  const [user, setUser] = useState(null);
+  useEffect(() => {
+    const fetchUser = async () => {
+      const userData = await fetchUserFromStorage();
+      setUser(userData);
+    };
+    fetchUser();
+  }, []);
 
   const formatReviewDate = (dateString) => {
     const date = new Date(dateString);
@@ -393,12 +402,14 @@ const ReviewCard = ({
             </View>
           </View>
             <View style={styles.actionsContainer}>
+              {user?.id === review.userId && (
               <TouchableOpacity
                 onPress={handleEditReview}
                 style={styles.editButton}
               >
                 <Ionicons name="create-outline" size={20} color="#666" />
               </TouchableOpacity>
+              )}
             </View>
         </View>
 

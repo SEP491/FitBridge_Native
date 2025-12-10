@@ -4,9 +4,12 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useTranslation } from "../../../../hooks/useTranslation";
 
 export default function PaymentMethodSection({
+  hasProducts,
   selectedMethod,
   onSelectMethod,
 }) {
+
+  console.log("hasProducts:", hasProducts);
   const { t } = useTranslation();
 
   return (
@@ -30,6 +33,7 @@ export default function PaymentMethodSection({
           )}
         </TouchableOpacity>
 
+        {hasProducts === true && (
         <TouchableOpacity
           style={styles.paymentOption}
           onPress={() => onSelectMethod("cod")}
@@ -40,8 +44,9 @@ export default function PaymentMethodSection({
           </View>
           {selectedMethod === "cod" && (
             <MaterialIcons name="check-circle" size={24} color="#ED2A46" />
-          )}
-        </TouchableOpacity>
+            )}
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
