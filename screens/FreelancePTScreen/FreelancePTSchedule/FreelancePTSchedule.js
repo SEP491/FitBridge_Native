@@ -16,7 +16,7 @@ import { useTranslation } from "../../../hooks/useTranslation";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import colors from "../../../constants/color";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import SessionBookingCard from "../../../components/SessionBookingCard/SessionBookingCard_New";
+import SessionBookingCard from "../../../components/SessionBookingCard/SessionBookingCard";
 import WeekCalendar from "../../../components/WeekCalendar/WeekCalendar";
 import accountService from "../../../services/accountService";
 import { fetchUserFromStorage, formatDateForAPI } from "../../../lib";
@@ -85,12 +85,12 @@ export default function FreelancePTSchedule() {
     loadBookingOfFreelancePT(date);
   };
 
-useFocusEffect(
-  useCallback(() => {
-    setLoading(true);
-    loadBookingOfFreelancePT();
-  }, [])
-);
+  useFocusEffect(
+    useCallback(() => {
+      setLoading(true);
+      loadBookingOfFreelancePT();
+    }, [])
+  );
 
   // Debug: Log picker state changes
   useEffect(() => {
