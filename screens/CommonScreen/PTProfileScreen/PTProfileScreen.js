@@ -41,6 +41,7 @@ const PTProfileScreen = ({ route, navigation }) => {
   const [purchasedPackage, setPurchasedPackage] = useState(null);
   const [certificateModalVisible, setCertificateModalVisible] = useState(false);
   const [selectedCertificateUrl, setSelectedCertificateUrl] = useState(null);
+  const [expandedCertificates, setExpandedCertificates] = useState(new Set());
 
   console.log("PT Data:", pt);
 
@@ -105,6 +106,17 @@ const PTProfileScreen = ({ route, navigation }) => {
     });
 
     return Array.from(specializationsSet).sort();
+  };
+
+  // Toggle certificate accordion
+  const toggleCertificate = (certId) => {
+    const newExpanded = new Set(expandedCertificates);
+    if (newExpanded.has(certId)) {
+      newExpanded.delete(certId);
+    } else {
+      newExpanded.add(certId);
+    }
+    setExpandedCertificates(newExpanded);
   };
 
   // Body measurements data structure
@@ -498,16 +510,22 @@ const PTProfileScreen = ({ route, navigation }) => {
                     pt.freelancePt.certifications.map((cert, index) => {
                       const certMetadata = cert.certificateMetadata;
                       const isActive = cert.certificateStatus === "Active";
+                      const certId = cert.id || `cert-${index}`;
+                      const isExpanded = expandedCertificates.has(certId);
                       
                       return (
                         <View
-                          key={cert.id || index}
+                          key={certId}
                           style={[
                             styles.certificationCard,
                             !isActive && styles.certificationCardInactive,
                           ]}
                         >
-                          <View style={styles.certificationHeader}>
+                          <TouchableOpacity
+                            style={styles.certificationHeader}
+                            onPress={() => toggleCertificate(certId)}
+                            activeOpacity={0.7}
+                          >
                             <View style={styles.certificationHeaderLeft}>
                               <View style={styles.certificationIconContainer}>
                                 <Ionicons
@@ -525,108 +543,114 @@ const PTProfileScreen = ({ route, navigation }) => {
                                 </Text>
                               </View>
                             </View>
-                            {isActive && (
-                              <View style={styles.certificationStatusBadge}>
-                                <Text style={styles.certificationStatusText}>
-                                  {cert.certificateStatus}
-                                </Text>
-                              </View>
-                            )}
-                          </View>
+                            <View style={styles.certificationHeaderRight}>
 
-                          {certMetadata?.certCode && (
-                            <View style={styles.certificationCodeContainer}>
-                              <Text style={styles.certificationCodeLabel}>
-                                {t("freelancePT.certificateModal.code")}
-                              </Text>
-                              <Text style={styles.certificationCode}>
-                                {certMetadata.certCode}
-                              </Text>
-                            </View>
-                          )}
-
-                          {certMetadata?.certificateType && (
-                            <View style={styles.certificationTypeContainer}>
                               <Ionicons
-                                name="globe-outline"
-                                size={14}
+                                name={isExpanded ? "chevron-up" : "chevron-down"}
+                                size={20}
                                 color="#666"
+                                style={styles.certificationChevron}
                               />
-                              <Text style={styles.certificationType}>
-                                {certMetadata.certificateType}
-                              </Text>
                             </View>
-                          )}
+                          </TouchableOpacity>
 
-                          {certMetadata?.description && (
-                            <Text style={styles.certificationDescription}>
-                              {certMetadata.description}
-                            </Text>
-                          )}
+                          {isExpanded && (
+                            <View style={styles.certificationContent}>
+                              {certMetadata?.certCode && (
+                                <View style={styles.certificationCodeContainer}>
+                                  <Text style={styles.certificationCodeLabel}>
+                                    {t("freelancePT.certificateModal.code")}
+                                  </Text>
+                                  <Text style={styles.certificationCode}>
+                                    {certMetadata.certCode}
+                                  </Text>
+                                </View>
+                              )}
 
-                          {certMetadata?.specializations &&
-                            certMetadata.specializations.length > 0 && (
-                              <View style={styles.certificationSpecializations}>
-                                {certMetadata.specializations.map(
-                                  (spec, specIndex) => (
-                                    <View
-                                      key={specIndex}
-                                      style={styles.specializationTag}
-                                    >
-                                      <Text style={styles.specializationTagText}>
-                                        {spec}
-                                      </Text>
-                                    </View>
-                                  )
+                              {certMetadata?.certificateType && (
+                                <View style={styles.certificationTypeContainer}>
+                                  <Ionicons
+                                    name="globe-outline"
+                                    size={14}
+                                    color="#666"
+                                  />
+                                  <Text style={styles.certificationType}>
+                                    {certMetadata.certificateType}
+                                  </Text>
+                                </View>
+                              )}
+
+                              {certMetadata?.description && (
+                                <Text style={styles.certificationDescription}>
+                                  {certMetadata.description}
+                                </Text>
+                              )}
+
+                              {certMetadata?.specializations &&
+                                certMetadata.specializations.length > 0 && (
+                                  <View style={styles.certificationSpecializations}>
+                                    {certMetadata.specializations.map(
+                                      (spec, specIndex) => (
+                                        <View
+                                          key={specIndex}
+                                          style={styles.specializationTag}
+                                        >
+                                          <Text style={styles.specializationTagText}>
+                                            {spec}
+                                          </Text>
+                                        </View>
+                                      )
+                                    )}
+                                  </View>
+                                )}
+
+                              <View style={styles.certificationDates}>
+                                {cert.providedDate && (
+                                  <View style={styles.certificationDateItem}>
+                                    <Ionicons
+                                      name="calendar-outline"
+                                      size={12}
+                                      color="#666"
+                                    />
+                                    <Text style={styles.certificationDateText}>
+                                      {t("freelancePT.certificateModal.issued")} {cert.providedDate}
+                                    </Text>
+                                  </View>
+                                )}
+                                {cert.expirationDate && (
+                                  <View style={styles.certificationDateItem}>
+                                    <Ionicons
+                                      name="time-outline"
+                                      size={12}
+                                      color="#666"
+                                    />
+                                    <Text style={styles.certificationDateText}>
+                                      {t("freelancePT.certificateModal.expires")} {cert.expirationDate}
+                                    </Text>
+                                  </View>
                                 )}
                               </View>
-                            )}
 
-                          <View style={styles.certificationDates}>
-                            {cert.providedDate && (
-                              <View style={styles.certificationDateItem}>
-                                <Ionicons
-                                  name="calendar-outline"
-                                  size={12}
-                                  color="#666"
-                                />
-                                <Text style={styles.certificationDateText}>
-                                  {t("freelancePT.certificateModal.issued")} {cert.providedDate}
-                                </Text>
-                              </View>
-                            )}
-                            {cert.expirationDate && (
-                              <View style={styles.certificationDateItem}>
-                                <Ionicons
-                                  name="time-outline"
-                                  size={12}
-                                  color="#666"
-                                />
-                                <Text style={styles.certificationDateText}>
-                                  {t("freelancePT.certificateModal.expires")} {cert.expirationDate}
-                                </Text>
-                              </View>
-                            )}
-                          </View>
-
-                          {cert.certUrl && (
-                            <TouchableOpacity
-                              style={styles.certificationViewLink}
-                              onPress={() => {
-                                setSelectedCertificateUrl(cert.certUrl);
-                                setCertificateModalVisible(true);
-                              }}
-                              activeOpacity={0.7}
-                            >
-                              <Ionicons
-                                name="open-outline"
-                                size={14}
-                                color="#FF914D"
-                              />
-                              <Text style={styles.certificationViewLinkText}>
-                                {t("freelancePT.certificateModal.viewCertificate")}
-                              </Text>
-                            </TouchableOpacity>
+                              {cert.certUrl && (
+                                <TouchableOpacity
+                                  style={styles.certificationViewLink}
+                                  onPress={() => {
+                                    setSelectedCertificateUrl(cert.certUrl);
+                                    setCertificateModalVisible(true);
+                                  }}
+                                  activeOpacity={0.7}
+                                >
+                                  <Ionicons
+                                    name="open-outline"
+                                    size={14}
+                                    color="#FF914D"
+                                  />
+                                  <Text style={styles.certificationViewLinkText}>
+                                    {t("freelancePT.certificateModal.viewCertificate")}
+                                  </Text>
+                                </TouchableOpacity>
+                              )}
+                            </View>
                           )}
                         </View>
                       );
@@ -1016,7 +1040,8 @@ const styles = StyleSheet.create({
   statCard: {
     backgroundColor: "#fff",
     borderRadius: 16,
-    paddingHorizontal:20,
+    paddingHorizontal:15,
+    paddingVertical: 20,
     alignItems: "center",
     flex: 1,
     marginHorizontal: 4,
@@ -1134,7 +1159,6 @@ const styles = StyleSheet.create({
   },
   certificationsContainer: {
     gap: 12,
-    marginTop: 4,
   },
   certificationCard: {
     backgroundColor: "#fff",
@@ -1142,7 +1166,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: "#FF914D",
-    marginBottom: 8,
+
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -1156,12 +1180,25 @@ const styles = StyleSheet.create({
   certificationHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 12,
+    alignItems: "center",
   },
   certificationHeaderLeft: {
     flexDirection: "row",
     flex: 1,
+  },
+  certificationHeaderRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  certificationChevron: {
+    marginLeft: 4,
+  },
+  certificationContent: {
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: "#f0f0f0",
+    marginTop: 12,
   },
   certificationIconContainer: {
     width: 48,
