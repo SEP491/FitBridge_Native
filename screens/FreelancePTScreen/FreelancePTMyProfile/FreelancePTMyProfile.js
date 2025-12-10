@@ -249,7 +249,16 @@ const FreelancePTMyProfile = () => {
   };
 
   const handleBusinessAddressChange = (text) => {
-    setUserProfile((prev) => ({ ...prev, businessAddress: text }));
+    // Clear coordinates when manually typing (not selecting from autocomplete)
+    setUserProfile((prev) => ({
+      ...prev,
+      businessAddress: text,
+      longitude: null,
+      latitude: null,
+    }));
+
+    // Reset selection flag since user is typing manually
+    isSelectingAddress.current = false;
 
     if (!isEditMode) return;
 
@@ -451,6 +460,18 @@ const FreelancePTMyProfile = () => {
       return;
     }
     if (isSaving) return;
+
+    // Validate that business address was selected from autocomplete
+    if (
+      userProfile.businessAddress &&
+      (!userProfile.longitude || !userProfile.latitude)
+    ) {
+      Alert.alert(
+        t("profile.invalidAddress"),
+        t("profile.pleaseSelectFromAutocomplete")
+      );
+      return;
+    }
 
     try {
       setIsSaving(true);
@@ -1110,7 +1131,7 @@ const FreelancePTMyProfile = () => {
                   style={[
                     styles.textInput,
                     !isEditMode && styles.disabledInput,
-                    { minHeight: 60 },
+                    { minHeight: 100 },
                   ]}
                   value={userProfile.businessAddress}
                   editable={isEditMode}
@@ -1164,18 +1185,6 @@ const FreelancePTMyProfile = () => {
                             ) : null}
                           </TouchableOpacity>
                         ))}
-                        <TouchableOpacity
-                          style={styles.addressSuggestionItem}
-                          onPress={() => setShowAddressPredictions(false)}
-                        >
-                          <Text style={styles.addressSuggestionPrimary}>
-                            {t("common.useThisAddress")}
-                          </Text>
-                          <Text style={styles.addressSuggestionSecondary}>
-                            {userProfile.businessAddress ||
-                              t("profile.businessAddress")}
-                          </Text>
-                        </TouchableOpacity>
                       </ScrollView>
                     </View>
                   )}

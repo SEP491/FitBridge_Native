@@ -509,7 +509,9 @@
     "ptMaxCourse": "Số học viên tối đa có thể đăng ký",
     "ptMaxCoursePlaceholder": "Nhập số học viên tối đa đồng thời có thể đăng ký",
     "ptCurrentCourse": "Số học viên hiện tại",
-    "currentImages": "Hình ảnh hiện tại- "
+    "currentImages": "Hình ảnh hiện tại- ",
+    "invalidAddress": "Địa chỉ không hợp lệ",
+    "pleaseSelectFromAutocomplete": "Vui lòng chọn địa chỉ hợp lệ từ danh sách gợi ý"
   },
 
   "ptProfile": {
