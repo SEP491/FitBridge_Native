@@ -46,17 +46,21 @@ export default function ManageCerScreen() {
   const statusFilters = [
     { key: "all", label: t("certificate.status.all") || "All" },
     { key: "active", label: t("certificate.status.active") },
-    { key: "waitingforreview", label: t("certificate.status.waitingForReview") },
+    {
+      key: "waitingforreview",
+      label: t("certificate.status.waitingForReview"),
+    },
     { key: "rejected", label: t("certificate.status.rejected") },
     { key: "expired", label: t("certificate.status.expired") },
   ];
 
   // Filtered certificates based on selected status
-  const filteredCertificates = selectedStatus === "all"
-    ? certificates
-    : certificates.filter(
-        (cert) => cert.certificateStatus?.toLowerCase() === selectedStatus
-      );
+  const filteredCertificates =
+    selectedStatus === "all"
+      ? certificates
+      : certificates.filter(
+          (cert) => cert.certificateStatus?.toLowerCase() === selectedStatus
+        );
 
   // Format date to dd-mm-yyyy for display and API
   const formatDateDisplay = (date) => {
@@ -202,7 +206,7 @@ export default function ManageCerScreen() {
       );
       return;
     }
-    if (!providedDate || !expirationDate) {
+    if (!providedDate) {
       Alert.alert(
         t("certificate.missingDate"),
         t("certificate.missingDateMessage")
