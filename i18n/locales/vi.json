@@ -2384,6 +2384,7 @@
     "error": "Lỗi",
     "createError": "Không thể tạo chứng chỉ, vui lòng thử lại.",
     "status": {
+      "all": "Tất cả",
       "waitingForReview": "Chờ duyệt",
       "rejected": "Bị từ chối",
       "active": "Đang hoạt động",

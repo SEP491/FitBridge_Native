@@ -2400,6 +2400,7 @@
     "error": "Error",
     "createError": "Could not create certificate, please try again.",
     "status": {
+      "all": "All",
       "waitingForReview": "Waiting for Review",
       "rejected": "Rejected",
       "active": "Active",

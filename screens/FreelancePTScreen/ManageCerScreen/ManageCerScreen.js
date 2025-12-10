@@ -40,6 +40,23 @@ export default function ManageCerScreen() {
   const [showProvidedDatePicker, setShowProvidedDatePicker] = useState(false);
   const [showExpirationDatePicker, setShowExpirationDatePicker] =
     useState(false);
+  const [selectedStatus, setSelectedStatus] = useState("all");
+
+  // Status filter options
+  const statusFilters = [
+    { key: "all", label: t("certificate.status.all") || "All" },
+    { key: "active", label: t("certificate.status.active") },
+    { key: "waitingforreview", label: t("certificate.status.waitingForReview") },
+    { key: "rejected", label: t("certificate.status.rejected") },
+    { key: "expired", label: t("certificate.status.expired") },
+  ];
+
+  // Filtered certificates based on selected status
+  const filteredCertificates = selectedStatus === "all"
+    ? certificates
+    : certificates.filter(
+        (cert) => cert.certificateStatus?.toLowerCase() === selectedStatus
+      );
 
   // Format date to dd-mm-yyyy for display and API
   const formatDateDisplay = (date) => {
@@ -438,6 +455,48 @@ export default function ManageCerScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Status Filter Tabs */}
+      <View style={styles.filterContainer}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterScrollContent}
+        >
+          {statusFilters.map((filter) => (
+            <TouchableOpacity
+              key={filter.key}
+              style={[
+                styles.filterTab,
+                selectedStatus === filter.key && styles.filterTabActive,
+              ]}
+              onPress={() => setSelectedStatus(filter.key)}
+              activeOpacity={0.7}
+            >
+              <Text
+                style={[
+                  styles.filterTabText,
+                  selectedStatus === filter.key && styles.filterTabTextActive,
+                ]}
+              >
+                {filter.label}
+              </Text>
+              {selectedStatus === filter.key && (
+                <View style={styles.filterBadge}>
+                  <Text style={styles.filterBadgeText}>
+                    {filter.key === "all"
+                      ? certificates.length
+                      : certificates.filter(
+                          (c) =>
+                            c.certificateStatus?.toLowerCase() === filter.key
+                        ).length}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+
       {/* Content */}
       {loading ? (
         <View style={styles.loadingContainer}>
@@ -448,7 +507,7 @@ export default function ManageCerScreen() {
         </View>
       ) : (
         <FlatList
-          data={certificates}
+          data={filteredCertificates}
           keyExtractor={(item) => item.id}
           renderItem={renderCertificate}
           contentContainerStyle={styles.listContainer}
@@ -760,6 +819,55 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F8F9FA",
+  },
+
+  // Filter Tabs
+  filterContainer: {
+    backgroundColor: "#FFFFFF",
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F1F5F9",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  filterScrollContent: {
+    paddingHorizontal: 16,
+    gap: 8,
+  },
+  filterTab: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: "#F1F5F9",
+    marginRight: 8,
+  },
+  filterTabActive: {
+    backgroundColor: colors.red,
+  },
+  filterTabText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#64748B",
+  },
+  filterTabTextActive: {
+    color: "#FFFFFF",
+  },
+  filterBadge: {
+    backgroundColor: "rgba(255, 255, 255, 0.3)",
+    borderRadius: 10,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    marginLeft: 6,
+  },
+  filterBadgeText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#FFFFFF",
   },
 
   // Floating Action Button
