@@ -132,7 +132,7 @@ const FreelancePTDashboard = ({ navigation }) => {
     } finally {
       setTimeout(() => {
         setLoadingSessions(false);
-      }, 10000);
+      }, 2000);
     }
   };
 

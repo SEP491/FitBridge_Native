@@ -16,7 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import freelancePTPackageService from "../../../services/freelancePTPackageService";
 import ptService from "../../../services/ptService";
 import { useTranslation } from "../../../hooks/useTranslation";
-import { showAlert, formatPrice } from "../../../lib";
+import { showAlert, formatPrice, fetchUserFromStorage } from "../../../lib";
 import { useCart } from "../../../context/CartContext";
 import reviewService from "../../../services/reviewService";
 import ReviewCard from "../../../components/ReviewCard/ReviewCard";
@@ -35,6 +35,15 @@ export default function FreelancePTPackageDetailScreen() {
   const [ptData, setPtData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [addingToCart, setAddingToCart] = useState(false);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const user = await fetchUserFromStorage();
+      setUser(user);
+    };
+    fetchUser();
+  }, []);
 
   // Get packageId from route params
   const packageId =
@@ -584,7 +593,8 @@ export default function FreelancePTPackageDetailScreen() {
       </ScrollView>
 
       {/* Bottom Action Bar - Compact */}
-      {!purchasedPackage ? (
+      {user?.role === "Customer" && (
+      !purchasedPackage ? (
         // Check if PT is at full capacity
         ptCurrentCourse !== null && ptMaxCourse !== null && ptCurrentCourse >= ptMaxCourse ? (
           <View style={styles.fullCapacityBottomBar}>
@@ -692,7 +702,9 @@ export default function FreelancePTPackageDetailScreen() {
             </View>
           </View>
         </View>
+        )
       )}
+      
     </SafeAreaView>
   );
 }

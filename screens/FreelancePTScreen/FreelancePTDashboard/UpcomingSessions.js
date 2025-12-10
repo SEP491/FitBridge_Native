@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, Animated } from "react
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/Ionicons";
 import defaultImage from "../../../assets/images/LogoColor.png";
-
+import { useNavigation } from "@react-navigation/native";
+import { t } from "../../../i18n";
 const UpcomingSessionCardSkeleton = () => {
   const shimmerAnim = useRef(new Animated.Value(0)).current;
 
@@ -106,13 +107,19 @@ const UpcomingSessionCard = ({ session }) => {
     </LinearGradient>
   );
 };
-
 const UpcomingSessions = ({ sessions = [], loading = false }) => {
+  const navigation = useNavigation();
+
+
+  const handleNavigateToSchedule = () => {
+    navigation.navigate("MainApp", { screen: t("navigation.freelancePTSchedule"), params: { screen: "FreelancePTSchedule" } });
+  };
+
   return (
     <View style={styles.upcomingSection}>
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Lịch sắp tới</Text>
-        <TouchableOpacity style={styles.sectionAction}>
+        <TouchableOpacity onPress={handleNavigateToSchedule} style={styles.sectionAction}>
           <Text style={styles.sectionActionText}>Xem tất cả</Text>
           <Icon name="arrow-forward" size={16} color="#ED2A46" />
         </TouchableOpacity>
@@ -223,8 +230,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    paddingVertical: 60,
-    backgroundColor: "#FFFFFF",
+    paddingVertical: 50,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: "#f0f0f0",
