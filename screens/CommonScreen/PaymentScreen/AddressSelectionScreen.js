@@ -734,20 +734,6 @@ export default function AddressSelectionScreen({ navigation, route }) {
             />
           </View>
 
-          {/* Set as Default */}
-          <TouchableOpacity
-            style={styles.defaultCheckbox}
-            onPress={() => setIsDefault(!isDefault)}
-          >
-            <MaterialIcons
-              name={isDefault ? "check-box" : "check-box-outline-blank"}
-              size={24}
-              color="#ED2A46"
-            />
-            <Text style={styles.defaultText}>
-              {t("payment.setAsDefaultAddress")}
-            </Text>
-          </TouchableOpacity>
 
           {/* Save Button */}
           <TouchableOpacity

@@ -938,7 +938,9 @@
     "statusDistribution": "Transaction Status Distribution",
     "monthlyRevenue": "Monthly Revenue by Status",
     "amountInThousands": "Amount in thousands (VND)",
-    "filterByType": "Filter by Type"
+    "filterByType": "Filter by Type",
+    "resolved": "Resolved",
+    "rejected": "Rejected"
   },
 
   "transactionType": {

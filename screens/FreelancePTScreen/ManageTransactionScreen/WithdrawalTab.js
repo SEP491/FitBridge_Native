@@ -1,12 +1,16 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   TextInput,
+  Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import paymentService from '../../../services/paymentService';
+import { useFocusEffect } from '@react-navigation/native';
+import dashBoardService from '../../../services/dashBoardService';
 
 const WithdrawalTab = ({
   totalRevenue,
@@ -26,8 +30,19 @@ const WithdrawalTab = ({
   formatDate,
   t,
 }) => {
-  const availableBalance = totalRevenue;
 
+  const [availableBalance, setAvailableBalance] = useState(0);
+
+  const loadAvailableBalance = async () => {
+    const response = await dashBoardService.getWalletBalance();
+    setAvailableBalance(response.data.totalAvailableBalance);
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      loadAvailableBalance();
+    }, [])
+  );
   // Format amount input with thousand separators
   const formatAmountInput = (value) => {
     // Remove all non-digit characters
@@ -196,12 +211,14 @@ const WithdrawalTab = ({
                   </Text>
                 </View>
                 {item.imageUrl && (
+                  <TouchableOpacity onPress={handleViewProof(item.imageUrl)}>
                   <View style={styles.withdrawalDate}>
                     <Ionicons name="image-outline" size={14} color="#2196F3" />
                     <Text style={styles.withdrawalDateText}>
                       {t('withdrawal.hasProof', 'Proof attached')}
                     </Text>
                   </View>
+                  </TouchableOpacity>
                 )}
               </View>
             </View>

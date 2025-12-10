@@ -1,9 +1,11 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/Ionicons";
+import { useNavigation } from "@react-navigation/native";
 
 const SummaryCard = ({ stat }) => {
+  const navigation = useNavigation();
   const cardWidthStyle =
     stat.variant === "compact" ? styles.statCardCompact : styles.statCardWide;
 
@@ -12,8 +14,16 @@ const SummaryCard = ({ stat }) => {
       ? stat.value.toLocaleString()
       : stat.value;
 
+  const handleShowDetail = () => {
+    if (stat.id === "availableBalance" || stat.id === "pendingBalance") {
+      navigation.navigate("BalanceDetailScreen", {
+        initialTab: stat.id === "availableBalance" ? "available" : "pending",
+      });
+    }
+  };
+
   return (
-    <View style={[styles.statCard, cardWidthStyle]}>
+    <TouchableOpacity style={[styles.statCard, cardWidthStyle]} activeOpacity={0.6} onPress={handleShowDetail}>
 
         <View style={styles.statCardInner}>
           <View style={styles.statHeader}>
@@ -37,7 +47,7 @@ const SummaryCard = ({ stat }) => {
             )}
           </View>
         </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 
