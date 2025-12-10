@@ -1846,7 +1846,14 @@
     "beFirstToReview": "Hãy là người đầu tiên đánh giá gói tập này",
     "trainerFull": "Huấn Luyện Viên Đủ Học Viên",
     "trainerFullMessage": "Huấn luyện viên này đã đạt số lượng học viên tối đa. Vui lòng quay lại sau hoặc khám phá các huấn luyện viên khác.",
-    "comeBackLater": "Vui lòng quay lại sau để đăng ký khóa học với huấn luyện viên này"
+    "comeBackLater": "Vui lòng quay lại sau để đăng ký khóa học với huấn luyện viên này",
+    "certificateModal": {
+      "title": "Chứng chỉ",
+      "viewCertificate": "Xem chứng chỉ",
+      "code": "Mã:",
+      "issued": "Ngày cấp:",
+      "expires": "Hết hạn:"
+    }
   },
   "trainingResults": {
     "title": "Thống Kê Luyện Tập",

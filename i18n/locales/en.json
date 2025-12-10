@@ -707,7 +707,14 @@
     "completeCurrentPackage": "Please complete your current package before purchasing a new one",
     "trainerFull": "Trainer is at Full Capacity",
     "trainerFullMessage": "This trainer has reached the maximum number of students. Please check back later or explore other trainers.",
-    "comeBackLater": "Please come back later to register for a course with this trainer"
+    "comeBackLater": "Please come back later to register for a course with this trainer",
+    "certificateModal": {
+      "title": "Certificate",
+      "viewCertificate": "View Certificate",
+      "code": "Code:",
+      "issued": "Issued:",
+      "expires": "Expires:"
+    }
   },
 
   "account": {

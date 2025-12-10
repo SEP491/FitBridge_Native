@@ -8,6 +8,8 @@ import {
   ScrollView,
   Alert,
   Linking,
+  Modal,
+  Dimensions,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
@@ -37,6 +39,8 @@ const PTProfileScreen = ({ route, navigation }) => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("profile"); // "profile" or "packages"
   const [purchasedPackage, setPurchasedPackage] = useState(null);
+  const [certificateModalVisible, setCertificateModalVisible] = useState(false);
+  const [selectedCertificateUrl, setSelectedCertificateUrl] = useState(null);
 
   console.log("PT Data:", pt);
 
@@ -80,6 +84,27 @@ const PTProfileScreen = ({ route, navigation }) => {
       style: "currency",
       currency: "VND",
     }).format(price);
+  };
+
+  // Extract all specializations from certificates
+  const getAllSpecializations = () => {
+    if (!pt?.freelancePt?.certifications || pt.freelancePt.certifications.length === 0) {
+      return [];
+    }
+
+    const specializationsSet = new Set();
+    
+    pt.freelancePt.certifications.forEach((cert) => {
+      if (cert.certificateMetadata?.specializations && Array.isArray(cert.certificateMetadata.specializations)) {
+        cert.certificateMetadata.specializations.forEach((spec) => {
+          if (spec && spec.trim()) {
+            specializationsSet.add(spec.trim());
+          }
+        });
+      }
+    });
+
+    return Array.from(specializationsSet).sort();
   };
 
   // Body measurements data structure
@@ -188,6 +213,7 @@ const PTProfileScreen = ({ route, navigation }) => {
   }
 
   return (
+    <>
     <ScrollView
       style={styles.scrollContainer}
       contentContainerStyle={{ paddingBottom: 20 }}
@@ -441,20 +467,22 @@ const PTProfileScreen = ({ route, navigation }) => {
                   {t("freelancePT.specializations")}
                 </Text>
                 <View style={styles.tagsContainer}>
-                  {pt.freelancePt?.goalTrainings &&
-                  pt.freelancePt.goalTrainings.length > 0 ? (
-                    pt.freelancePt.goalTrainings.map((goal, index) => (
-                      <View key={index} style={styles.tag}>
-                        <Text style={styles.tagText}>{goal}</Text>
+                  {(() => {
+                    const specializations = getAllSpecializations();
+                    return specializations.length > 0 ? (
+                      specializations.map((spec, index) => (
+                        <View key={index} style={styles.tag}>
+                          <Text style={styles.tagText}>{spec}</Text>
+                        </View>
+                      ))
+                    ) : (
+                      <View style={styles.emptyTag}>
+                        <Text style={styles.emptyTagText}>
+                          {t("freelancePT.noSpecializations")}
+                        </Text>
                       </View>
-                    ))
-                  ) : (
-                    <View style={styles.emptyTag}>
-                      <Text style={styles.emptyTagText}>
-                        {t("freelancePT.noSpecializations")}
-                      </Text>
-                    </View>
-                  )}
+                    );
+                  })()}
                 </View>
               </View>
 
@@ -467,11 +495,142 @@ const PTProfileScreen = ({ route, navigation }) => {
                 <View style={styles.certificationsContainer}>
                   {pt.freelancePt?.certifications &&
                   pt.freelancePt.certifications.length > 0 ? (
-                    pt.freelancePt.certifications.map((cert, index) => (
-                      <View key={index} style={styles.certificationItem}>
-                        <Text style={styles.certificationText}>{cert}</Text>
-                      </View>
-                    ))
+                    pt.freelancePt.certifications.map((cert, index) => {
+                      const certMetadata = cert.certificateMetadata;
+                      const isActive = cert.certificateStatus === "Active";
+                      
+                      return (
+                        <View
+                          key={cert.id || index}
+                          style={[
+                            styles.certificationCard,
+                            !isActive && styles.certificationCardInactive,
+                          ]}
+                        >
+                          <View style={styles.certificationHeader}>
+                            <View style={styles.certificationHeaderLeft}>
+                              <View style={styles.certificationIconContainer}>
+                                <Ionicons
+                                  name="ribbon"
+                                  size={24}
+                                  color={isActive ? "#FF914D" : "#999"}
+                                />
+                              </View>
+                              <View style={styles.certificationTitleContainer}>
+                                <Text style={styles.certificationName}>
+                                  {certMetadata?.certName || t("freelancePT.certificateModal.title")}
+                                </Text>
+                                <Text style={styles.certificationProvider}>
+                                  {certMetadata?.providerName || ""}
+                                </Text>
+                              </View>
+                            </View>
+                            {isActive && (
+                              <View style={styles.certificationStatusBadge}>
+                                <Text style={styles.certificationStatusText}>
+                                  {cert.certificateStatus}
+                                </Text>
+                              </View>
+                            )}
+                          </View>
+
+                          {certMetadata?.certCode && (
+                            <View style={styles.certificationCodeContainer}>
+                              <Text style={styles.certificationCodeLabel}>
+                                {t("freelancePT.certificateModal.code")}
+                              </Text>
+                              <Text style={styles.certificationCode}>
+                                {certMetadata.certCode}
+                              </Text>
+                            </View>
+                          )}
+
+                          {certMetadata?.certificateType && (
+                            <View style={styles.certificationTypeContainer}>
+                              <Ionicons
+                                name="globe-outline"
+                                size={14}
+                                color="#666"
+                              />
+                              <Text style={styles.certificationType}>
+                                {certMetadata.certificateType}
+                              </Text>
+                            </View>
+                          )}
+
+                          {certMetadata?.description && (
+                            <Text style={styles.certificationDescription}>
+                              {certMetadata.description}
+                            </Text>
+                          )}
+
+                          {certMetadata?.specializations &&
+                            certMetadata.specializations.length > 0 && (
+                              <View style={styles.certificationSpecializations}>
+                                {certMetadata.specializations.map(
+                                  (spec, specIndex) => (
+                                    <View
+                                      key={specIndex}
+                                      style={styles.specializationTag}
+                                    >
+                                      <Text style={styles.specializationTagText}>
+                                        {spec}
+                                      </Text>
+                                    </View>
+                                  )
+                                )}
+                              </View>
+                            )}
+
+                          <View style={styles.certificationDates}>
+                            {cert.providedDate && (
+                              <View style={styles.certificationDateItem}>
+                                <Ionicons
+                                  name="calendar-outline"
+                                  size={12}
+                                  color="#666"
+                                />
+                                <Text style={styles.certificationDateText}>
+                                  {t("freelancePT.certificateModal.issued")} {cert.providedDate}
+                                </Text>
+                              </View>
+                            )}
+                            {cert.expirationDate && (
+                              <View style={styles.certificationDateItem}>
+                                <Ionicons
+                                  name="time-outline"
+                                  size={12}
+                                  color="#666"
+                                />
+                                <Text style={styles.certificationDateText}>
+                                  {t("freelancePT.certificateModal.expires")} {cert.expirationDate}
+                                </Text>
+                              </View>
+                            )}
+                          </View>
+
+                          {cert.certUrl && (
+                            <TouchableOpacity
+                              style={styles.certificationViewLink}
+                              onPress={() => {
+                                setSelectedCertificateUrl(cert.certUrl);
+                                setCertificateModalVisible(true);
+                              }}
+                              activeOpacity={0.7}
+                            >
+                              <Ionicons
+                                name="open-outline"
+                                size={14}
+                                color="#FF914D"
+                              />
+                              <Text style={styles.certificationViewLinkText}>
+                                {t("freelancePT.certificateModal.viewCertificate")}
+                              </Text>
+                            </TouchableOpacity>
+                          )}
+                        </View>
+                      );
+                    })
                   ) : (
                     <View style={styles.certificationItem}>
                       <Text
@@ -660,6 +819,45 @@ const PTProfileScreen = ({ route, navigation }) => {
         </View>
       )}
     </ScrollView>
+
+    {/* Certificate Modal */}
+    <Modal
+      visible={certificateModalVisible}
+      transparent={true}
+      animationType="fade"
+      onRequestClose={() => setCertificateModalVisible(false)}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>
+              {t("freelancePT.certificateModal.title")}
+            </Text>
+            <TouchableOpacity
+              onPress={() => setCertificateModalVisible(false)}
+              style={styles.modalCloseButton}
+            >
+              <Ionicons name="close" size={24} color="#333" />
+            </TouchableOpacity>
+          </View>
+          <ScrollView
+            style={styles.modalImageContainer}
+            contentContainerStyle={styles.modalImageContent}
+            showsVerticalScrollIndicator={true}
+            showsHorizontalScrollIndicator={true}
+          >
+            {selectedCertificateUrl && (
+              <Image
+                source={{ uri: selectedCertificateUrl }}
+                style={styles.modalImage}
+                resizeMode="contain"
+              />
+            )}
+          </ScrollView>
+        </View>
+      </View>
+    </Modal>
+    </>
   );
 };
 
@@ -818,7 +1016,7 @@ const styles = StyleSheet.create({
   statCard: {
     backgroundColor: "#fff",
     borderRadius: 16,
-    padding: 20,
+    paddingHorizontal:20,
     alignItems: "center",
     flex: 1,
     marginHorizontal: 4,
@@ -935,8 +1133,158 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   certificationsContainer: {
-    gap: 8,
+    gap: 12,
     marginTop: 4,
+  },
+  certificationCard: {
+    backgroundColor: "#fff",
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#FF914D",
+    marginBottom: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  certificationCardInactive: {
+    borderColor: "#e0e0e0",
+    opacity: 0.7,
+  },
+  certificationHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 12,
+  },
+  certificationHeaderLeft: {
+    flexDirection: "row",
+    flex: 1,
+  },
+  certificationIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#FFF5F6",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  certificationTitleContainer: {
+    flex: 1,
+  },
+  certificationName: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#333",
+    marginBottom: 4,
+  },
+  certificationProvider: {
+    fontSize: 13,
+    color: "#666",
+    fontWeight: "500",
+  },
+  certificationStatusBadge: {
+    backgroundColor: "#4CAF50",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  certificationStatusText: {
+    fontSize: 11,
+    color: "#fff",
+    fontWeight: "600",
+  },
+  certificationCodeContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    backgroundColor: "#f8f9fa",
+    borderRadius: 8,
+  },
+  certificationCodeLabel: {
+    fontSize: 12,
+    color: "#666",
+    marginRight: 6,
+    fontWeight: "600",
+  },
+  certificationCode: {
+    fontSize: 12,
+    color: "#FF914D",
+    fontWeight: "700",
+    fontFamily: "monospace",
+  },
+  certificationTypeContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+    gap: 6,
+  },
+  certificationType: {
+    fontSize: 12,
+    color: "#666",
+    fontWeight: "500",
+  },
+  certificationDescription: {
+    fontSize: 13,
+    color: "#666",
+    lineHeight: 20,
+    marginBottom: 12,
+  },
+  certificationSpecializations: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+    marginBottom: 12,
+  },
+  specializationTag: {
+    backgroundColor: "#FFF5F6",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#FFE0E3",
+  },
+  specializationTagText: {
+    fontSize: 11,
+    color: "#ED2A46",
+    fontWeight: "600",
+  },
+  certificationDates: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+    marginBottom: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: "#f0f0f0",
+  },
+  certificationDateItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  certificationDateText: {
+    fontSize: 11,
+    color: "#666",
+  },
+  certificationViewLink: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: "#f0f0f0",
+  },
+  certificationViewLinkText: {
+    fontSize: 13,
+    color: "#FF914D",
+    fontWeight: "600",
   },
   certificationItem: {
     backgroundColor: "#f8f9fa",
@@ -1285,6 +1633,56 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     lineHeight: 18,
+  },
+  // Certificate Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.9)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContainer: {
+    width: Dimensions.get("window").width * 0.95,
+    height: Dimensions.get("window").height * 0.9,
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    overflow: "hidden",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
+    backgroundColor: "#fff",
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#333",
+  },
+  modalCloseButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#f0f0f0",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalImageContainer: {
+    flex: 1,
+  },
+  modalImageContent: {
+    flexGrow: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 16,
+  },
+  modalImage: {
+    width: Dimensions.get("window").width * 0.9,
+    height: Dimensions.get("window").height * 0.7,
+    minHeight: 400,
   },
 });
 
