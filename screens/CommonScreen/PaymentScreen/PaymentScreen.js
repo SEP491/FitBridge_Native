@@ -74,7 +74,7 @@ export default function PaymentScreen({ navigation, route }) {
     }
   }, [totalPrice, isExtending]);
 
-  const finalTotal = Math.max(0, subTotal - voucherDiscount);
+  const finalTotal = Math.max(0,voucherDiscount);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("bank");
   const [voucherCode, setVoucherCode] = useState("");
   const [isApplyingVoucher, setIsApplyingVoucher] = useState(false);
@@ -501,7 +501,7 @@ export default function PaymentScreen({ navigation, route }) {
             <Text style={{ fontSize: 15 }}>{t("payment.totalPayment")}</Text>
             {selectedVoucher && voucherDiscount > 0 && (
               <Text style={{ fontSize: 12, color: "#4CAF50", marginTop: 2 }}>
-                {t("voucher.youSave")} {formatPrice(voucherDiscount)}
+                {t("voucher.youSave")} {formatPrice(subTotal - voucherDiscount)}
               </Text>
             )}
             <Text

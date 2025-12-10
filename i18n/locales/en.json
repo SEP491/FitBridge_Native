@@ -418,7 +418,9 @@
     "selected": "selected",
     "items": "items",
     "noItemsSelected": "No items selected",
-    "selectItemsBeforeCheckout": "Please select items before proceeding to checkout"
+    "selectItemsBeforeCheckout": "Please select items before proceeding to checkout",
+    "maxQuantityReached": "Maximum quantity reached",
+    "gymCourseOneOnly": "You can only purchase 1 gym course at a time"
   },
 
   "profile": {

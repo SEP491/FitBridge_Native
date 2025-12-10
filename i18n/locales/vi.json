@@ -431,7 +431,9 @@
     "items": "sản phẩm",
     "selected": "đã chọn",
     "noItemsSelected": "Chưa chọn sản phẩm nào",
-    "selectItemsBeforeCheckout": "Vui lòng chọn sản phẩm trước khi thanh toán"
+    "selectItemsBeforeCheckout": "Vui lòng chọn sản phẩm trước khi thanh toán",
+    "maxQuantityReached": "Đã đạt số lượng tối đa",
+    "gymCourseOneOnly": "Bạn chỉ có thể mua 1 gói tập gym mỗi lần"
   },
 
   "profile": {

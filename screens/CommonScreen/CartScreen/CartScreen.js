@@ -44,9 +44,25 @@ export default function CartScreen() {
   const toggleItemSelection = (cartItemId) => {
     setSelectedItems((prev) => {
       const newSet = new Set(prev);
+      
+      // Find the item being toggled
+      const itemToToggle = cart.find((item) => item.cartItemId === cartItemId);
+      const isGymCourse = itemToToggle && itemToToggle.gymId && !itemToToggle.selectedVariant;
+      
       if (newSet.has(cartItemId)) {
+        // Deselecting
         newSet.delete(cartItemId);
       } else {
+        // Selecting
+        if (isGymCourse) {
+          // If selecting a gym course, deselect all other gym courses first
+          cart.forEach((item) => {
+            const isOtherGymCourse = item.gymId && !item.selectedVariant && item.cartItemId !== cartItemId;
+            if (isOtherGymCourse) {
+              newSet.delete(item.cartItemId);
+            }
+          });
+        }
         newSet.add(cartItemId);
       }
       return newSet;
@@ -59,8 +75,20 @@ export default function CartScreen() {
       // Deselect all
       setSelectedItems(new Set());
     } else {
-      // Select all
-      const allIds = new Set(filteredCart.map((item) => item.cartItemId));
+      // Select all, but for gym courses, only select the first one
+      const gymCourses = filteredCart.filter((item) => item.gymId && !item.selectedVariant);
+      const nonGymItems = filteredCart.filter((item) => !(item.gymId && !item.selectedVariant));
+      
+      const allIds = new Set();
+      
+      // Add all non-gym items
+      nonGymItems.forEach((item) => allIds.add(item.cartItemId));
+      
+      // For gym courses, only add the first one
+      if (gymCourses.length > 0) {
+        allIds.add(gymCourses[0].cartItemId);
+      }
+      
       setSelectedItems(allIds);
     }
   };
@@ -128,6 +156,21 @@ export default function CartScreen() {
       handleRemoveItem(cartItemId);
       return;
     }
+
+    // Find the cart item to check if it's a gym course
+    const cartItem = cart.find((item) => item.cartItemId === cartItemId);
+    
+    // For gym courses (items with gymId and no selectedVariant), limit quantity to 1
+    if (cartItem && cartItem.gymId && !cartItem.selectedVariant) {
+      if (newQuantity > 1) {
+        showAlert(
+          t("cart.maxQuantityReached") || "Maximum quantity reached",
+          t("cart.gymCourseOneOnly") || "You can only purchase 1 gym course at a time"
+        );
+        return;
+      }
+    }
+
     updateQuantity(cartItemId, newQuantity);
   };
 
@@ -217,38 +260,40 @@ export default function CartScreen() {
 
       {filteredCart.length > 0 ? (
         <>
-          {/* Select All Header */}
-          <View style={styles.selectAllContainer}>
-            <TouchableOpacity
-              style={styles.selectAllButton}
-              onPress={toggleSelectAll}
-            >
-              <Checkbox
-                value={
-                  selectedItems.size === filteredCart.length &&
+          {/* Select All Header - Hidden for Gym Course tab */}
+          {activeTab !== "gym" && (
+            <View style={styles.selectAllContainer}>
+              <TouchableOpacity
+                style={styles.selectAllButton}
+                onPress={toggleSelectAll}
+              >
+                <Checkbox
+                  value={
+                    selectedItems.size === filteredCart.length &&
+                    filteredCart.length > 0
+                  }
+                  onValueChange={toggleSelectAll}
+                  color={
+                    selectedItems.size === filteredCart.length &&
+                    filteredCart.length > 0
+                      ? "#ED2A46"
+                      : undefined
+                  }
+                  style={styles.checkbox}
+                />
+                <Text style={styles.selectAllText}>
+                  {selectedItems.size === filteredCart.length &&
                   filteredCart.length > 0
-                }
-                onValueChange={toggleSelectAll}
-                color={
-                  selectedItems.size === filteredCart.length &&
-                  filteredCart.length > 0
-                    ? "#ED2A46"
-                    : undefined
-                }
-                style={styles.checkbox}
-              />
-              <Text style={styles.selectAllText}>
-                {selectedItems.size === filteredCart.length &&
-                filteredCart.length > 0
-                  ? t("cart.deselectAll") || "Deselect All"
-                  : t("cart.selectAll") || "Select All"}
+                    ? t("cart.deselectAll") || "Deselect All"
+                    : t("cart.selectAll") || "Select All"}
+                </Text>
+              </TouchableOpacity>
+              <Text style={styles.selectedCountText}>
+                {selectedItems.size} / {filteredCart.length}{" "}
+                {t("cart.selected") || "selected"}
               </Text>
-            </TouchableOpacity>
-            <Text style={styles.selectedCountText}>
-              {selectedItems.size} / {filteredCart.length}{" "}
-              {t("cart.selected") || "selected"}
-            </Text>
-          </View>
+            </View>
+          )}
 
           <View style={{ flex: 1 }}>
             <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
@@ -412,6 +457,8 @@ export default function CartScreen() {
                                 goalTraining: item.pt.goalTraining,
                               }
                             : null,
+                          // Mark as gym course for quantity limit
+                          isGymCourse: item.gymId && !item.selectedVariant,
                         }}
                         onQuantityChange={(newQuantity) =>
                           handleQuantityChange(item.cartItemId, newQuantity)

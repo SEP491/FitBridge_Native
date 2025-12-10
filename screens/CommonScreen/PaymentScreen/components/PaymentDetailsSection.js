@@ -31,7 +31,7 @@ export default function PaymentDetailsSection({
               {t("payment.voucherDiscount")}
             </Text>
             <Text style={styles.discountAmount}>
-              -{formatPrice(voucherDiscount)}
+              -{formatPrice(subTotal - voucherDiscount)}
             </Text>
           </View>
         )}
