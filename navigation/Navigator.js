@@ -102,6 +102,7 @@ import AddressSelectionScreen from "../screens/CommonScreen/PaymentScreen/Addres
 import ContractScreen from "../screens/FreelancePTScreen/ContractScreen/ContractScreen";
 import ContractDetailScreen from "../screens/FreelancePTScreen/ContractDetailScreen/ContractDetailScreen";
 import MyReviewsRatingsScreen from "../screens/CommonScreen/MyReviewsRatingsScreen/MyReviewsRatingsScreen";
+import ManageCerScreen from "../screens/FreelancePTScreen/ManageCerScreen/ManageCerScreen";
 
 export default function Navigator({
   isAuthenticated: propIsAuthenticated,
@@ -1754,6 +1755,20 @@ export default function Navigator({
           options={{
             headerShown: true,
             title: t("screenTitles.contractDetail"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="ManageCerScreen"
+          component={ManageCerScreen}
+          options={{
+            headerShown: true,
+            title: t("userMenu.certificateManagement"),
             headerTitleAlign: "center",
             headerTitleStyle: {
               fontWeight: "bold",

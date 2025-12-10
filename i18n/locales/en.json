@@ -858,7 +858,8 @@
     "testVideoCall": "Test Video Call",
     "testVideoCallAlertTitle": "Test Call Started",
     "testVideoCallAlertMessage": "FloatingVideoCall should now be visible. You can minimize or maximize it.",
-    "myReviews&Ratings": "My Reviews & Ratings"
+    "myReviews&Ratings": "My Reviews & Ratings",
+    "certificateManagement": "Certificate Management"
   },
   "videoCallPrep": {
     "sessionDetails": "Session Details",
@@ -2347,5 +2348,49 @@
     "signed": "Signed",
     "unsigned": "Not signed yet",
     "signatureCreated": "Signature created"
+  },
+
+  "certificate": {
+    "title": "Certificates",
+    "noCertificates": "No Certificates Yet",
+    "noCertificatesDesc": "Add your first professional certificate to get started",
+    "noCertificateTypes": "No Certificate Types Found",
+    "loadingCertificates": "Loading certificates...",
+    "loadingCertificateTypes": "Loading certificate types...",
+    "addCertificate": "Add Certificate",
+    "selectCertificateType": "Select Certificate Type",
+    "certificateType": "Certificate Type",
+    "selectCertificateTypePlaceholder": "Select certificate type",
+    "providedDate": "Provided Date",
+    "selectProvidedDate": "Select provided date",
+    "expirationDate": "Expiration Date",
+    "selectExpirationDate": "Select expiration date",
+    "certificateImage": "Certificate Image",
+    "gallery": "Gallery",
+    "camera": "Camera",
+    "saveCertificate": "Save Certificate",
+    "code": "Code",
+    "type": "Type",
+    "specializations": "Specializations",
+    "provided": "PROVIDED",
+    "expires": "EXPIRES",
+    "permissionRequired": "Permission required",
+    "permissionMessage": "Please allow access to continue.",
+    "missingInfo": "Missing info",
+    "missingInfoMessage": "Please select a certificate metadata.",
+    "missingDate": "Missing date",
+    "missingDateMessage": "Please enter provided and expiration date.",
+    "missingImage": "Missing image",
+    "missingImageMessage": "Please attach a certificate image.",
+    "success": "Success",
+    "createSuccess": "Certificate created successfully.",
+    "error": "Error",
+    "createError": "Could not create certificate, please try again.",
+    "status": {
+      "waitingForReview": "Waiting for Review",
+      "rejected": "Rejected",
+      "active": "Active",
+      "expired": "Expired"
+    }
   }
 }

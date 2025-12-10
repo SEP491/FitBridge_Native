@@ -1,4 +1,11 @@
-import { View, Text, ScrollView, Animated, Alert, Touchable } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  Animated,
+  Alert,
+  Touchable,
+} from "react-native";
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -69,7 +76,10 @@ export default function UserMenuScreen() {
   const fetchOrders = async () => {
     try {
       setLoadingOrders(true);
-      const response = await orderService.getProductOrder({ customerId: user?.id, sortOrder: "dsc" });
+      const response = await orderService.getProductOrder({
+        customerId: user?.id,
+        sortOrder: "dsc",
+      });
       setOrders(response.data.productOrders.items || []);
     } catch (error) {
       console.error("Error fetching orders:", error);
@@ -156,12 +166,6 @@ export default function UserMenuScreen() {
         navigation: "SubscriptionScreen",
         category: "services",
       },
-      // {
-      //   icon: <Ionicons name="ticket-outline" size={28} color="#ED2A46" />,
-      //   label: t("userMenu.vouchers"),
-      //   navigation: "VoucherScreen",
-      //   category: "services",
-      // },
 
       {
         icon: <Ionicons name="time-outline" size={28} color="#ED2A46" />,
@@ -336,13 +340,21 @@ export default function UserMenuScreen() {
                 </View>
               )}
             </View>
-            
           </Animated.View>
-          <View style={styles.viewMyPersonalScreenButtonContainer}>
-          <TouchableOpacity style={styles.viewMyPersonalScreenButton} onPress={() => navigation.navigate("PTProfileScreen", { ptId: user?.id })}>
-                <Text style={styles.viewMyPersonalScreenButtonText}>{t("userMenu.viewMyPersonalScreen")}</Text>
-            </TouchableOpacity>
-          </View>
+          {user && user.role === "FreelancePT" && (
+            <View style={styles.viewMyPersonalScreenButtonContainer}>
+              <TouchableOpacity
+                style={styles.viewMyPersonalScreenButton}
+                onPress={() =>
+                  navigation.navigate("PTProfileScreen", { ptId: user?.id })
+                }
+              >
+                <Text style={styles.viewMyPersonalScreenButtonText}>
+                  {t("userMenu.viewMyPersonalScreen")}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </LinearGradient>
 
         {/* Menu Items with Categories */}
@@ -555,6 +567,23 @@ export default function UserMenuScreen() {
                     {t("userMenu.myCustomer")}
                   </Text>
                 </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.managementButton}
+                  onPress={() => navigation.navigate("ManageCerScreen")}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.managementIconContainer}>
+                    <Ionicons
+                      name="document-outline"
+                      size={32}
+                      color="#ED2A46"
+                    />
+                  </View>
+                  <Text style={styles.managementButtonText}>
+                    {t("userMenu.certificateManagement")}
+                  </Text>
+                </TouchableOpacity>
               </View>
             </View>
           )}
@@ -577,9 +606,9 @@ export default function UserMenuScreen() {
               .map((item, index) => (
                 <MenuItem key={index} item={item} index={index} />
               ))}
-            
+
             {/* Test Video Call Button */}
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={styles.testButton}
               onPress={async () => {
                 try {
@@ -590,21 +619,21 @@ export default function UserMenuScreen() {
                     customerName: user?.fullName || "Test User",
                     ptName: "Test Trainer",
                     customerAvatarUrl: avatarUrl || user?.avatar,
-                    bookingDate: new Date().toISOString().split('T')[0],
+                    bookingDate: new Date().toISOString().split("T")[0],
                     ptFreelanceStartTime: "10:00:00",
                     ptFreelanceEndTime: "11:00:00",
                   };
-                  
+
                   // Store booking info in context
                   if (setCallInfo) {
                     setCallInfo({ booking: testBooking });
                   }
-                  
+
                   // Start test call with dummy room ID
                   const testRoomId = "test-room-" + Date.now();
                   const userName = user?.fullName || "Test User";
                   await startCall(userName, testRoomId, 5000, false);
-                  
+
                   Alert.alert(
                     t("userMenu.testVideoCallAlertTitle"),
                     t("userMenu.testVideoCallAlertMessage"),
@@ -626,7 +655,7 @@ export default function UserMenuScreen() {
                   {t("userMenu.testVideoCall")}
                 </Text>
               </View>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         </View>
 
@@ -658,6 +687,7 @@ const styles = {
   },
   headerGradient: {
     paddingTop: 20,
+    paddingBottom: 20,
     borderBottomLeftRadius: 25,
     borderBottomRightRadius: 25,
   },
@@ -696,9 +726,9 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
     width: "100%",
-    marginBottom: 15,
+    // marginBottom: 15,
   },
-  
+
   viewMyPersonalScreenButton: {
     backgroundColor: "rgba(255, 255, 255, 0.15)",
     backdropFilter: "blur(100px)",
