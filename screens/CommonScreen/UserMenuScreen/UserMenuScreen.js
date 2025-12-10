@@ -685,10 +685,10 @@ const styles = {
     backgroundColor: "#F8F9FA",
   },
   headerGradient: {
-    paddingTop: 20,
-    paddingBottom: 20,
-    borderBottomLeftRadius: 25,
-    borderBottomRightRadius: 25,
+    paddingTop: 64,
+    paddingBottom: 10,
+    borderBottomLeftRadius: 35,
+    borderBottomRightRadius: 35,
   },
   userInfo: {
     flexDirection: "row",
