@@ -31,7 +31,8 @@ const CreateVoucherModal = ({ visible, onClose, onSuccess }) => {
 
   // Date picker states
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
-  const [showExpirationDatePicker, setShowExpirationDatePicker] = useState(false);
+  const [showExpirationDatePicker, setShowExpirationDatePicker] =
+    useState(false);
 
   // Format date for display
   const formatDate = (date) => {
@@ -51,10 +52,14 @@ const CreateVoucherModal = ({ visible, onClose, onSuccess }) => {
   const handleStartDateConfirm = (date) => {
     setFormData({ ...formData, startDate: date });
     setShowStartDatePicker(false);
-    
+
     // If expiration date is before start date, update it
     if (formData.expirationDate < date) {
-      setFormData((prev) => ({ ...prev, startDate: date, expirationDate: date }));
+      setFormData((prev) => ({
+        ...prev,
+        startDate: date,
+        expirationDate: date,
+      }));
     }
   };
 
@@ -98,11 +103,17 @@ const CreateVoucherModal = ({ visible, onClose, onSuccess }) => {
       return;
     }
     if (!formData.expirationDate) {
-      Alert.alert(t("manageVoucher.error"), t("manageVoucher.selectExpirationDate"));
+      Alert.alert(
+        t("manageVoucher.error"),
+        t("manageVoucher.selectExpirationDate")
+      );
       return;
     }
     if (formData.expirationDate < formData.startDate) {
-      Alert.alert(t("manageVoucher.error"), t("manageVoucher.invalidDateRange"));
+      Alert.alert(
+        t("manageVoucher.error"),
+        t("manageVoucher.invalidDateRange")
+      );
       return;
     }
 
