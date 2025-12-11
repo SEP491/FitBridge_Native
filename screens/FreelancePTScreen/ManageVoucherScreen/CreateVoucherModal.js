@@ -13,6 +13,7 @@ import {
   Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { useTranslation } from "../../../hooks/useTranslation";
 import couponService from "../../../services/couponService";
 
@@ -24,7 +25,43 @@ const CreateVoucherModal = ({ visible, onClose, onSuccess }) => {
     maxDiscount: "",
     discountPercent: "",
     quantity: "",
+    startDate: new Date(),
+    expirationDate: new Date(),
   });
+
+  // Date picker states
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [showExpirationDatePicker, setShowExpirationDatePicker] = useState(false);
+
+  // Format date for display
+  const formatDate = (date) => {
+    if (!date) return "";
+    return date.toLocaleDateString("en-GB"); // DD/MM/YYYY format
+  };
+
+  // Format date for API (YYYY-MM-DD)
+  const formatDateForAPI = (date) => {
+    if (!date) return "";
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  const handleStartDateConfirm = (date) => {
+    setFormData({ ...formData, startDate: date });
+    setShowStartDatePicker(false);
+    
+    // If expiration date is before start date, update it
+    if (formData.expirationDate < date) {
+      setFormData((prev) => ({ ...prev, startDate: date, expirationDate: date }));
+    }
+  };
+
+  const handleExpirationDateConfirm = (date) => {
+    setFormData({ ...formData, expirationDate: date });
+    setShowExpirationDatePicker(false);
+  };
 
   const handleCreateVoucher = async () => {
     // Validation
@@ -55,6 +92,20 @@ const CreateVoucherModal = ({ visible, onClose, onSuccess }) => {
       return;
     }
 
+    // Validate dates
+    if (!formData.startDate) {
+      Alert.alert(t("manageVoucher.error"), t("manageVoucher.selectStartDate"));
+      return;
+    }
+    if (!formData.expirationDate) {
+      Alert.alert(t("manageVoucher.error"), t("manageVoucher.selectExpirationDate"));
+      return;
+    }
+    if (formData.expirationDate < formData.startDate) {
+      Alert.alert(t("manageVoucher.error"), t("manageVoucher.invalidDateRange"));
+      return;
+    }
+
     try {
       setCreating(true);
       const data = {
@@ -62,6 +113,8 @@ const CreateVoucherModal = ({ visible, onClose, onSuccess }) => {
         maxDiscount: parseInt(formData.maxDiscount),
         discountPercent: parseInt(formData.discountPercent),
         quantity: parseInt(formData.quantity),
+        startDate: formatDateForAPI(formData.startDate),
+        expirationDate: formatDateForAPI(formData.expirationDate),
       };
 
       const response = await couponService.createCoupons(data);
@@ -76,6 +129,8 @@ const CreateVoucherModal = ({ visible, onClose, onSuccess }) => {
           maxDiscount: "",
           discountPercent: "",
           quantity: "",
+          startDate: new Date(),
+          expirationDate: new Date(),
         });
         onSuccess(); // Callback to refresh the list
         onClose(); // Close modal
@@ -94,6 +149,8 @@ const CreateVoucherModal = ({ visible, onClose, onSuccess }) => {
       maxDiscount: "",
       discountPercent: "",
       quantity: "",
+      startDate: new Date(),
+      expirationDate: new Date(),
     });
     onClose();
   };
@@ -196,6 +253,44 @@ const CreateVoucherModal = ({ visible, onClose, onSuccess }) => {
                 keyboardType="numeric"
               />
             </View>
+
+            {/* Start Date */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>
+                {t("manageVoucher.startDate")} *
+              </Text>
+              <TouchableOpacity
+                style={styles.datePickerButton}
+                onPress={() => setShowStartDatePicker(true)}
+              >
+                <View style={styles.datePickerContent}>
+                  <Ionicons name="calendar-outline" size={20} color="#666" />
+                  <Text style={styles.datePickerText}>
+                    {formatDate(formData.startDate)}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-down" size={20} color="#666" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Expiration Date */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>
+                {t("manageVoucher.expirationDate")} *
+              </Text>
+              <TouchableOpacity
+                style={styles.datePickerButton}
+                onPress={() => setShowExpirationDatePicker(true)}
+              >
+                <View style={styles.datePickerContent}>
+                  <Ionicons name="calendar-outline" size={20} color="#666" />
+                  <Text style={styles.datePickerText}>
+                    {formatDate(formData.expirationDate)}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-down" size={20} color="#666" />
+              </TouchableOpacity>
+            </View>
           </ScrollView>
 
           <View style={styles.modalFooter}>
@@ -223,6 +318,26 @@ const CreateVoucherModal = ({ visible, onClose, onSuccess }) => {
           </View>
         </View>
       </KeyboardAvoidingView>
+
+      {/* Start Date Picker */}
+      <DateTimePickerModal
+        isVisible={showStartDatePicker}
+        mode="date"
+        onConfirm={handleStartDateConfirm}
+        onCancel={() => setShowStartDatePicker(false)}
+        date={formData.startDate}
+        minimumDate={new Date()}
+      />
+
+      {/* Expiration Date Picker */}
+      <DateTimePickerModal
+        isVisible={showExpirationDatePicker}
+        mode="date"
+        onConfirm={handleExpirationDateConfirm}
+        onCancel={() => setShowExpirationDatePicker(false)}
+        date={formData.expirationDate}
+        minimumDate={formData.startDate}
+      />
     </Modal>
   );
 };
@@ -296,6 +411,25 @@ const styles = StyleSheet.create({
     color: "#4CAF50",
     marginTop: 4,
     fontWeight: "600",
+  },
+  datePickerButton: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#f8f9fa",
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+  },
+  datePickerContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  datePickerText: {
+    fontSize: 16,
+    color: "#333",
   },
   modalFooter: {
     flexDirection: "row",

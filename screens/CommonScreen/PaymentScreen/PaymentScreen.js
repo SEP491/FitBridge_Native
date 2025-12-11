@@ -45,13 +45,14 @@ export default function PaymentScreen({ navigation, route }) {
     route?.params?.customerPurchasedIdToExtend || null;
   const itemToExtend = route?.params?.itemToExtend || null;
   const selectedCartItemIds = route?.params?.selectedCartItemIds || [];
-  
+
   // Check if items are coming from cart checkout (selected items)
-  const isFromCartCheckout = route?.params?.items && !isDirectPurchase && !customerPurchasedIdToExtend;
-  
+  const isFromCartCheckout =
+    route?.params?.items && !isDirectPurchase && !customerPurchasedIdToExtend;
+
   console.log("Items to Extend:", [itemToExtend]);
   console.log("Is from cart checkout:", isFromCartCheckout);
-  
+
   // Use direct purchase items if available, otherwise use cart or selected items
   const displayItems =
     isDirectPurchase && customerPurchasedIdToExtend
@@ -61,7 +62,10 @@ export default function PaymentScreen({ navigation, route }) {
       : cart;
 
   console.log("displayItems:", displayItems);
-  const totalPrice = (isDirectPurchase || isFromCartCheckout) ? (route?.params?.total || directPurchaseAmount) : getTotalPrice();
+  const totalPrice =
+    isDirectPurchase || isFromCartCheckout
+      ? route?.params?.total || directPurchaseAmount
+      : getTotalPrice();
 
   // Calculate discount
   const voucherDiscount = selectedVoucher?.discountAmount || 0;
@@ -74,7 +78,7 @@ export default function PaymentScreen({ navigation, route }) {
     }
   }, [totalPrice, isExtending]);
 
-  const finalTotal = Math.max(0,voucherDiscount);
+  const finalTotal = Math.max(0, voucherDiscount ? voucherDiscount : subTotal);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("bank");
   const [voucherCode, setVoucherCode] = useState("");
   const [isApplyingVoucher, setIsApplyingVoucher] = useState(false);
@@ -84,7 +88,9 @@ export default function PaymentScreen({ navigation, route }) {
   const [addresses, setAddresses] = useState([]);
   const [loading, setLoading] = useState(false);
   // Check if cart contains any products
-  const hasProducts = displayItems.some((item) => item.selectedVariant && !item.gymId);
+  const hasProducts = displayItems.some(
+    (item) => item.selectedVariant && !item.gymId
+  );
 
   useEffect(() => {
     fetchAddresses();
@@ -116,21 +122,21 @@ export default function PaymentScreen({ navigation, route }) {
     };
     loadShippingFee();
   }, [selectedAddress, hasProducts]);
-  
+
   const fetchAddresses = async () => {
-      try {
-        setLoading(true);
-        const response = await addressService.getAllAddresses();
-        setAddresses(response.data);  
-        if (selectedAddress === null && response.data.length > 0) {
-          setSelectedAddress(response.data[0]);
-        }
-      } catch (error) {
-        console.error("Error fetching addresses:", error);
-      } finally {
-        setLoading(false);
+    try {
+      setLoading(true);
+      const response = await addressService.getAllAddresses();
+      setAddresses(response.data);
+      if (selectedAddress === null && response.data.length > 0) {
+        setSelectedAddress(response.data[0]);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching addresses:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAddressSelection = (addressData) => {
     console.log("Address selected in PaymentScreen:", addressData);
@@ -174,7 +180,7 @@ export default function PaymentScreen({ navigation, route }) {
       const hasProducts = displayItems.some(
         (item) => item.selectedVariant && !item.gymId
       );
-      
+
       // Determine if this is a freelance PT package
       const isFreelancePt = displayItems.some(
         (item) => item.type === "FreelancePT"
@@ -242,7 +248,7 @@ export default function PaymentScreen({ navigation, route }) {
     // Use displayItems (either direct purchase or cart items)
     console.log("Processing payment for:", displayItems);
     console.log("Is direct purchase:", isDirectPurchase);
-    
+
     try {
       let requestData = {
         request: {
@@ -250,7 +256,11 @@ export default function PaymentScreen({ navigation, route }) {
           customerPurchasedIdToExtend: isExtending
             ? customerPurchasedIdToExtend
             : null,
-          shippingFee: hasProducts ? shippingFee : (isExtending ? orderToExtend.shippingFee : 0),
+          shippingFee: hasProducts
+            ? shippingFee
+            : isExtending
+            ? orderToExtend.shippingFee
+            : 0,
           addressId: hasProducts && selectedAddress ? selectedAddress.id : null,
           paymentMethodId:
             selectedPaymentMethod === "bank"
@@ -307,7 +317,7 @@ export default function PaymentScreen({ navigation, route }) {
               }),
         },
       };
-      
+
       console.log("Processing checkout:", requestData);
 
       const response = await cartService.processCart(requestData);
@@ -323,9 +333,11 @@ export default function PaymentScreen({ navigation, route }) {
       };
 
       if (response && response.data.isCOD) {
-        console.log("COD payment detected, navigating to PurchaseSuccessScreen");
+        console.log(
+          "COD payment detected, navigating to PurchaseSuccessScreen"
+        );
         cleanupCartAfterCheckout();
-        
+
         // Navigate to OrderSuccessScreen
         navigation.navigate("OrderSuccessScreen", {
           isCOD: true,
@@ -337,7 +349,7 @@ export default function PaymentScreen({ navigation, route }) {
         response.data.data.checkoutUrl
       ) {
         cleanupCartAfterCheckout();
-        
+
         // Open payment URL for online payment
         navigation.navigate("OrderSuccessScreen", {
           isOnlinePayment: true,
@@ -352,7 +364,9 @@ export default function PaymentScreen({ navigation, route }) {
           }, 500);
         }
       } else {
-        throw new Error("Invalid response - missing checkout URL or payment info");
+        throw new Error(
+          "Invalid response - missing checkout URL or payment info"
+        );
       }
     } catch (error) {
       console.error("Error processing payment:", error.response?.data || error);
@@ -397,7 +411,7 @@ export default function PaymentScreen({ navigation, route }) {
                   />
                 );
               }
-              
+
               // Check if item type is FreelancePT
               if (item.type === "FreelancePT") {
                 return (

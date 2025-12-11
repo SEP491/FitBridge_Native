@@ -20,7 +20,7 @@ export default function VoucherSection({
   isApplying = false,
 }) {
   const { t } = useTranslation();
-  const voucherDiscount = selectedVoucher?.discountAmount || 0;
+  const voucherDiscount = selectedVoucher?.discountPercent || 0;
 
   return (
     <View style={styles.container}>
@@ -38,7 +38,7 @@ export default function VoucherSection({
                   {selectedVoucher.couponCode || voucherCode}
                 </Text>
                 <Text style={styles.voucherDiscountText}>
-                  -{formatPrice(voucherDiscount)}
+                  -{voucherDiscount}%
                 </Text>
               </View>
             </View>

@@ -44,11 +44,12 @@ export default function CartScreen() {
   const toggleItemSelection = (cartItemId) => {
     setSelectedItems((prev) => {
       const newSet = new Set(prev);
-      
+
       // Find the item being toggled
       const itemToToggle = cart.find((item) => item.cartItemId === cartItemId);
-      const isGymCourse = itemToToggle && itemToToggle.gymId && !itemToToggle.selectedVariant;
-      
+      const isGymCourse =
+        itemToToggle && itemToToggle.gymId && !itemToToggle.selectedVariant;
+
       if (newSet.has(cartItemId)) {
         // Deselecting
         newSet.delete(cartItemId);
@@ -57,7 +58,10 @@ export default function CartScreen() {
         if (isGymCourse) {
           // If selecting a gym course, deselect all other gym courses first
           cart.forEach((item) => {
-            const isOtherGymCourse = item.gymId && !item.selectedVariant && item.cartItemId !== cartItemId;
+            const isOtherGymCourse =
+              item.gymId &&
+              !item.selectedVariant &&
+              item.cartItemId !== cartItemId;
             if (isOtherGymCourse) {
               newSet.delete(item.cartItemId);
             }
@@ -76,19 +80,23 @@ export default function CartScreen() {
       setSelectedItems(new Set());
     } else {
       // Select all, but for gym courses, only select the first one
-      const gymCourses = filteredCart.filter((item) => item.gymId && !item.selectedVariant);
-      const nonGymItems = filteredCart.filter((item) => !(item.gymId && !item.selectedVariant));
-      
+      const gymCourses = filteredCart.filter(
+        (item) => item.gymId && !item.selectedVariant
+      );
+      const nonGymItems = filteredCart.filter(
+        (item) => !(item.gymId && !item.selectedVariant)
+      );
+
       const allIds = new Set();
-      
+
       // Add all non-gym items
       nonGymItems.forEach((item) => allIds.add(item.cartItemId));
-      
+
       // For gym courses, only add the first one
       if (gymCourses.length > 0) {
         allIds.add(gymCourses[0].cartItemId);
       }
-      
+
       setSelectedItems(allIds);
     }
   };
@@ -159,13 +167,14 @@ export default function CartScreen() {
 
     // Find the cart item to check if it's a gym course
     const cartItem = cart.find((item) => item.cartItemId === cartItemId);
-    
+
     // For gym courses (items with gymId and no selectedVariant), limit quantity to 1
     if (cartItem && cartItem.gymId && !cartItem.selectedVariant) {
       if (newQuantity > 1) {
         showAlert(
           t("cart.maxQuantityReached") || "Maximum quantity reached",
-          t("cart.gymCourseOneOnly") || "You can only purchase 1 gym course at a time"
+          t("cart.gymCourseOneOnly") ||
+            "You can only purchase 1 gym course at a time"
         );
         return;
       }
@@ -475,10 +484,7 @@ export default function CartScreen() {
           <View style={styles.orderSummary}>
             <View style={styles.proceedContainer}>
               <View>
-                <Text style={{ fontSize: 15 }}>
-                  {t("cart.totalPayment")} ({selectedItems.size}{" "}
-                  {t("cart.items") || "items"})
-                </Text>
+                <Text style={{ fontSize: 15 }}>{t("cart.totalPayment")}</Text>
                 <Text
                   style={{ fontSize: 20, fontWeight: "bold", color: "#ED2A46" }}
                 >
