@@ -28,6 +28,7 @@ export default function NearbyGymsSection({ refreshTrigger }) {
       const response = await gymService.getAllGyms({
         page: 1,
         size: 200,
+        doApplyPaging: false,
       });
       const { items } = response.data;
 
