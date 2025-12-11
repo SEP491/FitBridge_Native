@@ -31,12 +31,9 @@ const CreateConversationModal = ({
   const [initialMessage, setInitialMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [fetchingUsers, setFetchingUsers] = useState(false);
-  const [pageNumber, setPageNumber] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
   const [currentUserId, setCurrentUserId] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [creating, setCreating] = useState(false);
-  const pageNumberRef = useRef(1);
 
   // Fetch current user ID
   useEffect(() => {
@@ -65,16 +62,8 @@ const CreateConversationModal = ({
       setSearchQuery("");
       setIsGroup(false);
       setInitialMessage("");
-      setPageNumber(1);
-      pageNumberRef.current = 1;
-      setHasMore(true);
     }
   }, [visible]);
-
-  // Update ref when pageNumber changes
-  useEffect(() => {
-    pageNumberRef.current = pageNumber;
-  }, [pageNumber]);
 
   // Fetch users
   const fetchUsers = async (reset = false) => {
@@ -82,10 +71,10 @@ const CreateConversationModal = ({
 
     try {
       setFetchingUsers(true);
-      const currentPage = reset ? 1 : pageNumberRef.current;
       const params = {
-        page: currentPage,
-        size: 100,
+        page: 1,
+        size: 200,
+        doApplyPaging: false,
       };
 
       const response = await messageService.getUsersConversations(params);
@@ -98,16 +87,9 @@ const CreateConversationModal = ({
 
       if (reset) {
         setUsers(filteredUsers);
-        setPageNumber(1);
-        pageNumberRef.current = 1;
       } else {
         setUsers((prev) => [...prev, ...filteredUsers]);
-        const nextPage = pageNumberRef.current + 1;
-        setPageNumber(nextPage);
-        pageNumberRef.current = nextPage;
       }
-
-      setHasMore(filteredUsers.length >= 100);
     } catch (error) {
       console.error("Error fetching users:", error);
     } finally {
@@ -351,11 +333,6 @@ const CreateConversationModal = ({
             renderItem={renderUserItem}
             keyExtractor={(item) => item.id}
             ListFooterComponent={renderFooter}
-            onEndReached={() => {
-              if (hasMore && !fetchingUsers) {
-                fetchUsers(false);
-              }
-            }}
             onEndReachedThreshold={0.5}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.listContent}
