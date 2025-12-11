@@ -84,8 +84,8 @@ const CreateConversationModal = ({
       setFetchingUsers(true);
       const currentPage = reset ? 1 : pageNumberRef.current;
       const params = {
-        pageNumber: currentPage,
-        pageSize: 100,
+        page: currentPage,
+        size: 100,
       };
 
       const response = await messageService.getUsersConversations(params);

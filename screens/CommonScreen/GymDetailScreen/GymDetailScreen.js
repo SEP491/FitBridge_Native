@@ -363,90 +363,165 @@ export default function GymDetailScreen({ route }) {
               </Text>
             </View>
 
-            {/* Gym Assets/Equipment Section */}
-            {gymDetail?.gymAssets && gymDetail.gymAssets.length > 0 && (
-              <View style={styles.sectionContainer}>
-                <View style={styles.sectionHeader}>
-                  <MaterialIcons
-                    name="fitness-center"
-                    size={20}
-                    color="#ED2A46"
-                  />
-                  <Text style={styles.sectionTitle}>
-                    {t("gymDetail.equipment") || "Equipment"}
-                  </Text>
-                  <View style={styles.equipmentCountBadge}>
-                    <Text style={styles.equipmentCountText}>
-                      {gymDetail.gymAssets.length}
+            {/* Gym Equipment Section */}
+            {gymDetail?.gymAssets &&
+              gymDetail.gymAssets.filter((a) => a.assetType === "Equipment")
+                .length > 0 && (
+                <View style={styles.sectionContainer}>
+                  <View style={styles.sectionHeader}>
+                    <MaterialIcons
+                      name="fitness-center"
+                      size={20}
+                      color="#ED2A46"
+                    />
+                    <Text style={styles.sectionTitle}>
+                      {t("gymDetail.equipment") || "Equipment"}
                     </Text>
+                    <View style={styles.equipmentCountBadge}>
+                      <Text style={styles.equipmentCountText}>
+                        {
+                          gymDetail.gymAssets.filter(
+                            (a) => a.assetType === "Equipment"
+                          ).length
+                        }
+                      </Text>
+                    </View>
                   </View>
-                </View>
 
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.assetsScrollContainer}
-                >
-                  {gymDetail.gymAssets.map((asset) => (
-                    <View key={asset.id} style={styles.assetCard}>
-                      <Image
-                        source={{
-                          uri:
-                            asset.imageUrls &&
-                            asset.imageUrls.length > 0 &&
-                            !asset.imageUrls[0].includes("placeholder")
-                              ? asset.imageUrls[0]
-                              : "https://cdn-icons-png.flaticon.com/512/2548/2548530.png",
-                        }}
-                        style={styles.assetImage}
-                        resizeMode="cover"
-                      />
-                      <View style={styles.assetInfo}>
-                        <Text style={styles.assetName} numberOfLines={2}>
-                          {asset.assetName}
-                        </Text>
-                        <View style={styles.assetCategoryBadge}>
-                          <Text style={styles.assetCategoryText}>
-                            {asset.equipmentCategory}
-                          </Text>
-                        </View>
-                        <View style={styles.assetQuantityRow}>
-                          <Ionicons
-                            name="layers-outline"
-                            size={14}
-                            color="#666"
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.assetsScrollContainer}
+                  >
+                    {gymDetail.gymAssets
+                      .filter((a) => a.assetType === "Equipment")
+                      .map((asset) => (
+                        <View key={asset.id} style={styles.assetCard}>
+                          <Image
+                            source={{
+                              uri:
+                                asset.imageUrls &&
+                                asset.imageUrls.length > 0 &&
+                                !asset.imageUrls[0].includes("placeholder")
+                                  ? asset.imageUrls[0]
+                                  : "https://cdn-icons-png.flaticon.com/512/2548/2548530.png",
+                            }}
+                            style={styles.assetImage}
+                            resizeMode="cover"
                           />
-                          <Text style={styles.assetQuantity}>
-                            {t("gymDetail.quantity") || "Qty"}: {asset.quantity}
-                          </Text>
-                        </View>
-                        {asset.targetMuscularGroups &&
-                          asset.targetMuscularGroups.length > 0 && (
-                            <View style={styles.muscleGroupsContainer}>
-                              {asset.targetMuscularGroups
-                                .slice(0, 3)
-                                .map((muscle, index) => (
-                                  <View key={index} style={styles.muscleTag}>
-                                    <Text style={styles.muscleTagText}>
-                                      {muscle}
-                                    </Text>
-                                  </View>
-                                ))}
-                              {asset.targetMuscularGroups.length > 3 && (
-                                <View style={styles.muscleTagMore}>
-                                  <Text style={styles.muscleTagMoreText}>
-                                    +{asset.targetMuscularGroups.length - 3}
-                                  </Text>
+                          <View style={styles.assetInfo}>
+                            <Text style={styles.assetName} numberOfLines={2}>
+                              {asset.assetName}
+                            </Text>
+                            <View style={styles.assetCategoryBadge}>
+                              <Text style={styles.assetCategoryText}>
+                                {asset.equipmentCategory}
+                              </Text>
+                            </View>
+                            <View style={styles.assetQuantityRow}>
+                              <Ionicons
+                                name="layers-outline"
+                                size={14}
+                                color="#666"
+                              />
+                              <Text style={styles.assetQuantity}>
+                                {t("gymDetail.quantity") || "Qty"}:{" "}
+                                {asset.quantity}
+                              </Text>
+                            </View>
+                            {asset.targetMuscularGroups &&
+                              asset.targetMuscularGroups.length > 0 && (
+                                <View style={styles.muscleGroupsContainer}>
+                                  {asset.targetMuscularGroups
+                                    .slice(0, 3)
+                                    .map((muscle, index) => (
+                                      <View
+                                        key={index}
+                                        style={styles.muscleTag}
+                                      >
+                                        <Text style={styles.muscleTagText}>
+                                          {muscle}
+                                        </Text>
+                                      </View>
+                                    ))}
+                                  {asset.targetMuscularGroups.length > 3 && (
+                                    <View style={styles.muscleTagMore}>
+                                      <Text style={styles.muscleTagMoreText}>
+                                        +{asset.targetMuscularGroups.length - 3}
+                                      </Text>
+                                    </View>
+                                  )}
                                 </View>
                               )}
-                            </View>
-                          )}
-                      </View>
+                          </View>
+                        </View>
+                      ))}
+                  </ScrollView>
+                </View>
+              )}
+
+            {/* Gym Facilities Section */}
+            {gymDetail?.gymAssets &&
+              gymDetail.gymAssets.filter((a) => a.assetType === "Facility")
+                .length > 0 && (
+                <View style={styles.sectionContainer}>
+                  <View style={styles.sectionHeader}>
+                    <Ionicons
+                      name="business-outline"
+                      size={20}
+                      color="#ED2A46"
+                    />
+                    <Text style={styles.sectionTitle}>
+                      {t("gymDetail.facilities") || "Facilities"}
+                    </Text>
+                    <View style={styles.equipmentCountBadge}>
+                      <Text style={styles.equipmentCountText}>
+                        {
+                          gymDetail.gymAssets.filter(
+                            (a) => a.assetType === "Facility"
+                          ).length
+                        }
+                      </Text>
                     </View>
-                  ))}
-                </ScrollView>
-              </View>
-            )}
+                  </View>
+
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.assetsScrollContainer}
+                  >
+                    {gymDetail.gymAssets
+                      .filter((a) => a.assetType === "Facility")
+                      .map((asset) => (
+                        <View key={asset.id} style={styles.facilityCard}>
+                          <Image
+                            source={{
+                              uri:
+                                asset.imageUrls &&
+                                asset.imageUrls.length > 0 &&
+                                !asset.imageUrls[0].includes("placeholder")
+                                  ? asset.imageUrls[0]
+                                  : "https://cdn-icons-png.flaticon.com/512/3656/3656988.png",
+                            }}
+                            style={styles.facilityImage}
+                            resizeMode="cover"
+                          />
+                          <View style={styles.facilityInfo}>
+                            <Text style={styles.facilityName} numberOfLines={2}>
+                              {asset.assetName}
+                            </Text>
+                            <Text
+                              style={styles.facilityDescription}
+                              numberOfLines={3}
+                            >
+                              {asset.description}
+                            </Text>
+                          </View>
+                        </View>
+                      ))}
+                  </ScrollView>
+                </View>
+              )}
 
             {/* Enhanced Map Section */}
             <View style={styles.sectionContainer}>
@@ -981,6 +1056,41 @@ const styles = StyleSheet.create({
     color: "#FFF",
     fontSize: 12,
     fontWeight: "bold",
+  },
+
+  // Facility Card Styles
+  facilityCard: {
+    width: 200,
+    backgroundColor: "#F8F9FA",
+    borderRadius: 16,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+
+  facilityImage: {
+    width: "100%",
+    height: 100,
+    backgroundColor: "#E0E0E0",
+  },
+
+  facilityInfo: {
+    padding: 12,
+  },
+
+  facilityName: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#1a1a1a",
+    marginBottom: 6,
+  },
+
+  facilityDescription: {
+    fontSize: 12,
+    color: "#666",
+    lineHeight: 16,
   },
 
   // Map Styles

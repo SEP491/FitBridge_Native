@@ -40,7 +40,7 @@ export default function FreelancePTPackageDetailScreen() {
   const packageId =
     route.params?.packageId || route.params?.freelancePTPackageId;
   const purchasedPackage = route.params?.purchasedPackage || null;
-  
+
   // Get PT course info from route params (with fallback to packageData after fetch)
   const [ptCurrentCourse, setPtCurrentCourse] = useState(
     route.params?.ptCurrentCourse ?? null
@@ -48,7 +48,7 @@ export default function FreelancePTPackageDetailScreen() {
   const [ptMaxCourse, setPtMaxCourse] = useState(
     route.params?.ptMaxCourse ?? null
   );
-  
+
   // Update state when route params change
   useEffect(() => {
     if (route.params?.ptCurrentCourse !== undefined) {
@@ -57,11 +57,14 @@ export default function FreelancePTPackageDetailScreen() {
     if (route.params?.ptMaxCourse !== undefined) {
       setPtMaxCourse(route.params.ptMaxCourse);
     }
-    
+
     // Debug logging
     console.log("=== Route Params Debug ===");
     console.log("All route params:", route.params);
-    console.log("PT Current Course (from params):", route.params?.ptCurrentCourse);
+    console.log(
+      "PT Current Course (from params):",
+      route.params?.ptCurrentCourse
+    );
     console.log("PT Max Course (from params):", route.params?.ptMaxCourse);
     console.log("Package ID:", packageId);
     console.log("State ptCurrentCourse:", ptCurrentCourse);
@@ -112,8 +115,8 @@ export default function FreelancePTPackageDetailScreen() {
       setReviewsLoading(true);
       const response = await reviewService.getItemReviewsById({
         freelancePtCourseId: packageId,
-        pageNumber: pageNum,
-        pageSize: 10,
+        page: pageNum,
+        size: 100,
       });
 
       if (response.data) {
@@ -136,10 +139,15 @@ export default function FreelancePTPackageDetailScreen() {
     if (!packageData) return;
 
     // Check if PT is at full capacity
-    if (ptCurrentCourse !== null && ptMaxCourse !== null && ptCurrentCourse >= ptMaxCourse) {
+    if (
+      ptCurrentCourse !== null &&
+      ptMaxCourse !== null &&
+      ptCurrentCourse >= ptMaxCourse
+    ) {
       showAlert(
         t("freelancePT.trainerFull") || "Trainer is at Full Capacity",
-        t("freelancePT.trainerFullMessage") || "This trainer has reached the maximum number of students. Please check back later or explore other trainers."
+        t("freelancePT.trainerFullMessage") ||
+          "This trainer has reached the maximum number of students. Please check back later or explore other trainers."
       );
       return;
     }
@@ -586,7 +594,9 @@ export default function FreelancePTPackageDetailScreen() {
       {/* Bottom Action Bar - Compact */}
       {!purchasedPackage ? (
         // Check if PT is at full capacity
-        ptCurrentCourse !== null && ptMaxCourse !== null && ptCurrentCourse >= ptMaxCourse ? (
+        ptCurrentCourse !== null &&
+        ptMaxCourse !== null &&
+        ptCurrentCourse >= ptMaxCourse ? (
           <View style={styles.fullCapacityBottomBar}>
             <View style={styles.fullCapacityNotification}>
               <View style={styles.fullCapacityIconContainer}>
@@ -628,16 +638,28 @@ export default function FreelancePTPackageDetailScreen() {
             <TouchableOpacity
               style={[
                 styles.buyNowButton,
-                (addingToCart || (ptCurrentCourse !== null && ptMaxCourse !== null && ptCurrentCourse >= ptMaxCourse)) && styles.buyNowButtonDisabled,
+                (addingToCart ||
+                  (ptCurrentCourse !== null &&
+                    ptMaxCourse !== null &&
+                    ptCurrentCourse >= ptMaxCourse)) &&
+                  styles.buyNowButtonDisabled,
               ]}
               onPress={handleBuyNow}
-              disabled={addingToCart || (ptCurrentCourse !== null && ptMaxCourse !== null && ptCurrentCourse >= ptMaxCourse)}
+              disabled={
+                addingToCart ||
+                (ptCurrentCourse !== null &&
+                  ptMaxCourse !== null &&
+                  ptCurrentCourse >= ptMaxCourse)
+              }
               activeOpacity={0.85}
             >
               <LinearGradient
                 colors={
-                  (addingToCart || (ptCurrentCourse !== null && ptMaxCourse !== null && ptCurrentCourse >= ptMaxCourse)) 
-                    ? ["#CCCCCC", "#CCCCCC"] 
+                  addingToCart ||
+                  (ptCurrentCourse !== null &&
+                    ptMaxCourse !== null &&
+                    ptCurrentCourse >= ptMaxCourse)
+                    ? ["#CCCCCC", "#CCCCCC"]
                     : ["#ED2A46", "#FF6B6B"]
                 }
                 style={styles.buyNowGradient}

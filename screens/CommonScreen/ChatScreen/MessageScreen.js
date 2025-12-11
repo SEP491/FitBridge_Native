@@ -354,8 +354,8 @@ export default function MessageScreen({ navigation }) {
         isRefresh ? setRefreshing(true) : setLoading(true);
 
         const params = {
-          pageNumber: isRefresh ? 1 : pageNumber,
-          pageSize: 20,
+          page: isRefresh ? 1 : pageNumber,
+          size: 50,
         };
 
         const response = await messageService.getConversations(params); // Handle paginated response

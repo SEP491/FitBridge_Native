@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  SafeAreaView,
+  ScrollView,
+  ActivityIndicator,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "../../../hooks/useTranslation";
 import ProductReviewsTab from "./ProductReviewsTab";
@@ -12,7 +20,7 @@ import { ReviewCardSkeletonList } from "../../../components/ReviewCard/ReviewCar
 
 export default function MyReviewsRatingsScreen() {
   const { t } = useTranslation();
-  
+
   // Top-level tab: 'unreviewed' or 'reviewed'
   const [contentType, setContentType] = useState("reviewed");
   // Sub-tabs for reviewed content: 'product', 'gymCourse', 'freelancePT'
@@ -43,12 +51,12 @@ export default function MyReviewsRatingsScreen() {
 
   const fetchReviewedContent = async (reviewType) => {
     if (!currentUserId) return;
-    
+
     try {
       setLoading(true);
       const response = await reviewService.getReviewedContent({
         page: 1,
-        pageSize: 10,
+        size: 50,
         customerId: currentUserId,
         sortOrder: "dsc",
         reviewType: reviewType, // GymCourse, FreelancePTPackage, ProductDetail
@@ -77,12 +85,12 @@ export default function MyReviewsRatingsScreen() {
 
   const onReviewDeleted = () => {
     const reviewType = reviewTypeMap[activeTab];
-    fetchReviewedContent(reviewType)
-  }
+    fetchReviewedContent(reviewType);
+  };
   const onReviewUpdated = () => {
     const reviewType = reviewTypeMap[activeTab];
-    fetchReviewedContent(reviewType)
-  }
+    fetchReviewedContent(reviewType);
+  };
   const getProductTypeText = (review) => {
     if (review.productDetail) {
       // For ProductDetail, show product name with flavour if available
@@ -90,13 +98,19 @@ export default function MyReviewsRatingsScreen() {
       const flavourName = review.productDetail.flavourName;
       const weightValue = review.productDetail.weightValue;
       const weightUnit = review.productDetail.weightUnit;
-      return flavourName ? `${productName} - ${flavourName} - ${weightValue} ${weightUnit}` : productName;
+      return flavourName
+        ? `${productName} - ${flavourName} - ${weightValue} ${weightUnit}`
+        : productName;
     }
     if (review.gymBrief) {
       return t("myReviewsRatings.GymCourse") + ": " + review.gymBrief.gymName;
     }
     if (review.freelancePtBrief) {
-      return t("myReviewsRatings.FreelancePT") + ": " + review.freelancePtBrief.fullName;
+      return (
+        t("myReviewsRatings.FreelancePT") +
+        ": " +
+        review.freelancePtBrief.fullName
+      );
     }
     return null;
   };
@@ -117,13 +131,19 @@ export default function MyReviewsRatingsScreen() {
       return (
         <View style={styles.emptyContainer}>
           <Ionicons name="document-text-outline" size={64} color="#CCC" />
-          <Text style={styles.emptyText}>{t("myReviewsRatings.noReviewedContent") || "No reviewed content found"}</Text>
+          <Text style={styles.emptyText}>
+            {t("myReviewsRatings.noReviewedContent") ||
+              "No reviewed content found"}
+          </Text>
         </View>
       );
     }
 
     return (
-      <ScrollView style={styles.contentContainer} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
         {reviewedContent.map((review) => {
           const productTypeText = getProductTypeText(review);
           return (
@@ -147,7 +167,10 @@ export default function MyReviewsRatingsScreen() {
       {/* Top-level Tabs: Unreviewed Content / Reviewed Content */}
       <View style={styles.topTabContainer}>
         <TouchableOpacity
-          style={[styles.topTab, contentType === "unreviewed" && styles.activeTopTab]}
+          style={[
+            styles.topTab,
+            contentType === "unreviewed" && styles.activeTopTab,
+          ]}
           onPress={() => setContentType("unreviewed")}
           activeOpacity={0.7}
         >
@@ -162,7 +185,10 @@ export default function MyReviewsRatingsScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.topTab, contentType === "reviewed" && styles.activeTopTab]}
+          style={[
+            styles.topTab,
+            contentType === "reviewed" && styles.activeTopTab,
+          ]}
           onPress={() => setContentType("reviewed")}
           activeOpacity={0.7}
         >
@@ -223,7 +249,10 @@ export default function MyReviewsRatingsScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.tab, activeTab === "freelancePT" && styles.activeTab]}
+            style={[
+              styles.tab,
+              activeTab === "freelancePT" && styles.activeTab,
+            ]}
             onPress={() => setActiveTab("freelancePT")}
             activeOpacity={0.7}
           >
@@ -291,7 +320,10 @@ export default function MyReviewsRatingsScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.tab, activeTab === "freelancePT" && styles.activeTab]}
+            style={[
+              styles.tab,
+              activeTab === "freelancePT" && styles.activeTab,
+            ]}
             onPress={() => setActiveTab("freelancePT")}
             activeOpacity={0.7}
           >

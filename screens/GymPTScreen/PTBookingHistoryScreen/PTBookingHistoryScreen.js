@@ -70,8 +70,8 @@ export default function PTBookingHistoryScreen({ navigation }) {
   const [updatingBooking, setUpdatingBooking] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [pagination, setPagination] = useState({
-    current: 1,
-    pageSize: 10,
+    page: 1,
+    size: 50,
     total: 0,
     totalPages: 1,
   });
@@ -529,7 +529,7 @@ export default function PTBookingHistoryScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#ffffff"
+    backgroundColor: "#ffffff",
   },
   summaryContainer: {
     backgroundColor: "#fff",
@@ -542,7 +542,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    shadowColor: "#000",shadowOpacity: 0.1,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 3,
   },
@@ -558,7 +559,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
-  },summaryInfo: {},
+  },
+  summaryInfo: {},
   summaryLabel: {
     fontSize: 14,
     color: "#64748b",
@@ -582,7 +584,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#f1f5f9",
     justifyContent: "center",
     alignItems: "center",
-  },statsContainer: {
+  },
+  statsContainer: {
     flexDirection: "row",
     paddingHorizontal: 16,
     marginBottom: 8,
@@ -595,7 +598,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderRadius: 12,
     alignItems: "center",
-    shadowColor: "#000",shadowOpacity: 0.05,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
   },
@@ -624,7 +628,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
     borderRadius: 20,
     alignItems: "center",
-    shadowColor: "#000",shadowOpacity: 0.1,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 5,
   },
@@ -644,7 +649,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderRadius: 20,
     marginBottom: 16,
-    shadowColor: "#000",shadowOpacity: 0.08,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
     shadowRadius: 12,
     elevation: 4,
     overflow: "hidden",
@@ -664,13 +670,15 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#1e293b",
     marginBottom: 2,
-  },statusBadge: {
+  },
+  statusBadge: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
-  },statusText: {
+  },
+  statusText: {
     fontSize: 12,
     fontWeight: "600",
     color: "#fff",
@@ -721,7 +729,8 @@ const styles = StyleSheet.create({
   },
   actionIndicator: {
     padding: 8,
-  },loadingIndicator: {
+  },
+  loadingIndicator: {
     padding: 8,
   },
   slotInfo: {
@@ -739,7 +748,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
-  },slotDetails: {
+  },
+  slotDetails: {
     flex: 1,
   },
   slotName: {
@@ -773,7 +783,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 12,
     alignItems: "center",
-    shadowColor: "#000",shadowOpacity: 0.1,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
   },
@@ -818,7 +829,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 24,
-  },emptyText: {
+  },
+  emptyText: {
     fontSize: 20,
     fontWeight: "600",
     color: "#1e293b",
@@ -846,7 +858,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    shadowColor: "#000",shadowOpacity: 0.05,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
   },
