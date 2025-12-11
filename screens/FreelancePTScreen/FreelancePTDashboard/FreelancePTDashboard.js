@@ -26,6 +26,7 @@ const FreelancePTDashboard = ({ navigation }) => {
   const [pendingBalance, setPendingBalance] = useState(0);
   const [todaySessions, setTodaySessions] = useState([]);
   const [loadingSessions, setLoadingSessions] = useState(false);
+  const [monthLyRevenue, setMonthLyRevenue] = useState(null);
 
   const quickActions = [
     {
@@ -55,8 +56,54 @@ const FreelancePTDashboard = ({ navigation }) => {
     useCallback(() => {
       fetchWalletData();
       loadTodaySessions();
+      fetchMonthLyRevenue();
     }, [])
   );
+
+
+  const fetchMonthLyRevenue = async () => {
+    try {
+      const response = await dashBoardService.getRevenueDetail();
+      const data = response.data;
+      
+      // Process the revenue data
+      let totalRevenue = 0;
+      let totalProfit = 0;
+      let totalSystemProfit = 0;
+      
+      if (data && data.items && Array.isArray(data.items)) {
+        // Calculate total revenue from items
+        data.items.forEach((item) => {
+          totalProfit += item.totalProfit || 0;
+          totalSystemProfit += item.systemProfit || 0;
+        });
+        
+        // Total revenue is the sum of profit and system profit (or just profit, depending on business logic)
+        // Using totalProfit as the trainer's revenue
+        totalRevenue = totalProfit;
+      }
+      
+      // Set the processed monthly revenue data
+      setMonthLyRevenue({
+        totalRevenue: totalRevenue,
+        totalProfit: totalProfit,
+        totalSystemProfit: totalSystemProfit,
+        totalItems: data?.total || 0,
+        items: data?.items || [],
+        compareWithLastMonth: data?.compareWithLastMonth || null, // If API provides this
+      });
+    } catch (error) {
+      console.error("Error fetching month ly revenue:", error);
+      setMonthLyRevenue({
+        totalRevenue: 0,
+        totalProfit: 0,
+        totalSystemProfit: 0,
+        totalItems: 0,
+        items: [],
+        compareWithLastMonth: null,
+      });
+    }
+  };
 
   const fetchWalletData = async () => {
     try {
@@ -73,14 +120,19 @@ const FreelancePTDashboard = ({ navigation }) => {
     try {
       setLoadingSessions(true);
       const response = await accountService.getBookingForPT({
+        // date: formatDateForAPI(new Date(Date.now() - 24 * 60 * 60 * 1000)),
         date: formatDateForAPI(new Date()),
+
       });
       setTodaySessions(response.data.items || []);
+      console.log("Today's sessions:", response.data.items || []);
     } catch (error) {
       console.error("Error loading today's sessions:", error);
       setTodaySessions([]);
     } finally {
-      setLoadingSessions(false);
+      setTimeout(() => {
+        setLoadingSessions(false);
+      }, 2000);
     }
   };
 
@@ -175,7 +227,7 @@ const FreelancePTDashboard = ({ navigation }) => {
 
   const onRefresh = () => {
     setRefreshing(true);
-    Promise.all([fetchWalletData(), loadTodaySessions()]).finally(() =>
+    Promise.all([fetchWalletData(), loadTodaySessions(), fetchMonthLyRevenue()]).finally(() =>
       setRefreshing(false)
     );
   };
@@ -274,17 +326,18 @@ const FreelancePTDashboard = ({ navigation }) => {
           summaryFinancialStats={summaryFinancialStats}
           summaryPerformanceStats={summaryPerformanceStats}
           formatCurrency={formatCurrency}
+          monthLyRevenue={monthLyRevenue}
           renderRevenueComparison={renderRevenueComparison}
           onRefresh={onRefresh}
         />
 
         <UpcomingSessions sessions={todaySessions} loading={loadingSessions} />
 
-        <BestsellerPackages
+        {/* <BestsellerPackages
           formatCurrency={formatCurrency}
           renderRevenueComparison={renderRevenueComparison}
           renderComparisonBadge={renderComparisonBadge}
-        />
+        /> */}
         {/* </View> */}
       </ScrollView>
 
