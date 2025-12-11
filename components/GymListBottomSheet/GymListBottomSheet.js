@@ -30,7 +30,7 @@ const GymListBottomSheet = ({
       <View style={styles.gymItemContent}>
         <View style={styles.gymItemLeft}>
           <Text style={styles.gymItemName}>{item.gymName}</Text>
-          <Text style={styles.gymItemAddress}>{item.address}</Text>
+          <Text style={styles.gymItemAddress}>{item.gymAddress}</Text>
         </View>
         <View style={styles.gymItemRight}>
           <Text style={styles.gymItemDistance}>
