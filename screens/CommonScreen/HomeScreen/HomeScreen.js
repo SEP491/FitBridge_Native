@@ -21,7 +21,7 @@ export default function HomeScreen() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [showFullScreenSearch, setShowFullScreenSearch] = useState(false);
   const [searchInitialTab, setSearchInitialTab] = useState("gyms");
-  
+
   const { t } = useTranslation();
   const { refreshLocation } = useLocationContext();
 
@@ -34,13 +34,11 @@ export default function HomeScreen() {
     }
   };
 
-
   const onRefresh = async () => {
     setRefreshing(true);
     try {
       await loadUserData();
       await refreshLocation();
-      // Trigger refresh in child components
       setRefreshTrigger((prev) => prev + 1);
     } catch (error) {
       console.error("Error during refresh:", error);
@@ -49,16 +47,16 @@ export default function HomeScreen() {
     }
   };
 
-useFocusEffect(
-  useCallback(() => {
-    loadUserData();
-  }, [])
-);
+  useFocusEffect(
+    useCallback(() => {
+      loadUserData();
+    }, [])
+  );
   return (
     <View style={styles.container}>
-      <HeaderHome 
-        user={user} 
-        showFullScreenSearch={showFullScreenSearch} 
+      <HeaderHome
+        user={user}
+        showFullScreenSearch={showFullScreenSearch}
         setShowFullScreenSearch={setShowFullScreenSearch}
         initialTab={searchInitialTab}
       />

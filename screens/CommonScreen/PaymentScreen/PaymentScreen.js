@@ -96,6 +96,14 @@ export default function PaymentScreen({ navigation, route }) {
     fetchAddresses();
   }, []);
 
+  // Clear voucher code when user exits the screen
+  useEffect(() => {
+    return () => {
+      setVoucherCode("");
+      setSelectedVoucher(null);
+    };
+  }, []);
+
   const estimateShippingPrice = async (addressId) => {
     try {
       const response = await orderService.orderShippingPriceEstimate({
