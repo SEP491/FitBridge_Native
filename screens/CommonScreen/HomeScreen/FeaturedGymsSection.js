@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import PairedSwiper from "../../../components/PairSwiper/PairSwiper";
 import GymCard from "../../../components/GymCard/GymCard";
@@ -23,12 +29,10 @@ export default function FeaturedGymsSection({ refreshTrigger }) {
       // The API returns data with gyms property containing items array
       const gymsData = response.data?.items || [];
       setGyms(gymsData);
-    }
-    catch (error) {
+    } catch (error) {
       console.error("Error fetching gyms:", error);
       setGyms([]);
-    }
-    finally {
+    } finally {
       setLoading(false);
     }
   };
@@ -42,7 +46,7 @@ export default function FeaturedGymsSection({ refreshTrigger }) {
   };
 
   // Filter only hot research gyms
-  const hotResearchGym = Array.isArray(gyms) 
+  const hotResearchGym = Array.isArray(gyms)
     ? gyms.filter((gym) => gym.hotResearch === true)
     : [];
 
@@ -77,7 +81,7 @@ export default function FeaturedGymsSection({ refreshTrigger }) {
           renderItem={renderGymCard}
           showsPagination={true}
           itemsPerSlide={2}
-          height={240}
+          height={290}
           loop={hotResearchGym.length > 2}
           dotStyle={styles.paginationDot}
           activeDotStyle={styles.activePaginationDot}
