@@ -1358,7 +1358,19 @@
     "confirm": "Xác nhận",
     "selectDate": "Chọn ngày",
     "selectStartTime": "Chọn giờ bắt đầu",
-    "selectEndTime": "Chọn giờ kết thúc"
+    "selectEndTime": "Chọn giờ kết thúc",
+    "createConversation": {
+      "title": "Cuộc trò chuyện mới",
+      "searchPlaceholder": "Tìm kiếm người dùng...",
+      "groupConversation": "Cuộc trò chuyện nhóm",
+      "selectMultipleUsers": "Chọn nhiều người dùng",
+      "selectOneUser": "Chọn một người dùng để nhắn tin trực tiếp",
+      "messagePlaceholder": "Gửi tin nhắn (tùy chọn)",
+      "usersSelected": "Đã chọn {{count}} người dùng",
+      "usersSelectedPlural": "Đã chọn {{count}} người dùng",
+      "noUsersFound": "Không tìm thấy người dùng",
+      "createButton": "Tạo cuộc trò chuyện"
+    }
   },
 
   "ptScreen": {

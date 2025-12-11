@@ -1541,7 +1541,19 @@
     "confirm": "Confirm",
     "selectDate": "Select Date",
     "selectStartTime": "Select Start Time",
-    "selectEndTime": "Select End Time"
+    "selectEndTime": "Select End Time",
+    "createConversation": {
+      "title": "New Conversation",
+      "searchPlaceholder": "Search users...",
+      "groupConversation": "Group Conversation",
+      "selectMultipleUsers": "Select multiple users",
+      "selectOneUser": "Select one user for direct message",
+      "messagePlaceholder": "Send message (optional)",
+      "usersSelected": "{{count}} user selected",
+      "usersSelectedPlural": "{{count}} users selected",
+      "noUsersFound": "No users found",
+      "createButton": "Create Conversation"
+    }
   },
 
   "ptScreen": {

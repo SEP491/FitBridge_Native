@@ -16,12 +16,14 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import messageService from "../../services/messageService";
 import colors from "../../constants/color";
 import { fetchUserFromStorage } from "../../lib";
+import { useTranslation } from "../../hooks/useTranslation";
 
 const CreateConversationModal = ({
   visible,
   onClose,
   onConversationCreated,
 }) => {
+  const { t } = useTranslation();
   const [users, setUsers] = useState([]);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -75,17 +77,15 @@ const CreateConversationModal = ({
   }, [pageNumber]);
 
   // Fetch users
-  const fetchUsers = async (reset = false, searchText = null) => {
+  const fetchUsers = async (reset = false) => {
     if (fetchingUsers) return;
 
     try {
       setFetchingUsers(true);
       const currentPage = reset ? 1 : pageNumberRef.current;
-      const search = searchText !== null ? searchText : searchQuery;
       const params = {
         pageNumber: currentPage,
-        pageSize: 20,
-        ...(search && { searchQuery: search }),
+        pageSize: 100,
       };
 
       const response = await messageService.getUsersConversations(params);
@@ -107,7 +107,7 @@ const CreateConversationModal = ({
         pageNumberRef.current = nextPage;
       }
 
-      setHasMore(filteredUsers.length >= 20);
+      setHasMore(filteredUsers.length >= 100);
     } catch (error) {
       console.error("Error fetching users:", error);
     } finally {
@@ -115,16 +115,12 @@ const CreateConversationModal = ({
     }
   };
 
-  // Search users
-  useEffect(() => {
-    if (visible) {
-      const timeoutId = setTimeout(() => {
-        fetchUsers(true, searchQuery);
-      }, 500);
-
-      return () => clearTimeout(timeoutId);
-    }
-  }, [searchQuery, visible]);
+  // Filter users on frontend based on search query
+  const filteredUsers = searchQuery.trim()
+    ? users.filter((user) =>
+        user.fullName?.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : users;
 
   // Toggle user selection
   const toggleUserSelection = (user) => {
@@ -270,7 +266,9 @@ const CreateConversationModal = ({
         <View style={styles.modalContent}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>New Conversation</Text>
+            <Text style={styles.headerTitle}>
+              {t("messageScreen.createConversation.title")}
+            </Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <Ionicons name="close-circle-outline" size={28} color="#666" />
             </TouchableOpacity>
@@ -282,7 +280,9 @@ const CreateConversationModal = ({
               <Ionicons name="search-outline" size={20} color="#9CA3AF" />
               <TextInput
                 style={styles.searchInput}
-                placeholder="Search users..."
+                placeholder={t(
+                  "messageScreen.createConversation.searchPlaceholder"
+                )}
                 placeholderTextColor="#9CA3AF"
                 value={searchQuery}
                 onChangeText={setSearchQuery}
@@ -319,7 +319,9 @@ const CreateConversationModal = ({
           <View style={styles.messageInputContainer}>
             <TextInput
               style={styles.messageInput}
-              placeholder="Send message (optional)"
+              placeholder={t(
+                "messageScreen.createConversation.messagePlaceholder"
+              )}
               placeholderTextColor="#9CA3AF"
               value={initialMessage}
               onChangeText={setInitialMessage}
@@ -332,15 +334,20 @@ const CreateConversationModal = ({
           {selectedUsers.length > 0 && (
             <View style={styles.selectedCountContainer}>
               <Text style={styles.selectedCountText}>
-                {selectedUsers.length} user
-                {selectedUsers.length !== 1 ? "s" : ""} selected
+                {selectedUsers.length === 1
+                  ? t("messageScreen.createConversation.usersSelected", {
+                      count: selectedUsers.length,
+                    })
+                  : t("messageScreen.createConversation.usersSelectedPlural", {
+                      count: selectedUsers.length,
+                    })}
               </Text>
             </View>
           )}
 
           {/* Users List */}
           <FlatList
-            data={users}
+            data={filteredUsers}
             renderItem={renderUserItem}
             keyExtractor={(item) => item.id}
             ListFooterComponent={renderFooter}
@@ -356,7 +363,9 @@ const CreateConversationModal = ({
               !fetchingUsers ? (
                 <View style={styles.emptyContainer}>
                   <Ionicons name="people-outline" size={48} color="#D1D5DB" />
-                  <Text style={styles.emptyText}>No users found</Text>
+                  <Text style={styles.emptyText}>
+                    {t("messageScreen.createConversation.noUsersFound")}
+                  </Text>
                 </View>
               ) : null
             }
@@ -376,7 +385,9 @@ const CreateConversationModal = ({
               {creating ? (
                 <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
-                <Text style={styles.createButtonText}>Create Conversation</Text>
+                <Text style={styles.createButtonText}>
+                  {t("messageScreen.createConversation.createButton")}
+                </Text>
               )}
             </TouchableOpacity>
           </View>

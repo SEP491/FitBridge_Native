@@ -40,7 +40,6 @@ export default function GymCard({ gym, fullWidth = false, height = 140 }) {
           style={styles.gradient}
         />
 
-        {/* Rating Badge */}
         {gym?.rating && (
           <View style={styles.ratingBadge}>
             <Ionicons name="star" size={12} color="#FFD700" />
@@ -48,7 +47,6 @@ export default function GymCard({ gym, fullWidth = false, height = 140 }) {
           </View>
         )}
 
-        {/* Distance Badge */}
         {gym?.distance && (
           <View style={styles.distanceBadge}>
             <Ionicons name="location" size={12} color="#FFF" />
@@ -60,19 +58,16 @@ export default function GymCard({ gym, fullWidth = false, height = 140 }) {
       </View>
 
       <View style={styles.infoContainer}>
-        {/* Gym Name */}
         <Text style={styles.name} numberOfLines={1}>
           {gym?.gymName}
         </Text>
 
-        {/* Represent Name */}
         {gym?.representName && (
           <Text style={styles.representName} numberOfLines={1}>
             {gym?.representName}
           </Text>
         )}
 
-        {/* Description */}
         {gym?.gymDescription && (
           <View style={styles.addressContainer}>
             <Ionicons name="location-outline" size={12} color="#6B6B6B" />
