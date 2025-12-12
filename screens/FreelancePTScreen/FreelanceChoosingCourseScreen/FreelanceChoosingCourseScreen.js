@@ -151,6 +151,13 @@ export default function FreelanceChoosingCourseScreen() {
           )}
         </ScrollView>
       </View>
+      <TouchableOpacity
+        style={styles.floatingButton}
+        onPress={() => navigation.navigate("FreelancePTBookingHistoryScreen")}
+        activeOpacity={0.8}
+      >
+        <Ionicons name="time-outline" size={24} color="#FFFFFF" />
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -236,5 +243,20 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 16,
     color: "#6C757D",
+  },
+  floatingButton: {
+    position: "absolute",
+    bottom: 30,
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "#FF914D",
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
   },
 });

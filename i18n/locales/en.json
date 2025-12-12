@@ -48,6 +48,7 @@
   },
 
   "screenTitles": {
+    "freelancePTBookingHistory": "Booking History - Freelance PT",
     "trainingResult": "Training Result",
     "addMeasurement": "Measure Body",
     "ptList": "PT List",
@@ -842,6 +843,8 @@
   },
 
   "userMenu": {
+    "viewMyPersonalScreen": "View My Personal Screen",
+
     "profile": "Profile",
     "settings": "Settings",
     "upgradePlan": "Upgrade Plan",

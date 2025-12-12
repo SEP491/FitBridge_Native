@@ -47,6 +47,7 @@
   },
 
   "screenTitles": {
+    "freelancePTBookingHistory": "Lịch Sử Đặt Lịch - Freelance PT",
     "balanceDetail": "Chi tiết số dư",
     "trainingResult": "Thống Kê Tập Luyện",
     "addMeasurement": "Đo Chỉ Số",
