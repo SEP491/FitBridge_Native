@@ -1060,6 +1060,15 @@ export default function Navigator({
           name="FreelancePTDashboard"
           component={FreelancePTDashboard}
         />
+        <Stack.Screen
+          name="NotificationScreen"
+          component={NotificationScreen}
+          options={{
+            headerTitleAlign: "center",
+            headerShown: true,
+            title: t("screenTitles.notification"),
+          }}
+        />
 
         <Stack.Screen
           name="BalanceDetailScreen"
