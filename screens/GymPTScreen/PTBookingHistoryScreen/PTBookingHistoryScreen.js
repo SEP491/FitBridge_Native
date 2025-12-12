@@ -1,239 +1,110 @@
-import React, { useEffect, useState, useMemo } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
-  ActivityIndicator,
-  Alert,
+  Image,
   TouchableOpacity,
+  SafeAreaView,
+  ActivityIndicator,
   RefreshControl,
   Dimensions,
   TextInput,
+  FlatList,
 } from "react-native";
-import { format } from "date-fns";
-import { vi } from "date-fns/locale";
-import bookingService from "../../../services/bookingService";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
+import { LinearGradient } from "expo-linear-gradient";
+import Foundation from "@expo/vector-icons/Foundation";
+import { useNavigation } from "@react-navigation/native";
+import accountService from "../../../services/accountService";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import AntDesign from "@expo/vector-icons/AntDesign";
+import colors from "../../../constants/color";
 import { useTranslation } from "../../../hooks/useTranslation";
 import { formatDate, formatTime } from "../../../lib";
 
 const { width } = Dimensions.get("window");
 
-// Status color mapping with gradients
-const getStatusColor = (status) => {
-  switch (status) {
-    case "Completed":
-      return {
-        primary: "#28a745",
-        secondary: "#20c997",
-        background: "rgba(40, 167, 69, 0.1)",
-        icon: "checkmark-circle",
-      };
-    case "Canceled":
-      return {
-        primary: "#dc3545",
-        secondary: "#e83e8c",
-        background: "rgba(220, 53, 69, 0.1)",
-        icon: "close-circle",
-      };
-    case "Booked":
-    default:
-      return {
-        primary: "#17a2b8",
-        secondary: "#6f42c1",
-        background: "rgba(23, 162, 184, 0.1)",
-        icon: "calendar",
-      };
-  }
-};
-
-// Status text in Vietnamese
-const getStatusText = (status, t) => {
-  switch (status) {
-    case "Completed":
-      return t("bookingHistory.statusTexts.completed");
-    case "Canceled":
-      return t("bookingHistory.statusTexts.canceled");
-    case "Booked":
-    default:
-      return t("bookingHistory.statusTexts.booked");
-  }
-};
-
-export default function PTBookingHistoryScreen({ navigation }) {
+export default function PTBookingHistoryScreen() {
+  const navigation = useNavigation();
   const { t } = useTranslation();
-  const [bookingHistory, setBookingHistory] = useState([]);
+  const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [updatingBooking, setUpdatingBooking] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [pagination, setPagination] = useState({
-    page: 1,
-    size: 50,
-    total: 0,
-    totalPages: 1,
-  });
+  const [selectedStatus, setSelectedStatus] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalBookings, setTotalBookings] = useState(0);
+  const [loadingMore, setLoadingMore] = useState(false);
 
-  // Filter bookings based on search query (customer name)
+  // Filter bookings based on search query (client-side filter for customer name)
   const filteredBookings = useMemo(() => {
     if (!searchQuery.trim()) {
-      return bookingHistory;
+      return bookings;
     }
-    return bookingHistory.filter((booking) =>
-      booking.user.fullName.toLowerCase().includes(searchQuery.toLowerCase())
+    return bookings.filter((booking) =>
+      booking.customerName.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [bookingHistory, searchQuery]);
+  }, [bookings, searchQuery]);
 
-  const fetchBookingHistory = async (showLoading = true) => {
-    if (showLoading) setLoading(true);
-
+  const loadBookingHistory = async (page = 1, append = false) => {
     try {
-      const response = await bookingService.getBookingHistoryForPT();
+      if (!append) {
+        setLoading(true);
+      } else {
+        setLoadingMore(true);
+      }
 
-      if (response.data) {
-        // Sort bookings by date, latest first
-        const sortedBookings = (response.data.items || []).sort((a, b) => {
-          return new Date(b.date) - new Date(a.date);
-        });
-        setBookingHistory(sortedBookings);
-        setPagination({
-          current: response.data.page,
-          pageSize: response.data.size,
-          total: response.data.total,
-          totalPages: response.data.totalPages,
-        });
+      const params = {
+        page,
+        size: 10,
+      };
+
+      // Add optional filters
+      if (selectedStatus) {
+        params.status = selectedStatus;
+      }
+      if (startDate) {
+        params.startDate = startDate;
+      }
+      if (endDate) {
+        params.endDate = endDate;
+      }
+
+      const response = await accountService.getBookingHistory(params);
+      console.log("PT Booking History:", response.data);
+
+      if (response.data && response.data.items) {
+        if (append) {
+          setBookings((prev) => [...prev, ...response.data.items]);
+        } else {
+          setBookings(response.data.items);
+        }
+        setCurrentPage(response.data.page);
+        setTotalPages(response.data.totalPages);
+        setTotalBookings(response.data.total);
       }
     } catch (error) {
-      console.error("Error fetching PT booking history:", error);
-      Alert.alert(t("bookingHistory.error"), t("bookingHistory.fetchError"));
+      console.error("Error loading PT booking history:", error);
     } finally {
       setLoading(false);
-      setRefreshing(false);
+      setLoadingMore(false);
     }
   };
 
   useEffect(() => {
-    fetchBookingHistory();
-  }, []);
+    loadBookingHistory(1, false);
+  }, [selectedStatus, startDate, endDate]);
 
-  const onRefresh = () => {
-    setRefreshing(true);
-    fetchBookingHistory(false);
-  };
-
-  // Enhanced status update function with proper API call
-  const updateBookingStatus = async (bookingId, newStatus) => {
-    setUpdatingBooking(bookingId);
-
-    try {
-      const response = await bookingService.updateBookingStatus(
-        bookingId,
-        newStatus
-      );
-
-      // Update local state immediately for better UX
-      setBookingHistory((prevHistory) => {
-        const updatedHistory = prevHistory.map((booking) =>
-          booking.id === bookingId ? { ...booking, status: newStatus } : booking
-        );
-        // Sort by date, latest first
-        return updatedHistory.sort(
-          (a, b) => new Date(b.date) - new Date(a.date)
-        );
-      });
-
-      // Refresh data from server
-      await fetchBookingHistory(false);
-
-      const statusMessage =
-        newStatus === "Completed"
-          ? t("bookingHistory.sessionCompleted")
-          : t("bookingHistory.sessionCanceled");
-
-      Alert.alert(t("bookingHistory.success"), statusMessage);
-    } catch (error) {
-      console.error("Error updating booking status:", error);
-      Alert.alert(t("bookingHistory.error"), t("bookingHistory.updateError"));
-    } finally {
-      setUpdatingBooking(null);
+  const loadMoreBookings = useCallback(() => {
+    if (!loadingMore && currentPage < totalPages) {
+      loadBookingHistory(currentPage + 1, true);
     }
-  };
-
-  // Show status update options - Only for Booked status
-  const showStatusUpdateOptions = (booking) => {
-    const currentStatus = booking.status;
-    const clientName = booking.user.fullName;
-
-    // Only allow updates for Booked status
-    if (currentStatus !== "Booked") {
-      Alert.alert(
-        "Thông báo",
-        t("bookingHistory.cannotChangeStatus", {
-          status: getStatusText(currentStatus, t).toLowerCase(),
-        })
-      );
-      return;
-    }
-
-    // Show options to Complete or Cancel
-    Alert.alert(
-      t("bookingHistory.updateSessionStatus"),
-      t("bookingHistory.chooseStatusFor", { clientName }),
-      [
-        {
-          text: t("bookingHistory.markCompleted"),
-          onPress: () =>
-            confirmStatusUpdate(
-              booking.id,
-              "Completed",
-              clientName,
-              t("bookingHistory.markCompleted").toLowerCase()
-            ),
-        },
-        {
-          text: t("bookingHistory.cancelSession"),
-          style: "destructive",
-          onPress: () =>
-            confirmStatusUpdate(
-              booking.id,
-              "Canceled",
-              clientName,
-              t("bookingHistory.cancelSession").toLowerCase()
-            ),
-        },
-        {
-          text: t("bookingHistory.close"),
-          style: "cancel",
-        },
-      ]
-    );
-  };
-
-  // Confirmation alert for status update
-  const confirmStatusUpdate = (
-    bookingId,
-    newStatus,
-    clientName,
-    actionText
-  ) => {
-    Alert.alert(
-      t("bookingHistory.confirm"),
-      t("bookingHistory.confirmAction", { action: actionText, clientName }),
-      [
-        {
-          text: t("bookingHistory.cancel"),
-          style: "cancel",
-        },
-        {
-          text: t("bookingHistory.confirm"),
-          style: newStatus === "Canceled" ? "destructive" : "default",
-          onPress: () => updateBookingStatus(bookingId, newStatus),
-        },
-      ]
-    );
-  };
+  }, [loadingMore, currentPage, totalPages]);
 
   // Calculate duration with rounded minutes (concise format)
   const calculateDuration = (startTime, endTime) => {
@@ -253,21 +124,66 @@ export default function PTBookingHistoryScreen({ navigation }) {
     }
   };
 
-  const renderBookingItem = (booking, index) => {
-    const statusInfo = getStatusColor(booking.status);
-    const statusText = getStatusText(booking.status, t);
-    const canUpdate = booking.status === "Booked"; // Only Booked status can be updated
-    const isUpdating = updatingBooking === booking.id;
+  // Get status color with gradients
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "Finished":
+        return {
+          primary: "#28a745",
+          secondary: "#20c997",
+          background: "rgba(40, 167, 69, 0.1)",
+          icon: "checkmark-circle",
+        };
+      case "Cancelled":
+        return {
+          primary: "#dc3545",
+          secondary: "#e83e8c",
+          background: "rgba(220, 53, 69, 0.1)",
+          icon: "close-circle",
+        };
+      case "WaitingForEdit":
+        return {
+          primary: "#ffc107",
+          secondary: "#ff9800",
+          background: "rgba(255, 193, 7, 0.1)",
+          icon: "time",
+        };
+      case "Booked":
+      default:
+        return {
+          primary: "#17a2b8",
+          secondary: "#6f42c1",
+          background: "rgba(23, 162, 184, 0.1)",
+          icon: "calendar",
+        };
+    }
+  };
+
+  // Get status text in Vietnamese
+  const getStatusText = (status) => {
+    switch (status) {
+      case "Finished":
+        return t("booking.completed");
+      case "Cancelled":
+        return t("booking.canceled");
+      case "WaitingForEdit":
+        return t("booking.waitingForEdit");
+      case "Booked":
+      default:
+        return t("booking.booked");
+    }
+  };
+
+  const renderBookingCard = ({ item: booking, index }) => {
+    const statusInfo = getStatusColor(booking.sessionStatus);
+    const statusText = getStatusText(booking.sessionStatus);
 
     return (
       <TouchableOpacity
-        key={booking.id}
         style={[styles.bookingItem, { transform: [{ scale: 1 }] }]}
         activeOpacity={0.95}
-        onPress={() => canUpdate && showStatusUpdateOptions(booking)}
-        disabled={isUpdating}
       >
-        {/* Gradient Header */}
+        {/* Header with date and status */}
         <View
           style={[
             styles.bookingHeader,
@@ -275,7 +191,10 @@ export default function PTBookingHistoryScreen({ navigation }) {
           ]}
         >
           <View style={styles.dateContainer}>
-            <Text style={styles.bookingDate}>{formatDate(booking.date)}</Text>
+            <Text style={styles.bookingDate}>
+              {formatDate(booking.bookingDate)}
+            </Text>
+            <Text style={styles.bookingName}>{booking.bookingName}</Text>
           </View>
           <View
             style={[
@@ -297,94 +216,78 @@ export default function PTBookingHistoryScreen({ navigation }) {
 
         {/* Content Container */}
         <View style={styles.contentContainer}>
-          {/* Client Information - Main focus for PT */}
-          <View style={styles.clientCard}>
-            <View style={styles.clientHeader}>
-              <View style={styles.clientAvatar}>
-                <Text style={styles.clientAvatarText}>
-                  {booking.user.fullName.charAt(0).toUpperCase()}
-                </Text>
-              </View>
-              <View style={styles.clientInfo}>
-                <Text style={styles.clientLabel}>
-                  {t("bookingHistory.client")}
-                </Text>
-                <Text style={styles.clientName}>{booking.user.fullName}</Text>
-              </View>
-              {canUpdate && !isUpdating && (
-                <View style={styles.actionIndicator}>
-                  <Ionicons name="chevron-forward" size={20} color="#64748b" />
+          {/* Customer Info */}
+          <View style={styles.customerCard}>
+            <View style={styles.customerHeader}>
+              {booking.customerAvatarUrl ? (
+                <Image
+                  source={{ uri: booking.customerAvatarUrl }}
+                  style={styles.customerAvatarImage}
+                />
+              ) : (
+                <View style={styles.customerAvatar}>
+                  <Text style={styles.customerAvatarText}>
+                    {booking.customerName.charAt(0).toUpperCase()}
+                  </Text>
                 </View>
               )}
-              {isUpdating && (
-                <View style={styles.loadingIndicator}>
-                  <ActivityIndicator size="small" color="#E42D46" />
-                </View>
-              )}
+              <View style={styles.customerInfo}>
+                <Text style={styles.customerLabel}>
+                  {t("booking.customer")}
+                </Text>
+                <Text style={styles.customerName}>{booking.customerName}</Text>
+              </View>
             </View>
           </View>
 
-          {/* Slot Information */}
+          {/* Package Info (if available) */}
+          {booking.packageName && (
+            <View style={styles.packageCard}>
+              <View style={styles.packageHeader}>
+                <View style={styles.packageIcon}>
+                  <MaterialIcons
+                    name="card-membership"
+                    size={20}
+                    color="#fff"
+                  />
+                </View>
+                <View style={styles.packageInfo}>
+                  <Text style={styles.packageLabel}>
+                    {t("booking.package")}
+                  </Text>
+                  <Text style={styles.packageNameText}>
+                    {booking.packageName}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          )}
+
+          {/* Time Info */}
           <View style={styles.slotInfo}>
             <View style={styles.slotHeader}>
               <View style={styles.slotIconContainer}>
                 <MaterialIcons name="access-time" size={20} color="#fff" />
               </View>
               <View style={styles.slotDetails}>
-                <Text style={styles.slotName}>{booking.slot.name}</Text>
                 <Text style={styles.slotTime}>
-                  {formatTime(booking.slot.startTime)} -{" "}
-                  {formatTime(booking.slot.endTime)}
+                  {formatTime(booking.startTime)} -{" "}
+                  {formatTime(booking.endTime)}
                 </Text>
+                {booking.gymSlotName && (
+                  <Text style={styles.slotName}>{booking.gymSlotName}</Text>
+                )}
               </View>
               <View style={styles.slotDuration}>
                 <Text style={styles.durationText}>
-                  {calculateDuration(
-                    booking.slot.startTime,
-                    booking.slot.endTime
-                  )}
+                  {calculateDuration(booking.startTime, booking.endTime)}
                 </Text>
               </View>
             </View>
           </View>
-
-          {/* Enhanced Action Section */}
-          {canUpdate && (
-            <View style={styles.actionSection}>
-              <TouchableOpacity
-                style={[styles.updateButton, { opacity: isUpdating ? 0.6 : 1 }]}
-                onPress={() => showStatusUpdateOptions(booking)}
-                disabled={isUpdating}
-              >
-                {isUpdating ? (
-                  <View style={styles.loadingButtonContent}>
-                    <ActivityIndicator size="small" color="#fff" />
-                    <Text style={styles.updateButtonText}>
-                      {t("bookingHistory.updating")}
-                    </Text>
-                  </View>
-                ) : (
-                  <Text style={styles.updateButtonText}>
-                    {t("bookingHistory.updateStatus")}
-                  </Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {/* Status info for completed/cancelled bookings */}
-          {!canUpdate && (
-            <View style={styles.statusInfoSection}>
-              <Text style={styles.statusInfoText}>
-                {booking.status === "Completed"
-                  ? t("bookingHistory.sessionCompleteStatus")
-                  : t("bookingHistory.sessionCanceledStatus")}
-              </Text>
-            </View>
-          )}
         </View>
 
-        {/* Decorative bottom border */}
+        {/* Bottom Border */}
         <View
           style={[styles.bottomBorder, { backgroundColor: statusInfo.primary }]}
         />
@@ -394,56 +297,129 @@ export default function PTBookingHistoryScreen({ navigation }) {
 
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
-      <View style={styles.emptyIllustration}>
-        <MaterialIcons name="fitness-center" size={40} color="#ccc" />
-      </View>
-      <Text style={styles.emptyText}>
+      <Ionicons name="calendar-outline" size={64} color="#ccc" />
+      <Text style={styles.emptyTitle}>
         {searchQuery
-          ? t("bookingHistory.noResults")
-          : t("bookingHistory.noSessions")}
+          ? t("booking.noResultsFound")
+          : t("booking.noBookingHistory")}
       </Text>
-      <Text style={styles.emptySubText}>
+      <Text style={styles.emptySubtitle}>
         {searchQuery
-          ? t("bookingHistory.noResultsFor", { searchQuery })
-          : t("bookingHistory.historyWillAppear")}
+          ? `${t("booking.noSearchResults")} "${searchQuery}"`
+          : t("booking.noBookingsYet")}
       </Text>
     </View>
   );
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <View style={styles.loadingCard}>
-          <ActivityIndicator size="large" color="#E42D46" />
-          <Text style={styles.loadingText}>
-            {t("bookingHistory.loadingHistory")}
-          </Text>
-        </View>
-      </View>
-    );
-  }
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadBookingHistory(1, false);
+    setRefreshing(false);
+  };
+
+  const renderStatusFilter = () => (
+    <View style={styles.filterContainer}>
+      <TouchableOpacity
+        style={[styles.filterChip, !selectedStatus && styles.filterChipActive]}
+        onPress={() => setSelectedStatus("")}
+      >
+        <Text
+          style={[
+            styles.filterChipText,
+            !selectedStatus && styles.filterChipTextActive,
+          ]}
+        >
+          {t("booking.all")}
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[
+          styles.filterChip,
+          selectedStatus === "Booked" && styles.filterChipActive,
+        ]}
+        onPress={() => setSelectedStatus("Booked")}
+      >
+        <Text
+          style={[
+            styles.filterChipText,
+            selectedStatus === "Booked" && styles.filterChipTextActive,
+          ]}
+        >
+          {t("booking.booked")}
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[
+          styles.filterChip,
+          selectedStatus === "Finished" && styles.filterChipActive,
+        ]}
+        onPress={() => setSelectedStatus("Finished")}
+      >
+        <Text
+          style={[
+            styles.filterChipText,
+            selectedStatus === "Finished" && styles.filterChipTextActive,
+          ]}
+        >
+          {t("booking.completed")}
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[
+          styles.filterChip,
+          selectedStatus === "Cancelled" && styles.filterChipActive,
+        ]}
+        onPress={() => setSelectedStatus("Cancelled")}
+      >
+        <Text
+          style={[
+            styles.filterChipText,
+            selectedStatus === "Cancelled" && styles.filterChipTextActive,
+          ]}
+        >
+          {t("booking.canceled")}
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[
+          styles.filterChip,
+          selectedStatus === "WaitingForEdit" && styles.filterChipActive,
+        ]}
+        onPress={() => setSelectedStatus("WaitingForEdit")}
+      >
+        <Text
+          style={[
+            styles.filterChipText,
+            selectedStatus === "WaitingForEdit" && styles.filterChipTextActive,
+          ]}
+        >
+          {t("booking.waitingForEdit")}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   return (
     <View style={styles.container}>
-      {/* Enhanced Summary Header for PT */}
+      {/* Enhanced Summary Header */}
       <View style={styles.summaryContainer}>
         <View style={styles.summaryContent}>
           <View style={styles.summaryIcon}>
-            <MaterialIcons name="fitness-center" size={24} color="#fff" />
+            <MaterialIcons name="history" size={24} color="#fff" />
           </View>
           <View style={styles.summaryInfo}>
             <Text style={styles.summaryLabel}>
-              {t("bookingHistory.totalSessions")}
+              {t("booking.totalBookings")}
             </Text>
-            <Text style={styles.summaryCount}>{pagination.total}</Text>
+            <Text style={styles.summaryCount}>{totalBookings}</Text>
             <Text style={styles.summarySubText}>
-              {t("bookingHistory.youHaveTrained")}
+              {t("booking.page")} {currentPage} / {totalPages}
             </Text>
           </View>
         </View>
         <TouchableOpacity
           style={styles.refreshButton}
-          onPress={() => fetchBookingHistory()}
+          onPress={() => loadBookingHistory(1, false)}
         >
           <Ionicons name="refresh" size={20} color="#64748b" />
         </TouchableOpacity>
@@ -460,7 +436,7 @@ export default function PTBookingHistoryScreen({ navigation }) {
           />
           <TextInput
             style={styles.searchInput}
-            placeholder={t("bookingHistory.searchByClientName")}
+            placeholder={t("booking.searchByCustomerName")}
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholderTextColor="#94a3b8"
@@ -476,52 +452,83 @@ export default function PTBookingHistoryScreen({ navigation }) {
         </View>
       </View>
 
+      {/* Status Filter */}
+      {renderStatusFilter()}
+
       {/* Quick Stats */}
       <View style={styles.statsContainer}>
         <View style={styles.statItem}>
           <Text style={styles.statNumber}>
-            {filteredBookings.filter((b) => b.status === "Booked").length}
+            {
+              filteredBookings.filter((b) => b.sessionStatus === "Booked")
+                .length
+            }
           </Text>
-          <Text style={styles.statLabel}>{t("bookingHistory.booked")}</Text>
+          <Text style={styles.statLabel}>{t("booking.booked")}</Text>
         </View>
         <View style={styles.statItem}>
           <Text style={styles.statNumber}>
-            {filteredBookings.filter((b) => b.status === "Completed").length}
+            {
+              filteredBookings.filter((b) => b.sessionStatus === "Finished")
+                .length
+            }
           </Text>
-          <Text style={styles.statLabel}>{t("bookingHistory.completed")}</Text>
+          <Text style={styles.statLabel}>{t("booking.completed")}</Text>
         </View>
         <View style={styles.statItem}>
           <Text style={styles.statNumber}>
-            {filteredBookings.filter((b) => b.status === "Canceled").length}
+            {
+              filteredBookings.filter((b) => b.sessionStatus === "Cancelled")
+                .length
+            }
           </Text>
-          <Text style={styles.statLabel}>{t("bookingHistory.canceled")}</Text>
+          <Text style={styles.statLabel}>{t("booking.canceled")}</Text>
         </View>
       </View>
 
       {/* Booking History List */}
-      <ScrollView
-        style={styles.scrollContainer}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={["#E42D46"]}
-            tintColor="#E42D46"
-            progressBackgroundColor="#fff"
-          />
-        }
-      >
-        {filteredBookings.length > 0
-          ? filteredBookings.map((booking, index) =>
-              renderBookingItem(booking, index)
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <View style={styles.loadingCard}>
+            <ActivityIndicator size="large" color="#E42D46" />
+            <Text style={styles.loadingText}>
+              {t("booking.loadingHistory")}
+            </Text>
+          </View>
+        </View>
+      ) : (
+        <FlatList
+          data={filteredBookings}
+          renderItem={renderBookingCard}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={["#E42D46"]}
+              tintColor="#E42D46"
+              progressBackgroundColor="#fff"
+            />
+          }
+          ListEmptyComponent={renderEmptyState}
+          ListFooterComponent={
+            loadingMore ? (
+              <View style={styles.loadingMoreContainer}>
+                <ActivityIndicator size="small" color="#E42D46" />
+                <Text style={styles.loadingMoreText}>
+                  {t("booking.loadingMore")}
+                </Text>
+              </View>
+            ) : (
+              <View style={styles.bottomSpacing} />
             )
-          : renderEmptyState()}
-
-        {/* Bottom spacing */}
-        <View style={styles.bottomSpacing} />
-      </ScrollView>
+          }
+          onEndReached={loadMoreBookings}
+          onEndReachedThreshold={0.5}
+        />
+      )}
     </View>
   );
 }
@@ -543,6 +550,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 3,
@@ -599,6 +607,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: "center",
     shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
@@ -629,6 +638,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: "center",
     shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 5,
@@ -639,9 +649,6 @@ const styles = StyleSheet.create({
     color: "#64748b",
     fontWeight: "500",
   },
-  scrollContainer: {
-    flex: 1,
-  },
   scrollContent: {
     paddingHorizontal: 16,
   },
@@ -650,6 +657,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginBottom: 16,
     shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 12,
     elevation: 4,
@@ -671,67 +679,110 @@ const styles = StyleSheet.create({
     color: "#1e293b",
     marginBottom: 2,
   },
+  bookingName: {
+    fontSize: 14,
+    color: "#64748b",
+    fontWeight: "500",
+    marginTop: 2,
+  },
   statusBadge: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
+    gap: 4,
   },
   statusText: {
     fontSize: 12,
     fontWeight: "600",
     color: "#fff",
+    marginLeft: 4,
   },
   contentContainer: {
     paddingHorizontal: 20,
     paddingVertical: 20,
   },
-  clientCard: {
+  customerCard: {
     backgroundColor: "#f8fafc",
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
     borderLeftWidth: 4,
-    borderLeftColor: "#E42D46",
+    borderLeftColor: "#17a2b8",
   },
-  clientHeader: {
+  customerHeader: {
     flexDirection: "row",
     alignItems: "center",
   },
-  clientAvatar: {
+  customerAvatar: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "#E42D46",
+    backgroundColor: "#17a2b8",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
   },
-  clientAvatarText: {
+  customerAvatarText: {
     fontSize: 18,
     fontWeight: "bold",
     color: "#fff",
   },
-  clientInfo: {
+  customerAvatarImage: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    marginRight: 12,
+  },
+  customerInfo: {
     flex: 1,
   },
-  clientLabel: {
+  customerLabel: {
     fontSize: 12,
     color: "#64748b",
     fontWeight: "500",
     marginBottom: 2,
   },
-  clientName: {
+  customerName: {
     fontSize: 16,
     fontWeight: "600",
     color: "#1e293b",
   },
-  actionIndicator: {
-    padding: 8,
+  packageCard: {
+    backgroundColor: "#f8fafc",
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: "#6f42c1",
   },
-  loadingIndicator: {
-    padding: 8,
+  packageHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  packageIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#6f42c1",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  packageInfo: {
+    flex: 1,
+  },
+  packageLabel: {
+    fontSize: 12,
+    color: "#64748b",
+    fontWeight: "500",
+    marginBottom: 2,
+  },
+  packageNameText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#1e293b",
   },
   slotInfo: {
     marginBottom: 16,
@@ -753,15 +804,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   slotName: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1e293b",
-    marginBottom: 2,
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#64748b",
+    marginTop: 2,
   },
   slotTime: {
     fontSize: 14,
-    color: "#64748b",
-    fontWeight: "500",
+    color: "#1e293b",
+    fontWeight: "600",
   },
   slotDuration: {
     backgroundColor: "#e2e8f0",
@@ -774,43 +825,6 @@ const styles = StyleSheet.create({
     color: "#475569",
     fontWeight: "500",
   },
-  actionSection: {
-    marginTop: 8,
-  },
-  updateButton: {
-    backgroundColor: "#E42D46",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  updateButtonText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#fff",
-  },
-  loadingButtonContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  statusInfoSection: {
-    marginTop: 8,
-    padding: 12,
-    backgroundColor: "#f1f5f9",
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  statusInfoText: {
-    fontSize: 14,
-    color: "#64748b",
-    fontWeight: "500",
-    fontStyle: "italic",
-  },
   bottomBorder: {
     height: 4,
     width: "100%",
@@ -821,31 +835,55 @@ const styles = StyleSheet.create({
     paddingVertical: 80,
     paddingHorizontal: 32,
   },
-  emptyIllustration: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: "#f1f5f9",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  emptyText: {
-    fontSize: 20,
+  emptyTitle: {
+    fontSize: 18,
     fontWeight: "600",
     color: "#1e293b",
-    textAlign: "center",
-    marginBottom: 8,
+    marginTop: 16,
   },
-  emptySubText: {
-    fontSize: 16,
+  emptySubtitle: {
+    fontSize: 14,
     color: "#64748b",
+    marginTop: 8,
     textAlign: "center",
-    lineHeight: 24,
-    marginBottom: 32,
   },
   bottomSpacing: {
     height: 20,
+  },
+  filterContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    paddingHorizontal: 16,
+    marginBottom: 8,
+    gap: 8,
+  },
+  filterChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: "#f1f5f9",
+  },
+  filterChipActive: {
+    backgroundColor: "#E42D46",
+  },
+  filterChipText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#64748b",
+  },
+  filterChipTextActive: {
+    color: "#fff",
+  },
+  loadingMoreContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 16,
+  },
+  loadingMoreText: {
+    marginLeft: 8,
+    fontSize: 14,
+    color: "#64748b",
   },
   searchContainer: {
     paddingHorizontal: 16,
@@ -859,6 +897,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,

@@ -20,7 +20,7 @@ import WeekCalendar from "../../../components/WeekCalendar/WeekCalendar";
 
 const { width, height } = Dimensions.get("window");
 
-export default function SchedulePTScreen() {
+export default function SchedulePTScreen({ navigation }) {
   const { t } = useTranslation();
   const [slots, setSlots] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -377,6 +377,13 @@ export default function SchedulePTScreen() {
               ))
           )}
         </ScrollView>
+        <TouchableOpacity
+          style={styles.floatingButton}
+          onPress={() => navigation.navigate("PTBookingHistoryScreen")}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="time-outline" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -582,5 +589,20 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontSize: 16,
     fontWeight: "600",
+  },
+  floatingButton: {
+    position: "absolute",
+    bottom: 30,
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "#FF914D",
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
   },
 });

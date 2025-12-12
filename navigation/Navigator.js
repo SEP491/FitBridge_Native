@@ -666,14 +666,6 @@ export default function Navigator({
             ) : null,
         })}
       >
-        {/* <Stack.Screen
-          name="VideoCallScreen"
-          component={FloatingVideoCallScreen}
-          options={{
-            headerShown: false,
-            orientation: "portrait",
-          }}
-        /> */}
         <Stack.Screen
           name="SchedulePTScreen"
           component={SchedulePTScreen}
@@ -688,20 +680,7 @@ export default function Navigator({
             },
           }}
         />
-        <Stack.Screen
-          name="SlotsPTScreen"
-          component={SlotsPTScreen}
-          options={{
-            headerShown: true,
-            title: t("screenTitles.viewBookedSlots"),
-            headerTitleAlign: "center",
-            headerTitleStyle: {
-              fontWeight: "bold",
-              fontSize: 20,
-              color: "#ED2A46",
-            },
-          }}
-        />
+
         <Stack.Screen
           name="PTBookingHistoryScreen"
           component={PTBookingHistoryScreen}
@@ -1348,6 +1327,33 @@ export default function Navigator({
     );
   };
 
+  const GymPTChatStack = () => {
+    return (
+      <Stack.Navigator
+        screenOptions={({ navigation, route }) => ({
+          headerTitleAlign: "center",
+          headerShown: false,
+          headerTintColor: "#ED2A46",
+        })}
+      >
+        <Stack.Screen
+          name="MessageScreen"
+          component={MessageScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="MessageDetailScreen"
+          component={MessageDetailScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+      </Stack.Navigator>
+    );
+  };
+
   const ProfileStack = () => {
     return (
       <Stack.Navigator
@@ -1886,7 +1892,6 @@ export default function Navigator({
             }}
           />
         )}
-
         {/* Role-specific tabs */}
         {user?.role === "Customer" && (
           <Tab.Screen
@@ -1897,7 +1902,6 @@ export default function Navigator({
             }}
           />
         )}
-
         {user?.role === "Customer" && (
           <Tab.Screen
             name={t("navigation.schedule")}
@@ -1907,7 +1911,6 @@ export default function Navigator({
             }}
           />
         )}
-
         {user?.role === "Customer" && (
           <Tab.Screen
             name={t("navigation.message")}
@@ -1935,7 +1938,6 @@ export default function Navigator({
             }}
           />
         )}
-
         {user?.role === "FreelancePT" && (
           <Tab.Screen
             name={t("navigation.freelancePTSchedule")}
@@ -1954,7 +1956,6 @@ export default function Navigator({
             }}
           />
         )}
-
         {/* {user?.role === "FreelancePT" && (
           <Tab.Screen
             name={t("navigation.withdrawal")}
@@ -1964,11 +1965,19 @@ export default function Navigator({
             }}
           />
         )} */}
-
         {user?.role === "FreelancePT" && (
           <Tab.Screen
             name={t("navigation.freelancePTChat")}
             component={FreelancePTChatStack}
+            options={{
+              headerShown: false,
+            }}
+          />
+        )}
+        {user?.role === "GymPT" && (
+          <Tab.Screen
+            name={t("navigation.freelancePTChat")}
+            component={GymPTChatStack}
             options={{
               headerShown: false,
             }}
@@ -1984,9 +1993,7 @@ export default function Navigator({
               }}
             />
           )} */}
-
         {/* Profile tab - available for all authenticated users */}
-
         <Tab.Screen
           name={t("navigation.me")}
           component={ProfileStack}

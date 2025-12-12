@@ -7,8 +7,6 @@ const ptService = {
   deactivateSlot: (data) =>
     request("POST", `v1/gym-slots/deactivated-slots`, data),
 
-  getPtSlot: (dateParam) => request("GET", "v1/pt-slot", null, {}, dateParam),
-
   getPTDetail: (ptId) => request("GET", `v1/pt/${ptId}`),
 
   getPTForUser: (id, params) =>
@@ -16,7 +14,6 @@ const ptService = {
 
   checkMinimumSlot: (data) =>
     request("POST", "v1/gym-slots/check-minimum-slot", data),
-
 };
 
 export default ptService;
