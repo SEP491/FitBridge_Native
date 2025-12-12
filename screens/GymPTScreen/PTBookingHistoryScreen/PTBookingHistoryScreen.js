@@ -12,22 +12,16 @@ import {
   TextInput,
   FlatList,
 } from "react-native";
-import React, { useEffect, useState, useMemo, useCallback } from "react";
-import { LinearGradient } from "expo-linear-gradient";
-import Foundation from "@expo/vector-icons/Foundation";
-import { useNavigation } from "@react-navigation/native";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import accountService from "../../../services/accountService";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import AntDesign from "@expo/vector-icons/AntDesign";
-import colors from "../../../constants/color";
 import { useTranslation } from "../../../hooks/useTranslation";
 import { formatDate, formatTime } from "../../../lib";
 
 const { width } = Dimensions.get("window");
 
 export default function PTBookingHistoryScreen() {
-  const navigation = useNavigation();
   const { t } = useTranslation();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);

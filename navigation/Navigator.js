@@ -37,7 +37,6 @@ import ChoosingCourseScreen from "../screens/CustomerScreen/ChoosingCourseScreen
 import ScheduleScreen from "../screens/CustomerScreen/ScheduleScreen/ScheduleScreen";
 import BookingHistoryScreen from "../screens/CustomerScreen/BookingHistoryScreen/BookingHistoryScreen";
 import SchedulePTScreen from "../screens/GymPTScreen/SchedulePTScreen/SchedulePTScreen";
-import SlotsPTScreen from "../screens/GymPTScreen/SlotsPTScreen/SlotsPTScreen";
 import PTBookingHistoryScreen from "../screens/GymPTScreen/PTBookingHistoryScreen/PTBookingHistoryScreen";
 import ChatbotScreen from "../screens/CommonScreen/ChatScreen/ChatbotScreen";
 import WithdrawalScreen from "../screens/FreelancePTScreen/WithdrawalScreen/WithdrawalScreen";
