@@ -1,10 +1,21 @@
 import React from "react";
-import { View, Text, StyleSheet, Image, Animated, Dimensions } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  Animated,
+  Dimensions,
+  TouchableOpacity,
+} from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { useNavigation } from "@react-navigation/native";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useTranslation } from "../../../hooks/useTranslation";
 
 const DashboardHeader = ({ user }) => {
   const { t } = useTranslation();
+  const navigation = useNavigation();
 
   return (
     <LinearGradient
@@ -42,6 +53,16 @@ const DashboardHeader = ({ user }) => {
             </View>
           )}
         </View>
+        <TouchableOpacity
+          style={styles.notificationButton}
+          activeOpacity={0.7}
+          onPress={() => navigation.navigate("NotificationScreen")}
+        >
+          <View style={styles.iconContainer}>
+            <Ionicons name="notifications" size={28} color="white" />
+            <View style={styles.notificationDot} />
+          </View>
+        </TouchableOpacity>
       </Animated.View>
     </LinearGradient>
   );
@@ -50,14 +71,9 @@ const WIDTH = Dimensions.get("window").width;
 const HEIGHT = Dimensions.get("window").height;
 const styles = StyleSheet.create({
   headerGradient: {
-    paddingVertical: 20,
-    paddingTop: HEIGHT * 0.07,
-    paddingBottom: HEIGHT   ,
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 1,
+    paddingTop: 64,
+    paddingBottom: 20,
+    borderRadius: 16,
   },
   userInfo: {
     flexDirection: "row",
@@ -112,6 +128,24 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
     textTransform: "uppercase",
+  },
+  notificationButton: {
+    padding: 8,
+  },
+  iconContainer: {
+    position: "relative",
+    padding: 4,
+  },
+  notificationDot: {
+    position: "absolute",
+    top: 2,
+    right: 2,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#FF3B30",
+    borderWidth: 1,
+    borderColor: "white",
   },
 });
 

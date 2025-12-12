@@ -10,7 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import CarouselNative from "../../../components/Carousel/Carousel";
 import { TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";

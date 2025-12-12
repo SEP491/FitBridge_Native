@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -27,7 +27,6 @@ const CreateConversationModal = ({
   const [users, setUsers] = useState([]);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isGroup, setIsGroup] = useState(false);
   const [initialMessage, setInitialMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [fetchingUsers, setFetchingUsers] = useState(false);
@@ -60,7 +59,6 @@ const CreateConversationModal = ({
       setUsers([]);
       setSelectedUsers([]);
       setSearchQuery("");
-      setIsGroup(false);
       setInitialMessage("");
     }
   }, [visible]);
@@ -119,21 +117,9 @@ const CreateConversationModal = ({
       return;
     }
 
-    // For non-group conversations, only one user should be selected
-    if (!isGroup && selectedUsers.length !== 1) {
-      return;
-    }
-
-    // For group conversations, at least 2 users are required
-    if (isGroup && selectedUsers.length < 2) {
-      return;
-    }
-
     try {
       setCreating(true);
 
-      // Format members according to API requirements
-      // Always include current user as a member
       const members = [];
 
       if (currentUserId && currentUser) {
@@ -156,10 +142,10 @@ const CreateConversationModal = ({
       });
 
       const conversationData = {
-        isGroup,
+        isGroup: false,
         members,
         newMessageContent: initialMessage || "Hello!",
-        groupImage: isGroup ? null : null, // Can be extended later for group images
+        groupImage: null,
       };
 
       const response = await messageService.createConversation(
@@ -169,7 +155,6 @@ const CreateConversationModal = ({
       // Reset modal state
       setSelectedUsers([]);
       setInitialMessage("");
-      setIsGroup(false);
 
       // Call callback with created conversation
       if (onConversationCreated) {
@@ -233,9 +218,7 @@ const CreateConversationModal = ({
     );
   };
 
-  const canCreate =
-    selectedUsers.length > 0 &&
-    (!isGroup ? selectedUsers.length === 1 : selectedUsers.length >= 2);
+  const canCreate = selectedUsers.length > 0 && selectedUsers.length === 1;
 
   return (
     <Modal

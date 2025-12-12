@@ -42,6 +42,7 @@ const ActivityTypeTag = ({ type }) => {
 
 export default function BookingResultCard({ result, navigation, Booking }) {
   const { t } = useTranslation();
+  console.log("Booking Result:", result);
   if (!result) {
     return (
       <View style={styles.emptyContainer}>
@@ -118,7 +119,11 @@ export default function BookingResultCard({ result, navigation, Booking }) {
             <Text style={styles.timeLabel}>
               {t("bookingResultCard.trainingDate")}
             </Text>
-            <Text style={styles.timeValue}>{dateTraining}</Text>
+            <Text style={styles.timeValue}>
+              {dateTraining
+                ? dateTraining.split("-").reverse().join("-")
+                : "--"}
+            </Text>
           </View>
           <View style={styles.timeItem}>
             <Text style={styles.timeLabel}>
@@ -137,8 +142,19 @@ export default function BookingResultCard({ result, navigation, Booking }) {
                 {t("bookingResultCard.actual")}
               </Text>
               <Text style={styles.timeValue}>
-                {actualStartTime?.substring(0, 5) || "--:--"} -{" "}
-                {actualEndTime?.substring(0, 5) || "--:--"}
+                {actualStartTime
+                  ? new Date(actualStartTime).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })
+                  : "--:--"}{" "}
+                -{" "}
+                {actualEndTime
+                  ? new Date(actualEndTime).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })
+                  : "--:--"}
               </Text>
             </View>
           </View>
