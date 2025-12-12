@@ -166,13 +166,13 @@ export default function NotificationScreen() {
   return (
     <View style={styles.container}>
       {/* SignalR Connection Status (for debugging) */}
-      {__DEV__ && (
+      {/* {__DEV__ && (
         <View style={styles.debugBanner}>
           <Text style={styles.debugText}>
             SignalR: {isSignalRConnected ? "Connected ✓" : "Disconnected ✗"}
           </Text>
         </View>
-      )}
+      )} */}
 
       {/* Header Stats */}
       {/* <View style={styles.headerStats}>

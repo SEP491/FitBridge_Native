@@ -60,29 +60,28 @@ const FreelancePTDashboard = ({ navigation }) => {
     }, [])
   );
 
-
   const fetchMonthLyRevenue = async () => {
     try {
       const response = await dashBoardService.getRevenueDetail();
       const data = response.data;
-      
+
       // Process the revenue data
       let totalRevenue = 0;
       let totalProfit = 0;
       let totalSystemProfit = 0;
-      
+
       if (data && data.items && Array.isArray(data.items)) {
         // Calculate total revenue from items
         data.items.forEach((item) => {
           totalProfit += item.totalProfit || 0;
           totalSystemProfit += item.systemProfit || 0;
         });
-        
+
         // Total revenue is the sum of profit and system profit (or just profit, depending on business logic)
         // Using totalProfit as the trainer's revenue
         totalRevenue = totalProfit;
       }
-      
+
       // Set the processed monthly revenue data
       setMonthLyRevenue({
         totalRevenue: totalRevenue,
@@ -113,7 +112,7 @@ const FreelancePTDashboard = ({ navigation }) => {
     } catch (error) {
       console.error("Error fetching wallet data:", error);
       Alert.alert("Error", "Failed to fetch wallet data");
-    } 
+    }
   };
 
   const loadTodaySessions = async () => {
@@ -122,7 +121,6 @@ const FreelancePTDashboard = ({ navigation }) => {
       const response = await accountService.getBookingForPT({
         // date: formatDateForAPI(new Date(Date.now() - 24 * 60 * 60 * 1000)),
         date: formatDateForAPI(new Date()),
-
       });
       setTodaySessions(response.data.items || []);
       console.log("Today's sessions:", response.data.items || []);
@@ -227,9 +225,11 @@ const FreelancePTDashboard = ({ navigation }) => {
 
   const onRefresh = () => {
     setRefreshing(true);
-    Promise.all([fetchWalletData(), loadTodaySessions(), fetchMonthLyRevenue()]).finally(() =>
-      setRefreshing(false)
-    );
+    Promise.all([
+      fetchWalletData(),
+      loadTodaySessions(),
+      fetchMonthLyRevenue(),
+    ]).finally(() => setRefreshing(false));
   };
 
   // Render Revenue Comparison Info
@@ -311,6 +311,8 @@ const FreelancePTDashboard = ({ navigation }) => {
   return (
     <View style={styles.screen}>
       {/* Scroll content is full-screen and scrolls UNDER the header */}
+      <DashboardHeader user={user} />
+
       <ScrollView
         style={styles.container}
         bounces={false}
@@ -342,7 +344,6 @@ const FreelancePTDashboard = ({ navigation }) => {
       </ScrollView>
 
       {/* Header stays fixed on top */}
-      <DashboardHeader user={user} />
     </View>
   );
 };
@@ -351,13 +352,13 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: "#f8f9fa",
-    zIndex: 1000,
+    // zIndex: 1000,
   },
   container: {
     flex: 1,
     zIndex: 2,
-    paddingTop: Dimensions.get("window").height * 0.18, // space under the header
-    paddingBottom: Dimensions.get("window").height * 0.1,
+    // paddingTop: Dimensions.get("window").height * 0.22, // space under the header
+    // paddingBottom: Dimensions.get("window").height * 0.1,
   },
   contentContainer: {
     backgroundColor: "white",

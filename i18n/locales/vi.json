@@ -638,7 +638,8 @@
     "reviewId": "Mã đánh giá",
     "remove": "Xóa",
     "maxImagesReached": "Đã đạt tối đa 3 ảnh",
-    "saving": "Đang lưu..."
+    "saving": "Đang lưu...",
+    "goBack": "Quay lại"
   },
 
   "account": {
@@ -2425,5 +2426,11 @@
       "active": "Đang hoạt động",
       "expired": "Đã hết hạn"
     }
+  },
+
+  "error": {
+    "title": "Đã xảy ra lỗi",
+    "failedToLoadPackage": "Không thể tải gói tập. Vui lòng thử lại sau.",
+    "packageNotFound": "Gói tập không tồn tại"
   }
 }

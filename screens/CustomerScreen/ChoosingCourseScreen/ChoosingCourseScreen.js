@@ -8,7 +8,7 @@ import {
   SafeAreaView,
   RefreshControl,
 } from "react-native";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import accountService from "../../../services/accountService";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -47,7 +47,6 @@ export default function ChoosingCourseScreen() {
           expirationDate: item.expirationDate,
           sessionDurationInMinutes: item.sessionDurationInMinutes,
           packageType: "FreelancePTPackage",
-          price: 0,
           pt: item.ptId
             ? {
                 id: item.ptId,
@@ -64,7 +63,6 @@ export default function ChoosingCourseScreen() {
           availableSessions: item.availableSessions,
           expirationDate: item.expirationDate,
           packageType: "GymCourse",
-          price: item.ptAssignmentPrice || 0,
           canAssignPT: item.canAssignPT,
           gymCourseId: item.gymCourseId,
           pt: item.ptId
@@ -97,11 +95,9 @@ export default function ChoosingCourseScreen() {
     }
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      loadCourseForUser();
-    }, [])
-  );
+  useEffect(() => {
+    loadCourseForUser();
+  }, []);
 
   const onRefresh = async () => {
     setRefreshing(true);

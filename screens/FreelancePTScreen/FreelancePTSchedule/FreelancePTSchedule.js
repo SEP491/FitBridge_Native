@@ -63,7 +63,7 @@ export default function FreelancePTSchedule() {
       setLoading(true);
 
       const formattedDate = formatDateForAPI(date);
-      console.log("Loading bookings for date:", formattedDate);
+      console.log("Loading bookings for date PT:", formattedDate);
 
       const response = await accountService.getBookingForPT({
         date: formattedDate,

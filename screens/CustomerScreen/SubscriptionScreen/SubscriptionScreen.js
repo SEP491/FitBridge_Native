@@ -8,6 +8,7 @@ import {
   Alert,
   ActivityIndicator,
   Platform,
+  Linking,
 } from "react-native";
 import { useEffect, useState } from "react";
 import { useTranslation } from "../../../hooks/useTranslation";
@@ -340,8 +341,17 @@ export default function SubscriptionScreen() {
                       {
                         text: t("subscription.open_settings"),
                         onPress: () => {
-                          // Open settings - implementation depends on platform
-                          console.log("Open device settings");
+                          if (Platform.OS === "ios") {
+                            // Open iOS subscription settings
+                            Linking.openURL(
+                              "https://apps.apple.com/account/subscriptions"
+                            );
+                          } else {
+                            // Open Google Play subscription settings
+                            Linking.openURL(
+                              "https://play.google.com/store/account/subscriptions"
+                            );
+                          }
                         },
                       },
                     ]
