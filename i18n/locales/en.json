@@ -48,6 +48,8 @@
   },
 
   "screenTitles": {
+    "bestSellerProducts": "Best Seller Products",
+    "topRatedProducts": "Top Rated Products",
     "trainingResult": "Training Result",
     "addMeasurement": "Measure Body",
     "ptList": "PT List",

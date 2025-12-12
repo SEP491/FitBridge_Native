@@ -9,10 +9,13 @@ import {
   ActivityIndicator,
   SafeAreaView,
   RefreshControl,
+  Modal,
+  ScrollView,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useTranslation } from "../../hooks/useTranslation";
 import ProductCard from "../ProductCard/ProductCard";
+import ProductCardSkeleton from "../ProductCard/ProductCardSkeleton";
 import { getData, storeData, removeData } from "../../lib/storage/storageUtils";
 import productService from "../../services/productService";
 
@@ -36,6 +39,14 @@ export default function ProductSearch({
   const [totalProductRecommended, setTotalProductRecommended] = useState(0);
   const [currentProductPage, setCurrentProductPage] = useState(1);
   const [hasMoreProductData, setHasMoreProductData] = useState(false);
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  
+  // Filter states
+  const [filters, setFilters] = useState({
+    priceRange: { min: "", max: "" },
+    rating: 0,
+    sortOrder: "asc", // "asc" or "desc"
+  });
   
   const [recentSearches, setRecentSearches] = useState([]);
 
@@ -78,14 +89,31 @@ export default function ProductSearch({
       // Save to recent searches
       await saveToRecentSearches(query);
 
-      console.log('Searching products with params:', { searchTerm: query, page, size: 10 });
-
-      // Search products - API returns data directly, not wrapped in data property
-      const productResponse = await productService.searchProducts({
+      // Build search parameters with filters
+      const searchParams = {
         searchTerm: query,
         page: page,
         size: 10,
-      });
+      };
+
+      // Add filter parameters
+      if (filters.priceRange.min) {
+        searchParams.fromPrice = parseFloat(filters.priceRange.min);
+      }
+      if (filters.priceRange.max) {
+        searchParams.toPrice = parseFloat(filters.priceRange.max);
+      }
+      if (filters.rating > 0) {
+        searchParams.rating = filters.rating;
+      }
+      if (filters.sortOrder) {
+        searchParams.sortOrder = filters.sortOrder;
+      }
+
+      console.log('Searching products with params:', searchParams);
+
+      // Search products - API returns data directly, not wrapped in data property
+      const productResponse = await productService.searchProducts(searchParams);
 
       console.log('Product search response:', JSON.stringify(productResponse, null, 2));
 
@@ -179,6 +207,31 @@ export default function ProductSearch({
     }
   };
 
+  const applyFilters = () => {
+    setShowFilterModal(false);
+    setCurrentProductPage(1);
+    setProductSearchResults([]);
+    setProductRecommendedResults([]);
+    if (searchText.trim()) {
+      performSearch(searchText.trim(), 1, false);
+    }
+  };
+
+  const resetFilters = () => {
+    setFilters({
+      priceRange: { min: "", max: "" },
+      rating: 0,
+      sortOrder: "asc",
+    });
+    setShowFilterModal(false);
+    setCurrentProductPage(1);
+    setProductSearchResults([]);
+    setProductRecommendedResults([]);
+    if (searchText.trim()) {
+      performSearch(searchText.trim(), 1, false);
+    }
+  };
+
   const clearSearch = () => {
     setSearchText("");
     setHasSearched(false);
@@ -188,6 +241,11 @@ export default function ProductSearch({
     setTotalProductRecommended(0);
     setCurrentProductPage(1);
     setHasMoreProductData(false);
+    setFilters({
+      priceRange: { min: "", max: "" },
+      rating: 0,
+      sortOrder: "asc",
+    });
     searchInputRef.current?.focus();
   };
 
@@ -273,11 +331,41 @@ export default function ProductSearch({
           </TouchableOpacity>
         </View>
 
+        {/* Filter Button - Show when searched */}
+        {hasSearched && (
+          <View style={styles.filterContainer}>
+            <TouchableOpacity
+              style={[
+                styles.filterButton,
+                (filters.priceRange.min ||
+                  filters.priceRange.max ||
+                  filters.rating > 0 ||
+                  filters.sortOrder !== "asc") &&
+                  styles.filterButtonActive,
+              ]}
+              onPress={() => setShowFilterModal(true)}
+            >
+              <Ionicons name="filter" size={20} color="#ED2A46" />
+              {(filters.priceRange.min ||
+                filters.priceRange.max ||
+                filters.rating > 0 ||
+                filters.sortOrder !== "asc") && (
+                <View style={styles.filterBadge} />
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Content */}
         {loading && !hasSearched ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#ED2A46" />
-            <Text style={styles.loadingText}>{t("common.loading")}</Text>
+          <View style={styles.skeletonContainer}>
+            <View style={styles.skeletonGrid}>
+              {Array.from({ length: 6 }).map((_, index) => (
+                <View key={`skeleton-search-${index}`} style={styles.skeletonItem}>
+                  <ProductCardSkeleton />
+                </View>
+              ))}
+            </View>
           </View>
         ) : !hasSearched ? (
           <FlatList
@@ -342,8 +430,31 @@ export default function ProductSearch({
             }
             ListHeaderComponent={() => (
               <>
+                {/* Loading Skeletons when searching */}
+                {loading && hasSearched && productSearchResults.length === 0 && (
+                  <View style={styles.resultsContainer}>
+                    <View style={styles.sectionWrapper}>
+                      <View style={styles.sectionHeaderBar}>
+                        <View style={styles.sectionHeaderContent}>
+                          <Ionicons name="search" size={20} color="#ED2A46" />
+                          <Text style={styles.sectionHeaderTitle}>
+                            {t("search.searchResults")}
+                          </Text>
+                        </View>
+                      </View>
+                      <View style={styles.productsGrid}>
+                        {Array.from({ length: 6 }).map((_, index) => (
+                          <View key={`skeleton-search-results-${index}`} style={styles.productCardContainer}>
+                            <ProductCardSkeleton />
+                          </View>
+                        ))}
+                      </View>
+                    </View>
+                  </View>
+                )}
+
                 {/* Search Results */}
-                {productSearchResults.length > 0 && (
+                {!loading && productSearchResults.length > 0 && (
                   <View style={styles.resultsContainer}>
                     <View style={styles.sectionWrapper}>
                       <View style={styles.sectionHeaderBar}>
@@ -370,8 +481,23 @@ export default function ProductSearch({
                   </View>
                 )}
 
+                {/* Loading More Skeletons */}
+                {loading && hasSearched && productSearchResults.length > 0 && (
+                  <View style={styles.resultsContainer}>
+                    <View style={styles.sectionWrapper}>
+                      <View style={styles.productsGrid}>
+                        {Array.from({ length: 4 }).map((_, index) => (
+                          <View key={`skeleton-load-more-${index}`} style={styles.productCardContainer}>
+                            <ProductCardSkeleton />
+                          </View>
+                        ))}
+                      </View>
+                    </View>
+                  </View>
+                )}
+
                 {/* Recommended Products */}
-                {productRecommendedResults.length > 0 && (
+                {!loading && productRecommendedResults.length > 0 && (
                   <View style={styles.resultsContainer}>
                     <View style={styles.sectionWrapper}>
                       <View
@@ -409,26 +535,24 @@ export default function ProductSearch({
                 )}
 
                 {/* Load More Button */}
-                {hasMoreProductData && (
+                {!loading && hasMoreProductData && (
                   <TouchableOpacity
                     style={styles.loadMoreContainer}
                     onPress={loadMoreData}
                     disabled={loading}
                   >
-                    {loading ? (
-                      <ActivityIndicator size="small" color="#ED2A46" />
-                    ) : (
-                      <Ionicons name="chevron-down" size={24} color="#ED2A46" />
-                    )}
+                    <Ionicons name="chevron-down" size={24} color="#ED2A46" />
                     <Text style={styles.loadMoreText}>
-                      {loading ? t("common.loading") : t("common.loadMore")}
+                      {t("common.loadMore")}
                     </Text>
                   </TouchableOpacity>
                 )}
 
                 {/* Empty State */}
-                {productSearchResults.length === 0 &&
-                  productRecommendedResults.length === 0 && (
+                {!loading &&
+                  productSearchResults.length === 0 &&
+                  productRecommendedResults.length === 0 &&
+                  hasSearched && (
                     <View style={styles.emptyContainer}>
                       <Ionicons name="search" size={80} color="#E0E0E0" />
                       <Text style={styles.emptyTitle}>
@@ -445,6 +569,169 @@ export default function ProductSearch({
           />
         )}
       </View>
+
+      {/* Filter Modal */}
+      <Modal
+        visible={showFilterModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowFilterModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>
+                {t("common.filter", "Filter")}
+              </Text>
+              <TouchableOpacity onPress={() => setShowFilterModal(false)}>
+                <Ionicons name="close" size={24} color="#333" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView
+              style={styles.filterContent}
+              showsVerticalScrollIndicator={false}
+            >
+              {/* Price Range Filter */}
+              <View style={styles.filterSection}>
+                <Text style={styles.filterSectionTitle}>
+                  {t("common.priceRange", "Price Range")}
+                </Text>
+                <View style={styles.rangeInputs}>
+                  <TextInput
+                    style={styles.rangeInput}
+                    placeholder={t("common.min", "Min")}
+                    value={filters.priceRange.min}
+                    onChangeText={(text) =>
+                      setFilters({
+                        ...filters,
+                        priceRange: { ...filters.priceRange, min: text },
+                      })
+                    }
+                    keyboardType="numeric"
+                    placeholderTextColor="#999"
+                  />
+                  <Text style={styles.rangeSeparator}>-</Text>
+                  <TextInput
+                    style={styles.rangeInput}
+                    placeholder={t("common.max", "Max")}
+                    value={filters.priceRange.max}
+                    onChangeText={(text) =>
+                      setFilters({
+                        ...filters,
+                        priceRange: { ...filters.priceRange, max: text },
+                      })
+                    }
+                    keyboardType="numeric"
+                    placeholderTextColor="#999"
+                  />
+                </View>
+              </View>
+
+              {/* Rating Filter */}
+              <View style={styles.filterSection}>
+                <Text style={styles.filterSectionTitle}>
+                  {t("common.minRating", "Minimum Rating")}
+                </Text>
+                <View style={styles.ratingButtons}>
+                  {[0, 1, 2, 3, 4, 5].map((rating) => (
+                    <TouchableOpacity
+                      key={rating}
+                      style={[
+                        styles.ratingButton,
+                        filters.rating === rating && styles.activeRatingButton,
+                      ]}
+                      onPress={() => setFilters({ ...filters, rating })}
+                    >
+                      <Ionicons
+                        name="star"
+                        size={16}
+                        color={filters.rating === rating ? "#fff" : "#FFD700"}
+                      />
+                      <Text
+                        style={[
+                          styles.ratingButtonText,
+                          filters.rating === rating &&
+                            styles.activeRatingButtonText,
+                        ]}
+                      >
+                        {rating}+
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              {/* Sort Order Filter */}
+              <View style={styles.filterSection}>
+                <Text style={styles.filterSectionTitle}>
+                  {t("common.sortBy", "Sort Order")}
+                </Text>
+                <View style={styles.sortOptions}>
+                  {[
+                    {
+                      value: "asc",
+                      label: t("common.priceAsc", "Price: Low to High"),
+                    },
+                    {
+                      value: "desc",
+                      label: t("common.priceDesc", "Price: High to Low"),
+                    },
+                  ].map((option) => (
+                    <TouchableOpacity
+                      key={option.value}
+                      style={[
+                        styles.sortOption,
+                        filters.sortOrder === option.value &&
+                          styles.activeSortOption,
+                      ]}
+                      onPress={() =>
+                        setFilters({ ...filters, sortOrder: option.value })
+                      }
+                    >
+                      <Text
+                        style={[
+                          styles.sortOptionText,
+                          filters.sortOrder === option.value &&
+                            styles.activeSortOptionText,
+                        ]}
+                      >
+                        {option.label}
+                      </Text>
+                      {filters.sortOrder === option.value && (
+                        <Ionicons
+                          name="checkmark-circle"
+                          size={20}
+                          color="#ED2A46"
+                        />
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            </ScrollView>
+
+            <View style={styles.modalFooter}>
+              <TouchableOpacity
+                style={styles.resetButton}
+                onPress={resetFilters}
+              >
+                <Text style={styles.resetButtonText}>
+                  {t("common.reset", "Reset")}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.applyButton}
+                onPress={applyFilters}
+              >
+                <Text style={styles.applyButtonText}>
+                  {t("common.apply", "Apply")}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -680,5 +967,194 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#6B6B6B",
     fontWeight: "500",
+  },
+  skeletonContainer: {
+    flex: 1,
+    paddingVertical: 20,
+  },
+  skeletonGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+  },
+  skeletonItem: {
+    width: "48%",
+    marginBottom: 5,
+  },
+  filterContainer: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderBottomColor: "#F0F0F0",
+  },
+  filterButton: {
+    padding: 12,
+    position: "relative",
+    borderRadius: 8,
+    backgroundColor: "#F8F9FA",
+  },
+  filterButtonActive: {
+    backgroundColor: "#FFF5F6",
+  },
+  filterBadge: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#ED2A46",
+  },
+  // Filter Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    width: "90%",
+    maxHeight: "80%",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F0F0F0",
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  filterContent: {
+    padding: 20,
+  },
+  filterSection: {
+    marginBottom: 24,
+  },
+  filterSectionTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 12,
+  },
+  rangeInputs: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  rangeInput: {
+    flex: 1,
+    backgroundColor: "#F8F9FA",
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: "#333",
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+  },
+  rangeSeparator: {
+    fontSize: 16,
+    color: "#666",
+    fontWeight: "600",
+  },
+  ratingButtons: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  ratingButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: "#F8F9FA",
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+  },
+  activeRatingButton: {
+    backgroundColor: "#ED2A46",
+    borderColor: "#ED2A46",
+  },
+  ratingButtonText: {
+    fontSize: 14,
+    color: "#333",
+    fontWeight: "500",
+  },
+  activeRatingButtonText: {
+    color: "#fff",
+  },
+  sortOptions: {
+    gap: 8,
+  },
+  sortOption: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: "#F8F9FA",
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+  },
+  activeSortOption: {
+    backgroundColor: "#FFF5F6",
+    borderColor: "#ED2A46",
+  },
+  sortOptionText: {
+    fontSize: 14,
+    color: "#333",
+    fontWeight: "500",
+  },
+  activeSortOptionText: {
+    color: "#ED2A46",
+    fontWeight: "600",
+  },
+  modalFooter: {
+    flexDirection: "row",
+    gap: 12,
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: "#F0F0F0",
+  },
+  resetButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: "#F8F9FA",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+  },
+  resetButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#666",
+  },
+  applyButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: "#ED2A46",
+    alignItems: "center",
+  },
+  applyButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#fff",
   },
 });

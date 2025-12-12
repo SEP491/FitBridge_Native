@@ -29,6 +29,7 @@ const OrderManagementCard = ({ order, onRefresh }) => {
   const [cancelReason, setCancelReason] = useState("");
   const [notReceivedDescription, setNotReceivedDescription] = useState("");
   const [notReceivedModalVisible, setNotReceivedModalVisible] = useState(false);
+  console.log(order);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -394,6 +395,30 @@ const OrderManagementCard = ({ order, onRefresh }) => {
 
           {/* Price Section */}
           <View style={styles.priceSection}>
+            <View style={styles.shippingFeeRow}>
+              <Text style={styles.shippingFeeLabel}>
+                {t("orders.subtotal")}:
+              </Text>
+              <Text style={styles.shippingFeeValue}>
+                {formatPrice(order.subTotalPrice)}
+              </Text>
+            </View>
+            <View style={styles.shippingFeeRow}>
+              <Text style={styles.shippingFeeLabel}>
+                {t("payment.discount")}:
+              </Text>
+              <Text style={styles.shippingFeeValue}>
+                {formatPrice((order.totalAmount - (order.subTotalPrice + order.shippingFee)))}
+              </Text>
+            </View>
+            <View style={styles.shippingFeeRow}>
+              <Text style={styles.shippingFeeLabel}>
+                {t("orders.shippingFee")}:
+              </Text>
+              <Text style={styles.shippingFeeValue}>
+                {formatPrice(order.shippingFee)}
+              </Text>
+            </View>
             <View style={styles.totalRow}>
               <Text style={styles.totalLabel}>
                 {t("orders.total")}:{" "}
@@ -830,6 +855,19 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#333",
     fontWeight: "500",
+  },
+  shippingFeeRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
+  shippingFeeLabel: {
+    fontSize: 13,
+    color: "#333",
+  },
+  shippingFeeValue: {
+    fontSize: 13,
+    color: "#333",
   },
   totalRow: {
     flexDirection: "row",

@@ -47,6 +47,8 @@
   },
 
   "screenTitles": {
+    "bestSellerProducts": "Sản Phẩm Bán Chạy Nhất",
+    "topRatedProducts": "Sản Phẩm Nổi Bật",
     "balanceDetail": "Chi tiết số dư",
     "trainingResult": "Thống Kê Tập Luyện",
     "addMeasurement": "Đo Chỉ Số",
@@ -190,7 +192,7 @@
     "seeAll": "Xem tất cả",
     "refreshing": "Đang làm mới...",
     "featuredGyms": "Phòng Gym Nổi Bật",
-    "topRatedProducts": "Sản Phẩm Được Đánh Giá Cao",
+    "topRatedProducts": "Sản Phẩm Nổi Bật",
     "bestSellerProducts": "Sản Phẩm Bán Chạy Nhất",
     "nearbyGymsTitle": "Phòng Gym Gần Tôi",
     "viewMap": "Xem Bản Đồ",

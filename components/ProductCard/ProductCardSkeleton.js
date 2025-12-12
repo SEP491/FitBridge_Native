@@ -31,32 +31,33 @@ const ProductCardSkeleton = () => {
 
   return (
     <View style={styles.container}>
-      {/* Image */}
+      {/* Image Container */}
       <View style={styles.imageContainer}>
-        <Animated.View style={[styles.image, { opacity }]} />
+        <Animated.View style={[styles.imageSkeleton, { opacity }]} />
+        {/* Optional discount badge skeleton */}
         <Animated.View style={[styles.discountBadge, { opacity }]} />
       </View>
 
-      {/* Info */}
+      {/* Info Container */}
       <View style={styles.infoContainer}>
-        {/* Product name */}
-        <Animated.View style={[styles.productName, { opacity }]} />
+        {/* Product Name */}
+        <Animated.View style={[styles.productNameLine, { opacity }]} />
 
-        {/* Rating row */}
-        <View style={styles.ratingRow}>
-          <Animated.View style={[styles.ratingIcon, { opacity }]} />
+        {/* Rating Container */}
+        <View style={styles.ratingContainer}>
+          <Animated.View style={[styles.ratingStar, { opacity }]} />
           <Animated.View style={[styles.ratingText, { opacity }]} />
           <Animated.View style={[styles.reviewsText, { opacity }]} />
         </View>
 
-        {/* Price row */}
-        <View style={styles.priceRow}>
+        {/* Price Container */}
+        <View style={styles.priceContainer}>
           <Animated.View style={[styles.salePrice, { opacity }]} />
           <Animated.View style={[styles.originalPrice, { opacity }]} />
         </View>
 
-        {/* Footer row */}
-        <View style={styles.footerRow}>
+        {/* Footer */}
+        <View style={styles.footer}>
           <View style={styles.soldContainer}>
             <Animated.View style={[styles.soldIcon, { opacity }]} />
             <Animated.View style={[styles.soldText, { opacity }]} />
@@ -68,7 +69,7 @@ const ProductCardSkeleton = () => {
   );
 };
 
-const ProductCardSkeletonList = ({ count = 4 }) => {
+const ProductCardSkeletonList = ({ count = 6 }) => {
   return (
     <>
       {Array.from({ length: count }).map((_, index) => (
@@ -98,7 +99,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#F5F5F5",
     position: "relative",
   },
-  image: {
+  imageSkeleton: {
     width: "100%",
     height: "100%",
     backgroundColor: "#E5E7EB",
@@ -107,39 +108,39 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 8,
     left: 8,
-    width: 50,
-    height: 22,
+    width: 40,
+    height: 20,
     borderRadius: 6,
-    backgroundColor: "#D1D5DB",
+    backgroundColor: "#E5E7EB",
   },
   infoContainer: {
     padding: 12,
   },
-  productName: {
-    width: "80%",
-    height: 16,
+  productNameLine: {
+    width: "90%",
+    height: 14,
     borderRadius: 4,
     backgroundColor: "#E5E7EB",
-    marginBottom: 8,
+    marginBottom: 6,
   },
-  ratingRow: {
+  ratingContainer: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 8,
+    gap: 4,
   },
-  ratingIcon: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
+  ratingStar: {
+    width: 14,
+    height: 14,
+    borderRadius: 3,
     backgroundColor: "#E5E7EB",
-    marginRight: 6,
   },
   ratingText: {
     width: 30,
     height: 12,
     borderRadius: 4,
     backgroundColor: "#E5E7EB",
-    marginRight: 6,
+    marginLeft: 4,
   },
   reviewsText: {
     width: 50,
@@ -147,17 +148,17 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: "#E5E7EB",
   },
-  priceRow: {
+  priceContainer: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 8,
+    gap: 8,
   },
   salePrice: {
-    width: 70,
+    width: 80,
     height: 16,
     borderRadius: 4,
     backgroundColor: "#E5E7EB",
-    marginRight: 8,
   },
   originalPrice: {
     width: 60,
@@ -165,7 +166,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: "#E5E7EB",
   },
-  footerRow: {
+  footer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
@@ -173,23 +174,23 @@ const styles = StyleSheet.create({
   soldContainer: {
     flexDirection: "row",
     alignItems: "center",
+    gap: 4,
   },
   soldIcon: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
     backgroundColor: "#E5E7EB",
-    marginRight: 6,
   },
   soldText: {
-    width: 80,
-    height: 12,
+    width: 70,
+    height: 11,
     borderRadius: 4,
     backgroundColor: "#E5E7EB",
   },
   originBadge: {
     width: 40,
-    height: 16,
+    height: 20,
     borderRadius: 4,
     backgroundColor: "#E5E7EB",
   },
@@ -197,5 +198,3 @@ const styles = StyleSheet.create({
 
 export default ProductCardSkeleton;
 export { ProductCardSkeletonList };
-
-
