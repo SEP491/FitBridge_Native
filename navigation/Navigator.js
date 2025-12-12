@@ -43,7 +43,6 @@ import WithdrawalScreen from "../screens/FreelancePTScreen/WithdrawalScreen/With
 import FreelancePTDashboard from "./../screens/FreelancePTScreen/FreelancePTDashboard/FreelancePTDashboard";
 import BalanceDetailScreen from "../screens/FreelancePTScreen/BalanceDetailScreen/BalanceDetailScreen";
 import FreelancePTSchedule from "./../screens/FreelancePTScreen/FreelancePTSchedule/FreelancePTSchedule";
-import FreelancePTChatScreen from "./../screens/FreelancePTScreen/FreelancePTChatScreen/FreelancePTChatScreen";
 import UserMenuScreen from "../screens/CommonScreen/UserMenuScreen/UserMenuScreen";
 import SettingScreen from "../screens/CommonScreen/SettingScreen/SettingScreen";
 import LanguageSelectScreen from "../screens/CommonScreen/SettingScreen/LanguageSelectScreen/LanguageSelectScreen";
@@ -1286,20 +1285,6 @@ export default function Navigator({
           headerTintColor: "#ED2A46",
         })}
       >
-        {/* <Stack.Screen
-          name="FreelancePTChatScreen"
-          component={FreelancePTChatScreen}
-          options={{
-            headerShown: true,
-            title: "Messages",
-            headerTitleAlign: "center",
-            headerTitleStyle: {
-              fontWeight: "bold",
-              fontSize: 20,
-              color: "#ED2A46",
-            },
-          }}
-        /> */}
         <Stack.Screen
           name="MessageScreen"
           component={MessageScreen}
