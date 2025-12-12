@@ -182,6 +182,13 @@ export default function ContractDetailScreen({ route, navigation }) {
             <Text style={styles.boldText}>Số CCCD:</Text> 077204000387
           </Text>
           <Text style={styles.infoText}>
+            <Text style={styles.boldText}>Ngày Cấp:</Text> 26/07/2022
+          </Text>
+          <Text style={styles.infoText}>
+            <Text style={styles.boldText}>Nơi Cấp:</Text> CỤC TRƯỞNG CỤC CẢNH
+            SÁT QUẢN LÝ HÀNH CHÍNH VỀ TRẬT TỰ XÃ HỘI
+          </Text>
+          <Text style={styles.infoText}>
             <Text style={styles.boldText}>Điện thoại:</Text> 0973035305
           </Text>
           <Text style={styles.infoText}>
@@ -493,14 +500,21 @@ export default function ContractDetailScreen({ route, navigation }) {
             <Text style={styles.boldText}>Chức vụ:</Text> Admin
           </Text>
           <Text style={styles.infoText}>
-            <Text style={styles.boldText}>Số CCCD:</Text> ___________________
+            <Text style={styles.boldText}>Số CCCD:</Text> 077204000387
+          </Text>
+          <Text style={styles.infoText}>
+            <Text style={styles.boldText}>Ngày Cấp:</Text> 26/07/2022
+          </Text>
+          <Text style={styles.infoText}>
+            <Text style={styles.boldText}>Nơi Cấp:</Text> CỤC TRƯỞNG CỤC CẢNH
+            SÁT QUẢN LÝ HÀNH CHÍNH VỀ TRẬT TỰ XÃ HỘI
           </Text>
           <Text style={styles.infoText}>
             <Text style={styles.boldText}>Địa chỉ thường trú:</Text> 7 Đ. D1,
             Long Thạnh Mỹ, Thủ Đức, TP.HCM
           </Text>
           <Text style={styles.infoText}>
-            <Text style={styles.boldText}>Điện thoại:</Text> ___________________
+            <Text style={styles.boldText}>Điện thoại:</Text> 0973035305
           </Text>
           <Text style={styles.infoText}>
             <Text style={styles.boldText}>Email:</Text> admin@fitbridge.vn
@@ -909,7 +923,6 @@ const styles = StyleSheet.create({
   titleSmall: {
     fontSize: 11,
     fontWeight: "700",
-    fontStyle: "italic",
     color: "#000",
   },
   mainTitle: {
