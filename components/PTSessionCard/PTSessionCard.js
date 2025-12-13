@@ -202,7 +202,7 @@ const PTSessionCard = ({
                 disabled={isActionDisabled}
               >
                 {isFinishing ? (
-                  <ActivityIndicator size="small" color="#28a745" />
+                  <ActivityIndicator size="small" color={colors.white} />
                 ) : (
                   <>
                     <Ionicons
@@ -212,7 +212,7 @@ const PTSessionCard = ({
                           : "checkmark-circle-outline"
                       }
                       size={18}
-                      color={isActionDisabled ? "#999" : "#28a745"}
+                      color={isActionDisabled ? "#999" : colors.white}
                     />
                     <Text
                       style={[
@@ -429,16 +429,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   finishButton: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#28a745",
     borderColor: "#28a745",
     shadowColor: "#28a745",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.15,
-    shadowRadius: 3,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   finishButtonText: {
-    color: "#28a745",
+    color: colors.white,
     fontWeight: "700",
   },
   cancelButton: {
