@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { useTranslation } from "../../../hooks/useTranslation";
 
 const { width } = Dimensions.get("window");
 
@@ -16,6 +17,7 @@ export default function BlogDetailScreen() {
   const route = useRoute();
 
   const { blog } = route.params;
+  const { t } = useTranslation();
 
   return (
     <View style={styles.container}>
