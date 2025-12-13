@@ -219,8 +219,8 @@
     "nearbyGymsCount": "Nearby gyms ({{count}})",
     "noGymsInRadius": "No gyms found within {{radius}} km",
     "packageSelection": "Package Selection",
-    "monthlyPackages": "Monthly Packages",
-    "monthlyPackagesWithPT": "Monthly Packages with PT",
+    "monthlyPackages": "Membership Packages",
+    "monthlyPackagesWithPT": "Membership Packages with PT",
     "noPackagesAvailable": "No packages are currently available"
   },
 
@@ -1335,6 +1335,10 @@
     "statusPending": "Pending",
     "statusWaitingForEdit": "Waiting for Edit",
     "confirmCancelSession": "Are you sure you want to cancel this session?",
+    "finishSession": "Finish Session",
+    "confirmFinishSession": "Are you sure you want to mark this session as finished?",
+    "finishSuccess": "Session marked as finished successfully",
+    "finishError": "Failed to finish session",
     "yes": "Yes",
     "no": "No",
     "requestEdit": "Edit",

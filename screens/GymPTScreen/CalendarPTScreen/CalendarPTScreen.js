@@ -5,6 +5,7 @@ import {
   Dimensions,
   ScrollView,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "../../../hooks/useTranslation";
@@ -14,6 +15,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import PTSessionCard from "../../../components/PTSessionCard/PTSessionCard";
 import WeekCalendar from "../../../components/WeekCalendar/WeekCalendar";
 import accountService from "../../../services/accountService";
+import bookingService from "../../../services/bookingService";
 import { fetchUserFromStorage, formatDateForAPI } from "../../../lib";
 
 const { width, height } = Dimensions.get("window");
@@ -24,6 +26,8 @@ export default function CalendarPTScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [cancellingId, setCancellingId] = useState(null);
+  const [finishingId, setFinishingId] = useState(null);
 
   const loadBookingOfGymPT = async (date = selectedDate) => {
     try {
@@ -65,6 +69,69 @@ export default function CalendarPTScreen() {
     setLoading(true);
     loadBookingOfGymPT();
   }, []);
+
+  // Handle cancel booking
+  const handleCancelBooking = async (bookingId) => {
+    Alert.alert(
+      t("calendar.cancelSession"),
+      t("calendar.confirmCancelSession"),
+      [
+        { text: t("calendar.no"), style: "cancel" },
+        {
+          text: t("calendar.yes"),
+          onPress: async () => {
+            try {
+              setCancellingId(bookingId);
+              const response = await accountService.cancelBooking({
+                bookingId,
+              });
+              console.log("Cancel booking response:", response.data);
+              Alert.alert(
+                t("calendar.success"),
+                t("calendar.cancellationSuccess")
+              );
+              loadBookingOfGymPT(selectedDate);
+            } catch (error) {
+              console.error("Error canceling booking:", error.response?.data);
+              Alert.alert(t("calendar.error"), t("calendar.cancellationError"));
+            } finally {
+              setCancellingId(null);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  // Handle finish booking
+  const handleFinishBooking = async (bookingId) => {
+    Alert.alert(
+      t("calendar.finishSession"),
+      t("calendar.confirmFinishSession"),
+      [
+        { text: t("calendar.no"), style: "cancel" },
+        {
+          text: t("calendar.yes"),
+          onPress: async () => {
+            try {
+              setFinishingId(bookingId);
+              const response = await accountService.finishBooking({
+                bookingId,
+              });
+              console.log("Finish booking response:", response.data);
+              Alert.alert(t("calendar.success"), t("calendar.finishSuccess"));
+              loadBookingOfGymPT(selectedDate);
+            } catch (error) {
+              console.error("Error finishing booking:", error.response?.data);
+              Alert.alert(t("calendar.error"), t("calendar.finishError"));
+            } finally {
+              setFinishingId(null);
+            }
+          },
+        },
+      ]
+    );
+  };
 
   // Helper function to check if session is on selected date
   const isSessionOnDate = (session, targetDate) => {
@@ -194,16 +261,12 @@ export default function CalendarPTScreen() {
                         booking={session}
                         formatTime={formatTime}
                         calculateDuration={calculateDuration}
-                        buttonText={t("calendar.viewDetail")}
-                        viewDetailAction={() => {
-                          // Navigate to detail screen or show modal
-                          navigation.navigate("BookingDetailScreen", {
-                            Booking: session,
-                          });
-                        }}
+                        onCancel={() => handleCancelBooking(session.bookingId)}
+                        onFinish={() => handleFinishBooking(session.bookingId)}
+                        isCancelling={cancellingId === session.bookingId}
+                        isFinishing={finishingId === session.bookingId}
                         customerName={session.customerName}
                         customerAvatar={session.customerAvatarUrl}
-                        currentLanguage={currentLanguage}
                         t={t}
                       />
                     ))}

@@ -339,77 +339,79 @@ const SessionBookingCard = ({
           </View>
         </View>
 
-        {/* Meeting Button Section */}
-        <TouchableOpacity
-          style={[
-            styles.meetingButton,
-            (isBookingInPast ||
-              isActionDisabled ||
-              !isSessionReady ||
-              !isMeetingButtonEnabled) &&
-              styles.disabledMeetingButton,
-          ]}
-          onPress={handleJoinMeeting}
-          disabled={
-            isBookingInPast ||
-            isActionDisabled ||
-            !isSessionReady ||
-            !isMeetingButtonEnabled
-          }
-        >
-          {isJoiningMeeting ? (
-            <ActivityIndicator size="small" color={colors.white} />
-          ) : (
-            <Ionicons
-              name={
-                isBookingInPast ||
-                isActionDisabled ||
-                !isSessionReady ||
-                !isMeetingButtonEnabled
-                  ? "ban-outline"
-                  : "videocam-outline"
-              }
-              size={18}
-              color={
-                isBookingInPast ||
-                isActionDisabled ||
-                !isSessionReady ||
-                !isMeetingButtonEnabled
-                  ? "#999"
-                  : colors.white
-              }
-            />
-          )}
-          <Text
+        {/* Meeting Button Section - Only show for FreelancePT bookings (no ptGymSlotId) */}
+        {!booking.ptGymSlotId && (
+          <TouchableOpacity
             style={[
-              styles.meetingButtonText,
+              styles.meetingButton,
               (isBookingInPast ||
                 isActionDisabled ||
                 !isSessionReady ||
                 !isMeetingButtonEnabled) &&
-                styles.disabledMeetingButtonText,
+                styles.disabledMeetingButton,
             ]}
+            onPress={handleJoinMeeting}
+            disabled={
+              isBookingInPast ||
+              isActionDisabled ||
+              !isSessionReady ||
+              !isMeetingButtonEnabled
+            }
           >
-            {isJoiningMeeting
-              ? t
-                ? t("videoCallPrep.joining")
-                : "Joining..."
-              : isBookingInPast
-              ? // After end time: always show join text but keep button disabled
-                t
+            {isJoiningMeeting ? (
+              <ActivityIndicator size="small" color={colors.white} />
+            ) : (
+              <Ionicons
+                name={
+                  isBookingInPast ||
+                  isActionDisabled ||
+                  !isSessionReady ||
+                  !isMeetingButtonEnabled
+                    ? "ban-outline"
+                    : "videocam-outline"
+                }
+                size={18}
+                color={
+                  isBookingInPast ||
+                  isActionDisabled ||
+                  !isSessionReady ||
+                  !isMeetingButtonEnabled
+                    ? "#999"
+                    : colors.white
+                }
+              />
+            )}
+            <Text
+              style={[
+                styles.meetingButtonText,
+                (isBookingInPast ||
+                  isActionDisabled ||
+                  !isSessionReady ||
+                  !isMeetingButtonEnabled) &&
+                  styles.disabledMeetingButtonText,
+              ]}
+            >
+              {isJoiningMeeting
+                ? t
+                  ? t("videoCallPrep.joining")
+                  : "Joining..."
+                : isBookingInPast
+                ? // After end time: always show join text but keep button disabled
+                  t
+                  ? t("calendar.meetingOnline")
+                  : "Join Meeting Online"
+                : !isSessionReady
+                ? t
+                  ? t("videoCallPrep.sessionNotReady")
+                  : "Session not ready yet."
+                : meetingErrorMessage
+                ? meetingErrorMessage
+                : t
                 ? t("calendar.meetingOnline")
-                : "Join Meeting Online"
-              : !isSessionReady
-              ? t
-                ? t("videoCallPrep.sessionNotReady")
-                : "Session not ready yet."
-              : meetingErrorMessage
-              ? meetingErrorMessage
-              : t
-              ? t("calendar.meetingOnline")
-              : "Join Meeting Online"}
-          </Text>
-        </TouchableOpacity>
+                : "Join Meeting Online"}
+            </Text>
+          </TouchableOpacity>
+        )}
 
         {/* View Detail Button - Always visible */}
         {!booking.ptGymSlotId && viewDetailAction && (

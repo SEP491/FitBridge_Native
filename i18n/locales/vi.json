@@ -231,8 +231,8 @@
     "nearbyGymsCount": "Phòng tập gần đây ({{count}})",
     "noGymsInRadius": "Không tìm thấy phòng tập nào trong phạm vi {{radius}} km",
     "packageSelection": "Lựa chọn gói tập",
-    "monthlyPackages": "Gói Tập Tháng",
-    "monthlyPackagesWithPT": "Gói Tập Tháng Kèm PT",
+    "monthlyPackages": "Gói Tập",
+    "monthlyPackagesWithPT": "Gói Tập Kèm PT",
     "noPackagesAvailable": "Hiện tại chưa có gói tập nào có sẵn"
   },
 
@@ -1260,6 +1260,10 @@
     "statusPending": "Chờ Xử Lý",
     "statusWaitingForEdit": "Chờ Chỉnh Sửa",
     "confirmCancelSession": "Bạn có chắc chắn muốn hủy buổi tập này?",
+    "finishSession": "Hoàn Thành",
+    "confirmFinishSession": "Bạn có chắc chắn muốn đánh dấu buổi tập này là hoàn thành?",
+    "finishSuccess": "Đánh dấu hoàn thành buổi tập thành công",
+    "finishError": "Không thể hoàn thành buổi tập",
     "yes": "Có",
     "no": "Không",
     "requestEdit": "Thay Đổi",

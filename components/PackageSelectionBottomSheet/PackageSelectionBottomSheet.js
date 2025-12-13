@@ -65,6 +65,10 @@ const PackageSelectionBottomSheet = ({
                     <View key={item.id} style={styles.packageItem}>
                       <View style={styles.packageInfo}>
                         <Text style={styles.packageName}>{item.name}</Text>
+                        <Text style={styles.packageDuration}>
+                          Active in {item.duration} days
+                        </Text>
+
                         <Text style={styles.packagePrice}>
                           {formatPrice(item.price)}
                         </Text>
@@ -115,6 +119,10 @@ const PackageSelectionBottomSheet = ({
                     <View key={item.id} style={styles.packageItem}>
                       <View style={styles.packageInfo}>
                         <Text style={styles.packageName}>{item.name}</Text>
+                        <Text style={styles.packageDuration}>
+                          {item.duration}
+                        </Text>
+
                         <Text style={styles.packagePrice}>
                           {formatPrice(item.price)}
                         </Text>
@@ -230,6 +238,12 @@ const styles = StyleSheet.create({
   },
   packageInfo: {
     flex: 1,
+  },
+  packageDuration: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#4B5563",
+    marginBottom: 4,
   },
   packageName: {
     fontSize: 16,
