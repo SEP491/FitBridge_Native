@@ -1130,130 +1130,6 @@ export default function MessageDetailScreen({ route, navigation }) {
     }
   }, [bookingFormData, conversationId, currentUserId]);
 
-  // Handle edit booking request
-  // const handleEditBookingRequest = useCallback(async () => {
-  //   if (!editingBookingRequest || !bookingFormData.bookingName.trim()) {
-  //     Alert.alert("Error", "Please enter a booking name");
-  //     return;
-  //   }
-
-  //   // Validate date is not in the past
-  //   const selectedDate = new Date(bookingFormData.bookingDate);
-  //   const today = new Date();
-  //   today.setHours(0, 0, 0, 0);
-  //   selectedDate.setHours(0, 0, 0, 0);
-
-  //   if (selectedDate < today) {
-  //     Alert.alert("Invalid Date", "Booking date cannot be in the past.");
-  //     return;
-  //   }
-
-  //   // Validate time if booking is today
-  //   const isToday =
-  //     bookingFormData.bookingDate === new Date().toISOString().split("T")[0];
-  //   if (isToday) {
-  //     const [startHours, startMinutes] = bookingFormData.startTime
-  //       .split(":")
-  //       .map(Number);
-  //     const now = new Date();
-  //     const currentHours = now.getHours();
-  //     const currentMinutes = now.getMinutes();
-
-  //     const startTotalMinutes = startHours * 60 + startMinutes;
-  //     const currentTotalMinutes = currentHours * 60 + currentMinutes;
-
-  //     if (startTotalMinutes <= currentTotalMinutes) {
-  //       Alert.alert("Invalid Time", "Start time must be in the future.");
-  //       return;
-  //     }
-  //   }
-
-  //   // Validate end time is at least 1 hour after start time
-  //   const [startHours, startMinutes] = bookingFormData.startTime
-  //     .split(":")
-  //     .map(Number);
-  //   const [endHours, endMinutes] = bookingFormData.endTime
-  //     .split(":")
-  //     .map(Number);
-
-  //   const startTotalMinutes = startHours * 60 + startMinutes;
-  //   const endTotalMinutes = endHours * 60 + endMinutes;
-
-  //   if (endTotalMinutes < startTotalMinutes + 60) {
-  //     Alert.alert(
-  //       "Invalid Time",
-  //       "End time must be at least 1 hour after start time."
-  //     );
-  //     return;
-  //   }
-
-  //   try {
-  //     setSending(true);
-  //     setShowBookingRequestModal(false);
-
-  //     await messageService.updateBookingRequest({
-  //       targetBookingId: editingBookingRequest.bookingRequestId,
-  //       bookingName: bookingFormData.bookingName,
-  //       bookingDate: bookingFormData.bookingDate,
-  //       startTime: bookingFormData.startTime,
-  //       endTime: bookingFormData.endTime,
-  //       note: "",
-  //     });
-
-  //     // Update the message with the updated booking request from form data
-  //     setMessages((prev) =>
-  //       prev.map((msg) => {
-  //         if (
-  //           msg.bookingRequest?.bookingRequestId ===
-  //           editingBookingRequest.bookingRequestId
-  //         ) {
-  //           return {
-  //             ...msg,
-  //             bookingRequest: {
-  //               ...msg.bookingRequest,
-  //               bookingName: bookingFormData.bookingName,
-  //               bookingDate: bookingFormData.bookingDate,
-  //               startTime: bookingFormData.startTime,
-  //               endTime: bookingFormData.endTime,
-  //               ptFreelanceStartTime: bookingFormData.startTime,
-  //               ptFreelanceEndTime: bookingFormData.endTime,
-  //             },
-  //           };
-  //         }
-  //         return msg;
-  //       })
-  //     );
-
-  //     // Reset form and editing state with current time
-  //     setEditingBookingRequest(null);
-
-  //     const now = new Date();
-  //     const currentHour = now.getHours();
-  //     const currentMinute = now.getMinutes();
-  //     const startHour = currentHour + 1;
-  //     const endHour = currentHour + 2;
-
-  //     setBookingFormData({
-  //       bookingName: "",
-  //       bookingDate: now.toISOString().split("T")[0],
-  //       startTime: `${startHour.toString().padStart(2, "0")}:${currentMinute
-  //         .toString()
-  //         .padStart(2, "0")}:00`,
-  //       endTime: `${endHour.toString().padStart(2, "0")}:${currentMinute
-  //         .toString()
-  //         .padStart(2, "0")}:00`,
-  //     });
-  //   } catch (error) {
-  //     console.error("Error updating booking request:", error);
-  //     Alert.alert(
-  //       "Error",
-  //       "Failed to update booking request. Please try again."
-  //     );
-  //   } finally {
-  //     setSending(false);
-  //   }
-  // }, [editingBookingRequest, bookingFormData]);
-
   // Render message item
   const renderMessage = useCallback(
     ({ item }) => {
@@ -1479,21 +1355,28 @@ export default function MessageDetailScreen({ route, navigation }) {
 
       {/* Input bar */}
       <View style={styles.inputBar}>
-        <TouchableOpacity
-          style={styles.inputButton}
-          onPress={() => {
-            setEditingBookingRequest(null);
-            setBookingFormData({
-              bookingName: "",
-              bookingDate: new Date().toISOString().split("T")[0],
-              startTime: "",
-              endTime: "",
-            });
-            setShowBookingRequestModal(true);
-          }}
-        >
-          <Ionicons name="calendar" size={28} color={colors.red} />
-        </TouchableOpacity>
+        {/* Only show booking button if conversation has Customer and FreelancePT, but no GymPT */}
+        {(currentUserRole === "Customer" ||
+          currentUserRole === "FreelancePT") &&
+          members?.some((m) => m.role === "Customer") &&
+          members?.some((m) => m.role === "FreelancePT") &&
+          !members?.some((m) => m.role === "GymPT") && (
+            <TouchableOpacity
+              style={styles.inputButton}
+              onPress={() => {
+                setEditingBookingRequest(null);
+                setBookingFormData({
+                  bookingName: "",
+                  bookingDate: new Date().toISOString().split("T")[0],
+                  startTime: "",
+                  endTime: "",
+                });
+                setShowBookingRequestModal(true);
+              }}
+            >
+              <Ionicons name="calendar" size={28} color={colors.red} />
+            </TouchableOpacity>
+          )}
 
         <TouchableOpacity
           style={styles.inputButton}
