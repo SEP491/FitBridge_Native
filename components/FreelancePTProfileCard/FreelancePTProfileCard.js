@@ -22,6 +22,7 @@ export default function FreelancePTProfileCard({
   const navigation = useNavigation();
   const { t } = useTranslation();
 
+  console.log("PT Data:", pt);
   const formatPrice = (price) => {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
@@ -92,12 +93,10 @@ export default function FreelancePTProfileCard({
       </View>
 
       <View style={styles.infoContainer}>
-        {/* PT Name */}
         <Text style={styles.name} numberOfLines={1}>
           {pt?.fullName}
         </Text>
 
-        {/* Description */}
         {pt?.description && (
           <Text
             style={styles.description}
@@ -108,9 +107,8 @@ export default function FreelancePTProfileCard({
           </Text>
         )}
 
-        {/* Goal Training Tags */}
         {pt?.goalTrainings && pt.goalTrainings.length > 0 ? (
-          <View style={styles.tagsContainer} numberOfLines={1}>
+          <View style={styles.tagsContainer}>
             {pt.goalTrainings.slice(0, 2).map((goal, index) => (
               <View key={index} style={styles.tag}>
                 <Text style={styles.tagText} numberOfLines={1}>
@@ -127,14 +125,13 @@ export default function FreelancePTProfileCard({
             )}
           </View>
         ) : (
-          <View style={styles.tagsContainer} numberOfLines={1}>
+          <View style={styles.tagsContainer}>
             <View style={styles.tag}>
               <Text style={styles.tagText}>Goal Training Tags</Text>
             </View>
           </View>
         )}
 
-        {/* Price and Total Purchased */}
         <View style={styles.bottomRow}>
           <View style={styles.priceContainer}>
             <Text style={styles.priceLabel}>
@@ -142,12 +139,10 @@ export default function FreelancePTProfileCard({
             </Text>
             <Text style={styles.price}>{formatPrice(pt?.priceFrom || 0)}</Text>
           </View>
-          {pt?.totalPurchased && (
-            <View style={styles.statsContainer}>
-              <Ionicons name="people-outline" size={12} color="#6B6B6B" />
-              <Text style={styles.statsText}>{pt.totalPurchased}</Text>
-            </View>
-          )}
+          <View style={styles.statsContainer}>
+            <Ionicons name="people-outline" size={12} color="#6B6B6B" />
+            <Text style={styles.statsText}>{pt?.totalPurchased}</Text>
+          </View>
         </View>
       </View>
     </TouchableOpacity>
@@ -222,14 +217,12 @@ const styles = StyleSheet.create({
   },
   infoContainer: {
     padding: 12,
-    
   },
   name: {
     fontSize: 16,
     fontWeight: "bold",
     marginBottom: 8,
     color: "#1A1A1A",
-
   },
   description: {
     fontSize: 12,
