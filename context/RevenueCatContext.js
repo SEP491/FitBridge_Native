@@ -62,8 +62,8 @@ export const RevenueCatProvider = ({ children }) => {
         console.log("✅ RevenueCat existing user logged in:", userId);
       }
       await Purchases.setAttributes({
-        email: userEmail,
-        displayName: userDisplayName,
+        $email: userEmail,
+        $displayName: userDisplayName,
       });
 
       const hasActiveSubscription =

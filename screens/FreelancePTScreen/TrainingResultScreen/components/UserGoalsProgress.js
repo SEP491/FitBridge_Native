@@ -221,6 +221,7 @@ export const UserGoalsProgress = ({
   };
 
   const chartData = getChartDataForMuscle(selectedMuscleGroup);
+  const firstTimeScanMeasurements = bodyMeasurements.length === 0;
 
   return (
     <>
@@ -235,6 +236,7 @@ export const UserGoalsProgress = ({
             onPress={() =>
               navigation?.navigate("AddMeasurementScreen", {
                 customerPurchasedId,
+                firstTimeScan: firstTimeScanMeasurements,
               })
             }
           >

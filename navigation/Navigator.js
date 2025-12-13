@@ -87,7 +87,7 @@ import BookingDetailScreen from "../screens/CustomerScreen/BookingDetailScreen/B
 import TrainingActivityScreen from "../screens/CustomerScreen/TrainingActivityScreen/TrainingActivityScreen";
 import EditSessionActivityScreen from "../screens/CustomerScreen/EditSessionActivityScreen/EditSessionActivityScreen";
 import EditActivitySetScreen from "../screens/CustomerScreen/EditActivitySetScreen/EditActivitySetScreen";
-import AddMeasurementScreen from "../screens/CommonScreen/AddMeasurementScreen/AddMeasurementScreen_new";
+import AddMeasurementScreen from "../screens/CommonScreen/AddMeasurementScreen/AddMeasurementScreen";
 import { useRevenueCat } from "../context/RevenueCatContext";
 import { useUser } from "../context/UserContext";
 import CalendarPTScreen from "../screens/GymPTScreen/CalendarPTScreen/CalendarPTScreen";
