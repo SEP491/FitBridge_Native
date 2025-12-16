@@ -26,6 +26,7 @@ const FreelancePTDashboard = ({ navigation }) => {
   const [pendingBalance, setPendingBalance] = useState(0);
   const [todaySessions, setTodaySessions] = useState([]);
   const [loadingSessions, setLoadingSessions] = useState(false);
+  const [monthLyRevenue, setMonthLyRevenue] = useState(null);
 
   const quickActions = [
     {
@@ -55,6 +56,7 @@ const FreelancePTDashboard = ({ navigation }) => {
     useCallback(() => {
       fetchWalletData();
       loadTodaySessions();
+      fetchMonthLyRevenue();
     }, [])
   );
 
@@ -117,14 +119,18 @@ const FreelancePTDashboard = ({ navigation }) => {
     try {
       setLoadingSessions(true);
       const response = await accountService.getBookingForPT({
+        // date: formatDateForAPI(new Date(Date.now() - 24 * 60 * 60 * 1000)),
         date: formatDateForAPI(new Date()),
       });
       setTodaySessions(response.data.items || []);
+      console.log("Today's sessions:", response.data.items || []);
     } catch (error) {
       console.error("Error loading today's sessions:", error);
       setTodaySessions([]);
     } finally {
-      setLoadingSessions(false);
+      setTimeout(() => {
+        setLoadingSessions(false);
+      }, 2000);
     }
   };
 
@@ -322,17 +328,18 @@ const FreelancePTDashboard = ({ navigation }) => {
           summaryFinancialStats={summaryFinancialStats}
           summaryPerformanceStats={summaryPerformanceStats}
           formatCurrency={formatCurrency}
+          monthLyRevenue={monthLyRevenue}
           renderRevenueComparison={renderRevenueComparison}
           onRefresh={onRefresh}
         />
 
         <UpcomingSessions sessions={todaySessions} loading={loadingSessions} />
 
-        <BestsellerPackages
+        {/* <BestsellerPackages
           formatCurrency={formatCurrency}
           renderRevenueComparison={renderRevenueComparison}
           renderComparisonBadge={renderComparisonBadge}
-        />
+        /> */}
         {/* </View> */}
       </ScrollView>
 

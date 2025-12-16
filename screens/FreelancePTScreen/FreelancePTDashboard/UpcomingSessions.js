@@ -1,7 +1,61 @@
-import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator } from "react-native";
+import React, { useEffect, useRef } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, Image, Animated } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/Ionicons";
+import defaultImage from "../../../assets/images/LogoColor.png";
+import { useNavigation } from "@react-navigation/native";
+import { t } from "../../../i18n";
+const UpcomingSessionCardSkeleton = () => {
+  const shimmerAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const shimmer = Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmerAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shimmerAnim, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    shimmer.start();
+
+    return () => shimmer.stop();
+  }, [shimmerAnim]);
+
+  const opacity = shimmerAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.3, 0.7],
+  });
+
+  return (
+    <View style={styles.sessionCard}>
+      <View style={styles.sessionLeft}>
+        <Animated.View style={[styles.sessionAvatar, { opacity }]} />
+        <View style={styles.sessionInfo}>
+          <Animated.View style={[styles.skeletonNameLine, { opacity }]} />
+          <Animated.View style={[styles.skeletonTimeLine, { opacity }]} />
+        </View>
+      </View>
+      <Animated.View style={[styles.skeletonStatusBadge, { opacity }]} />
+    </View>
+  );
+};
+
+const UpcomingSessionCardSkeletonList = ({ count = 3 }) => {
+  return (
+    <>
+      {Array.from({ length: count }).map((_, index) => (
+        <UpcomingSessionCardSkeleton key={`session-skeleton-${index}`} />
+      ))}
+    </>
+  );
+};
 
 const UpcomingSessionCard = ({ session }) => {
   if (!session) return null;
@@ -34,13 +88,13 @@ const UpcomingSessionCard = ({ session }) => {
     >
       <View style={styles.sessionLeft}>
         <Image
-          source={{ uri: session.customerAvatarURL }}
+          source={session.customerAvatarUrl ? { uri: session.customerAvatarUrl } : defaultImage}
           style={styles.sessionAvatar}
         />
         <View style={styles.sessionInfo}>
           <Text style={styles.sessionName}>{session.customerName}</Text>
           <Text style={styles.sessionTime}>
-            {formatTime(session.startTime)} - {formatTime(session.endTime)}
+            {formatTime(session.ptFreelanceStartTime)} - {formatTime(session.ptFreelanceEndTime)}
           </Text>
         </View>
       </View>
@@ -53,30 +107,35 @@ const UpcomingSessionCard = ({ session }) => {
     </LinearGradient>
   );
 };
-
 const UpcomingSessions = ({ sessions = [], loading = false }) => {
+  const navigation = useNavigation();
+
+
+  const handleNavigateToSchedule = () => {
+    navigation.navigate("MainApp", { screen: t("navigation.freelancePTSchedule"), params: { screen: "FreelancePTSchedule" } });
+  };
+
   return (
     <View style={styles.upcomingSection}>
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Lịch sắp tới</Text>
-        <TouchableOpacity style={styles.sectionAction}>
+        <TouchableOpacity onPress={handleNavigateToSchedule} style={styles.sectionAction}>
           <Text style={styles.sectionActionText}>Xem tất cả</Text>
           <Icon name="arrow-forward" size={16} color="#ED2A46" />
         </TouchableOpacity>
       </View>
       {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="small" color="#ED2A46" />
-          <Text style={styles.loadingText}>Đang tải...</Text>
-        </View>
+        <UpcomingSessionCardSkeletonList count={3} />
       ) : sessions.length ? (
         sessions.map((session) => (
           <UpcomingSessionCard session={session} key={session.bookingId} />
         ))
       ) : (
-        <Text style={styles.emptyStateText}>
-          Bạn chưa có buổi tập nào trong hôm nay.
-        </Text>
+        <View style={styles.emptyStateContainer}>
+          <Text style={styles.emptyStateText}>
+            Bạn chưa có buổi tập nào trong hôm nay.
+          </Text>
+        </View>
       )}
     </View>
   );
@@ -116,9 +175,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    elevation: 3,
+    shadowRadius: 8,
+    borderWidth: 1,
+    borderColor: "#f0f0f0",
   },
   sessionLeft: {
     flexDirection: "row",
@@ -164,9 +226,43 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#777",
   },
+  emptyStateContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 50,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#f0f0f0",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    elevation: 3,
+    shadowRadius: 8,
+    marginBottom: 15,
+  },
   emptyStateText: {
     fontSize: 13,
     color: "#777",
+  },
+  skeletonNameLine: {
+    width: "60%",
+    height: 15,
+    borderRadius: 4,
+    backgroundColor: "#E5E7EB",
+    marginBottom: 8,
+  },
+  skeletonTimeLine: {
+    width: "40%",
+    height: 12,
+    borderRadius: 4,
+    backgroundColor: "#E5E7EB",
+  },
+  skeletonStatusBadge: {
+    width: 80,
+    height: 28,
+    borderRadius: 12,
+    backgroundColor: "#E5E7EB",
   },
 });
 
