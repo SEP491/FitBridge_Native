@@ -367,7 +367,9 @@
     "success": "Thành Công",
     "activityCreatedSuccessfully": "Đã tạo hoạt động thành công",
     "cannotCreateActivity": "Không thể tạo hoạt động",
-    "set": "Hiệp"
+    "set": "Hiệp",
+    "assetTypeEquipment": "Thiết bị",
+    "assetTypeNoneEquipment": "Không thiết bị"
   },
 
   "trainingActivity": {
@@ -405,7 +407,8 @@
     "actualTime": "Thời gian thực tế (giây)",
     "plannedTimeLabel": "Mục tiêu: {{value}} giây",
     "startBeforeManual": "Vui lòng bắt đầu bài tập trước khi dùng chế độ nhập thủ công.",
-    "pauseBeforeManual": "Vui lòng tạm dừng hoặc kết thúc bộ đếm thời gian trước khi chuyển sang nhập thủ công."
+    "pauseBeforeManual": "Vui lòng tạm dừng hoặc kết thúc bộ đếm thời gian trước khi chuyển sang nhập thủ công.",
+    "turnOffManualBeforeAction": "Vui lòng tắt chế độ nhập thủ công trước khi thực hiện hành động này."
   },
 
   "cart": {

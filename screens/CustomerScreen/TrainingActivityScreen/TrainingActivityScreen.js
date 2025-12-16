@@ -76,9 +76,18 @@ export default function TrainingActivityScreen({ route, navigation }) {
   const [actualRestTime, setActualRestTime] = useState(0);
   const restTimerRef = useRef(null);
 
+  // Store actual time when in manual mode (in case it's > planned)
+  const manualActualTimeRef = useRef(null);
+
   const getActivityAssetLabel = () => {
     if (!activityDetail) return "";
     return activityDetail.vietnameseAssetName || activityDetail.assetName || "";
+  };
+
+  const getActivityAssetImage = () => {
+    if (!activityDetail) return null;
+    // Prefer metadataImage if present, fall back to assetImage
+    return activityDetail.metadataImage || activityDetail.assetImage || null;
   };
 
   const getActivityMuscle = () => {
@@ -164,7 +173,12 @@ export default function TrainingActivityScreen({ route, navigation }) {
     return unsubscribe;
   }, [navigation, hasUnsavedChanges, isResting]); // Timer for Time-based exercises (countdown)
   useEffect(() => {
-    if (isTimerRunning && activityDetail?.activitySetType === "Time") {
+    // Don't run timer if in manual input mode
+    if (
+      isTimerRunning &&
+      activityDetail?.activitySetType === "Time" &&
+      !manualInputMode
+    ) {
       timerRef.current = setInterval(() => {
         setCurrentTime((prev) => {
           if (prev <= 0) {
@@ -184,7 +198,7 @@ export default function TrainingActivityScreen({ route, navigation }) {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [isTimerRunning, activityDetail?.activitySetType]);
+  }, [isTimerRunning, activityDetail?.activitySetType, manualInputMode]);
 
   // Rest timer - counts up to track actual rest time
   useEffect(() => {
@@ -220,6 +234,9 @@ export default function TrainingActivityScreen({ route, navigation }) {
     setIsWorkoutActive(true);
     setHasUnsavedChanges(true);
 
+    // Reset manual actual time ref
+    manualActualTimeRef.current = null;
+
     if (activityDetail.activitySetType === "Reps") {
       setCurrentReps(0);
     } else if (activityDetail.activitySetType === "Time") {
@@ -248,14 +265,47 @@ export default function TrainingActivityScreen({ route, navigation }) {
   };
 
   const toggleTimer = () => {
+    // Don't allow timer toggle in manual input mode
+    if (manualInputMode) {
+      Alert.alert(
+        t("trainingActivity.warning"),
+        t("trainingActivity.turnOffManualBeforeAction") ||
+          "Please turn off manual input mode before performing this action."
+      );
+      return;
+    }
     setIsTimerRunning((prev) => !prev);
   };
 
   const endSet = () => {
+    // If in manual input mode and Time mode, handle conversion
+    if (manualInputMode && activityDetail?.activitySetType === "Time") {
+      const currentSet = activityDetail?.activitySets[currentSetIndex];
+      if (currentSet) {
+        // currentTime is actual time
+        // If actual time > planned, we need to preserve it
+        if (currentTime > currentSet.plannedPracticeTime) {
+          // Store actual time in ref for saveChanges() to use
+          manualActualTimeRef.current = currentTime;
+          // Set currentTime to 0 (or negative) to indicate we're using manualActualTimeRef
+          setCurrentTime(0);
+        } else {
+          // Convert actual time to remaining time for normal calculation
+          const remainingTime = currentSet.plannedPracticeTime - currentTime;
+          setCurrentTime(Math.max(0, remainingTime));
+          manualActualTimeRef.current = null; // Clear ref
+        }
+      }
+    } else {
+      manualActualTimeRef.current = null; // Clear ref if not in manual mode
+    }
+
     // Stop the workout and start rest timer
     setIsWorkoutActive(false);
     setIsTimerRunning(false);
     setIsResting(true);
+    // When finishing a set, always leave manual input mode
+    setManualInputMode(false);
     setActualRestTime(0); // Reset rest time counter
   };
 
@@ -264,12 +314,20 @@ export default function TrainingActivityScreen({ route, navigation }) {
     if (!currentSet) return;
 
     // Pre-calc actual practice time for Time mode (used for API + local state)
-    const actualPracticeTime =
-      activityDetail.activitySetType === "Time"
-        ? manualInputMode
-          ? currentTime // manual: user typed actual seconds
-          : currentSet.plannedPracticeTime - currentTime // countdown: planned - remaining
-        : 0;
+    let actualPracticeTime = 0;
+    if (activityDetail.activitySetType === "Time") {
+      if (manualInputMode) {
+        // Still in manual mode, currentTime is actual time
+        actualPracticeTime = currentTime;
+      } else if (manualActualTimeRef.current !== null) {
+        // We have stored actual time from manual mode (when actual > planned)
+        actualPracticeTime = manualActualTimeRef.current;
+        manualActualTimeRef.current = null; // Clear after use
+      } else {
+        // Countdown mode: currentTime is remaining time
+        actualPracticeTime = currentSet.plannedPracticeTime - currentTime;
+      }
+    }
 
     try {
       const updateData = {
@@ -321,6 +379,9 @@ export default function TrainingActivityScreen({ route, navigation }) {
         ...activityDetail,
         activitySets: updatedSets,
       });
+
+      // After saving, ensure manual input mode is turned off
+      setManualInputMode(false);
 
       setHasUnsavedChanges(false);
       setIsResting(false);
@@ -508,47 +569,71 @@ export default function TrainingActivityScreen({ route, navigation }) {
           )}
 
           {/* Manual input toggle - only for PT, positioned under timer */}
-          {userRole === "FreelancePT" && (
-            <TouchableOpacity
+
+          <TouchableOpacity
+            style={[
+              styles.manualToggle,
+              manualInputMode && styles.manualToggleActive,
+            ]}
+            onPress={() => {
+              if (!isWorkoutActive) {
+                Alert.alert(
+                  t("trainingActivity.warning"),
+                  t("trainingActivity.startBeforeManual") ||
+                    "Please start the activity before using manual input."
+                );
+                return;
+              }
+              if (isTimeMode && isTimerRunning) {
+                Alert.alert(
+                  t("trainingActivity.warning"),
+                  t("trainingActivity.pauseBeforeManual") ||
+                    "Please pause or finish the timer before switching to manual input."
+                );
+                return;
+              }
+
+              // Toggle manual input mode
+              const newManualMode = !manualInputMode;
+
+              if (isTimeMode) {
+                const currentSet =
+                  activityDetail?.activitySets[currentSetIndex];
+                if (currentSet) {
+                  if (newManualMode) {
+                    // Switching TO manual mode: convert remaining time to actual time
+                    // currentTime is remaining time, convert to actual time
+                    const actualTime =
+                      currentSet.plannedPracticeTime - currentTime;
+                    setCurrentTime(actualTime);
+                    setIsTimerRunning(false); // Stop timer when entering manual mode
+                  } else {
+                    // Switching FROM manual mode: convert actual time back to remaining time
+                    // currentTime is actual time, convert back to remaining time
+                    const remainingTime =
+                      currentSet.plannedPracticeTime - currentTime;
+                    setCurrentTime(Math.max(0, remainingTime));
+                  }
+                }
+              }
+
+              setManualInputMode(newManualMode);
+            }}
+          >
+            <Ionicons
+              name={manualInputMode ? "create" : "hand-left-outline"}
+              size={16}
+              color={manualInputMode ? "#FFFFFF" : "#0F172A"}
+            />
+            <Text
               style={[
-                styles.manualToggle,
-                manualInputMode && styles.manualToggleActive,
+                styles.manualToggleText,
+                manualInputMode && styles.manualToggleTextActive,
               ]}
-              onPress={() => {
-                if (!isWorkoutActive) {
-                  Alert.alert(
-                    t("trainingActivity.warning"),
-                    t("trainingActivity.startBeforeManual") ||
-                      "Please start the activity before using manual input."
-                  );
-                  return;
-                }
-                if (isTimeMode && isTimerRunning) {
-                  Alert.alert(
-                    t("trainingActivity.warning"),
-                    t("trainingActivity.pauseBeforeManual") ||
-                      "Please pause or finish the timer before switching to manual input."
-                  );
-                  return;
-                }
-                setManualInputMode((prev) => !prev);
-              }}
             >
-              <Ionicons
-                name={manualInputMode ? "create" : "hand-left-outline"}
-                size={16}
-                color={manualInputMode ? "#FFFFFF" : "#0F172A"}
-              />
-              <Text
-                style={[
-                  styles.manualToggleText,
-                  manualInputMode && styles.manualToggleTextActive,
-                ]}
-              >
-                {t("trainingActivity.manualInput") || "Manual input"}
-              </Text>
-            </TouchableOpacity>
-          )}
+              {t("trainingActivity.manualInput") || "Manual input"}
+            </Text>
+          </TouchableOpacity>
         </View>
 
         {/* Activity Info Badge with asset & muscle info */}
@@ -569,6 +654,7 @@ export default function TrainingActivityScreen({ route, navigation }) {
                 />
               )}
             </View>
+
             <View style={styles.activityInfo}>
               <Text style={styles.activityName}>
                 {activityDetail.activityName}
@@ -584,6 +670,13 @@ export default function TrainingActivityScreen({ route, navigation }) {
                 {t("trainingActivity.completed")}
               </Text>
             </View>
+            {getActivityAssetImage() && (
+              <Image
+                source={{ uri: getActivityAssetImage() }}
+                style={styles.activityAssetImage}
+                resizeMode="cover"
+              />
+            )}
           </View>
         </View>
 
@@ -751,8 +844,12 @@ export default function TrainingActivityScreen({ route, navigation }) {
             <>
               {isTimeMode && (
                 <TouchableOpacity
-                  style={styles.pauseButton}
+                  style={[
+                    styles.pauseButton,
+                    manualInputMode && styles.actionButtonDisabled,
+                  ]}
                   onPress={toggleTimer}
+                  disabled={manualInputMode}
                 >
                   <Text style={styles.pauseButtonText}>
                     {isTimerRunning
@@ -979,7 +1076,14 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginBottom: 3,
   },
-
+  activityAssetImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 12,
+    marginTop: 4,
+    marginBottom: 4,
+    backgroundColor: "#E2E8F0",
+  },
   activityProgress: {
     fontSize: 13,
     color: "#64748B",
@@ -1009,23 +1113,6 @@ const styles = StyleSheet.create({
   manualToggleTextActive: {
     color: "#FFFFFF",
   },
-  actionButton: {
-    backgroundColor: "#F97316",
-    paddingVertical: 10,
-    paddingHorizontal: 18,
-    borderRadius: 16,
-    shadowColor: "#F97316",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  actionButtonText: {
-    color: "#FFFFFF",
-    fontSize: 13,
-    fontWeight: "700",
-  },
-
   // Stats Bar
   statsBar: {
     flexDirection: "row",
@@ -1055,20 +1142,6 @@ const styles = StyleSheet.create({
     color: "#64748B",
     fontWeight: "600",
     marginTop: 2,
-  },
-
-  // Section Header
-  sectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 14,
-    gap: 8,
-    paddingHorizontal: 4,
-  },
-  sectionTitle: {
-    fontSize: 17,
-    fontWeight: "700",
-    color: "#334155",
   },
 
   // Sets List
@@ -1118,12 +1191,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontSize: 16,
   },
-  //   checkIcon: {
-  //     position: "absolute",
-  //     top: 8,
-  //     right: 8,
-  //   },
-
   // Control Buttons
   controlsContainer: {
     flexDirection: "row",

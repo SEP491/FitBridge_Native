@@ -610,7 +610,15 @@ export default function BookingDetailContent({
                             color="#FFFFFF"
                           />
                           <Text style={styles.assetTypeText}>
-                            {activity.assetType}
+                            {activity.assetType === "Equipment"
+                              ? t(
+                                  "bookingDetail.assetTypeEquipment",
+                                  "Equipment"
+                                )
+                              : t(
+                                  "bookingDetail.assetTypeNoneEquipment",
+                                  "None Equipment"
+                                )}
                           </Text>
                         </View>
                       )}
@@ -1211,7 +1219,6 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 14,
-    backgroundColor: "#F9FAFB",
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
@@ -1313,28 +1320,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 8,
   },
-  muscleMeta: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  muscleMetaImage: {
-    width: 28,
-    height: 28,
-  },
-  muscleMetaIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: "#FFF7ED",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  muscleMetaText: {
-    fontSize: 13,
-    color: "#0F172A",
-    fontWeight: "600",
-  },
+
   assetTypeBadge: {
     flexDirection: "row",
     alignItems: "center",

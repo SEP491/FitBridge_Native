@@ -710,11 +710,32 @@ export default function BookingDetailScreen({ route, navigation }) {
                                   }
                                 }}
                               >
-                                <Text style={styles.assetOptionText}>
-                                  {asset.vietNameseName ||
-                                    asset.name ||
-                                    asset.vietnameseDescription}
-                                </Text>
+                                <View style={styles.assetOptionRow}>
+                                  {asset.metadataImage ? (
+                                    <Image
+                                      source={{ uri: asset.metadataImage }}
+                                      style={styles.assetOptionImage}
+                                      resizeMode="cover"
+                                    />
+                                  ) : (
+                                    <View style={styles.assetOptionIcon}>
+                                      <Ionicons
+                                        name={
+                                          assetTypeFilter === "Equipment"
+                                            ? "fitness-outline"
+                                            : "body-outline"
+                                        }
+                                        size={18}
+                                        color="#F97316"
+                                      />
+                                    </View>
+                                  )}
+                                  <Text style={styles.assetOptionText}>
+                                    {asset.vietNameseName ||
+                                      asset.name ||
+                                      asset.vietnameseDescription}
+                                  </Text>
+                                </View>
                               </TouchableOpacity>
                             ))}
                           </ScrollView>
@@ -728,6 +749,31 @@ export default function BookingDetailScreen({ route, navigation }) {
                       </View>
                     )}
                   </>
+                )}
+
+                {/* Selected Asset Preview */}
+                {selectedAsset && (
+                  <View style={styles.selectedAssetPreview}>
+                    {selectedAsset.metadataImage && (
+                      <Image
+                        source={{ uri: selectedAsset.metadataImage }}
+                        style={styles.selectedAssetImage}
+                        resizeMode="cover"
+                      />
+                    )}
+                    <View style={styles.selectedAssetInfo}>
+                      <Text style={styles.selectedAssetName}>
+                        {selectedAsset.vietNameseName ||
+                          selectedAsset.name ||
+                          selectedAsset.vietnameseDescription}
+                      </Text>
+                      {selectedAsset.vietnameseDescription && (
+                        <Text style={styles.selectedAssetDescription}>
+                          {selectedAsset.vietnameseDescription}
+                        </Text>
+                      )}
+                    </View>
+                  </View>
                 )}
               </View>
 
@@ -1491,6 +1537,25 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#F1F5F9",
   },
+  assetOptionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  assetOptionImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    backgroundColor: "#E2E8F0",
+  },
+  assetOptionIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    backgroundColor: "#FFF7ED",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   assetOptionText: {
     fontSize: 14,
     color: "#0F172A",
@@ -1503,6 +1568,37 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#94A3B8",
     fontStyle: "italic",
+  },
+  selectedAssetPreview: {
+    marginTop: 12,
+    flexDirection: "row",
+    gap: 12,
+    padding: 12,
+    backgroundColor: "#F8FAFC",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  selectedAssetImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 10,
+    backgroundColor: "#E2E8F0",
+  },
+  selectedAssetInfo: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  selectedAssetName: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#0F172A",
+    marginBottom: 4,
+  },
+  selectedAssetDescription: {
+    fontSize: 13,
+    color: "#64748B",
+    lineHeight: 18,
   },
   addSetButtonText: {
     fontSize: 15,
