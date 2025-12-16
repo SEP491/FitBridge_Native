@@ -74,16 +74,16 @@ const VoucherCard = ({ voucher, userName }) => {
             </Text>
           </View>
 
-          {/* QR Code */}
+          {/* QR Code
           <View style={styles.qrSection}>
             <QRCode
               value={voucher.couponCode}
-              size={80}
+              size={10}
               backgroundColor="white"
               color="black"
             />
-          </View>
-
+          </View> */}
+            
           {/* Footer */}
           <View style={styles.footer}>
             <Text style={styles.footerText}>fitbridge.shop</Text>
@@ -376,9 +376,9 @@ export const VoucherCardWithGradient = ({ voucher, userName }) => {
           {/* Max Discount */}
           <View style={styles.detailsSection}>
             <Text style={styles.detailLabel}>Giá trị tối đa</Text>
-            <Text style={styles.detailValue}>
-              {voucher.maxDiscount?.toLocaleString("vi-VN")} ₫
-            </Text>
+              <Text style={styles.detailValue}>
+                {voucher.maxDiscount?.toLocaleString("vi-VN")} ₫
+              </Text>
           </View>
 
           {/* QR Code */}
@@ -390,6 +390,13 @@ export const VoucherCardWithGradient = ({ voucher, userName }) => {
               color="black"
             />
           </View> */}
+
+          {/* EXP */}
+          <View style={styles.detailsSection}>
+            <Text style={styles.detailValue}>
+              {voucher.expirationDate}
+            </Text>
+          </View>
 
           {/* Footer */}
           <View style={styles.footer}>

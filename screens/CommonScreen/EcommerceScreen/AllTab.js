@@ -11,6 +11,7 @@ import { useTranslation } from "../../../hooks/useTranslation";
 import colors from "../../../constants/color";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import ProductCard from "../../../components/ProductCard/ProductCard";
+import ProductCardSkeleton from "../../../components/ProductCard/ProductCardSkeleton";
 import FeaturedGymsSection from "../HomeScreen/FeaturedGymsSection";
 import FreelancePTTrainersSection from "../HomeScreen/FreelancePTTrainersSection";
 import TopRatingProductSection from "../HomeScreen/TopRatingProductSection";
@@ -47,7 +48,9 @@ export default function AllTab({ refreshTrigger }) {
       console.error("Error fetching products:", error);
       setProducts([]);
     } finally {
-      setLoading(false);
+      setTimeout(() => {
+        setLoading(false);
+      }, 1000);
     }
   };
 
@@ -73,79 +76,128 @@ export default function AllTab({ refreshTrigger }) {
     }
   };
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.red} />
-        <Text style={styles.loadingText}>{t("common.loading")}</Text>
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
+      {loading ? (
+        <>
+          {/* Best Seller Product Section Skeleton */}
+          <View style={styles.section}>
+            <View style={styles.titleContainer}>
+              <View style={styles.titleWithIcon}>
+                <Text style={styles.sectionTitle}>{t("home.bestSellerProducts")}</Text>
+                <View style={styles.titleUnderline} />
+              </View>
+            </View>
+            <View style={styles.skeletonGrid}>
+              {Array.from({ length: 4 }).map((_, index) => (
+                <View key={`skeleton-bestseller-${index}`} style={styles.skeletonItem}>
+                  <ProductCardSkeleton />
+                </View>
+              ))}
+            </View>
+          </View>
 
-      {/* Best Seller Product Section */}
-      <BestSellerProductSection refreshTrigger={refreshTrigger} products={products} viewMore={false} />
+          {/* Top Rating Product Section Skeleton */}
+          <View style={styles.section}>
+            <View style={styles.titleContainer}>
+              <View style={styles.titleWithIcon}>
+                <Text style={styles.sectionTitle}>{t("home.topRatedProducts")}</Text>
+                <View style={styles.titleUnderline} />
+              </View>
+            </View>
+            <View style={styles.skeletonGrid}>
+              {Array.from({ length: 4 }).map((_, index) => (
+                <View key={`skeleton-toprated-${index}`} style={styles.skeletonItem}>
+                  <ProductCardSkeleton />
+                </View>
+              ))}
+            </View>
+          </View>
 
-      {/* Top Rating Product Section */}
-      <TopRatingProductSection refreshTrigger={refreshTrigger} products={products} viewMore={false} />
-
-      {/* Products FlatList */}
-      {products.length > 0 && (
-        <View style={styles.section}>
-          <View style={styles.sectionHeaderBar}>
-            <View style={styles.sectionHeaderContent}>
-              <Ionicons name="cube" size={20} color="#ED2A46" />
-              <Text style={styles.sectionHeaderTitle}>
-                {t("ecommerce.products")}
-              </Text>
-              <View style={styles.countBadge}>
-                <Text style={styles.countBadgeText}>
-                  {products.length}
+          {/* Products Section Skeleton */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeaderBar}>
+              <View style={styles.sectionHeaderContent}>
+                <Ionicons name="cube" size={20} color="#ED2A46" />
+                <Text style={styles.sectionHeaderTitle}>
+                  {t("ecommerce.products")}
                 </Text>
               </View>
             </View>
+            <View style={styles.skeletonGrid}>
+              {Array.from({ length: 6 }).map((_, index) => (
+                <View key={`skeleton-product-${index}`} style={styles.skeletonItem}>
+                  <ProductCardSkeleton />
+                </View>
+              ))}
+            </View>
           </View>
-          <FlatList
-            data={products}
-            keyExtractor={(item) => item.id.toString()}
-            numColumns={2}
-            scrollEnabled={false}
-            columnWrapperStyle={styles.flatListRow}
-            renderItem={({ item }) => (
-              <View style={styles.productItem}>
-                <ProductCard product={item} />
-              </View>
-            )}
-            ListFooterComponent={() => {
-              if (loadingMoreProducts) {
-                return (
-                  <View style={styles.loadingMoreContainer}>
-                    <ActivityIndicator size="small" color={colors.red} />
-                    <Text style={styles.loadingMoreText}>
-                      {t("common.loading")}
+        </>
+      ) : (
+        <>
+          {/* Best Seller Product Section */}
+          <BestSellerProductSection refreshTrigger={refreshTrigger} products={products} viewMore={true} />
+
+          {/* Top Rating Product Section */}
+          <TopRatingProductSection refreshTrigger={refreshTrigger} products={products} viewMore={true} />
+
+          {/* Products FlatList */}
+          {products.length > 0 && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeaderBar}>
+                <View style={styles.sectionHeaderContent}>
+                  <Ionicons name="cube" size={20} color="#ED2A46" />
+                  <Text style={styles.sectionHeaderTitle}>
+                    {t("ecommerce.products")}
+                  </Text>
+                  <View style={styles.countBadge}>
+                    <Text style={styles.countBadgeText}>
+                      {products.length}
                     </Text>
                   </View>
-                );
-              }
-              if (hasMoreProducts) {
-                return (
-                  <TouchableOpacity
-                    style={styles.loadMoreButton}
-                    onPress={loadMoreProducts}
-                  >
-                    <Text style={styles.loadMoreText}>
-                      {t("common.loadMore")}
-                    </Text>
-                    <Ionicons name="chevron-down" size={20} color={colors.red} />
-                  </TouchableOpacity>
-                );
-              }
-              return null;
-            }}
-          />
-        </View>
+                </View>
+              </View>
+              <FlatList
+                data={products}
+                keyExtractor={(item) => item.id.toString()}
+                numColumns={2}
+                scrollEnabled={false}
+                columnWrapperStyle={styles.flatListRow}
+                renderItem={({ item }) => (
+                  <View style={styles.productItem}>
+                    <ProductCard product={item} />
+                  </View>
+                )}
+                ListFooterComponent={() => {
+                  if (loadingMoreProducts) {
+                    return (
+                      <View style={styles.loadingMoreContainer}>
+                        <ActivityIndicator size="small" color={colors.red} />
+                        <Text style={styles.loadingMoreText}>
+                          {t("common.loading")}
+                        </Text>
+                      </View>
+                    );
+                  }
+                  if (hasMoreProducts) {
+                    return (
+                      <TouchableOpacity
+                        style={styles.loadMoreButton}
+                        onPress={loadMoreProducts}
+                      >
+                        <Text style={styles.loadMoreText}>
+                          {t("common.loadMore")}
+                        </Text>
+                        <Ionicons name="chevron-down" size={20} color={colors.red} />
+                      </TouchableOpacity>
+                    );
+                  }
+                  return null;
+                }}
+              />
+            </View>
+          )}
+        </>
       )}
     </View>
   );
@@ -166,6 +218,40 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#6B6B6B",
     fontWeight: "500",
+  },
+  skeletonGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    paddingHorizontal: 0,
+  },
+  skeletonItem: {
+    width: "48%",
+    marginBottom: 12,
+  },
+  titleContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
+    marginBottom: 18,
+  },
+  titleWithIcon: {
+    flexDirection: "column",
+    alignItems: "flex-start",
+  },
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#ED2A46",
+    letterSpacing: 0.5,
+  },
+  titleUnderline: {
+    width: 40,
+    height: 3,
+    backgroundColor: "#ED2A46",
+    marginTop: 4,
+    borderRadius: 2,
   },
   homeSection: {
     marginTop: 25,

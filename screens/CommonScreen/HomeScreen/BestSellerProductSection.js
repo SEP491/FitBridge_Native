@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from "rea
 import { useNavigation } from "@react-navigation/native";
 import PairedSwiper from "../../../components/PairSwiper/PairSwiper";
 import ProductCard from "../../../components/ProductCard/ProductCard";
+import ProductCardSkeleton from "../../../components/ProductCard/ProductCardSkeleton";
 import { useTranslation } from "../../../hooks/useTranslation";
 
 export default function BestSellerProductSection({ refreshTrigger, products, viewMore = true }) {
@@ -36,6 +37,13 @@ export default function BestSellerProductSection({ refreshTrigger, products, vie
     return <ProductCard product={item} />;
   };
 
+  const renderSkeletonCard = () => {
+    return <ProductCardSkeleton />;
+  };
+
+  // Create skeleton data array for swiper
+  const skeletonData = Array.from({ length: 4 }, (_, i) => ({ id: `skeleton-${i}` }));
+
   return (
     <View style={styles.section}>
       <View style={styles.titleContainer}>
@@ -46,10 +54,7 @@ export default function BestSellerProductSection({ refreshTrigger, products, vie
         {viewMore && (
           <TouchableOpacity
             style={styles.viewMoreButton}
-            onPress={() => navigation.navigate(t("navigation.ecommerce"), { 
-              screen: "EcommerceMain",
-              params: { category: "products" }
-            })}
+            onPress={() => navigation.navigate("BestSellerProductsScreen")}
             activeOpacity={0.7}
           >
             <Text style={styles.viewMoreText}>{t("home.viewMore")}</Text>
@@ -58,9 +63,18 @@ export default function BestSellerProductSection({ refreshTrigger, products, vie
       </View>
 
       {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#ED2A46" />
-        </View>
+        <PairedSwiper
+          data={skeletonData}
+          renderItem={renderSkeletonCard}
+          showsPagination={true}
+          itemsPerSlide={2}
+          height={280}
+          loop={false}
+          dotStyle={styles.paginationDot}
+          activeDotStyle={styles.activePaginationDot}
+          containerStyle={styles.swiperContainer}
+          autoplay={false}
+        />
       ) : bestSellerProducts && bestSellerProducts.length > 0 ? (
         <PairedSwiper
           data={bestSellerProducts}

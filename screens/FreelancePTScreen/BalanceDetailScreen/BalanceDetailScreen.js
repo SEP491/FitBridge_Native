@@ -56,7 +56,20 @@ const BalanceDetailScreen = () => {
       } else {
         const response = await dashBoardService.getPendingBalanceDetail();
         if (response && response.data) {
-          setPendingData(response.data.items || []);
+          // Normalize pending items so the UI can render them like transactions
+          const normalizedItems = (response.data.items || []).map((item) => ({
+            ...item,
+            transactionType: "Order",
+            transactionId: item.transactionDetail?.transactionId,
+            description:
+              item.transactionDetail?.description || item.courseName || "",
+            transactionDate: item.transactionDetail?.transactionDate,
+            orderCode: item.transactionDetail?.orderCode,
+            paymentMethod: item.transactionDetail?.paymentMethod,
+            balance: undefined, // pending items don't affect available balance yet
+          }));
+
+          setPendingData(normalizedItems);
           setPendingTotal(response.data.total || 0);
           setPendingTotalProfitSum(response.data.totalProfitSum || 0);
         }
@@ -200,7 +213,7 @@ const BalanceDetailScreen = () => {
       case "DistributeProfit":
         return "#4CAF50";
       case "Order":
-        return "#FF914D";
+        return "#4CAF50";
       default:
         return "#666";
     }

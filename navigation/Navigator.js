@@ -92,6 +92,8 @@ import { useRevenueCat } from "../context/RevenueCatContext";
 import { useUser } from "../context/UserContext";
 import CalendarPTScreen from "../screens/GymPTScreen/CalendarPTScreen/CalendarPTScreen";
 import EcommerceScreen from "../screens/CommonScreen/EcommerceScreen/EcommerceScreen";
+import BestSellerProductsScreen from "../screens/CommonScreen/BestSellerProductsScreen/BestSellerProductsScreen";
+import TopRatingProductsScreen from "../screens/CommonScreen/TopRatingProductsScreen/TopRatingProductsScreen";
 import ProductDetailsScreen from "../screens/CommonScreen/ProductDetailsScreen/ProductDetailsScreen";
 import MessageScreen from "../screens/CommonScreen/ChatScreen/MessageScreen";
 import MessageDetailScreen from "../screens/CommonScreen/ChatScreen/MessageDetailScreen";
@@ -897,6 +899,34 @@ export default function Navigator({
               color: "#ED2A46",
             },
           }}
+        />
+        <Stack.Screen
+          name="BestSellerProductsScreen"
+          component={BestSellerProductsScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.bestSellerProducts"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            }}
+          }
+        />
+        <Stack.Screen
+          name="TopRatingProductsScreen"
+          component={TopRatingProductsScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.topRatedProducts"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            }}
+          }
         />
       </Stack.Navigator>
     );

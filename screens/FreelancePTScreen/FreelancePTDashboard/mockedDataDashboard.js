@@ -24,21 +24,21 @@ export const mockedDataDashboard = [
         bestSellerPackage: [
             {
                 packageName: "Tap co duoi",
-                imageURL: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ0HuMJ4qhJHhoIX0nw65fN3cab02s1XWhPCg&s",
+                imageURL: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRrtUh-uIFZ06lOpOZpI34hiWDo-OkpODILOA&s",
                 totalPurchase: 200,
                 totalIncome: 100000000,
                 compareToLastMonth: "130%",
             },
             {
                 packageName: "Tap co tren",
-                imageURL: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ0HuMJ4qhJHhoIX0nw65fN3cab02s1XWhPCg&s",
+                imageURL: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRrtUh-uIFZ06lOpOZpI34hiWDo-OkpODILOA&s",
                 totalPurchase: 200,
                 totalIncome: 100000000,
                 compareToLastMonth: "130%",
             },
             {
                 packageName: "Tap co ben",
-                imageURL: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ0HuMJ4qhJHhoIX0nw65fN3cab02s1XWhPCg&s",
+                imageURL: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRrtUh-uIFZ06lOpOZpI34hiWDo-OkpODILOA&s",
                 totalPurchase: 150,
                 totalIncome: 75000000,
                 compareToLastMonth: "95%",
