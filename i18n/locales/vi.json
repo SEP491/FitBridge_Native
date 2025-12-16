@@ -399,7 +399,13 @@
     "pause": "Tạm Dừng",
     "resume": "Tiếp Tục",
     "finish": "Kết Thúc",
-    "kg": "kg"
+    "kg": "kg",
+    "manualInput": "Nhập thủ công",
+    "completedReps": "Số lần đã thực hiện",
+    "actualTime": "Thời gian thực tế (giây)",
+    "plannedTimeLabel": "Mục tiêu: {{value}} giây",
+    "startBeforeManual": "Vui lòng bắt đầu bài tập trước khi dùng chế độ nhập thủ công.",
+    "pauseBeforeManual": "Vui lòng tạm dừng hoặc kết thúc bộ đếm thời gian trước khi chuyển sang nhập thủ công."
   },
 
   "cart": {

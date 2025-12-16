@@ -88,6 +88,14 @@ export default function BookingDetailScreen({ route, navigation }) {
   const [activitySetType, setActivitySetType] = useState("Reps");
   const [activityName, setActivityName] = useState("");
   const [selectedMuscles, setSelectedMuscles] = useState(null);
+
+  // Asset selection for session activity
+  const [assetTypeFilter, setAssetTypeFilter] = useState("Equipment"); // Equipment | NoneEquipment
+  const [availableAssets, setAvailableAssets] = useState([]);
+  const [selectedAsset, setSelectedAsset] = useState(null);
+  const [loadingAssets, setLoadingAssets] = useState(false);
+  const [showAssetDropdown, setShowAssetDropdown] = useState(false);
+
   const [activitySets, setActivitySets] = useState([
     {
       plannedNumOfReps: "",
@@ -101,6 +109,21 @@ export default function BookingDetailScreen({ route, navigation }) {
     fetchUser();
     fetchBookingDetail();
   }, [Booking]);
+
+  // Load assets when the add-activity modal is opened or filters change
+  useEffect(() => {
+    // Only load assets when a muscle group has been selected
+    if (showAddModal && selectedMuscles) {
+      fetchAssets();
+      setActivityName("");
+    } else {
+      // If muscle is cleared or modal closed, reset asset options
+      setAvailableAssets([]);
+      setSelectedAsset(null);
+      setShowAssetDropdown(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showAddModal, assetTypeFilter, selectedMuscles]);
 
   useEffect(() => {
     if (activeTab === "results" && !bookingResult) {
@@ -131,6 +154,38 @@ export default function BookingDetailScreen({ route, navigation }) {
     }
   };
 
+  const fetchAssets = async () => {
+    // Do not fetch assets until a muscle group is selected
+    if (!selectedMuscles) {
+      setAvailableAssets([]);
+      setSelectedAsset(null);
+      return;
+    }
+
+    try {
+      setLoadingAssets(true);
+      const params = {
+        assetType: assetTypeFilter,
+        muscleGroup: selectedMuscles,
+        doApplyPaging: false,
+      };
+
+      const response = await bookingService.getActivityMetadata(params);
+      // API may return a paged result { items: [...] } or a raw array
+      const items = response.data?.items || response.data || [];
+      setAvailableAssets(items);
+    } catch (error) {
+      console.error("Error fetching activity assets:", error);
+      Alert.alert(
+        t("bookingDetail.error"),
+        t("bookingDetail.cannotLoadAssets") ||
+          "Cannot load assets for this activity."
+      );
+    } finally {
+      setLoadingAssets(false);
+    }
+  };
+
   const fetchBookingResult = async () => {
     try {
       setLoadingResult(true);
@@ -156,7 +211,16 @@ export default function BookingDetailScreen({ route, navigation }) {
 
   const toggleMuscleGroup = (muscleId) => {
     // Only allow a single muscle selection; tapping again clears it
-    setSelectedMuscles((prev) => (prev === muscleId ? null : muscleId));
+    setSelectedMuscles((prev) => {
+      const next = prev === muscleId ? null : muscleId;
+
+      // Whenever muscle selection changes, clear asset selection & options
+      setSelectedAsset(null);
+      setAvailableAssets([]);
+      setShowAssetDropdown(false);
+
+      return next;
+    });
   };
 
   const addSet = () => {
@@ -188,6 +252,11 @@ export default function BookingDetailScreen({ route, navigation }) {
     setActivitySetType("Reps");
     setActivityName("");
     setSelectedMuscles(null);
+    setAssetTypeFilter("Equipment");
+    setSelectedAsset(null);
+    setAvailableAssets([]);
+    setShowAssetDropdown(false);
+
     setActivitySets([
       {
         plannedNumOfReps: "",
@@ -211,6 +280,14 @@ export default function BookingDetailScreen({ route, navigation }) {
       Alert.alert(
         t("bookingDetail.error"),
         t("bookingDetail.selectAtLeastOneMuscleGroup")
+      );
+      return;
+    }
+    if (!selectedAsset) {
+      Alert.alert(
+        t("bookingDetail.error"),
+        t("bookingDetail.selectAssetForActivity") ||
+          "Please select an asset for this activity."
       );
       return;
     }
@@ -243,6 +320,7 @@ export default function BookingDetailScreen({ route, navigation }) {
         activitySetType: activitySetType,
         activityName: activityName.trim(),
         muscleGroup: selectedMuscles,
+        assetId: selectedAsset.assetId || selectedAsset.id,
         activitySets: validSets.map((set) => ({
           plannedNumOfReps:
             activitySetType === "Reps"
@@ -527,6 +605,130 @@ export default function BookingDetailScreen({ route, navigation }) {
                     </TouchableOpacity>
                   ))}
                 </View>
+              </View>
+
+              {/* Asset Type Selection (Equipment / NoneEquipment) */}
+              <View style={styles.formSection}>
+                <Text style={styles.formLabel}>Asset Type</Text>
+                <View style={styles.typeButtonsContainer}>
+                  {["Equipment", "NoneEquipment"].map((type) => (
+                    <TouchableOpacity
+                      key={type}
+                      style={[
+                        styles.typeButton,
+                        assetTypeFilter === type && styles.activityTypeActive,
+                      ]}
+                      onPress={() => {
+                        setAssetTypeFilter(type);
+                        setSelectedAsset(null);
+                      }}
+                    >
+                      {assetTypeFilter === type && (
+                        <View style={styles.selectedIndicator}>
+                          <Ionicons
+                            name="checkmark"
+                            size={14}
+                            color="#FFFFFF"
+                          />
+                        </View>
+                      )}
+                      <Text
+                        style={[
+                          styles.typeButtonText,
+                          assetTypeFilter === type &&
+                            styles.activityTypeTextActive,
+                        ]}
+                      >
+                        {type}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              {/* Asset Selection */}
+              <View style={styles.formSection}>
+                <Text style={styles.formLabel}>Asset</Text>
+                {loadingAssets ? (
+                  <ActivityIndicator size="small" color={colors.orange} />
+                ) : (
+                  <>
+                    <TouchableOpacity
+                      style={styles.assetSelector}
+                      onPress={() => {
+                        if (!selectedMuscles) {
+                          Alert.alert(
+                            t("bookingDetail.error"),
+                            t("bookingDetail.selectMuscleGroups") ||
+                              "Please select a muscle group first."
+                          );
+                          return;
+                        }
+
+                        setShowAssetDropdown((prevVisible) => !prevVisible);
+                      }}
+                    >
+                      <Text
+                        style={
+                          selectedAsset
+                            ? styles.assetSelectorText
+                            : styles.assetSelectorPlaceholder
+                        }
+                      >
+                        {selectedAsset
+                          ? selectedAsset.vietNameseName ||
+                            selectedAsset.name ||
+                            selectedAsset.vietnameseDescription
+                          : "Select asset"}
+                      </Text>
+                      <Ionicons
+                        name={showAssetDropdown ? "chevron-up" : "chevron-down"}
+                        size={18}
+                        color="#64748B"
+                      />
+                    </TouchableOpacity>
+                    {showAssetDropdown && (
+                      <View style={styles.assetDropdown}>
+                        {availableAssets && availableAssets.length > 0 ? (
+                          <ScrollView style={{ maxHeight: 200 }}>
+                            {availableAssets.map((asset) => (
+                              <TouchableOpacity
+                                key={
+                                  asset.assetId ||
+                                  asset.id ||
+                                  asset.code ||
+                                  Math.random().toString()
+                                }
+                                style={styles.assetOption}
+                                onPress={() => {
+                                  setSelectedAsset(asset);
+                                  setShowAssetDropdown(false);
+                                  if (assetTypeFilter === "NoneEquipment") {
+                                    setActivityName(
+                                      asset.vietnameseName || asset.name
+                                    );
+                                  }
+                                }}
+                              >
+                                <Text style={styles.assetOptionText}>
+                                  {asset.vietNameseName ||
+                                    asset.name ||
+                                    asset.vietnameseDescription}
+                                </Text>
+                              </TouchableOpacity>
+                            ))}
+                          </ScrollView>
+                        ) : (
+                          <View style={styles.assetEmptyContainer}>
+                            <Text style={styles.assetEmptyText}>
+                              No assets found for this filter.
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+                    )}
+                  </>
+                )}
               </View>
 
               {/* Activity Name */}
@@ -1251,6 +1453,56 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 3,
     elevation: 1,
+  },
+  assetSelector: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    backgroundColor: "#FFFFFF",
+  },
+  assetSelectorText: {
+    fontSize: 14,
+    color: "#0F172A",
+  },
+  assetSelectorPlaceholder: {
+    fontSize: 14,
+    color: "#94A3B8",
+  },
+  assetDropdown: {
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    borderRadius: 12,
+    backgroundColor: "#FFFFFF",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  assetOption: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F1F5F9",
+  },
+  assetOptionText: {
+    fontSize: 14,
+    color: "#0F172A",
+  },
+  assetEmptyContainer: {
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  assetEmptyText: {
+    fontSize: 13,
+    color: "#94A3B8",
+    fontStyle: "italic",
   },
   addSetButtonText: {
     fontSize: 15,

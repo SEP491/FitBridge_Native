@@ -4,6 +4,11 @@ const bookingService = {
   getBookingDetail: (bookingId) =>
     request("GET", `v1/session-activities/practice-content/${bookingId}`),
 
+  // Get asset metadata used when creating session activities
+  // Accepts optional query params: assetType, muscleGroup, doApplyPaging, page, size, etc.
+  getActivityMetadata: (params) =>
+    request("GET", `v1/gym-assets/session-activity`, null, {}, params),
+
   createSessionActivities: (data) =>
     request("POST", `v1/session-activities`, data),
 

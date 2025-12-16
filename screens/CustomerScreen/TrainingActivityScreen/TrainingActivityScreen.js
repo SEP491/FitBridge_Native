@@ -7,6 +7,7 @@ import {
   TextInput,
   Alert,
   Dimensions,
+  Image,
 } from "react-native";
 import React, { useEffect, useState, useRef } from "react";
 import bookingService from "../../../services/bookingService";
@@ -14,6 +15,38 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import colors from "../../../constants/color";
 import { useTranslation } from "../../../hooks/useTranslation";
+
+// Body part images mapping
+const bodyPartImages = {
+  chest: require("../../../assets/images/bodyparts/chest.png"),
+  back: require("../../../assets/images/bodyparts/back.png"),
+
+  shoulder: require("../../../assets/images/bodyparts/shoulder.png"),
+  biceps: require("../../../assets/images/bodyparts/biceps.png"),
+  triceps: require("../../../assets/images/bodyparts/triceps.png"),
+  foreArm: require("../../../assets/images/bodyparts/foreArm.png"),
+  thigh: require("../../../assets/images/bodyparts/thigh.png"),
+  glutes: require("../../../assets/images/bodyparts/glutes.png"),
+  calf: require("../../../assets/images/bodyparts/calf.png"),
+  waist: require("../../../assets/images/bodyparts/waist.png"),
+  fullbody: require("../../../assets/images/bodyparts/fullbody.png"),
+  other: require("../../../assets/images/bodyparts/other.png"),
+};
+
+const MUSCLE_GROUPS = [
+  { id: "Chest", name: "Ngực", image: bodyPartImages.chest },
+  { id: "Back", name: "Lưng", image: bodyPartImages.back },
+  { id: "Shoulders", name: "Vai", image: bodyPartImages.shoulder },
+  { id: "Biceps", name: "Tay Trước", image: bodyPartImages.biceps },
+  { id: "Triceps", name: "Tay Sau", image: bodyPartImages.triceps },
+  { id: "Forearms", name: "Cẳng Tay", image: bodyPartImages.foreArm },
+  { id: "Thighs", name: "Đùi", image: bodyPartImages.thigh },
+  { id: "Glutes", name: "Mông", image: bodyPartImages.glutes },
+  { id: "Calves", name: "Bắp chân", image: bodyPartImages.calf },
+  { id: "AbsCore", name: "Bụng", image: bodyPartImages.waist },
+  { id: "FullBody", name: "Toàn Thân", image: bodyPartImages.fullbody },
+  { id: "Other", name: "Khác", image: bodyPartImages.other },
+];
 
 const { width } = Dimensions.get("window");
 
@@ -25,6 +58,7 @@ export default function TrainingActivityScreen({ route, navigation }) {
   const [currentSetIndex, setCurrentSetIndex] = useState(0);
   const [isWorkoutActive, setIsWorkoutActive] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [manualInputMode, setManualInputMode] = useState(false); // allow PT to type values
 
   // For Reps tracking
   const [currentReps, setCurrentReps] = useState(0);
@@ -41,6 +75,17 @@ export default function TrainingActivityScreen({ route, navigation }) {
   const [isResting, setIsResting] = useState(false);
   const [actualRestTime, setActualRestTime] = useState(0);
   const restTimerRef = useRef(null);
+
+  const getActivityAssetLabel = () => {
+    if (!activityDetail) return "";
+    return activityDetail.vietnameseAssetName || activityDetail.assetName || "";
+  };
+
+  const getActivityMuscle = () => {
+    if (!activityDetail?.muscleGroup) return null;
+    const muscleId = activityDetail.muscleGroup;
+    return MUSCLE_GROUPS.find((m) => m.id === muscleId) || null;
+  };
 
   useEffect(() => {
     const loadingActivityDetail = async () => {
@@ -218,6 +263,14 @@ export default function TrainingActivityScreen({ route, navigation }) {
     const currentSet = activityDetail?.activitySets[currentSetIndex];
     if (!currentSet) return;
 
+    // Pre-calc actual practice time for Time mode (used for API + local state)
+    const actualPracticeTime =
+      activityDetail.activitySetType === "Time"
+        ? manualInputMode
+          ? currentTime // manual: user typed actual seconds
+          : currentSet.plannedPracticeTime - currentTime // countdown: planned - remaining
+        : 0;
+
     try {
       const updateData = {
         activitySet: {
@@ -232,8 +285,6 @@ export default function TrainingActivityScreen({ route, navigation }) {
         updateData.activitySet.numOfReps = currentReps;
         updateData.activitySet.practiceTime = 0;
       } else if (activityDetail.activitySetType === "Time") {
-        // Calculate actual practice time (planned - remaining)
-        const actualPracticeTime = currentSet.plannedPracticeTime - currentTime;
         updateData.activitySet.practiceTime = actualPracticeTime;
         updateData.activitySet.numOfReps = 0;
       } else if (activityDetail.activitySetType === "Distance") {
@@ -258,7 +309,7 @@ export default function TrainingActivityScreen({ route, navigation }) {
             : updatedSets[currentSetIndex].numOfReps,
         practiceTime:
           activityDetail.activitySetType === "Time"
-            ? currentSet.plannedPracticeTime - currentTime
+            ? actualPracticeTime
             : updatedSets[currentSetIndex].practiceTime,
         distance:
           activityDetail.activitySetType === "Distance"
@@ -323,12 +374,15 @@ export default function TrainingActivityScreen({ route, navigation }) {
     (set) => set.isCompleted
   ).length;
 
+  const muscle = getActivityMuscle();
+
   return (
     <View style={styles.container} edges={["top"]}>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Main Timer Display */}
         <View style={styles.timerDisplayContainer}>
-          {!isWorkoutActive && !isResting ? (
+          {/* Show simple initial value only when not started, not resting and not in manual mode */}
+          {!isWorkoutActive && !isResting && !manualInputMode ? (
             <Text style={styles.mainTimerText}>
               {isRepsMode ? "0" : isTimeMode ? "00:00" : "0 m"}
             </Text>
@@ -343,42 +397,86 @@ export default function TrainingActivityScreen({ route, navigation }) {
             </View>
           ) : (
             <>
-              {isRepsMode && (
-                <View style={styles.repsContainer}>
-                  <TouchableOpacity
-                    style={styles.controlReps}
-                    onPress={decrementReps}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.controlRepsText}>-</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.mainTimerTouchable}
-                    onPress={incrementReps}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.mainTimerText}>
-                      {currentReps.toString().padStart(2, "0")}
+              {isRepsMode &&
+                (manualInputMode ? (
+                  <View style={styles.manualInputWrapper}>
+                    <Text style={styles.manualInputLabel}>
+                      {t("trainingActivity.completedReps") || "Completed reps"}
                     </Text>
+                    <TextInput
+                      style={styles.manualNumberInput}
+                      value={currentReps.toString()}
+                      onChangeText={(val) => {
+                        const num = parseInt(val.replace(/[^0-9]/g, ""), 10);
+                        setCurrentReps(Number.isNaN(num) ? 0 : num);
+                      }}
+                      keyboardType="numeric"
+                      placeholder="0"
+                      placeholderTextColor="#94A3B8"
+                    />
                     <Text style={styles.repsSubtext}>
                       / {currentSet.plannedNumOfReps} reps
                     </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.controlReps}
-                    onPress={incrementReps}
-                  >
-                    <Text style={styles.controlRepsText}>+</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-              {isTimeMode && (
-                <View style={styles.mainTimerTouchable}>
-                  <Text style={styles.mainTimerText}>
-                    {formatTime(currentTime).replace(":", ":")}
-                  </Text>
-                </View>
-              )}
+                  </View>
+                ) : (
+                  <View style={styles.repsContainer}>
+                    <TouchableOpacity
+                      style={styles.controlReps}
+                      onPress={decrementReps}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={styles.controlRepsText}>-</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.mainTimerTouchable}
+                      onPress={incrementReps}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={styles.mainTimerText}>
+                        {currentReps.toString().padStart(2, "0")}
+                      </Text>
+                      <Text style={styles.repsSubtext}>
+                        / {currentSet.plannedNumOfReps} reps
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.controlReps}
+                      onPress={incrementReps}
+                    >
+                      <Text style={styles.controlRepsText}>+</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              {isTimeMode &&
+                (manualInputMode ? (
+                  <View style={styles.manualInputWrapper}>
+                    <Text style={styles.manualInputLabel}>
+                      {t("trainingActivity.actualTime") || "Actual time (sec)"}
+                    </Text>
+                    <TextInput
+                      style={styles.manualNumberInput}
+                      value={currentTime.toString()}
+                      onChangeText={(val) => {
+                        const num = parseInt(val.replace(/[^0-9]/g, ""), 10);
+                        setCurrentTime(Number.isNaN(num) ? 0 : num);
+                      }}
+                      keyboardType="numeric"
+                      placeholder="0"
+                      placeholderTextColor="#94A3B8"
+                    />
+                    <Text style={styles.repsSubtext}>
+                      {t("trainingActivity.plannedTimeLabel", {
+                        value: currentSet?.plannedPracticeTime || 0,
+                      })}
+                    </Text>
+                  </View>
+                ) : (
+                  <View style={styles.mainTimerTouchable}>
+                    <Text style={styles.mainTimerText}>
+                      {formatTime(currentTime).replace(":", ":")}
+                    </Text>
+                  </View>
+                ))}
               {isDistanceMode && (
                 <View style={styles.distanceInputWrapper}>
                   <Text style={styles.distanceInputLabel}>
@@ -392,7 +490,7 @@ export default function TrainingActivityScreen({ route, navigation }) {
                       keyboardType="numeric"
                       placeholder="0"
                       placeholderTextColor="#94A3B8"
-                      editable={isWorkoutActive}
+                      editable={isWorkoutActive || manualInputMode}
                       returnKeyType="done"
                     />
                     <Text style={styles.distanceUnit}>
@@ -408,33 +506,85 @@ export default function TrainingActivityScreen({ route, navigation }) {
               )}
             </>
           )}
+
+          {/* Manual input toggle - only for PT, positioned under timer */}
+          {userRole === "FreelancePT" && (
+            <TouchableOpacity
+              style={[
+                styles.manualToggle,
+                manualInputMode && styles.manualToggleActive,
+              ]}
+              onPress={() => {
+                if (!isWorkoutActive) {
+                  Alert.alert(
+                    t("trainingActivity.warning"),
+                    t("trainingActivity.startBeforeManual") ||
+                      "Please start the activity before using manual input."
+                  );
+                  return;
+                }
+                if (isTimeMode && isTimerRunning) {
+                  Alert.alert(
+                    t("trainingActivity.warning"),
+                    t("trainingActivity.pauseBeforeManual") ||
+                      "Please pause or finish the timer before switching to manual input."
+                  );
+                  return;
+                }
+                setManualInputMode((prev) => !prev);
+              }}
+            >
+              <Ionicons
+                name={manualInputMode ? "create" : "hand-left-outline"}
+                size={16}
+                color={manualInputMode ? "#FFFFFF" : "#0F172A"}
+              />
+              <Text
+                style={[
+                  styles.manualToggleText,
+                  manualInputMode && styles.manualToggleTextActive,
+                ]}
+              >
+                {t("trainingActivity.manualInput") || "Manual input"}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
 
-        {/* Activity Info Badge */}
+        {/* Activity Info Badge with asset & muscle info */}
         <View style={styles.activityBadgeContainer}>
           <View style={styles.activityBadge}>
             <View style={styles.muscleBadge}>
-              <MaterialCommunityIcons
-                name="arm-flex"
-                size={24}
-                color="#1E293B"
-              />
+              {muscle?.image ? (
+                <Image
+                  source={muscle.image}
+                  style={styles.muscleImage}
+                  resizeMode="contain"
+                />
+              ) : (
+                <MaterialCommunityIcons
+                  name="arm-flex"
+                  size={28}
+                  color="#1E293B"
+                />
+              )}
             </View>
             <View style={styles.activityInfo}>
               <Text style={styles.activityName}>
                 {activityDetail.activityName}
               </Text>
+              {!!getActivityAssetLabel() && (
+                <Text style={styles.activityAssetName}>
+                  {getActivityAssetLabel()}
+                </Text>
+              )}
+
               <Text style={styles.activityProgress}>
                 {completedSets}/{activityDetail.activitySets.length}{" "}
                 {t("trainingActivity.completed")}
               </Text>
             </View>
           </View>
-          {/* {!currentSet.isCompleted && (
-            <TouchableOpacity style={styles.actionButton}>
-              <Text style={styles.actionButtonText}>{t("trainingActivity.training")}</Text>
-            </TouchableOpacity>
-          )} */}
         </View>
 
         {/* Stats Bar */}
@@ -704,6 +854,26 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontWeight: "500",
   },
+  manualInputWrapper: {
+    width: "100%",
+    alignItems: "center",
+    gap: 8,
+  },
+  manualInputLabel: {
+    fontSize: 14,
+    color: "#0F172A",
+    fontWeight: "600",
+  },
+  manualNumberInput: {
+    width: "60%",
+    textAlign: "center",
+    fontSize: 32,
+    fontWeight: "500",
+    color: "#1E293B",
+    paddingVertical: 8,
+    borderBottomWidth: 1.5,
+    borderColor: "#E2E8F0",
+  },
   distanceInputWrapper: {
     width: "100%",
     alignItems: "center",
@@ -778,8 +948,8 @@ const styles = StyleSheet.create({
     borderColor: "#E2E8F0",
   },
   muscleBadge: {
-    width: 48,
-    height: 48,
+    width: 55,
+    height: 55,
     borderRadius: 24,
     backgroundColor: "#FEF3E2",
     justifyContent: "center",
@@ -787,6 +957,12 @@ const styles = StyleSheet.create({
     marginRight: 12,
     borderWidth: 2,
     borderColor: "#FB923C",
+  },
+  muscleImage: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 24,
+    padding: 5,
   },
   activityInfo: {
     flex: 1,
@@ -797,10 +973,41 @@ const styles = StyleSheet.create({
     color: "#1E293B",
     marginBottom: 3,
   },
+  activityAssetName: {
+    fontSize: 14,
+    color: "#0F172A",
+    fontWeight: "600",
+    marginBottom: 3,
+  },
+
   activityProgress: {
     fontSize: 13,
     color: "#64748B",
     fontWeight: "500",
+  },
+  manualToggle: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "#CBD5F5",
+    backgroundColor: "#EEF2FF",
+    marginTop: 12,
+  },
+  manualToggleActive: {
+    backgroundColor: "#4F46E5",
+    borderColor: "#4338CA",
+  },
+  manualToggleText: {
+    fontSize: 12,
+    color: "#0F172A",
+    fontWeight: "600",
+  },
+  manualToggleTextActive: {
+    color: "#FFFFFF",
   },
   actionButton: {
     backgroundColor: "#F97316",

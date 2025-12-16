@@ -73,6 +73,23 @@ export default function BookingDetailContent({
   // Get unique activity types from sessionActivities
 
   const scrollViewRef = React.useRef(null);
+
+  const getActivityAssetLabel = (activity) => {
+    return (
+      activity.vietnameseAssetName ||
+      activity.assetName ||
+      activity.vietnameseAssetDescription ||
+      ""
+    );
+  };
+
+  const getActivityMuscle = (activity) => {
+    if (!activity?.muscleGroup) return null;
+    const muscleId = Array.isArray(activity.muscleGroup)
+      ? activity.muscleGroup[0]
+      : activity.muscleGroup;
+    return MUSCLE_GROUPS.find((m) => m.id === muscleId) || null;
+  };
   const getUniqueActivityTypes = () => {
     if (
       !bookingDetail?.sessionActivities ||
@@ -498,94 +515,176 @@ export default function BookingDetailContent({
                 activeOpacity={0.7}
                 disabled={sessionState === "not-started"}
               >
-                <View style={styles.setHeader}>
-                  <View style={styles.setTitleContainer}>
-                    <Ionicons
-                      name={
-                        activity.isCompleted
-                          ? "checkmark-circle"
-                          : "ellipse-outline"
-                      }
-                      size={20}
-                      color={activity.isCompleted ? "#4CAF50" : colors.orange}
-                    />
-                    <Text style={styles.setTitle}>
-                      {activity.activityName || t("bookingDetail.exerciseName")}
-                    </Text>
-                    {userRole === "FreelancePT" && (
-                      <TouchableOpacity
-                        style={styles.editButton}
-                        onPress={() =>
-                          navigation.navigate("EditSessionActivityScreen", {
-                            sessionActivity: activity,
-                          })
-                        }
-                      >
-                        <Ionicons
-                          name="create-outline"
-                          size={25}
-                          color={colors.orange}
-                        />
-                      </TouchableOpacity>
+                <View style={styles.activityCardRow}>
+                  {/* Left: muscle thumbnail */}
+                  <View style={styles.activityThumbWrapper}>
+                    {getActivityMuscle(activity)?.image ? (
+                      <Image
+                        source={getActivityMuscle(activity).image}
+                        style={styles.activityThumbImage}
+                        resizeMode="contain"
+                      />
+                    ) : (
+                      <View style={styles.activityThumbFallback}>
+                        <Ionicons name="body" size={26} color={colors.orange} />
+                      </View>
+                    )}
+                    {activity.isCompleted && (
+                      <View style={styles.activityThumbStatus}>
+                        <Ionicons name="checkmark" size={14} color="#FFFFFF" />
+                      </View>
                     )}
                   </View>
-                  {activity.isCompleted && (
-                    <View style={styles.completedBadge}>
-                      <Text style={styles.completedBadgeText}>
-                        {t("bookingDetail.completed", "Completed")}
-                      </Text>
+
+                  {/* Right: main info */}
+                  <View style={styles.activityInfo}>
+                    <View style={styles.activityTitleRow}>
+                      <View style={{ flex: 1 }}>
+                        <Text numberOfLines={1} style={styles.activityTitle}>
+                          {activity.activityName ||
+                            t("bookingDetail.exerciseName")}
+                        </Text>
+                        {getActivityAssetLabel(activity) ? (
+                          <Text
+                            numberOfLines={1}
+                            style={styles.activityAssetText}
+                          >
+                            {getActivityAssetLabel(activity)}
+                          </Text>
+                        ) : null}
+                      </View>
+                      {userRole === "FreelancePT" && (
+                        <TouchableOpacity
+                          style={styles.editButton}
+                          onPress={() =>
+                            navigation.navigate("EditSessionActivityScreen", {
+                              sessionActivity: activity,
+                            })
+                          }
+                        >
+                          <Ionicons
+                            name="create-outline"
+                            size={22}
+                            color={colors.orange}
+                          />
+                        </TouchableOpacity>
+                      )}
                     </View>
-                  )}
-                </View>
-                <View
-                  style={[
-                    styles.setTag,
-                    {
-                      backgroundColor:
-                        ACTIVITY_TYPES.find(
-                          (t) => t.id === activity.activityType
-                        )?.color || "#f0f0f0",
-                    },
-                  ]}
-                >
-                  <Text style={styles.setTagText}>
-                    {ACTIVITY_TYPES.find((t) => t.id === activity.activityType)
-                      ?.name || activity.activityType}
-                  </Text>
-                </View>
-                <View style={styles.setDetailContainer}>
-                  <View style={styles.setDetailRow}>
-                    <Ionicons name="layers-outline" size={16} color="#666" />
-                    <Text style={styles.setDetailText}>
-                      {activity.totalSets || 0}{" "}
-                      {t("bookingDetail.sets", "sets")}
-                    </Text>
-                  </View>
-                  <View style={styles.setDetailRow}>
-                    <Ionicons name="analytics-outline" size={16} color="#666" />
-                    <Text style={styles.setDetailText}>
-                      {activity.activitySetType === "Reps"
-                        ? `${activity.totalPlannedNumOfReps || 0} ${t(
-                            "bookingDetail.reps",
-                            "reps"
-                          )}`
-                        : activity.activitySetType === "Time"
-                        ? `${activity.totalPlannedPracticeTime || 0}${t(
-                            "bookingDetail.seconds",
-                            "s"
-                          )}`
-                        : activity.activitySetType === "Distance"
-                        ? `${activity.totalPlannedDistance || 0}${t(
-                            "bookingDetail.meters",
-                            "m"
-                          )}`
-                        : ""}
-                    </Text>
+
+                    {/* Chips row: activity type + asset type */}
+                    <View style={styles.activityChipsRow}>
+                      <View
+                        style={[
+                          styles.activityTypeChip,
+                          {
+                            backgroundColor:
+                              ACTIVITY_TYPES.find(
+                                (t) => t.id === activity.activityType
+                              )?.color || "#E2E8F0",
+                          },
+                        ]}
+                      >
+                        <Text style={styles.activityTypeChipText}>
+                          {ACTIVITY_TYPES.find(
+                            (t) => t.id === activity.activityType
+                          )?.name || activity.activityType}
+                        </Text>
+                      </View>
+
+                      {activity.assetType && (
+                        <View
+                          style={[
+                            styles.assetTypeBadge,
+                            activity.assetType === "Equipment"
+                              ? styles.assetTypeEquipment
+                              : styles.assetTypeNoneEquipment,
+                          ]}
+                        >
+                          <Ionicons
+                            name={
+                              activity.assetType === "Equipment"
+                                ? "fitness-outline"
+                                : "body-outline"
+                            }
+                            size={14}
+                            color="#FFFFFF"
+                          />
+                          <Text style={styles.assetTypeText}>
+                            {activity.assetType}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+
+                    {/* Stats row */}
+                    <View style={styles.activityStatsRow}>
+                      {getActivityMuscle(activity) && (
+                        <View style={styles.activityStatItem}>
+                          <Ionicons
+                            name="body-outline"
+                            size={14}
+                            color="#64748B"
+                          />
+                          <Text style={styles.activityStatText}>
+                            {getActivityMuscle(activity).name}
+                          </Text>
+                        </View>
+                      )}
+
+                      <View style={styles.activityStatItem}>
+                        <Ionicons
+                          name="layers-outline"
+                          size={14}
+                          color="#64748B"
+                        />
+                        <Text style={styles.activityStatText}>
+                          {activity.totalSets || 0}{" "}
+                          {t("bookingDetail.sets", "sets")}
+                        </Text>
+                      </View>
+
+                      <View style={styles.activityStatItem}>
+                        <Ionicons
+                          name="analytics-outline"
+                          size={14}
+                          color="#64748B"
+                        />
+                        <Text style={styles.activityStatText}>
+                          {activity.activitySetType === "Reps"
+                            ? `${activity.totalPlannedNumOfReps || 0} ${t(
+                                "bookingDetail.reps",
+                                "reps"
+                              )}`
+                            : activity.activitySetType === "Time"
+                            ? `${activity.totalPlannedPracticeTime || 0}${t(
+                                "bookingDetail.seconds",
+                                "s"
+                              )}`
+                            : activity.activitySetType === "Distance"
+                            ? `${activity.totalPlannedDistance || 0}${t(
+                                "bookingDetail.meters",
+                                "m"
+                              )}`
+                            : ""}
+                        </Text>
+                      </View>
+
+                      {activity.isCompleted && (
+                        <View style={styles.activityCompletedPill}>
+                          <Ionicons
+                            name="checkmark-circle"
+                            size={14}
+                            color="#16A34A"
+                          />
+                          <Text style={styles.activityCompletedText}>
+                            {t("bookingDetail.completed", "Completed")}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
                   </View>
                 </View>
               </TouchableOpacity>
-
-              {/* Edit Button - Only for FreelancePT */}
             </View>
           ))}
 
@@ -975,14 +1074,6 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: 8,
   },
-  activityTypeChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-    gap: 6,
-  },
   activityTypeText: {
     fontSize: 14,
     fontWeight: "600",
@@ -1049,7 +1140,7 @@ const styles = StyleSheet.create({
   },
   setCardContent: {
     flex: 1,
-    padding: 16,
+    padding: 14,
   },
   completedSetCard: {
     backgroundColor: "#F0F8F0",
@@ -1110,6 +1201,164 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#64748B",
     fontWeight: "600",
+  },
+  activityCardRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  activityThumbWrapper: {
+    width: 64,
+    height: 64,
+    borderRadius: 14,
+    backgroundColor: "#F9FAFB",
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+  },
+  activityThumbImage: {
+    width: "100%",
+    height: "100%",
+  },
+  activityThumbFallback: {
+    width: "100%",
+    height: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  activityThumbStatus: {
+    position: "absolute",
+    bottom: 4,
+    right: 4,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: "#22C55E",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  activityInfo: {
+    flex: 1,
+    gap: 6,
+  },
+  activityTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+  },
+  activityTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#0F172A",
+  },
+  activityAssetText: {
+    fontSize: 13,
+    color: "#64748B",
+    marginTop: 2,
+  },
+  activityChipsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  activityTypeChip: {
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  activityTypeChipText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#111827",
+    textTransform: "uppercase",
+  },
+  activityStatsRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 4,
+  },
+  activityStatItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  activityStatText: {
+    fontSize: 12,
+    color: "#64748B",
+    fontWeight: "500",
+  },
+  activityCompletedPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: "#ECFDF3",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+  },
+  activityCompletedText: {
+    fontSize: 11,
+    color: "#166534",
+    fontWeight: "600",
+  },
+  activityMetaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
+  muscleMeta: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  muscleMetaImage: {
+    width: 28,
+    height: 28,
+  },
+  muscleMetaIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "#FFF7ED",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  muscleMetaText: {
+    fontSize: 13,
+    color: "#0F172A",
+    fontWeight: "600",
+  },
+  assetTypeBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    gap: 4,
+  },
+  assetTypeEquipment: {
+    backgroundColor: "#4F46E5",
+  },
+  assetTypeNoneEquipment: {
+    backgroundColor: "#64748B",
+  },
+  assetTypeText: {
+    fontSize: 11,
+    color: "#FFFFFF",
+    fontWeight: "700",
+    textTransform: "uppercase",
+  },
+  setSubtitle: {
+    fontSize: 12,
+    color: "#94A3B8",
+    marginTop: 2,
   },
   emptySetContainer: {
     alignItems: "center",
