@@ -103,6 +103,7 @@ import ContractScreen from "../screens/FreelancePTScreen/ContractScreen/Contract
 import ContractDetailScreen from "../screens/FreelancePTScreen/ContractDetailScreen/ContractDetailScreen";
 import MyReviewsRatingsScreen from "../screens/CommonScreen/MyReviewsRatingsScreen/MyReviewsRatingsScreen";
 import ManageCerScreen from "../screens/FreelancePTScreen/ManageCerScreen/ManageCerScreen";
+import CustomerPurchasedTransactionScreen from "../screens/FreelancePTScreen/CustomerPurchasedTransactionScreen";
 
 export default function Navigator({
   isAuthenticated: propIsAuthenticated,
@@ -1705,6 +1706,21 @@ export default function Navigator({
             },
           }}
         />
+        <Stack.Screen
+          name="CustomerPurchasedTransactionScreen"
+          component={CustomerPurchasedTransactionScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.customerPurchasedTransaction"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+
         <Stack.Screen
           name="TrainingResultScreen"
           component={TrainingResultScreen}

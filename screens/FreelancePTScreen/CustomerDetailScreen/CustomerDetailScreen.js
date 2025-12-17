@@ -136,10 +136,8 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
   };
 
   const handleViewTransactionHistory = (pkg) => {
-    navigation.navigate('TransactionHistoryScreen', {
+    navigation.navigate('CustomerPurchasedTransactionScreen', {
       customerPurchasedId: pkg.id,
-      packageName: pkg.packageName,
-      customerName: customer.name,
     });
   };
 
