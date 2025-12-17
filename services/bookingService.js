@@ -40,6 +40,9 @@ const bookingService = {
     request("POST", `v1/bookings/end-booking-session`, data),
   getBookingHistoryForPT: (params) =>
     request("GET", `v1/bookings/history`, params),
+
+  getBookingHistoryForCustomer: (params) =>
+    request("GET", "v1/bookings/get-customer-bookings", null, {}, params),
 };
 
 export default bookingService;

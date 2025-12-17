@@ -110,9 +110,49 @@ const UpcomingSessionCard = ({ session }) => {
 const UpcomingSessions = ({ sessions = [], loading = false }) => {
   const navigation = useNavigation();
 
+  // Only keep sessions that are still in the future compared to current time
+  // Supports both "HH:mm" strings and full ISO datetime strings like "2025-10-15T15:11:51.091405+00:00"
+  const filterUpcomingByNow = (allSessions) => {
+    if (!Array.isArray(allSessions)) return [];
+
+    const now = new Date();
+
+    return allSessions.filter((session) => {
+      const raw = session?.ptFreelanceStartTime;
+      if (!raw) return false;
+
+      let sessionDateTime;
+
+      // If it's an ISO datetime (contains "T"), let Date parse it directly
+      if (typeof raw === "string" && raw.includes("T")) {
+        sessionDateTime = new Date(raw);
+      } else if (typeof raw === "string") {
+        // Fallback: treat as "HH:mm" (or "HH:mm:ss") on today
+        const [hourStr, minuteStr] = raw.split(":");
+        const hour = Number(hourStr);
+        const minute = Number(minuteStr ?? 0);
+
+        if (Number.isNaN(hour) || Number.isNaN(minute)) return false;
+
+        sessionDateTime = new Date(now);
+        sessionDateTime.setHours(hour, minute, 0, 0);
+      } else {
+        return false;
+      }
+
+      if (Number.isNaN(sessionDateTime.getTime())) return false;
+
+      return sessionDateTime.getTime() > now.getTime();
+    });
+  };
+
+  const upcomingSessions = filterUpcomingByNow(sessions);
 
   const handleNavigateToSchedule = () => {
-    navigation.navigate("MainApp", { screen: t("navigation.freelancePTSchedule"), params: { screen: "FreelancePTSchedule" } });
+    navigation.navigate("MainApp", {
+      screen: t("navigation.freelancePTSchedule"),
+      params: { screen: "FreelancePTSchedule" },
+    });
   };
 
   return (
@@ -126,14 +166,14 @@ const UpcomingSessions = ({ sessions = [], loading = false }) => {
       </View>
       {loading ? (
         <UpcomingSessionCardSkeletonList count={3} />
-      ) : sessions.length ? (
-        sessions.map((session) => (
+      ) : upcomingSessions.length ? (
+        upcomingSessions.map((session) => (
           <UpcomingSessionCard session={session} key={session.bookingId} />
         ))
       ) : (
         <View style={styles.emptyStateContainer}>
           <Text style={styles.emptyStateText}>
-            Bạn chưa có buổi tập nào trong hôm nay.
+            Bạn chưa có buổi tập nào sắp tới trong hôm nay.
           </Text>
         </View>
       )}

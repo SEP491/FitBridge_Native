@@ -80,6 +80,7 @@ export default function PackageCard({
   const isGymNormal = item.type === "gymCourseNormal";
   const isReviewMode = mode === "review";
 
+
   return (
     <View style={[styles.packageCard, expired && styles.expiredCard]}>
       {/* First Row: Image and Information */}
@@ -257,7 +258,7 @@ export default function PackageCard({
       </View>
 
       {/* Second Row: Action Buttons */}
-      {isReviewMode ? null : !expired ? ( // Review mode: no action buttons
+      {!isReviewMode  ? ( // Review mode: no action buttons
         <View style={styles.actionButtonsRow}>
           <TouchableOpacity
             style={[styles.renewButton, { backgroundColor: typeConfig.color }]}
@@ -279,8 +280,20 @@ export default function PackageCard({
         </View>
       ) : (
         <View style={styles.actionButtonsRow}>
+          {onFeedback && !item.hasReviewed && (
+            <TouchableOpacity
+              style={styles.feedbackButton}
+              onPress={() => onFeedback && onFeedback(item)}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="star-outline" size={18} color="#FF9800" />
+              <Text style={styles.feedbackButtonText}>
+                {t("myPackage.leaveFeedback") || "Leave Feedback"}
+              </Text>
+            </TouchableOpacity>
+          )}
           <TouchableOpacity
-            style={[styles.reportButton, { flex: 1 }]}
+            style={[styles.reportButton, { flex: onFeedback && !item.hasReviewed ? 1 : 1 }]}
             onPress={() => onReport && onReport(item)}
             activeOpacity={0.8}
           >
