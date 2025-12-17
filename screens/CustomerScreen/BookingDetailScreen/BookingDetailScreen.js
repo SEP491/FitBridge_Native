@@ -609,7 +609,9 @@ export default function BookingDetailScreen({ route, navigation }) {
 
               {/* Asset Type Selection (Equipment / NoneEquipment) */}
               <View style={styles.formSection}>
-                <Text style={styles.formLabel}>Asset Type</Text>
+                <Text style={styles.formLabel}>
+                  {t("bookingDetail.assetType")}
+                </Text>
                 <View style={styles.typeButtonsContainer}>
                   {["Equipment", "NoneEquipment"].map((type) => (
                     <TouchableOpacity
@@ -639,7 +641,9 @@ export default function BookingDetailScreen({ route, navigation }) {
                             styles.activityTypeTextActive,
                         ]}
                       >
-                        {type}
+                        {type === "Equipment"
+                          ? t("bookingDetail.equipment")
+                          : t("bookingDetail.noneEquipment")}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -648,7 +652,7 @@ export default function BookingDetailScreen({ route, navigation }) {
 
               {/* Asset Selection */}
               <View style={styles.formSection}>
-                <Text style={styles.formLabel}>Asset</Text>
+                <Text style={styles.formLabel}>{t("bookingDetail.asset")}</Text>
                 {loadingAssets ? (
                   <ActivityIndicator size="small" color={colors.orange} />
                 ) : (
@@ -679,7 +683,7 @@ export default function BookingDetailScreen({ route, navigation }) {
                           ? selectedAsset.vietNameseName ||
                             selectedAsset.name ||
                             selectedAsset.vietnameseDescription
-                          : "Select asset"}
+                          : t("bookingDetail.selectAsset")}
                       </Text>
                       <Ionicons
                         name={showAssetDropdown ? "chevron-up" : "chevron-down"}
@@ -742,7 +746,7 @@ export default function BookingDetailScreen({ route, navigation }) {
                         ) : (
                           <View style={styles.assetEmptyContainer}>
                             <Text style={styles.assetEmptyText}>
-                              No assets found for this filter.
+                              {t("bookingDetail.noAssetsFound")}
                             </Text>
                           </View>
                         )}

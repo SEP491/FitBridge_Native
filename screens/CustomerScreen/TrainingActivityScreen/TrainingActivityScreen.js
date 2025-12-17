@@ -237,13 +237,36 @@ export default function TrainingActivityScreen({ route, navigation }) {
     // Reset manual actual time ref
     manualActualTimeRef.current = null;
 
+    // If editing a completed set (for FreelancePT), load existing values
+    const isEditingCompleted =
+      currentSet.isCompleted && userRole === "FreelancePT";
+
+    if (isEditingCompleted) {
+      // Load existing rest time if available
+      setActualRestTime(currentSet.restTime || 0);
+    } else {
+      setActualRestTime(0);
+    }
+
     if (activityDetail.activitySetType === "Reps") {
-      setCurrentReps(0);
+      setCurrentReps(isEditingCompleted ? currentSet.numOfReps || 0 : 0);
     } else if (activityDetail.activitySetType === "Time") {
-      setCurrentTime(currentSet.plannedPracticeTime);
-      setIsTimerRunning(true);
+      if (isEditingCompleted) {
+        // Load the actual practice time that was saved
+        const savedTime = currentSet.practiceTime || 0;
+        setCurrentTime(savedTime);
+        setIsTimerRunning(false); // Don't auto-start timer when editing
+        // Enable manual input mode for editing completed sets so PT can see/edit actual time
+        setManualInputMode(true);
+      } else {
+        setCurrentTime(currentSet.plannedPracticeTime);
+        setIsTimerRunning(true);
+        setManualInputMode(false);
+      }
     } else if (activityDetail.activitySetType === "Distance") {
-      setCurrentDistance("");
+      setCurrentDistance(
+        isEditingCompleted ? currentSet.actualDistance?.toString() || "" : ""
+      );
     }
   };
 
@@ -746,9 +769,34 @@ export default function TrainingActivityScreen({ route, navigation }) {
                     return;
                   }
                   setCurrentSetIndex(index);
-                  setCurrentReps(0);
-                  setCurrentTime(0);
-                  setCurrentDistance("");
+
+                  // If switching to a completed set and user is FreelancePT, load existing values
+                  const targetSet = activityDetail.activitySets[index];
+                  const isEditingCompleted =
+                    targetSet.isCompleted && userRole === "FreelancePT";
+
+                  if (isEditingCompleted) {
+                    // Load existing values for editing
+                    if (activityDetail.activitySetType === "Reps") {
+                      setCurrentReps(targetSet.numOfReps || 0);
+                    } else if (activityDetail.activitySetType === "Time") {
+                      setCurrentTime(targetSet.practiceTime || 0);
+                      // Enable manual input mode for Time mode when editing completed sets
+                      setManualInputMode(true);
+                    } else if (activityDetail.activitySetType === "Distance") {
+                      setCurrentDistance(
+                        targetSet.actualDistance?.toString() || ""
+                      );
+                    }
+                    setActualRestTime(targetSet.restTime || 0);
+                  } else {
+                    // Reset to default values for new/incomplete sets
+                    setCurrentReps(0);
+                    setCurrentTime(0);
+                    setCurrentDistance("");
+                    setActualRestTime(0);
+                    setManualInputMode(false);
+                  }
                 }}
               >
                 {/* Set Number */}
@@ -823,13 +871,18 @@ export default function TrainingActivityScreen({ route, navigation }) {
             <TouchableOpacity
               style={[
                 styles.actionButton,
-                currentSet.isCompleted && styles.actionButtonDisabled,
+                // Only disable for customers, FreelancePT can edit completed sets
+                currentSet.isCompleted &&
+                  userRole !== "FreelancePT" &&
+                  styles.actionButtonDisabled,
               ]}
               onPress={startSet}
-              disabled={currentSet.isCompleted}
+              disabled={currentSet.isCompleted && userRole !== "FreelancePT"}
             >
               <Text style={styles.actionButtonText}>
-                {currentSet.isCompleted
+                {currentSet.isCompleted && userRole === "FreelancePT"
+                  ? t("trainingActivity.edit") || "Chỉnh sửa"
+                  : currentSet.isCompleted
                   ? t("trainingActivity.completedStatus")
                   : t("trainingActivity.start")}
               </Text>

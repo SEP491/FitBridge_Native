@@ -369,7 +369,17 @@
     "cannotCreateActivity": "Không thể tạo hoạt động",
     "set": "Hiệp",
     "assetTypeEquipment": "Thiết bị",
-    "assetTypeNoneEquipment": "Không thiết bị"
+    "assetTypeNoneEquipment": "Không thiết bị",
+    "assetType": "Loại thiết bị",
+    "equipment": "Thiết bị",
+    "noneEquipment": "Không thiết bị",
+    "asset": "Thiết bị",
+    "selectAsset": "Chọn thiết bị",
+    "selectAssetForActivity": "Vui lòng chọn thiết bị cho hoạt động này",
+    "noAssetsFound": "Không tìm thấy thiết bị",
+    "cannotLoadAssets": "Không thể tải danh sách thiết bị",
+    "errorLoadingSets": "Không thể tải danh sách set",
+    "noSets": "Chưa có set nào"
   },
 
   "trainingActivity": {
@@ -397,6 +407,7 @@
     "rest": "Nghỉ",
     "completedStatus": "Đã Hoàn Thành",
     "start": "Bắt Đầu",
+    "edit": "Chỉnh sửa",
     "save": "Lưu",
     "pause": "Tạm Dừng",
     "resume": "Tiếp Tục",

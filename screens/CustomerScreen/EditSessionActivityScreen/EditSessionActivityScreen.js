@@ -67,7 +67,7 @@ const MUSCLE_GROUPS = [
 
 export default function EditSessionActivityScreen({ route, navigation }) {
   const { t } = useTranslation();
-  const { sessionActivity } = route.params;
+  const { sessionActivity, Booking } = route.params;
   const [userRole, setUserRole] = useState(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -95,6 +95,13 @@ export default function EditSessionActivityScreen({ route, navigation }) {
   const [muscleGroup, setMuscleGroup] = useState(
     sessionActivity?.muscleGroup || ""
   );
+
+  // Asset selection state
+  const [assetTypeFilter, setAssetTypeFilter] = useState("Equipment"); // Equipment | NoneEquipment
+  const [availableAssets, setAvailableAssets] = useState([]);
+  const [selectedAsset, setSelectedAsset] = useState(null);
+  const [loadingAssets, setLoadingAssets] = useState(false);
+  const [showAssetDropdown, setShowAssetDropdown] = useState(false);
 
   useEffect(() => {
     fetchUser();
@@ -139,7 +146,30 @@ export default function EditSessionActivityScreen({ route, navigation }) {
     if (sessionActivity?.id) {
       loadSets();
     }
+    // Initialize selected asset from sessionActivity if available
+    if (sessionActivity?.assetId) {
+      // If asset info is available in sessionActivity, set it
+      setSelectedAsset({
+        assetId: sessionActivity.assetId,
+        id: sessionActivity.assetId,
+        name: sessionActivity.assetName,
+        vietNameseName: sessionActivity.vietnameseAssetName,
+        metadataImage:
+          sessionActivity.assetImage || sessionActivity.metadataImage,
+      });
+    }
   }, [sessionActivity?.id]);
+
+  // Load assets when muscle group changes
+  useEffect(() => {
+    if (muscleGroup) {
+      fetchAssets();
+    } else {
+      setAvailableAssets([]);
+      setSelectedAsset(null);
+      setShowAssetDropdown(false);
+    }
+  }, [muscleGroup, assetTypeFilter]);
 
   // Refresh sets when returning to this screen
   useEffect(() => {
@@ -150,6 +180,34 @@ export default function EditSessionActivityScreen({ route, navigation }) {
     });
     return unsubscribe;
   }, [navigation, sessionActivity?.id]);
+
+  const fetchAssets = async () => {
+    if (!muscleGroup) {
+      setAvailableAssets([]);
+      setSelectedAsset(null);
+      return;
+    }
+
+    try {
+      setLoadingAssets(true);
+      const res = await bookingService.getActivityMetadata({
+        assetType: assetTypeFilter,
+        muscleGroup: muscleGroup,
+        doApplyPaging: false,
+      });
+      const items = res.data?.content || res.data || [];
+      setAvailableAssets(items);
+    } catch (error) {
+      console.error("Error fetching activity assets:", error);
+      Alert.alert(
+        t("common.error") || "Lỗi",
+        t("bookingDetail.cannotLoadAssets") ||
+          "Cannot load assets for this activity."
+      );
+    } finally {
+      setLoadingAssets(false);
+    }
+  };
 
   const updateSetField = (setId, field, value) => {
     setActivitySets((prev) =>
@@ -220,6 +278,9 @@ export default function EditSessionActivityScreen({ route, navigation }) {
         note: note.trim(),
         nutritionTip: nutritionTip.trim(),
         muscleGroup: muscleGroup,
+        ...(selectedAsset && {
+          assetId: selectedAsset.assetId || selectedAsset.id,
+        }),
       };
 
       await bookingService.updateSessionActivity(payload);
@@ -232,7 +293,10 @@ export default function EditSessionActivityScreen({ route, navigation }) {
           {
             text: t("common.ok") || "OK",
             onPress: () =>
-              navigation.navigate("BookingDetailScreen", { refresh: true }),
+              navigation.navigate("BookingDetailScreen", {
+                refresh: true,
+                Booking: Booking,
+              }),
           },
         ]
       );
@@ -352,7 +416,7 @@ export default function EditSessionActivityScreen({ route, navigation }) {
         </View>
 
         {/* Exercise Type Selection (vertical) */}
-        <View style={styles.section}>
+        {/* <View style={styles.section}>
           <Text style={styles.sectionLabel}>
             {t("bookingDetail.exerciseType") || "Loại bài tập"}
           </Text>
@@ -389,7 +453,7 @@ export default function EditSessionActivityScreen({ route, navigation }) {
               </TouchableOpacity>
             ))}
           </View>
-        </View>
+        </View> */}
 
         {/* Muscle Group Selection */}
         <View style={styles.section}>
@@ -404,7 +468,13 @@ export default function EditSessionActivityScreen({ route, navigation }) {
                   styles.muscleCard,
                   muscleGroup === muscle.id && styles.muscleCardSelected,
                 ]}
-                onPress={() => setMuscleGroup(muscle.id)}
+                onPress={() => {
+                  setMuscleGroup(muscle.id);
+                  // Clear asset selection when muscle group changes
+                  setSelectedAsset(null);
+                  setAvailableAssets([]);
+                  setShowAssetDropdown(false);
+                }}
               >
                 {muscle.image ? (
                   <Image
@@ -422,6 +492,174 @@ export default function EditSessionActivityScreen({ route, navigation }) {
             ))}
           </View>
         </View>
+
+        {/* Asset Type Selection */}
+        {muscleGroup && (
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>
+              {t("bookingDetail.assetType") || "Loại thiết bị"}
+            </Text>
+            <View style={styles.typeButtonsContainer}>
+              {["Equipment", "NoneEquipment"].map((type) => (
+                <TouchableOpacity
+                  key={type}
+                  style={[
+                    styles.typeButton,
+                    styles.halfButton,
+                    assetTypeFilter === type && styles.typeButtonActive,
+                  ]}
+                  onPress={() => {
+                    setAssetTypeFilter(type);
+                    setSelectedAsset(null);
+                    setShowAssetDropdown(false);
+                  }}
+                >
+                  {assetTypeFilter === type && (
+                    <View style={styles.selectedIndicator}>
+                      <Ionicons name="checkmark" size={14} color="#FFFFFF" />
+                    </View>
+                  )}
+                  <Text
+                    style={[
+                      styles.typeButtonText,
+                      assetTypeFilter === type && styles.typeButtonTextActive,
+                    ]}
+                  >
+                    {type === "Equipment"
+                      ? t("bookingDetail.equipment") || "Thiết bị"
+                      : t("bookingDetail.noneEquipment") || "Không thiết bị"}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Asset Selection */}
+        {muscleGroup && (
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>
+              {t("bookingDetail.asset") || "Thiết bị"}
+            </Text>
+            {loadingAssets ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="small" color={colors.orange} />
+              </View>
+            ) : (
+              <View style={styles.assetContainer}>
+                <TouchableOpacity
+                  style={styles.assetSelector}
+                  onPress={() =>
+                    setShowAssetDropdown((prevVisible) => !prevVisible)
+                  }
+                >
+                  <Text
+                    style={
+                      selectedAsset
+                        ? styles.assetSelectorText
+                        : styles.assetSelectorPlaceholder
+                    }
+                  >
+                    {selectedAsset
+                      ? selectedAsset.vietNameseName ||
+                        selectedAsset.name ||
+                        selectedAsset.vietnameseDescription
+                      : t("bookingDetail.selectAsset") || "Chọn thiết bị"}
+                  </Text>
+                  <Ionicons
+                    name={showAssetDropdown ? "chevron-up" : "chevron-down"}
+                    size={20}
+                    color="#64748B"
+                  />
+                </TouchableOpacity>
+
+                {showAssetDropdown && (
+                  <View style={styles.assetDropdown}>
+                    {availableAssets && availableAssets.length > 0 ? (
+                      <ScrollView
+                        style={styles.assetDropdownScroll}
+                        nestedScrollEnabled
+                      >
+                        {availableAssets.map((asset) => (
+                          <TouchableOpacity
+                            key={
+                              asset.assetId ||
+                              asset.id ||
+                              asset.code ||
+                              Math.random()
+                            }
+                            style={styles.assetOption}
+                            onPress={() => {
+                              setSelectedAsset(asset);
+                              setShowAssetDropdown(false);
+                            }}
+                          >
+                            <View style={styles.assetOptionRow}>
+                              {asset.metadataImage ? (
+                                <Image
+                                  source={{ uri: asset.metadataImage }}
+                                  style={styles.assetOptionImage}
+                                />
+                              ) : (
+                                <View style={styles.assetOptionIcon}>
+                                  <Ionicons
+                                    name={
+                                      assetTypeFilter === "Equipment"
+                                        ? "barbell-outline"
+                                        : "fitness-outline"
+                                    }
+                                    size={24}
+                                    color={colors.orange}
+                                  />
+                                </View>
+                              )}
+                              <Text style={styles.assetOptionText}>
+                                {asset.vietNameseName ||
+                                  asset.name ||
+                                  asset.vietnameseDescription}
+                              </Text>
+                            </View>
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                    ) : (
+                      <View style={styles.assetEmptyContainer}>
+                        <Text style={styles.assetEmptyText}>
+                          {t("bookingDetail.noAssetsFound") ||
+                            "Không tìm thấy thiết bị."}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                )}
+              </View>
+            )}
+
+            {/* Selected Asset Preview */}
+            {selectedAsset && (
+              <View style={styles.selectedAssetPreview}>
+                {selectedAsset.metadataImage && (
+                  <Image
+                    source={{ uri: selectedAsset.metadataImage }}
+                    style={styles.selectedAssetImage}
+                  />
+                )}
+                <View style={styles.selectedAssetInfo}>
+                  <Text style={styles.selectedAssetName}>
+                    {selectedAsset.vietNameseName ||
+                      selectedAsset.name ||
+                      selectedAsset.vietnameseDescription}
+                  </Text>
+                  {selectedAsset.vietnameseDescription && (
+                    <Text style={styles.selectedAssetDescription}>
+                      {selectedAsset.vietnameseDescription}
+                    </Text>
+                  )}
+                </View>
+              </View>
+            )}
+          </View>
+        )}
 
         {/* Activity Name */}
         <View style={styles.section}>
@@ -856,5 +1094,128 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#64748B",
     fontWeight: "600",
+  },
+  // Asset selection styles
+  assetContainer: {
+    position: "relative",
+    zIndex: 1,
+  },
+  assetSelector: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 14,
+    padding: 16,
+    borderWidth: 2,
+    borderColor: "#E2E8F0",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    shadowColor: "#64748B",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  assetSelectorText: {
+    fontSize: 15,
+    color: "#1E293B",
+    fontWeight: "500",
+    flex: 1,
+  },
+  assetSelectorPlaceholder: {
+    fontSize: 15,
+    color: "#94A3B8",
+    fontWeight: "500",
+    flex: 1,
+  },
+  assetDropdown: {
+    position: "absolute",
+    top: "100%",
+    left: 0,
+    right: 0,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: "#E2E8F0",
+    marginTop: 4,
+    maxHeight: 200,
+    shadowColor: "#64748B",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+    zIndex: 1000,
+  },
+  assetDropdownScroll: {
+    maxHeight: 200,
+  },
+  assetOption: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F1F5F9",
+  },
+  assetOptionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  assetOptionImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    backgroundColor: "#F8FAFC",
+  },
+  assetOptionIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    backgroundColor: "#FEF3E2",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  assetOptionText: {
+    fontSize: 14,
+    color: "#1E293B",
+    fontWeight: "500",
+    flex: 1,
+  },
+  assetEmptyContainer: {
+    padding: 20,
+    alignItems: "center",
+  },
+  assetEmptyText: {
+    fontSize: 14,
+    color: "#64748B",
+    fontWeight: "500",
+  },
+  selectedAssetPreview: {
+    marginTop: 12,
+    backgroundColor: "#F8FAFC",
+    borderRadius: 14,
+    padding: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    borderWidth: 2,
+    borderColor: "#E2E8F0",
+  },
+  selectedAssetImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 12,
+    backgroundColor: "#FFFFFF",
+  },
+  selectedAssetInfo: {
+    flex: 1,
+  },
+  selectedAssetName: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#1E293B",
+    marginBottom: 4,
+  },
+  selectedAssetDescription: {
+    fontSize: 13,
+    color: "#64748B",
+    fontWeight: "500",
   },
 });

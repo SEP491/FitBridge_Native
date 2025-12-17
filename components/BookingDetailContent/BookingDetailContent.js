@@ -559,6 +559,7 @@ export default function BookingDetailContent({
                           onPress={() =>
                             navigation.navigate("EditSessionActivityScreen", {
                               sessionActivity: activity,
+                              Booking: Booking,
                             })
                           }
                         >
