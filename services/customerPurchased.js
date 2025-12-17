@@ -1,3 +1,4 @@
+import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 import { request } from "./request";
 
 const customerPurchasedService = {
@@ -13,5 +14,8 @@ const customerPurchasedService = {
 
   getCustomerPurchasedMuscleReport: (customerPurchasedId) =>
     request("GET", `v1/customer-purchased/result/${customerPurchasedId}/detail`),
+
+  getCustomerPurchasedPackageTransaction: (customerPurchasedId) =>
+    request("GET", `v1/customer-purchased/${customerPurchasedId}/transactions`),
 };
 export default customerPurchasedService;

@@ -135,6 +135,14 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
     });
   };
 
+  const handleViewTransactionHistory = (pkg) => {
+    navigation.navigate('TransactionHistoryScreen', {
+      customerPurchasedId: pkg.id,
+      packageName: pkg.packageName,
+      customerName: customer.name,
+    });
+  };
+
   return (
     <View style={styles.container}>
 
@@ -387,7 +395,19 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
                               </View>
                             </View>
                           )}
-
+                          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                            <TouchableOpacity
+                              style={styles.viewBookingsHistoryButton}
+                            >
+                              <Text style={styles.viewBookingsHistoryButtonText}>View Bookings History</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              style={styles.viewPurchasedHistoryButton}
+                              onPress={() => handleViewTransactionHistory(pkg)}
+                            >
+                             <Ionicons name="receipt-outline" size={18} color="#fff" />
+                            </TouchableOpacity>
+                          </View>
                           <TouchableOpacity 
                             style={styles.viewDetailsButton}
                             onPress={() => handleViewDetails(pkg, stats)}
@@ -437,21 +457,41 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
                           </Text>
                         </View>
 
-                        {pkg.price && (
-                          <View style={styles.packageDetailRow}>
-                            <View style={styles.packageDetailItem}>
-                              <Ionicons name="cash-outline" size={18} color="#666" />
-                              <Text style={styles.packageDetailLabel}>Price</Text>
-                            </View>
-                            <Text style={styles.packageDetailValue}>
-                              ${pkg.price.toLocaleString()}
-                            </Text>
+                        <View style={styles.packageDetailRow}>
+                          <View style={styles.packageDetailItem}>
+                            <Ionicons name="time-outline" size={18} color="#666" />
+                            <Text style={styles.packageDetailLabel}>First Session Start</Text>
                           </View>
-                        )}
-                      </View>
+                          <Text style={[
+                            styles.packageDetailValue,
+                            packageStatus.status === 'Expired' && styles.expiredText
+                          ]}>
+                            {stats?.firstSessionStartTime ? 
+                              `${new Date(stats.firstSessionStartTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false })} - ${new Date(stats.firstSessionStartTime).toLocaleDateString('en-GB')}` 
+                              : 'N/A'
+                            }
+                          </Text>
+                        </View>
 
-                      {/* Progress Bar */}
-                      {pkg?.totalSessions && (
+                        <View style={styles.packageDetailRow}>
+                          <View style={styles.packageDetailItem}>
+                            <Ionicons name="checkmark-circle-outline" size={18} color="#666" />
+                            <Text style={styles.packageDetailLabel}>Latest Session End</Text>
+                          </View>
+                          <Text style={[
+                            styles.packageDetailValue,
+                            packageStatus.status === 'Expired' && styles.expiredText
+                          ]}>
+                            {stats?.latestSessionEndTime ? 
+                              `${new Date(stats.latestSessionEndTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false })} - ${new Date(stats.latestSessionEndTime).toLocaleDateString('en-GB')}` 
+                              : 'N/A'
+                            }
+                          </Text>
+                        </View>
+
+                        </View>
+
+                      {/* Progress Bar
                         <View style={styles.progressSection}>
                           <View style={styles.progressHeader}>
                             <Text style={styles.progressLabel}>Progress</Text>
@@ -473,8 +513,8 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
                           <Text style={styles.progressText}>
                             {pkg?.totalSessions - pkg?.availableSessions} completed • {pkg?.availableSessions} remaining
                           </Text>
-                        </View>
-                      )}
+                        </View> */}
+ 
                     </>
                   )}
                 </View>
@@ -790,6 +830,34 @@ const styles = StyleSheet.create({
   progressChartValue: {
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  viewBookingsHistoryButton: {
+    flex: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    marginTop: 8,
+    backgroundColor: '#4CAF50',
+  },
+  viewBookingsHistoryButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
+  },
+
+  viewPurchasedHistoryButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    marginTop: 8,
+    backgroundColor: '#FF9800',
   },
   viewDetailsButton: {
     flexDirection: 'row',
