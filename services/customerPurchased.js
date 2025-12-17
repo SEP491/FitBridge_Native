@@ -17,5 +17,6 @@ const customerPurchasedService = {
 
   getCustomerPurchasedPackageTransaction: (customerPurchasedId) =>
     request("GET", `v1/customer-purchased/${customerPurchasedId}/transactions`),
+  
 };
 export default customerPurchasedService;

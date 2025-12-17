@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import customerPurchasedService from "../../services/customerPurchased";
+import { useTranslation } from "../../hooks/useTranslation";
 
 const formatDateTime = (iso) => {
   if (!iso) return "-";
@@ -28,11 +29,11 @@ const formatCurrency = (value) => {
   return new Intl.NumberFormat("vi-VN").format(value);
 };
 
-const TransactionItem = ({ item }) => {
+const TransactionItem = ({ item, t }) => {
   return (
     <View style={styles.transactionCard}>
       <View style={styles.transactionHeader}>
-        <Text style={styles.transactionTitle}>{item.description || "Transaction"}</Text>
+        <Text style={styles.transactionTitle}>{item.description || t("customerPurchasedTransaction.transaction")}</Text>
         <View style={[styles.statusBadge, item.status !== "Success" && styles.statusBadgeAlt]}>
           <Ionicons
             name={item.status === "Success" ? "checkmark-circle" : "alert-circle"}
@@ -46,22 +47,22 @@ const TransactionItem = ({ item }) => {
               { color: item.status === "Success" ? "#2E7D32" : "#F57C00" },
             ]}
           >
-            {item.status || "Unknown"}
+            {item.status || t("customerPurchasedTransaction.unknown")}
           </Text>
         </View>
       </View>
 
       <Text style={styles.metaText}>{formatDateTime(item.transactionDate)}</Text>
-      <Text style={styles.metaText}>Order code: {item.orderCode ?? "-"}</Text>
-      <Text style={styles.metaText}>Order ID: {item.orderId ?? "-"}</Text>
-      <Text style={styles.metaText}>Method: {item.paymentMethod ?? "-"}</Text>
+      <Text style={styles.metaText}>{t("customerPurchasedTransaction.orderCode")}: {item.orderCode ?? "-"}</Text>
+      <Text style={styles.metaText}>{t("customerPurchasedTransaction.orderId")}: {item.orderId ?? "-"}</Text>
+      <Text style={styles.metaText}>{t("customerPurchasedTransaction.method")}: {item.paymentMethod ?? "-"}</Text>
 
       <View style={styles.amountRow}>
-        <Text style={styles.amountLabel}>Total</Text>
+        <Text style={styles.amountLabel}>{t("customerPurchasedTransaction.total")}</Text>
         <Text style={styles.amountValue}>{formatCurrency(item.totalAmount)}₫</Text>
       </View>
       <View style={styles.amountRow}>
-        <Text style={styles.amountLabel}>Merchant profit</Text>
+        <Text style={styles.amountLabel}>{t("customerPurchasedTransaction.merchantProfit")}</Text>
         <Text style={styles.amountValue}>{formatCurrency(item.merchantProfit)}₫</Text>
       </View>
     </View>
@@ -69,6 +70,7 @@ const TransactionItem = ({ item }) => {
 };
 
 const CustomerPurchasedTransactionScreen = ({ route, navigation }) => {
+  const { t } = useTranslation();
   const { customerPurchasedId } = route.params || {};
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -77,7 +79,7 @@ const CustomerPurchasedTransactionScreen = ({ route, navigation }) => {
   useEffect(() => {
     const fetchData = async () => {
       if (!customerPurchasedId) {
-        setError("Missing package id");
+        setError(t("customerPurchasedTransaction.missingPackageId"));
         return;
       }
       setLoading(true);
@@ -89,11 +91,11 @@ const CustomerPurchasedTransactionScreen = ({ route, navigation }) => {
         if (res?.status === "200") {
           setData(res.data);
         } else {
-          setError(res?.message || "Failed to load transactions");
+          setError(res?.message || t("customerPurchasedTransaction.failedToLoad"));
         }
       } catch (err) {
         console.error("Failed to load transactions", err);
-        setError("Failed to load transactions");
+        setError(t("customerPurchasedTransaction.failedToLoad"));
       } finally {
         setLoading(false);
       }
@@ -113,22 +115,15 @@ const CustomerPurchasedTransactionScreen = ({ route, navigation }) => {
     };
   }, [data]);
 
-  const renderTransaction = ({ item }) => <TransactionItem item={item} />;
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={22} color="#111" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Transaction History</Text>
-        <View style={{ width: 40 }} />
-      </View>
+
 
       {loading ? (
         <View style={styles.centerContent}>
           <ActivityIndicator size="large" color="#ED2A46" />
-          <Text style={styles.hintText}>Đang tải lịch sử giao dịch...</Text>
+          <Text style={styles.hintText}>{t("customerPurchasedTransaction.loadingTransactions")}</Text>
         </View>
       ) : error ? (
         <View style={styles.centerContent}>
@@ -137,31 +132,20 @@ const CustomerPurchasedTransactionScreen = ({ route, navigation }) => {
         </View>
       ) : !data ? (
         <View style={styles.centerContent}>
-          <Text style={styles.hintText}>Không có dữ liệu</Text>
+          <Text style={styles.hintText}>{t("customerPurchasedTransaction.noData")}</Text>
         </View>
       ) : (
         <View style={{ flex: 1 }}>
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryTitle}>{headerInfo?.packageName}</Text>
-            <Text style={styles.summarySubtitle}>{headerInfo?.customerName}</Text>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Available sessions</Text>
-              <Text style={styles.summaryValue}>{headerInfo?.availableSessions}</Text>
-            </View>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Expires</Text>
-              <Text style={styles.summaryValue}>{headerInfo?.expirationDate}</Text>
-            </View>
-          </View>
+
 
           <FlatList
             data={data.transactions || []}
             keyExtractor={(item) => item.transactionId}
-            renderItem={renderTransaction}
+            renderItem={({ item }) => <TransactionItem item={item} t={t} />}
             contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
             ListEmptyComponent={
               <View style={styles.centerContent}>
-                <Text style={styles.hintText}>Chưa có giao dịch</Text>
+                <Text style={styles.hintText}>{t("customerPurchasedTransaction.noTransactions")}</Text>
               </View>
             }
           />

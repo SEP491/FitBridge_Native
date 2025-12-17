@@ -47,6 +47,8 @@
   },
 
   "screenTitles": {
+    "customerPurchasedBookingHistory": "Lịch sử đặt lịch khách hàng",
+    "customerPurchasedTransaction": "Lịch sử giao dịch khách hàng",
     "balanceDetail": "Chi tiết số dư",
     "trainingResult": "Thống Kê Tập Luyện",
     "addMeasurement": "Đo Chỉ Số",
@@ -611,7 +613,8 @@
     "rating": "Đánh giá",
     "experience": "Kinh nghiệm",
     "later": "Để sau",
-    "completed": "Thành công",
+    "completed": "Hoàn thành",
+    "active": "Hoạt động",
     "viewAll": "Xem tất cả",
     "comingSoon": "Sắp ra mắt",
     "loadMore": "Tải thêm",
@@ -631,7 +634,8 @@
     "reviewId": "Mã đánh giá",
     "remove": "Xóa",
     "maxImagesReached": "Đã đạt tối đa 3 ảnh",
-    "saving": "Đang lưu..."
+    "saving": "Đang lưu...",
+    "done":"Xong"
   },
 
   "account": {
@@ -1847,6 +1851,9 @@
     "comeBackLater": "Vui lòng quay lại sau để đăng ký khóa học với huấn luyện viên này"
   },
   "trainingResults": {
+    "firstSessionStartTime": "Buổi Tập Đầu Tiên",
+    "firstSessionEndTime": "Thời Gian Kết Thúc Buổi Tập Đầu Tiên",
+    "latestSessionEndTime": "Buổi Tập Mới Nhất",
     "title": "Thống Kê Luyện Tập",
     "overview": "Tổng Quan",
     "overviewAndProgress": "Tổng Quan & Tiến Độ",
@@ -1918,6 +1925,8 @@
   },
 
   "userGoals": {
+    "selectedParts": "Các Phần Cơ Thể Đã Chọn",
+    "chooseParts": "Chọn Các Phần Cơ Thể",
     "start": "Bắt Đầu",
     "current": "Hiện Tại",
     "target": "Mục Tiêu",
@@ -2387,5 +2396,54 @@
       "active": "Đang hoạt động",
       "expired": "Đã hết hạn"
     }
+  },
+
+  "customerPurchasedTransaction": {
+    "loadingTransactions": "Đang tải lịch sử giao dịch...",
+    "noData": "Không có dữ liệu",
+    "noTransactions": "Chưa có giao dịch",
+    "transaction": "Giao dịch",
+    "unknown": "Không xác định",
+    "orderCode": "Mã đơn hàng",
+    "orderId": "ID đơn hàng",
+    "method": "Phương thức",
+    "total": "Tổng cộng",
+    "merchantProfit": "Lợi nhuận",
+    "missingPackageId": "Thiếu mã gói tập",
+    "failedToLoad": "Không thể tải giao dịch",
+    "availableSessions": "Buổi còn lại",
+    "expires": "Hết hạn"
+  },
+
+  "customerDetail": {
+    "contactInformation": "Thông tin liên hệ",
+    "joined": "Tham gia",
+    "quickStatistics": "Thống kê nhanh",
+    "totalPackages": "Tổng gói tập",
+    "activePackages": "Gói đang hoạt động",
+    "sessionsLeft": "Buổi còn lại",
+    "call": "Gọi",
+    "message": "Tin nhắn",
+    "email": "Email",
+    "allPackages": "Tất cả gói tập",
+    "noPackagesPurchased": "Chưa có gói tập nào",
+    "sessionsLeftLabel": "buổi còn lại",
+    "loadingStatistics": "Đang tải thống kê...",
+    "trainingStatistics": "Thống kê tập luyện",
+    "completionRate": "Tỷ lệ hoàn thành",
+    "activityRate": "Tỷ lệ hoạt động",
+    "sessionsUsed": "Buổi đã sử dụng",
+    "mostTrained": "Tập nhiều nhất",
+    "sets": "sets",
+    "kg": "kg",
+    "viewBookingsHistory": "Xem lịch sử đặt lịch",
+    "viewFullStatistics": "Xem thống kê đầy đủ",
+    "noStatisticsAvailable": "Chưa có thống kê",
+    "sessions": "Buổi tập",
+    "purchaseDate": "Ngày mua",
+    "expiresOn": "Hết hạn vào",
+    "firstSessionStart": "Buổi tập đầu tiên",
+    "latestSessionEnd": "Buổi tập mới nhất",
+    "notAvailable": "Không có"
   }
 }

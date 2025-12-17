@@ -97,7 +97,9 @@
     "contracts": "Contracts",
     "contractDetail": "Contract Detail",
     "productDetail": "Product Detail",
-    "myReviewsRatings": "My Reviews & Ratings"
+    "myReviewsRatings": "My Reviews & Ratings",
+    "customerPurchasedBookingHistory": "Customer Booking History",
+    "customerPurchasedTransaction": "Customer Transaction History"
   },
 
   "myPackage": {
@@ -598,6 +600,7 @@
     "rating": "Rating",
     "experience": "Experience",
     "completed": "Completed",
+    "active": "Active",
     "viewAll": "View All",
     "comingSoon": "Coming Soon",
     "loadMore": "Load More",
@@ -2403,5 +2406,54 @@
       "active": "Active",
       "expired": "Expired"
     }
+  },
+
+  "customerPurchasedTransaction": {
+    "loadingTransactions": "Loading transaction history...",
+    "noData": "No data",
+    "noTransactions": "No transactions yet",
+    "transaction": "Transaction",
+    "unknown": "Unknown",
+    "orderCode": "Order code",
+    "orderId": "Order ID",
+    "method": "Method",
+    "total": "Total",
+    "merchantProfit": "Merchant profit",
+    "missingPackageId": "Missing package id",
+    "failedToLoad": "Failed to load transactions",
+    "availableSessions": "Available sessions",
+    "expires": "Expires"
+  },
+
+  "customerDetail": {
+    "contactInformation": "Contact Information",
+    "joined": "Joined",
+    "quickStatistics": "Quick Statistics",
+    "totalPackages": "Total Packages",
+    "activePackages": "Active Packages",
+    "sessionsLeft": "Sessions Left",
+    "call": "Call",
+    "message": "Message",
+    "email": "Email",
+    "allPackages": "All Packages",
+    "noPackagesPurchased": "No packages purchased yet",
+    "sessionsLeftLabel": "sessions left",
+    "loadingStatistics": "Loading statistics...",
+    "trainingStatistics": "Training Statistics",
+    "completionRate": "Completion Rate",
+    "activityRate": "Activity Rate",
+    "sessionsUsed": "Sessions Used",
+    "mostTrained": "Most Trained",
+    "sets": "sets",
+    "kg": "kg",
+    "viewBookingsHistory": "View Bookings History",
+    "viewFullStatistics": "View Full Statistics",
+    "noStatisticsAvailable": "No statistics available yet",
+    "sessions": "Sessions",
+    "purchaseDate": "Purchase Date",
+    "expiresOn": "Expires On",
+    "firstSessionStart": "First Session Start",
+    "latestSessionEnd": "Latest Session End",
+    "notAvailable": "N/A"
   }
 }

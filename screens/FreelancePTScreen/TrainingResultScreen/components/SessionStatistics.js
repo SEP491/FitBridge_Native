@@ -38,6 +38,17 @@ export const SessionStatistics = ({ stats, t, StatCard, StatRow }) => {
         value={new Date(stats.expirationDate).toLocaleDateString()} 
         icon="flag-outline"
       />
+      <StatRow 
+        label={t('trainingResults.firstSessionStartTime')} 
+        value={`${new Date(stats.firstSessionStartTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false })} - ${new Date(stats.firstSessionStartTime).toLocaleDateString('en-GB')}`} 
+        icon="time-outline"
+      />
+
+      <StatRow 
+        label={t('trainingResults.latestSessionEndTime')} 
+        value={stats.latestSessionEndTime ? `${new Date(stats.latestSessionEndTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false })} - ${new Date(stats.latestSessionEndTime).toLocaleDateString('en-GB')}` : 'N/A'} 
+        icon="time-outline"
+      />
     </StatCard>
   );
 };
