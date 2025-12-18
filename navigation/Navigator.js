@@ -104,6 +104,8 @@ import ContractDetailScreen from "../screens/FreelancePTScreen/ContractDetailScr
 import MyReviewsRatingsScreen from "../screens/CommonScreen/MyReviewsRatingsScreen/MyReviewsRatingsScreen";
 import ManageCerScreen from "../screens/FreelancePTScreen/ManageCerScreen/ManageCerScreen";
 import FreelancePTBookingHistoryScreen from "../screens/FreelancePTScreen/FreelancePTBookingHistoryScreen/FreelancePTBookingHistoryScreen";
+import CustomerPurchasedTransactionScreen from "../screens/FreelancePTScreen/CustomerPurchasedTransactionScreen";
+import CustomerPurchasedBookingHistoryScreen from "../screens/FreelancePTScreen/CustomerPurchasedBookingHistoryScreen";
 
 export default function Navigator({
   isAuthenticated: propIsAuthenticated,
@@ -1756,6 +1758,48 @@ export default function Navigator({
           options={{
             headerShown: true,
             title: t("userMenu.customerDetail"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="CustomerPurchasedTransactionScreen"
+          component={CustomerPurchasedTransactionScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.customerPurchasedTransaction"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="CustomerPurchasedBookingHistoryScreen"
+          component={CustomerPurchasedBookingHistoryScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.customerPurchasedBookingHistory"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="BookingDetailScreen"
+          component={BookingDetailScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.bookingDetail"),
             headerTitleAlign: "center",
             headerTitleStyle: {
               fontWeight: "bold",

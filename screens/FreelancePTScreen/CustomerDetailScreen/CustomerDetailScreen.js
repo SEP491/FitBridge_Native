@@ -13,6 +13,7 @@ import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import trainingResultsService from '../../../services/training-resultsService';
 import { ProgressChart } from 'react-native-chart-kit';
 import customerPurchasedService from '../../../services/customerPurchased';
+import { useTranslation } from '../../../hooks/useTranslation';
 
 // Muscle group images mapping
 const muscleGroupImages = {
@@ -32,6 +33,7 @@ const getMuscleGroupImage = (muscleGroup) => {
 };
 
 export const CustomerDetailScreen = ({ route, navigation }) => {
+  const { t } = useTranslation();
   const { customer } = route.params;
   console.log('Customer Data:', customer);  
   const [expandedPackages, setExpandedPackages] = useState({});
@@ -86,12 +88,12 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
     const today = new Date();
     
     if (expDate < today) {
-      return { status: 'Expired', color: '#F44336' };
+      return { status: t("myPackage.expired"), color: '#F44336' };
     }
     if (pkg.availableSessions === 0) {
-      return { status: 'Completed', color: '#9E9E9E' };
+      return { status: t("common.completed"), color: '#9E9E9E' };
     }
-    return { status: 'Active', color: '#4CAF50' };
+    return { status: t("common.active"), color: '#4CAF50' };
   };
 
   const handleCall = () => {
@@ -135,6 +137,20 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
     });
   };
 
+  const handleViewTransactionHistory = (pkg) => {
+    navigation.navigate('CustomerPurchasedTransactionScreen', {
+      customerPurchasedId: pkg.id,
+    });
+  };
+
+  const handleViewBookingsHistory = (pkg) => {
+    navigation.navigate('CustomerPurchasedBookingHistoryScreen', {
+      customerPurchasedId: pkg.id,
+      customerId: customer.id,
+      customer: customer, // Pass customer info for display
+    });
+  };
+
   return (
     <View style={styles.container}>
 
@@ -149,52 +165,52 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
               />
             ) : (
               <Text style={styles.customerAvatarLargeText}>
-                {customer.name ? customer.name.split(' ').map(n => n[0]).join('').substring(0, 2) : 'N/A'}
+                {customer.name ? customer.name.split(' ').map(n => n[0]).join('').substring(0, 2) : t("customerDetail.notAvailable")}
               </Text>
             )}
           </View>
           
-          <Text style={styles.customerNameLarge}>{customer.name || 'N/A'}</Text>
+          <Text style={styles.customerNameLarge}>{customer.name || t("customerDetail.notAvailable")}</Text>
           
           <View style={[styles.statusBadgeLarge, { backgroundColor: (customer.status === 'active' || customer.status === 'Active') ? '#4CAF50' : '#F44336' }]}>
-            <Text style={styles.statusTextLarge}>{(customer.status || 'UNKNOWN').toUpperCase()}</Text>
+            <Text style={styles.statusTextLarge}>{(customer.status || t("customerDetail.notAvailable")).toUpperCase()}</Text>
           </View>
 
           {/* Contact Information */}
           <View style={styles.contactSection}>
-            <Text style={styles.sectionTitle}>Contact Information</Text>
+            <Text style={styles.sectionTitle}>{t("customerDetail.contactInformation")}</Text>
             
             <View style={styles.contactRow}>
               <Ionicons name="mail-outline" size={20} color="#ED2A46" />
-              <Text style={styles.contactText}>{customer.email || 'N/A'}</Text>
+              <Text style={styles.contactText}>{customer.email || t("customerDetail.notAvailable")}</Text>
             </View>
             
             <View style={styles.contactRow}>
               <Ionicons name="call-outline" size={20} color="#ED2A46" />
-              <Text style={styles.contactText}>{customer.phone || 'N/A'}</Text>
+              <Text style={styles.contactText}>{customer.phone || t("customerDetail.notAvailable")}</Text>
             </View>
             
             <View style={styles.contactRow}>
               <Ionicons name="calendar-outline" size={20} color="#ED2A46" />
-              <Text style={styles.contactText}>Joined: {customer.joinDate || 'N/A'}</Text>
+              <Text style={styles.contactText}>{t("customerDetail.joined")}: {customer.joinDate || t("customerDetail.notAvailable")}</Text>
             </View>
           </View>
 
           {/* Quick Stats */}
           <View style={styles.quickStatsSection}>
-            <Text style={styles.sectionTitle}>Quick Statistics</Text>
+            <Text style={styles.sectionTitle}>{t("customerDetail.quickStatistics")}</Text>
             <View style={styles.statsGrid}>
               <View style={styles.statBox}>
                 <Text style={styles.statNumber}>{customer.totalPackages || 0}</Text>
-                <Text style={styles.statLabel}>Total Packages</Text>
+                <Text style={styles.statLabel}>{t("customerDetail.totalPackages")}</Text>
               </View>
               <View style={styles.statBox}>
                 <Text style={styles.statNumber}>{customer.activePackages || 0}</Text>
-                <Text style={styles.statLabel}>Active Packages</Text>
+                <Text style={styles.statLabel}>{t("customerDetail.activePackages")}</Text>
               </View>
               <View style={styles.statBox}>
                 <Text style={styles.statNumber}>{customer.totalSessions || 0}</Text>
-                <Text style={styles.statLabel}>Sessions Left</Text>
+                <Text style={styles.statLabel}>{t("customerDetail.sessionsLeft")}</Text>
               </View>
             </View>
           </View>
@@ -203,15 +219,15 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
           <View style={styles.quickActionsSection}>
             <TouchableOpacity style={styles.actionButton} onPress={handleCall}>
               <Ionicons name="call" size={20} color="#fff" />
-              <Text style={styles.actionButtonText}>Call</Text>
+              <Text style={styles.actionButtonText}>{t("customerDetail.call")}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.actionButton} onPress={handleMessage}>
               <Ionicons name="chatbubble" size={20} color="#fff" />
-              <Text style={styles.actionButtonText}>Message</Text>
+              <Text style={styles.actionButtonText}>{t("customerDetail.message")}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.actionButton} onPress={handleEmail}>
               <Ionicons name="mail" size={20} color="#fff" />
-              <Text style={styles.actionButtonText}>Email</Text>
+              <Text style={styles.actionButtonText}>{t("customerDetail.email")}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -219,13 +235,13 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
         {/* All Packages Section */}
         <View style={styles.packagesSection}>
           <Text style={styles.packagesSectionTitle}>
-            All Packages ({customer.packages.length})
+            {t("customerDetail.allPackages")} ({customer.packages.length})
           </Text>
 
           {customer.packages.length === 0 ? (
             <View style={styles.emptyPackages}>
               <Ionicons name="cube-outline" size={64} color="#ccc" />
-              <Text style={styles.emptyText}>No packages purchased yet</Text>
+              <Text style={styles.emptyText}>{t("customerDetail.noPackagesPurchased")}</Text>
             </View>
           ) : (
             customer.packages.map((pkg, index) => {
@@ -253,7 +269,7 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
                           <Text style={styles.packageStatusText}>{packageStatus.status}</Text>
                         </View>
                         <Text style={styles.sessionsPreview}>
-                          {pkg.availableSessions} sessions left
+                          {pkg.availableSessions} {t("customerDetail.sessionsLeftLabel")}
                         </Text>
                       </View>
                     </View>
@@ -271,11 +287,11 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
                       {isLoadingStats ? (
                         <View style={styles.loadingContainer}>
                           <ActivityIndicator size="large" color="#ED2A46" />
-                          <Text style={styles.loadingText}>Loading statistics...</Text>
+                          <Text style={styles.loadingText}>{t("customerDetail.loadingStatistics")}</Text>
                         </View>
                       ) : stats ? (
                         <View style={styles.statisticsSection}>
-                          <Text style={styles.statisticsTitle}>Training Statistics</Text>
+                          <Text style={styles.statisticsTitle}>{t("customerDetail.trainingStatistics")}</Text>
                           
                           <View style={styles.statsRow}>
                             <View style={styles.statItem}>
@@ -301,7 +317,7 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
                                   {(stats.completionRate || 0).toFixed(0)}%
                                 </Text>
                               </View>
-                              <Text style={styles.statLabel}>Completion Rate</Text>
+                              <Text style={styles.statLabel}>{t("customerDetail.completionRate")}</Text>
                             </View>
                             
                             <View style={styles.statItem}>
@@ -327,7 +343,7 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
                                   {(stats.activityCompletionRate || 0).toFixed(0)}%
                                 </Text>
                               </View>
-                              <Text style={styles.statLabel}>Activity Rate</Text>
+                              <Text style={styles.statLabel}>{t("customerDetail.activityRate")}</Text>
                             </View>
 
                             <View style={styles.statItem}>
@@ -353,7 +369,7 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
                                   {((stats.totalSessions || 1) / ((stats?.totalSessions || 0) + (stats?.availableSessions || 0))).toFixed(2)}%
                                 </Text>
                               </View>
-                              <Text style={styles.statLabel}>Sessions Used</Text>
+                              <Text style={styles.statLabel}>{t("customerDetail.sessionsUsed")}</Text>
                             </View>
                             
                             
@@ -364,7 +380,7 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
                             <View style={styles.muscleGroupPreview}>
                               <View style={styles.muscleGroupPreviewHeader}>
                                 <Ionicons name="trophy" size={18} color="#ED2A46" />
-                                <Text style={styles.muscleGroupPreviewTitle}>Most Trained</Text>
+                                <Text style={styles.muscleGroupPreviewTitle}>{t("customerDetail.mostTrained")}</Text>
                               </View>
                               <View style={styles.muscleGroupPreviewContent}>
                                 {getMuscleGroupImage(stats.mostTrainedMuscleGroup.muscleGroup) && (
@@ -380,26 +396,39 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
                                   </Text>
                                   <View style={styles.muscleGroupPreviewStatsRow}>
                                     <Text style={styles.muscleGroupPreviewStats}>
-                                      <Text style={{ color: '#2196F3', fontWeight: 'bold' }}>{stats.mostTrainedMuscleGroup.totalSets}</Text> sets • <Text style={{ color: '#FF6B35', fontWeight: 'bold' }}>{stats.mostTrainedMuscleGroup.totalWeight} kg</Text>
+                                      <Text style={{ color: '#2196F3', fontWeight: 'bold' }}>{stats.mostTrainedMuscleGroup.totalSets}</Text> {t("customerDetail.sets")} • <Text style={{ color: '#FF6B35', fontWeight: 'bold' }}>{stats.mostTrainedMuscleGroup.totalWeight} {t("customerDetail.kg")}</Text>
                                     </Text>
                                   </View>
                                 </View>
                               </View>
                             </View>
                           )}
-
+                          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                            <TouchableOpacity
+                              style={styles.viewBookingsHistoryButton}
+                              onPress={() => handleViewBookingsHistory(pkg)}
+                            >
+                              <Text style={styles.viewBookingsHistoryButtonText}>{t("customerDetail.viewBookingsHistory")}</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              style={styles.viewPurchasedHistoryButton}
+                              onPress={() => handleViewTransactionHistory(pkg)}
+                            >
+                             <Ionicons name="receipt-outline" size={18} color="#fff" />
+                            </TouchableOpacity>
+                          </View>
                           <TouchableOpacity 
                             style={styles.viewDetailsButton}
                             onPress={() => handleViewDetails(pkg, stats)}
                           >
-                            <Text style={styles.viewDetailsButtonText}>View Full Statistics</Text>
+                            <Text style={styles.viewDetailsButtonText}>{t("customerDetail.viewFullStatistics")}</Text>
                             <Ionicons name="arrow-forward" size={18} color="#fff" />
                           </TouchableOpacity>
                         </View>
                       ) : (
                         <View style={styles.noStatsContainer}>
                           <Ionicons name="bar-chart-outline" size={40} color="#ccc" />
-                          <Text style={styles.noStatsText}>No statistics available yet</Text>
+                          <Text style={styles.noStatsText}>{t("customerDetail.noStatisticsAvailable")}</Text>
                         </View>
                       )}
 
@@ -407,7 +436,7 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
                         <View style={styles.packageDetailRow}>
                           <View style={styles.packageDetailItem}>
                             <Ionicons name="fitness-outline" size={18} color="#666" />
-                            <Text style={styles.packageDetailLabel}>Sessions</Text>
+                            <Text style={styles.packageDetailLabel}>{t("customerDetail.sessions")}</Text>
                           </View>
                           <Text style={styles.packageDetailValue}>
                             {stats?.totalSessions} / {stats?.totalSessions + stats?.availableSessions}
@@ -417,7 +446,7 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
                         <View style={styles.packageDetailRow}>
                           <View style={styles.packageDetailItem}>
                             <Ionicons name="calendar-outline" size={18} color="#666" />
-                            <Text style={styles.packageDetailLabel}>Purchase Date</Text>
+                            <Text style={styles.packageDetailLabel}>{t("customerDetail.purchaseDate")}</Text>
                           </View>
                           <Text style={styles.packageDetailValue}>
                             {new Date(pkg.purchaseDate).toLocaleDateString()}
@@ -427,31 +456,51 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
                         <View style={styles.packageDetailRow}>
                           <View style={styles.packageDetailItem}>
                             <Ionicons name="time-outline" size={18} color="#666" />
-                            <Text style={styles.packageDetailLabel}>Expires On</Text>
+                            <Text style={styles.packageDetailLabel}>{t("customerDetail.expiresOn")}</Text>
                           </View>
                           <Text style={[
                             styles.packageDetailValue,
-                            packageStatus.status === 'Expired' && styles.expiredText
+                            packageStatus.status === t("myPackage.expired") && styles.expiredText
                           ]}>
                             {new Date(pkg.expirationDate).toLocaleDateString()}
                           </Text>
                         </View>
 
-                        {pkg.price && (
-                          <View style={styles.packageDetailRow}>
-                            <View style={styles.packageDetailItem}>
-                              <Ionicons name="cash-outline" size={18} color="#666" />
-                              <Text style={styles.packageDetailLabel}>Price</Text>
-                            </View>
-                            <Text style={styles.packageDetailValue}>
-                              ${pkg.price.toLocaleString()}
-                            </Text>
+                        <View style={styles.packageDetailRow}>
+                          <View style={styles.packageDetailItem}>
+                            <Ionicons name="time-outline" size={18} color="#666" />
+                            <Text style={styles.packageDetailLabel}>{t("customerDetail.firstSessionStart")}</Text>
                           </View>
-                        )}
-                      </View>
+                          <Text style={[
+                            styles.packageDetailValue,
+                            packageStatus.status === t("myPackage.expired") && styles.expiredText
+                          ]}>
+                            {stats?.firstSessionStartTime ? 
+                              `${new Date(stats.firstSessionStartTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false })} - ${new Date(stats.firstSessionStartTime).toLocaleDateString('en-GB')}` 
+                              : t("customerDetail.notAvailable")
+                            }
+                          </Text>
+                        </View>
 
-                      {/* Progress Bar */}
-                      {pkg?.totalSessions && (
+                        <View style={styles.packageDetailRow}>
+                          <View style={styles.packageDetailItem}>
+                            <Ionicons name="checkmark-circle-outline" size={18} color="#666" />
+                            <Text style={styles.packageDetailLabel}>{t("customerDetail.latestSessionEnd")}</Text>
+                          </View>
+                          <Text style={[
+                            styles.packageDetailValue,
+                            packageStatus.status === t("myPackage.expired") && styles.expiredText
+                          ]}>
+                            {stats?.latestSessionEndTime ? 
+                              `${new Date(stats.latestSessionEndTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false })} - ${new Date(stats.latestSessionEndTime).toLocaleDateString('en-GB')}` 
+                              : t("customerDetail.notAvailable")
+                            }
+                          </Text>
+                        </View>
+
+                        </View>
+
+                      {/* Progress Bar
                         <View style={styles.progressSection}>
                           <View style={styles.progressHeader}>
                             <Text style={styles.progressLabel}>Progress</Text>
@@ -473,8 +522,8 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
                           <Text style={styles.progressText}>
                             {pkg?.totalSessions - pkg?.availableSessions} completed • {pkg?.availableSessions} remaining
                           </Text>
-                        </View>
-                      )}
+                        </View> */}
+ 
                     </>
                   )}
                 </View>
@@ -790,6 +839,34 @@ const styles = StyleSheet.create({
   progressChartValue: {
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  viewBookingsHistoryButton: {
+    flex: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    marginTop: 8,
+    backgroundColor: '#4CAF50',
+  },
+  viewBookingsHistoryButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
+  },
+
+  viewPurchasedHistoryButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    marginTop: 8,
+    backgroundColor: '#FF9800',
   },
   viewDetailsButton: {
     flexDirection: 'row',
