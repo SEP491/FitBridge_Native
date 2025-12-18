@@ -59,7 +59,7 @@ const BalanceDetailScreen = () => {
           // Normalize pending items so the UI can render them like transactions
           const normalizedItems = (response.data.items || []).map((item) => ({
             ...item,
-            transactionType: "Order",
+            transactionType: item.transactionType,
             transactionId: item.transactionDetail?.transactionId,
             description:
               item.transactionDetail?.description || item.courseName || "",
@@ -184,12 +184,10 @@ const BalanceDetailScreen = () => {
     switch (type) {
       case "Withdraw":
         return "arrow-down-circle-outline";
-      case "DistributeProfit":
-        return "arrow-up-circle-outline";
-      case "Order":
-        return "receipt-outline";
+      case "PendingDeduction":
+        return "arrow-down-circle-outline";
       default:
-        return "cash-outline";
+        return "arrow-up-circle-outline";
     }
   };
 
@@ -197,12 +195,10 @@ const BalanceDetailScreen = () => {
     switch (type) {
       case "Withdraw":
         return "#ED2A46";
-      case "DistributeProfit":
-        return "#4CAF50";
-      case "Order":
-        return "#FF914D";
+      case "PendingDeduction":
+        return "#ED2A46";
       default:
-        return "#666";
+        return "#4CAF50";
     }
   };
   
@@ -210,12 +206,10 @@ const BalanceDetailScreen = () => {
     switch (type){
       case "Withdraw":
         return "#ED2A46";
-      case "DistributeProfit":
-        return "#4CAF50";
-      case "Order":
-        return "#4CAF50";
+      case "PendingDeduction":
+        return "#ED2A46";
       default:
-        return "#666";
+        return "#4CAF50";
     }
   };
 
@@ -223,21 +217,25 @@ const BalanceDetailScreen = () => {
     switch (type){
       case "Withdraw":
         return "rgba(237, 42, 70, 0.1)"; // #ED2A46 with 10% opacity
-      case "DistributeProfit":
-        return "rgba(76, 175, 80, 0.1)"; // #4CAF50 with 10% opacity
-      case "Order":
-        return "rgba(255, 145, 77, 0.1)"; // #FF914D with 10% opacity
+      case "PendingDeduction":
+        return "rgba(237, 42, 70, 0.1)"; // #ED2A46 with 10% opacity
       default:
-        return "rgba(102, 102, 102, 0.1)"; // #666 with 10% opacity
+        return "rgba(76, 175, 80, 0.1)"; // #666 with 10% opacity
     }
   };
 
   const getTransactionTypeText = (type) => {
-    switch (type) {
+  switch (type) {
       case "Withdraw":
         return t("transactionType.withdraw", "Rút tiền");
       case "DistributeProfit":
         return t("transactionType.distributeProfit", "Phân bổ lợi nhuận");
+      case "PendingDeduction":
+        return t("transactionType.pendingDeduction", "Khấu trừ chờ xử lý");
+      case "FreelancePTPackage":
+        return t("transactionType.freelancePTPackage", "Gói PT");
+      case "ExtendFreelancePTPackage":
+        return t("transactionType.extendFreelancePTPackage", "Gói PT mở rộng");
       default:
         return type;
     }
@@ -250,6 +248,7 @@ const BalanceDetailScreen = () => {
     const iconColor = getTransactionTypeIconColor(item.transactionType);
     const backgroundColor = getTransactionTypeBackgroundColor(item.transactionType);
     const isWithdraw = item.transactionType === "Withdraw";
+    const isPendingDeduction = item.transactionType === "PendingDeduction";
     const amount = item.totalProfit || 0;
 
     return (
@@ -270,7 +269,7 @@ const BalanceDetailScreen = () => {
           </View> 
           <View style={styles.amountContainer}>
             <Text style={[styles.amount, { color }]}>
-              {isWithdraw ? " " : "+"} {formatPrice(amount)}
+              {isWithdraw || isPendingDeduction ? " " : "+"} {formatPrice(amount)}
             </Text>
             {item.balance !== undefined && (
               <Text style={styles.balanceText}>

@@ -32,7 +32,7 @@ const TransactionListTab = ({
 
   const filterButtons = [
     { key: 'all', label: t('transaction.all', 'All') },
-    { key: 'COMPLETED', label: t('transaction.completed', 'Completed') },
+    { key: 'SUCCESS', label: t('transaction.completed', 'Success') },
     { key: 'PENDING', label: t('transaction.pending', 'Pending') },
     { key: 'FAILED', label: t('transaction.failed', 'Failed') }
   ];

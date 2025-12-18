@@ -913,17 +913,18 @@
   },
 
   "transactionType": {
+    "pendingDeduction": "Giải ngân tiền tạm giữ",
     "all": "Tất cả loại",
-    "freelancePTPackage": "Gói PT",
-    "extendFreelancePTPackage": "Gia hạn gói PT",
+    "freelancePTPackage": "Khách mua gói tập",
+    "extendFreelancePTPackage": "Khách mua gia hạn gói tập",
     "distributeProfit": "Đã quyết toán",
     "withdraw": "Rút tiền",
     "other": "Khác",
-    "ptPackage": "Gói PT",
-    "extendPT": "Gia hạn PT",
+    "ptPackage": "Khách mua gói tập",
+    "extendPT": "Khách mua gia hạn gói tập",
     "profit": "Lợi nhuận",
-    "FreelancePTPackage": "Gói PT",
-    "ExtendFreelancePTPackage": "Gia hạn gói PT",
+    "FreelancePTPackage": "Khách mua gói tập",
+    "ExtendFreelancePTPackage": "Khách mua gia hạn gói tập",
     "Withdraw": "Rút tiền"
   },
 
