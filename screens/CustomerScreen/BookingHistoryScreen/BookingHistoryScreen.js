@@ -182,6 +182,11 @@ export default function BookingHistoryScreen() {
       <TouchableOpacity
         style={[styles.bookingItem, { transform: [{ scale: 1 }] }]}
         activeOpacity={0.95}
+        onPress={() =>
+          navigation.navigate("BookingDetailScreen", {
+            Booking: booking,
+          })
+        }
       >
         {/* Header with date and status */}
         <View

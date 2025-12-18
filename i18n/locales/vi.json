@@ -47,6 +47,7 @@
   },
 
   "screenTitles": {
+    "freelancePTBookingHistory": "Lịch sử đặt lịch Freelance PT",
     "bestSellerProducts": "Sản Phẩm Bán Chạy Nhất",
     "topRatedProducts": "Sản Phẩm Nổi Bật",
     "balanceDetail": "Chi tiết số dư",

@@ -911,8 +911,8 @@ export default function Navigator({
               fontWeight: "bold",
               fontSize: 20,
               color: "#ED2A46",
-            }}
-          }
+            },
+          }}
         />
         <Stack.Screen
           name="TopRatingProductsScreen"
@@ -925,8 +925,8 @@ export default function Navigator({
               fontWeight: "bold",
               fontSize: 20,
               color: "#ED2A46",
-            }}
-          }
+            },
+          }}
         />
       </Stack.Navigator>
     );
@@ -1310,6 +1310,20 @@ export default function Navigator({
           options={{
             headerShown: true,
             title: t("screenTitles.freelancePTBookingHistory"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="BookingDetailScreen"
+          component={BookingDetailScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.bookingDetail"),
             headerTitleAlign: "center",
             headerTitleStyle: {
               fontWeight: "bold",

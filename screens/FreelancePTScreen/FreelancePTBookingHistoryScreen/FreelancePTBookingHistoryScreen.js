@@ -13,6 +13,7 @@ import {
   FlatList,
 } from "react-native";
 import { useEffect, useState, useMemo, useCallback } from "react";
+import { useNavigation } from "@react-navigation/native";
 import accountService from "../../../services/accountService";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
@@ -23,6 +24,7 @@ const { width } = Dimensions.get("window");
 
 export default function FreelancePTBookingHistoryScreen() {
   const { t } = useTranslation();
+  const navigation = useNavigation();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -176,6 +178,11 @@ export default function FreelancePTBookingHistoryScreen() {
       <TouchableOpacity
         style={[styles.bookingItem, { transform: [{ scale: 1 }] }]}
         activeOpacity={0.95}
+        onPress={() =>
+          navigation.navigate("BookingDetailScreen", {
+            Booking: booking,
+          })
+        }
       >
         {/* Header with date and status */}
         <View
