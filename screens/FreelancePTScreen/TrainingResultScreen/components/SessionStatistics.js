@@ -1,8 +1,6 @@
 import React from 'react';
 
 export const SessionStatistics = ({ stats, t, StatCard, StatRow }) => {
-
-  console.log("")
   return (
     <StatCard title={t('trainingResults.sessions')} icon="calendar">
       <StatRow 

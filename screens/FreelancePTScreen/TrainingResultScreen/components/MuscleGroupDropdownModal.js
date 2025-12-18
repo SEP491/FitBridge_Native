@@ -32,6 +32,13 @@ const getMuscleGroupImage = (muscleGroup) => {
   return muscleGroupImages[normalized] || null;
 };
 
+// Translate muscle group keys to localized text
+const getMuscleGroupText = (t, key) => {
+  if (!key) return "";
+  // First try exact key (Biceps, Calf, etc.), then fall back to generic label
+  return t(`muscleGroups.${key}`, key);
+};
+
 export const MuscleGroupDropdownModal = ({
   visible,
   onClose,
@@ -89,7 +96,7 @@ export const MuscleGroupDropdownModal = ({
                       styles.dropdownItemTextSelected,
                   ]}
                 >
-                  {muscle.muscleGroup}
+                  {getMuscleGroupText(t, muscle.muscleGroup)}
                 </Text>
                 {selectedMuscleGroup === muscle.muscleGroup && (
                   <Ionicons name="checkmark" size={24} color="#ED2A46" />

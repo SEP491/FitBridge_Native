@@ -1890,6 +1890,10 @@
   },
 
   "trainingResults": {
+    "muscleGroupLabel": "Muscle Group:",
+    "metricWeight": "Weight",
+    "metricReps": "Reps",
+    "metricTime": "Time",
     "title": "Training Statistics",
     "overview": "Overview",
     "overviewAndProgress": "Overview & Progress",

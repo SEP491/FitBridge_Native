@@ -11,6 +11,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import customerPurchasedService from "../../services/customerPurchased";
 import { useTranslation } from "../../hooks/useTranslation";
+import { t } from "../../i18n";
 
 const formatDateTime = (iso) => {
   if (!iso) return "-";
@@ -28,6 +29,53 @@ const formatCurrency = (value) => {
   if (typeof value !== "number") return "-";
   return new Intl.NumberFormat("vi-VN").format(value);
 };
+const getStatusColor = (status) => {
+  const statusUpper = status?.toUpperCase();
+  switch (statusUpper) {
+    case "COMPLETED":
+    case "SUCCESS":
+      return "#4CAF50";
+    case "PENDING":
+      return "#FF9800";
+    case "FAILED":
+    case "CANCELLED":
+      return "#F44336";
+    case "RESOLVED":
+      return "#4CAF50";
+    case "REJECTED":
+      return "#F44336";
+      case "ADMINAPPROVED":
+        return "#4CAF50";
+      case "ADMINREJECTED":
+        return "#F44336";
+    default:
+      return "#666";
+  }
+};
+  const getStatusText = (status) => {
+    const statusUpper = status?.toUpperCase();
+    switch (statusUpper) {
+      case "COMPLETED":
+      case "SUCCESS":
+        return t("transaction.completed", "Completed");
+      case "PENDING":
+        return t("transaction.pending", "Pending");
+      case "FAILED":
+        return t("transaction.failed", "Failed");
+      case "CANCELLED":
+        return t("transaction.cancelled", "Cancelled");
+      case "RESOLVED":
+        return t("transaction.resolved", "Resolved");
+      case "REJECTED":
+        return t("transaction.rejected", "Rejected");
+      case "ADMINAPPROVED":
+        return t("transaction.adminApproved", "Admin Approved");
+      case "ADMINREJECTED":
+        return t("transaction.adminRejected", "Admin Rejected");
+      default:
+        return status;
+    }
+  };
 
 const TransactionItem = ({ item, t }) => {
   return (
@@ -35,19 +83,13 @@ const TransactionItem = ({ item, t }) => {
       <View style={styles.transactionHeader}>
         <Text style={styles.transactionTitle}>{item.description || t("customerPurchasedTransaction.transaction")}</Text>
         <View style={[styles.statusBadge, item.status !== "Success" && styles.statusBadgeAlt]}>
-          <Ionicons
-            name={item.status === "Success" ? "checkmark-circle" : "alert-circle"}
-            color={item.status === "Success" ? "#2E7D32" : "#F57C00"}
-            size={16}
-            style={{ marginRight: 4 }}
-          />
           <Text
             style={[
               styles.statusText,
-              { color: item.status === "Success" ? "#2E7D32" : "#F57C00" },
+              { color: getStatusColor(item.status) },
             ]}
           >
-            {item.status || t("customerPurchasedTransaction.unknown")}
+            {getStatusText(item.status)}
           </Text>
         </View>
       </View>

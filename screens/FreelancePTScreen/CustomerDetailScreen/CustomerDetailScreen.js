@@ -314,7 +314,7 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
                               />
                               <View style={styles.progressChartLabel}>
                                 <Text style={[styles.progressChartValue, { color: '#4CAF50' }]}>
-                                  {(stats.completionRate || 0).toFixed(0)}%
+                                  {(stats.completionRate || 0).toFixed(1)}%
                                 </Text>
                               </View>
                               <Text style={styles.statLabel}>{t("customerDetail.completionRate")}</Text>
@@ -340,7 +340,7 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
                               />
                               <View style={styles.progressChartLabel}>
                                 <Text style={[styles.progressChartValue, { color: '#2196F3' }]}>
-                                  {(stats.activityCompletionRate || 0).toFixed(0)}%
+                                  {(stats.activityCompletionRate || 0).toFixed(1)}%
                                 </Text>
                               </View>
                               <Text style={styles.statLabel}>{t("customerDetail.activityRate")}</Text>
@@ -349,7 +349,7 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
                             <View style={styles.statItem}>
                               <ProgressChart
                                 data={{
-                                  data: [(stats.totalSessions || 1) / ((stats?.totalSessions || 0) + (stats?.availableSessions || 0))]
+                                  data: [(stats.totalSessions || 0) / ((stats?.totalSessions || 0) + (stats?.availableSessions || 0))]
                                 }}
                                 width={80}
                                 height={80}
@@ -366,7 +366,7 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
                               />
                               <View style={styles.progressChartLabel}>
                                 <Text style={[styles.progressChartValue, { color: '#FF9800' }]}>
-                                  {((stats.totalSessions || 1) / ((stats?.totalSessions || 0) + (stats?.availableSessions || 0))).toFixed(2)}%
+                                  {((stats.totalSessions || 0) / ((stats?.totalSessions || 0) + (stats?.availableSessions || 0))*100).toFixed(1)}%
                                 </Text>
                               </View>
                               <Text style={styles.statLabel}>{t("customerDetail.sessionsUsed")}</Text>

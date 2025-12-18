@@ -23,7 +23,7 @@ const getMuscleGroupImage = (muscleGroup) => {
   return muscleGroupImages[normalized] || null;
 };
 
-export const MuscleGroupPerformance = ({ stats, t, StatCard }) => {
+export const MuscleGroupPerformance = ({ stats, t, StatCard, getMuscleGroupText }) => {
   return (
     <>
       {stats.mostTrainedMuscleGroup && (
@@ -36,7 +36,11 @@ export const MuscleGroupPerformance = ({ stats, t, StatCard }) => {
                 resizeMode="contain"
               />
             )}
-            <Text style={styles.muscleGroupName}>{stats.mostTrainedMuscleGroup.muscleGroup}</Text>
+            <Text style={styles.muscleGroupName}>
+              {getMuscleGroupText
+                ? getMuscleGroupText(stats.mostTrainedMuscleGroup.muscleGroup)
+                : stats.mostTrainedMuscleGroup.muscleGroup}
+            </Text>
             <View style={styles.muscleGroupStats}>
               <View style={styles.muscleGroupStat}>
                 <Text style={[styles.muscleGroupStatValue, { color: '#2196F3' }]}>
@@ -67,7 +71,11 @@ export const MuscleGroupPerformance = ({ stats, t, StatCard }) => {
                 resizeMode="contain"
               />
             )}
-            <Text style={styles.muscleGroupName}>{stats.leastTrainedMuscleGroup.muscleGroup}</Text>
+            <Text style={styles.muscleGroupName}>
+              {getMuscleGroupText
+                ? getMuscleGroupText(stats.leastTrainedMuscleGroup.muscleGroup)
+                : stats.leastTrainedMuscleGroup.muscleGroup}
+            </Text>
             <View style={styles.muscleGroupStats}>
               <View style={styles.muscleGroupStat}>
                 <Text style={[styles.muscleGroupStatValue, { color: '#2196F3' }]}>
