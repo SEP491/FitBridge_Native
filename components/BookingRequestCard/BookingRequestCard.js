@@ -28,6 +28,20 @@ const BookingRequestCard = ({
     }
   };
 
+  const getStatusText = (status) => {
+    const statusUpper = status?.toUpperCase();
+    switch (statusUpper) {
+      case "PENDING":
+        return t("bookingRequest.pending");
+      case "APPROVED":
+        return t("bookingRequest.approved");
+      case "REJECTED":
+        return t("bookingRequest.rejected");
+      default:
+        return status;
+    }
+  }
+
   const getStatusIcon = (status) => {
     switch (status) {
       case "Pending":
@@ -155,7 +169,7 @@ const BookingRequestCard = ({
               { color: getStatusColor(request.requestStatus) },
             ]}
           >
-            {request.requestStatus}
+            {getStatusText(request.requestStatus)}
           </Text>
         </View>
       </View>

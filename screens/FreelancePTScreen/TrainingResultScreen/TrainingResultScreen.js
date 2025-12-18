@@ -741,7 +741,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    flex: 0.5,
+    flex: 0.8,
   },
   statRowLabel: {
     fontSize: 14,

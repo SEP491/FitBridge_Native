@@ -349,7 +349,7 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
                             <View style={styles.statItem}>
                               <ProgressChart
                                 data={{
-                                  data: [(stats.totalSessions || 1) / ((stats?.totalSessions || 0) + (stats?.availableSessions || 0))]
+                                  data: [(stats.totalSessions || 0) / ((stats?.totalSessions || 0) + (stats?.availableSessions || 0))]
                                 }}
                                 width={80}
                                 height={80}
@@ -366,7 +366,7 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
                               />
                               <View style={styles.progressChartLabel}>
                                 <Text style={[styles.progressChartValue, { color: '#FF9800' }]}>
-                                  {((stats.totalSessions || 1) / ((stats?.totalSessions || 0) + (stats?.availableSessions || 0))*100).toFixed(1)}%
+                                  {((stats.totalSessions || 0) / ((stats?.totalSessions || 0) + (stats?.availableSessions || 0))*100).toFixed(1)}%
                                 </Text>
                               </View>
                               <Text style={styles.statLabel}>{t("customerDetail.sessionsUsed")}</Text>
