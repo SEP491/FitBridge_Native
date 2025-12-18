@@ -23,7 +23,7 @@ const getMuscleGroupImage = (muscleGroup) => {
   return muscleGroupImages[normalized] || null;
 };
 
-export const MuscleGroupBreakdown = ({ stats, t, StatCard }) => {
+export const MuscleGroupBreakdown = ({ stats, t, StatCard, getMuscleGroupText }) => {
   if (!stats.muscleGroupBreakdown || stats.muscleGroupBreakdown.length === 0) {
     return null;
   }
@@ -40,7 +40,11 @@ export const MuscleGroupBreakdown = ({ stats, t, StatCard }) => {
                 resizeMode="contain"
               />
             )}
-            <Text style={styles.muscleBreakdownName}>{muscle.muscleGroup}</Text>
+            <Text style={styles.muscleBreakdownName}>
+              {getMuscleGroupText
+                ? getMuscleGroupText(muscle.muscleGroup)
+                : muscle.muscleGroup}
+            </Text>
           </View>
           <View style={styles.muscleBreakdownStats}>
             <View style={styles.muscleBreakdownStat}>

@@ -1917,6 +1917,10 @@
     }
   },
   "trainingResults": {
+    "muscleGroupLabel": "Nhóm cơ:",
+    "metricWeight": "Trọng lượng",
+    "metricReps": "Số lần lặp",
+    "metricTime": "Thời gian",
     "firstSessionStartTime": "Buổi Tập Đầu Tiên",
     "latestSessionEndTime": "Buổi Tập Mới Nhất",
     "title": "Thống Kê Luyện Tập",
@@ -1986,7 +1990,23 @@
     "triceps": "Cơ Tay Sau",
     "back": "Lưng",
     "glutes": "Cơ Mông",
-    "fullBody": "Toàn Thân"
+    "fullBody": "Toàn Thân",
+    "Chest": "Ngực",
+    "Shoulder": "Vai",
+    "Waist": "Eo",
+    "Hip": "Hông",
+    "Thigh": "Đùi",
+    "Calf": "Bắp Chân",
+    "ForeArm": "Cẳng Tay",
+    "Biceps": "Cơ Tay Trước",
+    "Back": "Lưng",
+    "Triceps": "Cơ Tay Sau",
+    "Glutes": "Cơ Mông",
+    "FullBody": "Toàn Thân",
+    "Other": "Khác",
+    "Thighs": "Đùi",
+    "Calves": "Bắp Chân",
+    "AbsCore": "Bụng"
   },
 
   "userGoals": {

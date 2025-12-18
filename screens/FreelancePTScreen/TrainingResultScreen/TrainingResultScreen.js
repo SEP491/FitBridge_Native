@@ -8,6 +8,7 @@ import {
   Dimensions,
   ActivityIndicator,
   Alert,
+  Image,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "../../../hooks/useTranslation";
@@ -34,7 +35,7 @@ export const TrainingResultScreen = ({ route, navigation }) => {
     activeTab: initialActiveTab,
   } = route.params;
   const { t } = useTranslation();
-  console.log("TrainingResultScreen Params:", route.params);
+  console.log("TrainingResultScreen Params:", pkg);
   // State for data
   const [stats, setStats] = useState(null);
   const [muscleReport, setMuscleReport] = useState(null);
@@ -52,6 +53,44 @@ export const TrainingResultScreen = ({ route, navigation }) => {
   const [showCreateGoalModal, setShowCreateGoalModal] = useState(false);
   const [showCreateGoalForm, setShowCreateGoalForm] = useState(false);
   const [creatingGoal, setCreatingGoal] = useState(false);
+
+  // Translate muscle group keys to localized text
+  const getMuscleGroupText = (key) => {
+    if (!key) return "";
+    // Normalize key to match translation keys when possible
+    // API keys examples: Biceps, Calf, Chest, ForeArm, Hip, Shoulders, Thigh, AbsCore, Back, Triceps, Glutes, FullBody, Other, Thighs
+    switch (key) {
+      case "Biceps":
+        return t("muscleGroups.biceps", "Biceps");
+      case "Calf":
+        return t("muscleGroups.calf", "Calf");
+      case "Chest":
+        return t("muscleGroups.chest", "Chest");
+      case "ForeArm":
+        return t("muscleGroups.foreArm", "Forearm");
+      case "Hip":
+        return t("muscleGroups.hip", "Hip");
+      case "Shoulders":
+        return t("muscleGroups.shoulder", "Shoulder");
+      case "Thigh":
+      case "Thighs":
+        return t("muscleGroups.thigh", "Thigh");
+      case "AbsCore":
+        return t("muscleGroups.waist", "Waist");
+      case "Back":
+        return t("muscleGroups.back", "Back");
+      case "Triceps":
+        return t("muscleGroups.triceps", "Triceps");
+      case "Glutes":
+        return t("muscleGroups.glutes", "Glutes");
+      case "FullBody":
+        return t("muscleGroups.fullBody", "Full Body");
+      case "Other":
+        return t("muscleGroups.other", "Other");
+      default:
+        return key;
+    }
+  };
 
   // Fetch data on component mount
   React.useEffect(() => {
@@ -226,7 +265,7 @@ export const TrainingResultScreen = ({ route, navigation }) => {
           strokeWidth: 3,
         },
       ],
-      legend: [`${selectedMuscleGroup} - ${selectedMetric}`],
+      legend: [`${getMuscleGroupText(selectedMuscleGroup)} - ${selectedMetric}`],
     };
   };
 
@@ -299,12 +338,44 @@ export const TrainingResultScreen = ({ route, navigation }) => {
         <ScrollView showsVerticalScrollIndicator={false}>
           {/* Customer & Package Info */}
           <View style={styles.infoCard}>
-            <Text style={styles.customerName}>
-              {customer?.name || t("trainingResults.customer")}
-            </Text>
-            <Text style={styles.packageName}>
-              {pkg?.packageName || t("trainingResults.package")}
-            </Text>
+            <View style={styles.infoRow}>
+              {/* Avatar */}
+              {customer?.avatarUrl ? (
+                <Image
+                  source={{ uri: customer.avatarUrl }}
+                  style={styles.infoAvatar}
+                />
+              ) : (
+                <View style={styles.infoAvatarPlaceholder}>
+                  <Text style={styles.infoAvatarInitials}>
+                    {customer?.name
+                      ? customer.name
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")
+                          .substring(0, 2)
+                      : "?"}
+                  </Text>
+                </View>
+              )}
+
+              {/* Text info */}
+              <View style={styles.infoTextContainer}>
+                <Text style={styles.customerName}>
+                  {customer?.name || t("trainingResults.customer")}
+                </Text>
+                
+                {customer?.email ? (
+                  <Text style={styles.infoContactText}>{customer.email}</Text>
+                ) : null}
+                {customer?.phone ? (
+                  <Text style={styles.infoContactText}>{customer.phone}</Text>
+                ) : null}
+                <Text style={styles.packageName}>
+                  {pkg?.packageName || t("trainingResults.package")}
+                </Text>
+              </View>
+            </View>
           </View>
 
           {/* Tab Navigation */}
@@ -406,7 +477,12 @@ export const TrainingResultScreen = ({ route, navigation }) => {
               />
 
               {/* Muscle Group Performance */}
-              <MuscleGroupPerformance stats={stats} t={t} StatCard={StatCard} />
+              <MuscleGroupPerformance
+                stats={stats}
+                t={t}
+                StatCard={StatCard}
+                getMuscleGroupText={getMuscleGroupText}
+              />
 
               {/* User Goals Progress */}
               <UserGoalsProgress
@@ -522,7 +598,12 @@ export const TrainingResultScreen = ({ route, navigation }) => {
               )}
 
               {/* Muscle Group Breakdown */}
-              <MuscleGroupBreakdown stats={stats} t={t} StatCard={StatCard} />
+              <MuscleGroupBreakdown
+                stats={stats}
+                t={t}
+                StatCard={StatCard}
+                getMuscleGroupText={getMuscleGroupText}
+              />
             </>
           )}
 
@@ -643,6 +724,33 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
+  infoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  infoAvatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    marginRight: 12,
+  },
+  infoAvatarPlaceholder: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "#FFE4E9",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  infoAvatarInitials: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#ED2A46",
+  },
+  infoTextContainer: {
+    flex: 1,
+  },
   customerName: {
     fontSize: 20,
     fontWeight: "bold",
@@ -652,6 +760,11 @@ const styles = StyleSheet.create({
   packageName: {
     fontSize: 16,
     color: "#666",
+  },
+  infoContactText: {
+    fontSize: 13,
+    color: "#64748B",
+    marginTop: 2,
   },
   tabContainer: {
     backgroundColor: "#FFFFFF",
