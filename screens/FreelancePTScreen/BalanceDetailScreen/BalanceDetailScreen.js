@@ -85,7 +85,7 @@ const BalanceDetailScreen = () => {
             transactionType: "Disbursement",
             transactionId: item.transactionId,
             description: item.description,
-            transactionDate: item.withdrawDate || item.actualDistributionDate,
+            transactionDate: item.withdrawDate|| item.transactionDate || item.transactionDetail?.transactionDate || item.actualDistributionDate ,
             orderCode: item.withdrawalRequestId,
             paymentMethod: item.paymentMethod,
           }));
@@ -302,7 +302,7 @@ const BalanceDetailScreen = () => {
               </Text>
             )}
             <Text style={styles.transactionId}>
-              {item.withdrawDate || item.transactionDetail?.transactionDate ? formatDate(item.withdrawDate || item.transactionDetail?.transactionDate) : "N/A"}
+              {item.withdrawDate || item.transactionDetail?.transactionDate || item.transactionDate ? formatDate(item.withdrawDate || item.transactionDetail?.transactionDate || item.transactionDate) : "N/A"}
             </Text>
             
           </View>
