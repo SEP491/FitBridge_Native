@@ -238,7 +238,18 @@ export default function FreelancePTSchedule() {
       return `${parts[0]}:${parts[1]}`;
     };
 
-    setEditingBooking(booking);
+    // Calculate duration from original booking
+    const calculateDuration = (startTime, endTime) => {
+      if (!startTime || !endTime) return 60; // Default 60 minutes
+      const start = new Date(`1970-01-01T${startTime}`);
+      const end = new Date(`1970-01-01T${endTime}`);
+      const diffMs = end.getTime() - start.getTime();
+      return Math.round(diffMs / 60000); // Return duration in minutes
+    };
+
+    const duration = calculateDuration(booking.startTime, booking.endTime);
+
+    setEditingBooking({ ...booking, duration }); // Store duration with booking
     setEditFormData({
       bookingName: booking.bookingName || "",
       bookingDate: bookingDate,
@@ -330,41 +341,44 @@ export default function FreelancePTSchedule() {
         return;
       }
     }
+
+    // Calculate start time in minutes from midnight
+    const startMinutes = time.getHours() * 60 + time.getMinutes();
+    const duration = editingBooking?.duration || 60; // Use original booking duration or default to 60 minutes
+    const endMinutes = startMinutes + duration;
+
+    // Check if end time would exceed 23:59 (1439 minutes)
+    if (endMinutes > 1439) {
+      Alert.alert(
+        t("common.error"),
+        t("bookingRequest.endTimeExceedsMidnight")
+      );
+      return;
+    }
+
     const hours = time.getHours().toString().padStart(2, "0");
     const minutes = time.getMinutes().toString().padStart(2, "0");
     const timeString = `${hours}:${minutes}`;
-    setEditFormData({ ...editFormData, startTime: timeString });
+
+    // Auto-set end time based on duration (minutes) - staying within same day
+    const endHours = Math.floor(endMinutes / 60);
+    const endMins = endMinutes % 60;
+    const endTimeString = `${endHours.toString().padStart(2, "0")}:${endMins
+      .toString()
+      .padStart(2, "0")}`;
+
+    setEditFormData({
+      ...editFormData,
+      startTime: timeString,
+      endTime: endTimeString,
+    });
     setShowStartTimePicker(false);
   };
 
   const handleEndTimeConfirm = (time) => {
+    // End time is now auto-calculated, so this handler is not needed
+    // But keeping it for backward compatibility
     console.log("End time confirmed:", time);
-
-    if (!editFormData.startTime) {
-      Alert.alert(t("common.error"), t("bookingRequest.selectStartTimeFirst"));
-      return;
-    }
-
-    // Parse start time
-    const [startHour, startMin] = editFormData.startTime.split(":").map(Number);
-    const startMinutes = startHour * 60 + startMin;
-
-    // Parse end time
-    const endHour = time.getHours();
-    const endMin = time.getMinutes();
-    const endMinutes = endHour * 60 + endMin;
-
-    // Check if end time is at least 1 hour after start time
-    const diffMinutes = endMinutes - startMinutes;
-    if (diffMinutes < 60) {
-      Alert.alert(t("common.error"), t("bookingRequest.endTimeMinimum"));
-      return;
-    }
-
-    const hours = endHour.toString().padStart(2, "0");
-    const minutes = endMin.toString().padStart(2, "0");
-    const timeString = `${hours}:${minutes}`;
-    setEditFormData({ ...editFormData, endTime: timeString });
     setShowEndTimePicker(false);
   };
 
@@ -577,7 +591,7 @@ export default function FreelancePTSchedule() {
                   </TouchableOpacity>
                 </View>
 
-                {/* End Time */}
+                {/* End Time (Auto-calculated) */}
                 <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>
                     <Ionicons
@@ -587,13 +601,7 @@ export default function FreelancePTSchedule() {
                     />{" "}
                     {t("bookingRequest.endTime")} *
                   </Text>
-                  <TouchableOpacity
-                    style={styles.datePickerButton}
-                    onPress={() => {
-                      console.log("End time picker button pressed");
-                      setShowEndTimePicker(true);
-                    }}
-                  >
+                  <View style={[styles.datePickerButton]}>
                     <Text
                       style={[
                         styles.datePickerText,
@@ -603,8 +611,7 @@ export default function FreelancePTSchedule() {
                       {editFormData.endTime ||
                         t("bookingRequest.selectEndTime")}
                     </Text>
-                    <Ionicons name="chevron-down" size={20} color="#666" />
-                  </TouchableOpacity>
+                  </View>
                 </View>
 
                 {/* Note */}

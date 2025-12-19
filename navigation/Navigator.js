@@ -1587,7 +1587,9 @@ export default function Navigator({
           component={TransactionHistoryScreen}
           options={{
             headerShown: true,
-            title: t("screenTitles.transactionHistory"),
+            title:
+              t("screenTitles.orderHistory") ||
+              t("screenTitles.transactionHistory"),
             headerTitleAlign: "center",
             headerTitleStyle: {
               fontWeight: "bold",

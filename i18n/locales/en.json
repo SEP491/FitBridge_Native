@@ -291,6 +291,7 @@
   },
 
   "bookingDetail": {
+    "selectExercise": "Select Exercise",
     "noContent": "No Content",
     "ptHasNotCreatedContent": "PT has not created content for this session yet",
     "sessionDetails": "Session Details",
@@ -2103,6 +2104,7 @@
     "rejectConfirmTitle": "Reject Request",
     "rejectConfirmMessage": "Are you sure you want to reject this booking request for",
     "pastTimeError": "Cannot select a time in the past",
+    "endTimeExceedsMidnight": "End time cannot exceed 23:59. Please select an earlier start time.",
     "selectStartTimeFirst": "Please select start time first",
     "endTimeMinimum": "End time must be at least 1 hour after start time",
     "endTimeMinimumDynamic": "End time must be at least {{minutes}} minutes after start time",

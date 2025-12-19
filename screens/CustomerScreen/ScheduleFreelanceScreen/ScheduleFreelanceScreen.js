@@ -128,16 +128,31 @@ export default function ScheduleFreelanceScreen({ route }) {
       }
     }
 
+    // Calculate start time in minutes from midnight
+    const startMinutes = time.getHours() * 60 + time.getMinutes();
+    const endMinutes = startMinutes + duration;
+
+    // Check if end time would exceed 23:59 (1439 minutes)
+    if (endMinutes > 1439) {
+      Alert.alert(
+        t("common.error"),
+        t("bookingRequest.endTimeExceedsMidnight")
+      );
+      return;
+    }
+
     const hours = time.getHours().toString().padStart(2, "0");
     const minutes = time.getMinutes().toString().padStart(2, "0");
     setStartTime(`${hours}:${minutes}`);
 
-    // Auto-set end time based on duration (minutes)
-    const endDateTime = new Date(time);
-    endDateTime.setMinutes(endDateTime.getMinutes() + duration);
-    const endHours = endDateTime.getHours().toString().padStart(2, "0");
-    const endMinutes = endDateTime.getMinutes().toString().padStart(2, "0");
-    setEndTime(`${endHours}:${endMinutes}`);
+    // Auto-set end time based on duration (minutes) - staying within same day
+    const endHours = Math.floor(endMinutes / 60);
+    const endMins = endMinutes % 60;
+    setEndTime(
+      `${endHours.toString().padStart(2, "0")}:${endMins
+        .toString()
+        .padStart(2, "0")}`
+    );
 
     setShowStartTimePicker(false);
   };

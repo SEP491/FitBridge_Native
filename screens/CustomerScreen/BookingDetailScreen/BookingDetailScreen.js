@@ -687,7 +687,9 @@ export default function BookingDetailScreen({ route, navigation }) {
                           ? selectedAsset.vietNameseName ||
                             selectedAsset.name ||
                             selectedAsset.vietnameseDescription
-                          : t("bookingDetail.selectAsset")}
+                          : assetTypeFilter === "Equipment"
+                          ? t("bookingDetail.selectAsset")
+                          : t("bookingDetail.selectExercise")}
                       </Text>
                       <Ionicons
                         name={showAssetDropdown ? "chevron-up" : "chevron-down"}

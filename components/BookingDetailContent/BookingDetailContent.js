@@ -237,6 +237,25 @@ export default function BookingDetailContent({
 
   const [sessionState, setSessionState] = useState(getSessionState());
 
+  // Check if booking date is today
+  const isBookingDateToday = () => {
+    if (!Booking?.bookingDate) return false;
+
+    try {
+      const bookingDate = new Date(Booking.bookingDate);
+      const today = new Date();
+
+      // Compare dates (ignore time)
+      bookingDate.setHours(0, 0, 0, 0);
+      today.setHours(0, 0, 0, 0);
+
+      return bookingDate.getTime() === today.getTime();
+    } catch (error) {
+      console.error("Error comparing booking date:", error);
+      return false;
+    }
+  };
+
   const handleStartSession = async () => {
     try {
       const response = await bookingService.startSession({
@@ -502,18 +521,14 @@ export default function BookingDetailContent({
               ]}
             >
               <TouchableOpacity
-                style={[
-                  styles.setCardContent,
-                  { opacity: sessionState === "not-started" ? 0.5 : 1 },
-                ]}
+                style={[styles.setCardContent]}
                 onPress={() =>
                   navigation.navigate("TrainingActivityScreen", {
                     activityId: activity.id,
                     userRole: userRole,
+                    sessionState: sessionState,
                   })
                 }
-                activeOpacity={0.7}
-                disabled={sessionState === "not-started"}
               >
                 <View style={styles.activityCardRow}>
                   {/* Left: muscle thumbnail */}
@@ -748,7 +763,7 @@ export default function BookingDetailContent({
         </View>
         {userRole === "Customer" && (
           <View style={styles.controlsContainer}>
-            {sessionState === "not-started" && (
+            {sessionState === "not-started" && isBookingDateToday() && (
               <TouchableOpacity
                 style={styles.actionButton}
                 onPress={handleStartSession}

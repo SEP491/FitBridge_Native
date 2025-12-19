@@ -46,9 +46,23 @@ const CustomerPurchasedCard = ({ purchase, onPress }) => {
           {/* Package Header */}
           <View style={styles.packageHeader}>
             <View style={styles.packageInfo}>
-              <Text style={styles.packageTitle} numberOfLines={1}>
-                {purchase.packageName}
-              </Text>
+              <View style={styles.titleRow}>
+                <Text style={styles.packageTitle} numberOfLines={1}>
+                  {purchase.packageName}
+                </Text>
+                {purchase.totalAwaitingBookingRequests > 0 && (
+                  <View style={styles.pendingBadge}>
+                    <Ionicons
+                      name="notifications"
+                      size={18}
+                      color={colors.white}
+                    />
+                    <Text style={styles.pendingBadgeText}>
+                      {purchase.totalAwaitingBookingRequests}
+                    </Text>
+                  </View>
+                )}
+              </View>
               <View style={styles.sessionsBadge}>
                 <MaterialIcons name="event" size={14} color={colors.white} />
                 <Text style={styles.sessionsText}>
@@ -174,11 +188,45 @@ const styles = StyleSheet.create({
   packageInfo: {
     flex: 1,
   },
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 8,
+    gap: 10,
+  },
   packageTitle: {
     fontSize: 18,
     fontWeight: "700",
     color: colors.white,
-    marginBottom: 8,
+    flex: 1,
+  },
+  pendingBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FF1744",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    gap: 6,
+    minWidth: 48,
+    justifyContent: "center",
+    borderWidth: 2.5,
+    borderColor: "#FFFFFF",
+    elevation: 6,
+    shadowColor: "#FF1744",
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.7,
+    shadowRadius: 6,
+  },
+  pendingBadgeText: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: "900",
+    letterSpacing: 0.5,
   },
   sessionsBadge: {
     flexDirection: "row",
