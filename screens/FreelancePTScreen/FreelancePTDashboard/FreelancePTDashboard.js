@@ -443,18 +443,18 @@ const FreelancePTDashboard = ({ navigation }) => {
   const summaryFinancialStats = [
     {
       id: "availableBalance",
-      label: "Số dư khả dụng",
+      label:  t("dashboard.availableBalance", "Số dư khả dụng"),
       value: formatCurrency(availableBalance || 0),
-      helper: "Có thể rút ngay",
+      helper: t("dashboard.canWithdrawNow", "Có thể rút ngay"),
       icon: "wallet",
       accent: "#FF914D",
       variant: "wide",
     },
     {
       id: "pendingBalance",
-      label: "Số dư chờ xử lý",
+      label: t("dashboard.pendingBalance", "Số dư chờ xử lý"),
       value: formatCurrency(pendingBalance || 0),
-      helper: "Đang chờ thanh toán",
+      helper: t("dashboard.awaitingPayment", "Đang chờ thanh toán"),
       icon: "timer-outline",
       accent: "#ED2A46",
       variant: "wide",
@@ -464,38 +464,38 @@ const FreelancePTDashboard = ({ navigation }) => {
   const summaryPerformanceStats = [
     {
       id: "todaySessions",
-      label: "Buổi hôm nay",
+      label: t("dashboard.todaySessions", "Buổi hôm nay"),
       value: mockedDataDashboard[0]?.todaySessions || 0,
-      helper: "Đã xác nhận",
+      helper: t("dashboard.confirmed", "Đã xác nhận"),
       icon: "calendar-outline",
       accent: "#2196F3",
       variant: "compact",
     },
     {
       id: "pendingBookingRequests",
-      label: "Yêu cầu chờ",
+      label: t("dashboard.pendingBookingRequests", "Yêu cầu chờ"),
       value: mockedDataDashboard[0]?.pendingBookingRequests || 0,
-      helper: "Cần phản hồi",
+      helper: t("dashboard.needResponse", "Cần phản hồi"),
       icon: "notifications-outline",
       accent: "#FFB703",
       variant: "compact",
     },
     {
       id: "completionRate",
-      label: "Hoàn thành",
+      label: t("dashboard.completionRate", "Hoàn thành"),
       value: mockedDataDashboard[0]?.completionRate || 0,
       suffix: "%",
-      helper: "Mục tiêu 90%",
+      helper: t("dashboard.target90", "Mục tiêu 90%"),
       icon: "checkmark-circle-outline",
       accent: "#4CAF50",
       variant: "compact",
     },
     {
       id: "rating",
-      label: "Đánh giá",
+      label: t("dashboard.rating", "Đánh giá"),
       value: (mockedDataDashboard[0]?.rating || 0).toFixed(1),
       suffix: "/5",
-      helper: "Từ học viên",
+      helper: t("dashboard.fromStudent", "Từ học viên"),
       icon: "star-outline",
       accent: "#F7B801",
       variant: "compact",
@@ -793,86 +793,8 @@ const FreelancePTDashboard = ({ navigation }) => {
               )}
             </View>
 
-            {/* Status Distribution Progress Rings */}
-            {completedCount + pendingCount + failedCount >= 0 && (
-              <View style={styles.chartCard}>
-                <Text style={styles.chartTitle}>
-                  {t(
-                    "transaction.statusDistribution",
-                    "Transaction Status Distribution"
-                  )}
-                </Text>
-                <View style={styles.progressRingsWrapper}>
-                  <ProgressChart
-                    data={{
-                      labels: prepareProgressRingsData().labels,
-                      data: prepareProgressRingsData().data,
-                    }}
-                    width={CHART_WIDTH - 32}
-                    height={200}
-                    strokeWidth={16}
-                    radius={28}
-                    chartConfig={{
-                      backgroundGradientFrom: "#fff",
-                      backgroundGradientTo: "#fff",
-                      color: (opacity = 1, index) => {
-                        const colors = ["#F44336", "#FF9800", "#11ed18ff"];
-                        const hexColor = colors[index] || colors[0];
-
-                        const r = parseInt(hexColor.slice(1, 3), 16);
-                        const g = parseInt(hexColor.slice(3, 5), 16);
-                        const b = parseInt(hexColor.slice(5, 7), 16);
-
-                        return `rgba(${r}, ${g}, ${b}, ${opacity})`;
-                      },
-                      propsForLabels: {
-                        fontSize: 11,
-                      },
-                    }}
-                    hideLegend={true}
-                    style={styles.chart}
-                    hasLegend={false}
-                  />
-                  {/* Custom Legend with Icons and Stats */}
-                  <View style={styles.progressRingsLegend}>
-                    {prepareProgressRingsData().labels.map((label, index) => {
-                      const ringData = prepareProgressRingsData();
-                      const percentage = (ringData.data[index] * 100).toFixed(1);
-                      return (
-                        <View key={index} style={styles.progressRingLegendItem}>
-                          <View style={styles.progressRingLegendHeader}>
-                            <Ionicons
-                              name={ringData.icons[index]}
-                              size={20}
-                              color={ringData.colors[index]}
-                            />
-                            <Text
-                              style={[
-                                styles.progressRingLabel,
-                                { color: ringData.colors[index] },
-                              ]}
-                            >
-                              {label}
-                            </Text>
-                          </View>
-                          <View style={styles.progressRingStats}>
-                            <Text style={styles.progressRingCount}>
-                              {ringData.counts[index]}
-                            </Text>
-                            <Text style={styles.progressRingPercentage}>
-                              ({percentage}%)
-                            </Text>
-                          </View>
-                        </View>
-                      );
-                    })}
-                  </View>
-                </View>
-              </View>
-            )}
-
             {/* Monthly Revenue Bar Chart */}
-            <View style={styles.chartCard}>
+            {/* <View style={styles.chartCard}>
               <Text style={styles.chartTitle}>
                 {t("transaction.monthlyRevenue", "Monthly Revenue by Status")}
               </Text>
@@ -892,7 +814,7 @@ const FreelancePTDashboard = ({ navigation }) => {
                 showValuesOnTopOfBars={false}
                 fromZero
               />
-            </View>
+            </View> */}
           </View>
         )}
 

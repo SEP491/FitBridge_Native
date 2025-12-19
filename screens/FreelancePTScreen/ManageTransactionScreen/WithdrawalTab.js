@@ -15,6 +15,7 @@ import paymentService from "../../../services/paymentService";
 import { useFocusEffect } from "@react-navigation/native";
 import dashBoardService from "../../../services/dashBoardService";
 import banks from "../../../constants/banks";
+import SummaryCard from "../../../components/SummaryCards/SummaryCard";
 
 const WithdrawalTab = ({
   totalRevenue,
@@ -36,6 +37,7 @@ const WithdrawalTab = ({
   loadWithdrawalHistory,
 }) => {
   const [availableBalance, setAvailableBalance] = useState(0);
+  const [pendingBalance, setPendingBalance] = useState(0);
   const [validationMessage, setValidationMessage] = useState("");
   const [filteredBanks, setFilteredBanks] = useState([]);
   const [selectedBank, setSelectedBank] = useState(null);
@@ -43,20 +45,51 @@ const WithdrawalTab = ({
   const MIN_WITHDRAW = 50000;
   const MAX_WITHDRAW = 20000000;
 
-  const loadAvailableBalance = async () => {
+  // Format currency to Vietnamese Dong
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("vi-VN").format(amount) + "₫";
+  };
+
+  const fetchWalletData = async () => {
     try {
       const response = await dashBoardService.getWalletBalance();
-      setAvailableBalance(response.data.totalAvailableBalance);
+      setAvailableBalance(response.data.totalAvailableBalance || 0);
+      setPendingBalance(response.data.totalPendingBalance || 0);
     } catch (error) {
-      console.error("Error loading available balance:", error);
+      console.error("Error fetching wallet data:", error);
+      setAvailableBalance(0);
+      setPendingBalance(0);
     }
   };
 
   useFocusEffect(
     useCallback(() => {
-      loadAvailableBalance();
+      fetchWalletData();
     }, [])
   );
+
+  const summaryFinancialStats = [
+    {
+      id: "availableBalance",
+      label: t("dashboard.availableBalance", "Số dư khả dụng"),
+      value: formatCurrency(availableBalance),
+      helper: t("dashboard.canWithdrawNow", "Có thể rút ngay"),
+      icon: "wallet",
+      accent: "#FF914D",
+      variant: "wide",
+      style: ''
+    },
+    {
+      id: "pendingBalance",
+      label: t("dashboard.pendingBalance", "Số dư chờ xử lý"),
+      value: formatCurrency(pendingBalance),
+      helper: t("dashboard.awaitingPayment", "Đang chờ thanh toán"),
+      icon: "timer-outline",
+      accent: "#ED2A46",
+      variant: "wide",
+      style: ''
+    },
+  ];
 
   const handleConfirmPayment = async (id) => {
     try {
@@ -174,18 +207,12 @@ const WithdrawalTab = ({
 
   return (
     <View style={styles.withdrawalContainer}>
-      {/* Available Balance Card */}
-      <View style={styles.balanceCard}>
-        <View style={styles.balanceHeader}>
-          <Ionicons name="wallet" size={32} color="#4CAF50" />
-          <View style={styles.balanceInfo}>
-            <Text style={styles.balanceLabel}>
-              {t("withdrawal.availableBalance", "Available Balance")}
-            </Text>
-            <Text style={styles.balanceAmount}>
-              {formatAmount(availableBalance)}
-            </Text>
-          </View>
+      {/* Financial Stats */}
+      <View style={styles.financialStatsContainer}>
+        <View style={styles.financialRow}>
+          {summaryFinancialStats.map((stat) => (
+            <SummaryCard stat={stat} key={stat.id} />
+          ))}
         </View>
       </View>
 
@@ -414,34 +441,13 @@ const styles = StyleSheet.create({
   withdrawalContainer: {
     padding: 16,
   },
-  balanceCard: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 20,
+  financialStatsContainer: {
+    paddingHorizontal: 4,
     marginBottom: 20,
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
   },
-  balanceHeader: {
+  financialRow: {
     flexDirection: "row",
-    alignItems: "center",
-    gap: 16,
-  },
-  balanceInfo: {
-    flex: 1,
-  },
-  balanceLabel: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 6,
-  },
-  balanceAmount: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#4CAF50",
+    gap: 12,
   },
   withdrawalForm: {
     backgroundColor: "#fff",

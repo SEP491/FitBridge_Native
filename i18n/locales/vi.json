@@ -936,6 +936,18 @@
   },
 
   "dashboard": {
+    "todaySessions": "Buổi hôm nay",
+    "confirmed": "Đã xác nhận",
+    "pendingBookingRequests": "Yêu cầu chờ",
+    "needResponse": "Cần phản hồi",
+    "completionRate": "Hoàn thành",
+    "target90": "Mục tiêu 90%",
+    "rating": "Đánh giá",
+    "fromStudent": "Từ học viên",
+    "availableBalance": "Số dư khả dụng",
+    "pendingBalance": "Số dư chờ xử lý",
+    "canWithdrawNow": "Có thể rút ngay",
+    "awaitingPayment": "Đang chờ thanh toán",
     "quickActions": "Thao tác nhanh",
     "viewTransactions": "Xem giao dịch",
     "requestWithdrawal": "Yêu cầu rút tiền",
