@@ -1070,6 +1070,21 @@ export default function Navigator({
           name="FreelancePTDashboard"
           component={FreelancePTDashboard}
         />
+
+        <Stack.Screen
+          name="ManageTransactionScreen"
+          component={ManageTransactionScreen}
+          options={{
+            headerShown: true,
+            title: t("userMenu.manageTransaction"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
         <Stack.Screen
           name="NotificationScreen"
           component={NotificationScreen}
@@ -1738,7 +1753,7 @@ export default function Navigator({
             },
           }}
         />
-        
+
         <Stack.Screen
           name="ManageTransactionScreen"
           component={ManageTransactionScreen}

@@ -205,6 +205,17 @@ const WithdrawalTab = ({
     });
   };
 
+  const getBankLogo = (bankName) => {
+    if (!bankName) return null;
+    const bank = banks.find(
+      (b) =>
+        b.name.toLowerCase() === bankName.toLowerCase() ||
+        bankName.toLowerCase().includes(b.name.toLowerCase()) ||
+        b.name.toLowerCase().includes(bankName.toLowerCase())
+    );
+    return bank?.logo || null;
+  };
+
   return (
     <View style={styles.withdrawalContainer}>
       {/* Financial Stats */}
@@ -366,57 +377,83 @@ const WithdrawalTab = ({
         ) : (
           withdrawalHistory.map((item) => (
             <View key={item.id} style={styles.withdrawalCard}>
-              <View style={styles.withdrawalCardHeader}>
-                <View style={styles.withdrawalInfo}>
-                  <Text style={styles.withdrawalAmount}>
-                    {formatAmount(item.amount)}
-                  </Text>
-                  <Text style={styles.withdrawalMethod}>{item.bankName}</Text>
-                  <Text style={styles.withdrawalAccountName}>
-                    {item.accountName}
-                  </Text>
-                  <Text style={styles.withdrawalAccount}>
-                    {item.accountNumber}
-                  </Text>
-                  {item.reason && (
-                    <Text style={styles.withdrawalReason}>
-                      {t("withdrawal.reason", "Reason")}: {item.reason}
+              <View style={styles.transactionHeader}>
+                <View style={styles.transactionInfo}>
+                  <View style={styles.orderCodeRow}>
+                    <Ionicons 
+                      name="wallet-outline" 
+                      size={20} 
+                      color="#ED2A46" 
+                    />
+                    <Text style={styles.orderCode}>
+                      {item.id?.toString().substring(0, 8).toUpperCase() || "N/A"}
                     </Text>
-                  )}
+                  </View>
+                  <View style={[
+                    styles.transactionTypeBadge, 
+                    { backgroundColor: "#ED2A4615" }
+                  ]}>
+                    <Text style={[
+                      styles.transactionTypeText,
+                      { color: "#ED2A46" }
+                    ]}>
+                      {t("transactionType.withdraw", "Withdraw")}
+                    </Text>
+                  </View>
                 </View>
-                <View
-                  style={[
-                    styles.withdrawalStatusBadge,
-                    { backgroundColor: getStatusColor(item.status) },
-                  ]}
-                >
-                  <Text style={styles.withdrawalStatusText}>
-                    {getStatusText(item.status)}
-                  </Text>
+                <View style={styles.amountContainer}>
+                  <Text style={styles.amount}>{formatAmount(item.amount)}</Text>
+                  <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
+                    <Text style={styles.statusText}>{getStatusText(item.status)}</Text>
+                  </View>
                 </View>
               </View>
-              <View style={styles.withdrawalCardFooter}>
-                <View style={styles.withdrawalDate}>
-                  <Ionicons name="calendar-outline" size={14} color="#666" />
-                  <Text style={styles.withdrawalDateText}>
-                    {formatDate(item.createdAt)}
-                  </Text>
+
+              <View style={styles.transactionDetails}>
+                <View style={styles.detailRow}>
+                  <Ionicons name="calendar-outline" size={16} color="#666" />
+                  <Text style={styles.detailText}>{formatDate(item.createdAt)}</Text>
                 </View>
+                {item.bankName && (
+                  <View style={styles.detailRow}>
+                    {getBankLogo(item.bankName) ? (
+                      <Image
+                        source={{ uri: getBankLogo(item.bankName) }}
+                        style={styles.bankLogo}
+                        resizeMode="contain"
+                      />
+                    ) : (
+                      <Ionicons name="business-outline" size={16} color="#666" />
+                    )}
+                    <Text style={styles.detailText}>{item.bankName}</Text>
+                  </View>
+                )}
+                {item.accountName && (
+                  <View style={styles.detailRow}>
+                    <Ionicons name="person-outline" size={16} color="#666" />
+                    <Text style={styles.detailText}>{item.accountName} - {item.accountNumber}</Text>
+                  </View>
+                )}
+                {item.reason && (
+                  <View style={styles.detailRow}>
+                    <Ionicons name="alert-circle-outline" size={16} color="#FF9800" />
+                    <Text style={[styles.detailText, { color: "#FF9800" }]}>
+                      {t("withdrawal.reason", "Reason")}: {item.reason}
+                    </Text>
+                  </View>
+                )}
                 {item.imageUrl && (
                   <TouchableOpacity onPress={handleViewProof(item.imageUrl)}>
-                    <View style={styles.withdrawalDate}>
-                      <Ionicons
-                        name="image-outline"
-                        size={14}
-                        color="#2196F3"
-                      />
-                      <Text style={styles.withdrawalDateText}>
+                    <View style={styles.detailRow}>
+                      <Ionicons name="image-outline" size={16} color="#2196F3" />
+                      <Text style={[styles.detailText, { color: "#2196F3" }]}>
                         {t("withdrawal.hasProof", "Proof attached")}
                       </Text>
                     </View>
                   </TouchableOpacity>
                 )}
               </View>
+
               {item.status === "AdminApproved" && (
                 <View style={styles.withdrawalButtonAction}>
                   <TouchableOpacity
@@ -537,44 +574,57 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   withdrawalCard: {
-    backgroundColor: "#F8F9FA",
+    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    borderLeftWidth: 4,
-    borderLeftColor: "#ED2A46",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
-  withdrawalCardHeader: {
+  transactionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
     marginBottom: 12,
   },
-  withdrawalInfo: {
+  transactionInfo: {
     flex: 1,
     marginRight: 12,
   },
-  withdrawalAmount: {
-    fontSize: 18,
+  orderCodeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 6,
+  },
+  orderCode: {
+    fontSize: 16,
     fontWeight: "bold",
     color: "#333",
+  },
+  transactionTypeBadge: {
+    alignSelf: "flex-start",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
     marginBottom: 4,
   },
-  withdrawalMethod: {
-    fontSize: 13,
-    color: "#666",
-    marginBottom: 2,
+  transactionTypeText: {
+    fontSize: 11,
     fontWeight: "600",
   },
-  withdrawalAccountName: {
-    fontSize: 13,
-    color: "#666",
-    marginBottom: 2,
-  },
-  withdrawalAccount: {
+  description: {
     fontSize: 12,
     color: "#999",
-    marginBottom: 2,
+    marginTop: 4,
+  },
+  accountNumber: {
+    fontSize: 11,
+    color: "#999",
+    marginTop: 2,
   },
   withdrawalReason: {
     fontSize: 11,
@@ -582,15 +632,44 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
     marginTop: 4,
   },
-  withdrawalStatusBadge: {
+  amountContainer: {
+    alignItems: "flex-end",
+  },
+  amount: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#ED2A46",
+    marginBottom: 6,
+  },
+  statusBadge: {
     paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingVertical: 4,
     borderRadius: 12,
   },
-  withdrawalStatusText: {
-    fontSize: 11,
+  statusText: {
+    fontSize: 10,
     color: "#fff",
     fontWeight: "600",
+  },
+  transactionDetails: {
+    borderTopWidth: 1,
+    borderTopColor: "#F0F0F0",
+    paddingTop: 12,
+  },
+  detailRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 6,
+  },
+  detailText: {
+    fontSize: 13,
+    color: "#666",
+    marginLeft: 8,
+  },
+  bankLogo: {
+    width: 20,
+    height: 20,
+    borderRadius: 20,
   },
   withdrawalButtonAction: {
     marginTop: 12,
@@ -608,22 +687,6 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 13,
     fontWeight: "700",
-  },
-  withdrawalCardFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    borderTopWidth: 1,
-    borderTopColor: "#E0E0E0",
-    paddingTop: 12,
-  },
-  withdrawalDate: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  withdrawalDateText: {
-    fontSize: 12,
-    color: "#666",
   },
   validationText: {
     color: "#F44336",

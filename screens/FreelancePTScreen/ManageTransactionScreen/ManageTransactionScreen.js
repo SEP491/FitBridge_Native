@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { useTranslation } from "../../../hooks/useTranslation";
 import { Ionicons } from "@expo/vector-icons";
+import { useRoute } from "@react-navigation/native";
 import transactionService from "../../../services/transactionService";
 import paymentService from "../../../services/paymentService";
 import DashboardTab from "./DashboardTab";
@@ -18,7 +19,9 @@ import WithdrawalTab from "./WithdrawalTab";
 
 const ManageTransactionScreen = ({ navigation }) => {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState("dashboard"); // 'dashboard', 'transactions', 'withdrawal'
+  const route = useRoute();
+  const { initialTab } = route.params || {};
+  const [activeTab, setActiveTab] = useState(initialTab || "dashboard"); // 'dashboard', 'transactions', 'withdrawal'
   const [selectedFilter, setSelectedFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [transactions, setTransactions] = useState([]);

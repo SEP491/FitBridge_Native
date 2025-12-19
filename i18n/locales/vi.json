@@ -948,6 +948,7 @@
     "pendingBalance": "Số dư chờ xử lý",
     "canWithdrawNow": "Có thể rút ngay",
     "awaitingPayment": "Đang chờ thanh toán",
+    "withdraw": "Rút tiền",
     "quickActions": "Thao tác nhanh",
     "viewTransactions": "Xem giao dịch",
     "requestWithdrawal": "Yêu cầu rút tiền",

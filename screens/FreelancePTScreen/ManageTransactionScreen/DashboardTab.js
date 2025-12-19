@@ -80,7 +80,7 @@ const DashboardTab = ({
       icon: "timer-outline",
       accent: "#ED2A46",
       variant: "wide",
-      style: ''
+      style: '',
     },
   ];
 

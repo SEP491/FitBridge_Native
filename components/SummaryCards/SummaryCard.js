@@ -27,30 +27,34 @@ const SummaryCard = ({ stat }) => {
 
   if (useSimpleStyle) {
     return (
-      <TouchableOpacity style={[styles.simpleStatCard, cardWidthStyle]} activeOpacity={0.6} onPress={handleShowDetail}>
-      <View style={styles.simpleStatCardInner}>
-        <View style={styles.statHeader}>
-          <Text style={styles.summaryCardLabel}>{stat.label}</Text>
-          <View
-            style={[
-              styles.summaryIconBubble,
-              { backgroundColor: `${stat.accent}20` },
-            ]}
-          >
-            <Icon name={stat.icon} size={20} color={stat.accent} />
+      <TouchableOpacity 
+        style={[styles.simpleStatCard, cardWidthStyle]} 
+        activeOpacity={0.6} 
+        onPress={handleShowDetail}
+      >
+        <View style={styles.simpleStatCardInner}>
+          <View style={styles.statHeader}>
+            <Text style={styles.summaryCardLabel}>{stat.label}</Text>
+            <View
+              style={[
+                styles.summaryIconBubble,
+                { backgroundColor: `${stat.accent}20` },
+              ]}
+            >
+              <Icon name={stat.icon} size={20} color={stat.accent} />
+            </View>
+          </View>
+
+          <View style={styles.summaryValueRow}>
+            <Text style={styles.summaryCardValue}>{displayValue}</Text>
+            {stat.suffix && (
+              <Text style={[styles.summaryCardSuffix, { color: stat.accent }]}>
+                {stat.suffix}
+              </Text>
+            )}
           </View>
         </View>
-
-        <View style={styles.summaryValueRow}>
-          <Text style={styles.summaryCardValue}>{displayValue}</Text>
-          {stat.suffix && (
-            <Text style={[styles.summaryCardSuffix, { color: stat.accent }]}>
-              {stat.suffix}
-            </Text>
-          )}
-        </View>
-      </View>
-  </TouchableOpacity>
+      </TouchableOpacity>
     );
   }
 

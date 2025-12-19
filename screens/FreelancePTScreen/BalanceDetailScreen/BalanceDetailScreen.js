@@ -352,7 +352,10 @@ const BalanceDetailScreen = () => {
           {/* Transaction List */}
           <ScrollView
             style={styles.scrollView}
-            contentContainerStyle={styles.scrollContent}
+            contentContainerStyle={[
+              styles.scrollContent,
+              activeTab === "available" && styles.scrollContentWithButton,
+            ]}
             refreshControl={
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
@@ -367,6 +370,24 @@ const BalanceDetailScreen = () => {
               </View>
             )}
           </ScrollView>
+
+          {/* Withdrawal Button - Only show for available balance, absolutely positioned at bottom */}
+          {activeTab === "available" && (
+            <TouchableOpacity
+              style={styles.withdrawalButton}
+              onPress={() => {
+                navigation.navigate("ManageTransactionScreen", {
+                  initialTab: "withdrawal",
+                });
+              }}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="arrow-down-circle-outline" size={20} color="#fff" />
+              <Text style={styles.withdrawalButtonText}>
+                {t("dashboard.withdraw", "Rút tiền")}
+              </Text>
+            </TouchableOpacity>
+          )}
         </>
       )}
 
@@ -488,12 +509,41 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#999",
   },
+  withdrawalButton: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#ED2A46",
+    marginHorizontal: 16,
+    marginBottom: 16,
+    paddingVertical: 14,
+    borderRadius: 12,
+    gap: 8,
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    zIndex: 10,
+  },
+  withdrawalButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
     padding: 16,
     paddingBottom: 20,
+  },
+  scrollContentWithButton: {
+    paddingBottom: 90, // Extra padding when button is visible
   },
   dateSection: {
     marginBottom: 24,
