@@ -5,7 +5,7 @@ const dashBoardService = {
     getAvailableBalanceDetail: () => request("GET", "v1/dashboard/available-balance-detail"),
     getPendingBalanceDetail: () => request("GET", "v1/dashboard/pending-balance-detail"),
     getRevenueDetail: () => request("GET", "v1/dashboard/revenue-detail"),
-    getDisburmentDetail: () => request("GET", "v1/dashboard/disburment-detail"),
+    getDisbursementDetail: () => request("GET", "v1/dashboard/disbursement-detail"),
 }
 
 export default dashBoardService;

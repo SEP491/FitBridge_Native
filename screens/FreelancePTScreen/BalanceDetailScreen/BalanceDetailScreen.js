@@ -30,12 +30,16 @@ const BalanceDetailScreen = () => {
   const [activeTab, setActiveTab] = useState(initialTab);
   const [availableData, setAvailableData] = useState([]);
   const [pendingData, setPendingData] = useState([]);
+  const [disbursementData, setDisbursementData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [availableTotal, setAvailableTotal] = useState(0);
   const [pendingTotal, setPendingTotal] = useState(0);
+  const [disbursementTotal, setDisbursementTotal] = useState(0);
   const [availableTotalProfitSum, setAvailableTotalProfitSum] = useState(0);
   const [pendingTotalProfitSum, setPendingTotalProfitSum] = useState(0);
+  const [disbursementTotalProfitSum, setDisbursementTotalProfitSum] =
+    useState(0);
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [selectedImageUri, setSelectedImageUri] = useState(null);
 
@@ -53,7 +57,7 @@ const BalanceDetailScreen = () => {
           setAvailableTotal(response.data.total || 0);
           setAvailableTotalProfitSum(response.data.totalProfitSum || 0);
         }
-      } else {
+      } else if (activeTab === "pending") {
         const response = await dashBoardService.getPendingBalanceDetail();
         if (response && response.data) {
           // Normalize pending items so the UI can render them like transactions
@@ -72,6 +76,22 @@ const BalanceDetailScreen = () => {
           setPendingData(normalizedItems);
           setPendingTotal(response.data.total || 0);
           setPendingTotalProfitSum(response.data.totalProfitSum || 0);
+        }
+      } else if (activeTab === "disbursement") {
+        const response = await dashBoardService.getDisbursementDetail();
+        if (response && response.data) {
+          const normalizedItems = (response.data.items || []).map((item) => ({
+            ...item,
+            transactionType: "Disbursement",
+            transactionId: item.transactionId,
+            description: item.description,
+            transactionDate: item.withdrawDate || item.actualDistributionDate,
+            orderCode: item.withdrawalRequestId,
+            paymentMethod: item.paymentMethod,
+          }));
+          setDisbursementData(normalizedItems);
+          setDisbursementTotal(response.data.total || 0);
+          setDisbursementTotalProfitSum(response.data.totalProfitSum || 0);
         }
       }
     } catch (error) {
@@ -183,7 +203,7 @@ const BalanceDetailScreen = () => {
   const getTransactionTypeIcon = (type) => {
     switch (type) {
       case "Withdraw":
-        return "arrow-down-circle-outline";
+        return "arrow-down-circle-outline";       
       case "PendingDeduction":
         return "arrow-down-circle-outline";
       default:
@@ -194,7 +214,6 @@ const BalanceDetailScreen = () => {
   const getTransactionTypeIconColor = (type) => {
     switch (type) {
       case "Withdraw":
-        return "#ED2A46";
       case "PendingDeduction":
         return "#ED2A46";
       default:
@@ -228,6 +247,8 @@ const BalanceDetailScreen = () => {
   switch (type) {
       case "Withdraw":
         return t("transactionType.withdraw", "Rút tiền");
+      case "Disbursement":
+        return t("transactionType.disbursement", "Giải ngân");
       case "DistributeProfit":
         return t("transactionType.distributeProfit", "Phân bổ lợi nhuận");
       case "PendingDeduction":
@@ -247,12 +268,15 @@ const BalanceDetailScreen = () => {
     const text = getTransactionTypeText(item.transactionType);
     const iconColor = getTransactionTypeIconColor(item.transactionType);
     const backgroundColor = getTransactionTypeBackgroundColor(item.transactionType);
-    const isWithdraw = item.transactionType === "Withdraw";
+    const isWithdraw =
+      item.transactionType === "Withdraw";
     const isPendingDeduction = item.transactionType === "PendingDeduction";
     const amount = item.totalProfit || 0;
 
+    const key = `${item.transactionId || "tx"}-${index}`;
+
     return (
-      <View key={item.transactionId || index} style={styles.transactionItem}>
+      <View key={key} style={styles.transactionItem}>
         <View style={styles.transactionHeader}>
           <View style={[styles.iconContainer, { backgroundColor }]}>
               <Ionicons name={icon} size={20} color={iconColor} />
@@ -260,7 +284,7 @@ const BalanceDetailScreen = () => {
           <View style={styles.transactionInfo}>
             <Text style={styles.transactionType}>{text || "N/A"}</Text>
             <Text style={styles.transactionId}>
-              {item.transactionId?.substring(0, 100).toUpperCase() || "N/A"}
+              {item.transactionId ? item.transactionId : "N/A"}
             </Text>
             {item.description && (
               <Text style={styles.courseName}>{item.description}</Text>
@@ -268,6 +292,7 @@ const BalanceDetailScreen = () => {
 
           </View> 
           <View style={styles.amountContainer}>
+          
             <Text style={[styles.amount, { color }]}>
               {isWithdraw || isPendingDeduction ? " " : "+"} {formatPrice(amount)}
             </Text>
@@ -276,6 +301,10 @@ const BalanceDetailScreen = () => {
                 SD: {formatPrice(item.balance)}
               </Text>
             )}
+            <Text style={styles.transactionId}>
+              {item.withdrawDate || item.transactionDetail?.transactionDate ? formatDate(item.withdrawDate || item.transactionDetail?.transactionDate) : "N/A"}
+            </Text>
+            
           </View>
         </View>
       </View>
@@ -294,8 +323,18 @@ const BalanceDetailScreen = () => {
     );
   };
 
-  const currentData = activeTab === "available" ? availableData : pendingData;
-  const currentTotal = activeTab === "available" ? availableTotal : pendingTotal;
+  const currentData =
+    activeTab === "available"
+      ? availableData
+      : activeTab === "pending"
+      ? pendingData
+      : disbursementData;
+  const currentTotal =
+    activeTab === "available"
+      ? availableTotal
+      : activeTab === "pending"
+      ? pendingTotal
+      : disbursementTotal;
   const groupedTransactions = groupTransactionsByDate(currentData);
   const dateKeys = Object.keys(groupedTransactions).sort((a, b) => new Date(b) - new Date(a));
 
@@ -330,6 +369,19 @@ const BalanceDetailScreen = () => {
             Chờ xử lý
           </Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === "disbursement" && styles.activeTab]}
+          onPress={() => setActiveTab("disbursement")}
+        >
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === "disbursement" && styles.activeTabText,
+            ]}
+          >
+            Giải ngân
+          </Text>
+        </TouchableOpacity>
       </View>
 
       {loading ? (
@@ -339,10 +391,20 @@ const BalanceDetailScreen = () => {
           {/* Summary Card */}
           <View style={styles.summaryCard}>
             <Text style={styles.summaryLabel}>
-              {activeTab === "available" ? "Tổng số dư khả dụng" : "Tổng số dư chờ xử lý"}
+              {activeTab === "available"
+                ? "Tổng số dư khả dụng"
+                : activeTab === "pending"
+                ? "Tổng số dư chờ xử lý"
+                : "Tổng số tiền đã giải ngân"}
             </Text>
             <Text style={styles.summaryAmount}>
-              {formatPrice(activeTab === "available" ? availableTotalProfitSum : pendingTotalProfitSum)}
+              {formatPrice(
+                activeTab === "available"
+                  ? availableTotalProfitSum
+                  : activeTab === "pending"
+                  ? pendingTotalProfitSum
+                  : disbursementTotalProfitSum
+              )}
             </Text>
             <Text style={styles.summaryCount}>
               {currentData.length} giao dịch
@@ -607,7 +669,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#333",
-    marginBottom: 4,
   },
   transactionId: {
     fontSize: 9,

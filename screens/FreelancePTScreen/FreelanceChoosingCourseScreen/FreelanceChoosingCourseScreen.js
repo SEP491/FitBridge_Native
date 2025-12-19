@@ -31,7 +31,12 @@ export default function FreelanceChoosingCourseScreen() {
       console.log("Customer Purchased Data:", response.data);
 
       if (response.data && response.data.items) {
-        setPurchaseList(response.data.items);
+        const sorted = [...response.data.items].sort(
+          (a, b) =>
+            (b.totalAwaitingBookingRequests || 0) -
+            (a.totalAwaitingBookingRequests || 0)
+        );
+        setPurchaseList(sorted);
       }
     } catch (error) {
       console.error("Error loading customer purchases:", error);

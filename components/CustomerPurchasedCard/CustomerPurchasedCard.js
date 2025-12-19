@@ -57,6 +57,21 @@ const CustomerPurchasedCard = ({ purchase, onPress }) => {
                 </Text>
               </View>
             </View>
+
+            {/* Awaiting Booking Requests Badge */}
+            {purchase.totalAwaitingBookingRequests > 0 && (
+              <View style={styles.awaitingBadge}>
+                <Ionicons
+                  name="time-outline"
+                  size={14}
+                  color={colors.red}
+                  style={{ marginRight: 4 }}
+                />
+                <Text style={styles.awaitingBadgeText}>
+                  {purchase.totalAwaitingBookingRequests}
+                </Text>
+              </View>
+            )}
           </View>
 
           {/* Customer Information */}
@@ -261,6 +276,25 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontSize: 11,
     fontWeight: "600",
+  },
+  awaitingBadge: {
+    position:'absolute',
+    right:-22,
+    top:-22,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.9)",
+    paddingHorizontal: 10,
+    paddingVertical: 14,
+    borderRadius: 999,
+    alignSelf: "flex-start",
+    borderWidth: 4,
+    borderColor:colors.white,
+  },
+  awaitingBadgeText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: colors.red,
   },
 });
 

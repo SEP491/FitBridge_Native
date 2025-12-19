@@ -914,7 +914,8 @@
   },
 
   "transactionType": {
-    "pendingDeduction": "Giải ngân tiền tạm giữ",
+    "disbursement": "Giải ngân doanh thu",
+    "pendingDeduction": "Khấu trừ tiền tạm giữ",
     "all": "Tất cả loại",
     "freelancePTPackage": "Khách mua gói tập",
     "extendFreelancePTPackage": "Khách mua gia hạn gói tập",

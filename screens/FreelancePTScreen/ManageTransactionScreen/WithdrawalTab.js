@@ -674,14 +674,20 @@ const styles = StyleSheet.create({
   withdrawalButtonAction: {
     marginTop: 12,
     flexDirection: "row",
-    justifyContent: "flex-end",
+    flex:1,
+    width: "100%",
+    alignItems: "flex-end",
   },
   withdrawalButtonActionItem: {
     paddingVertical: 10,
     paddingHorizontal: 14,
-    backgroundColor: "#4CAF50",
+    backgroundColor: "#ED2A46",
     borderRadius: 10,
     elevation: 1,
+    width: "100%",
+    justifyContent:'center',
+    flex:1,
+    alignItems:'center'
   },
   withdrawalButtonActionText: {
     color: "#fff",

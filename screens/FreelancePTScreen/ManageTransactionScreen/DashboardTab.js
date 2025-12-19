@@ -544,32 +544,6 @@ const DashboardTab = ({
         </View>
       )}
 
-      {/* Quick Actions */}
-      <View style={styles.quickActionsContainer}>
-        <Text style={styles.sectionTitle}>
-          {t('dashboard.quickActions', 'Quick Actions')}
-        </Text>
-        <View style={styles.quickActionsGrid}>
-          <TouchableOpacity 
-            style={styles.quickActionCard}
-            onPress={() => setActiveTab('transactions')}
-          >
-            <Ionicons name="receipt-outline" size={32} color="#ED2A46" />
-            <Text style={styles.quickActionText}>
-              {t('dashboard.viewTransactions', 'View Transactions')}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.quickActionCard}
-            onPress={() => setActiveTab('withdrawal')}
-          >
-            <Ionicons name="wallet-outline" size={32} color="#4CAF50" />
-            <Text style={styles.quickActionText}>
-              {t('dashboard.requestWithdrawal', 'Request Withdrawal')}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
 
       {/* Year Selection Modal */}
       <Modal
