@@ -16,6 +16,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import dashBoardService from "../../../services/dashBoardService";
 import banks from "../../../constants/banks";
 import SummaryCard from "../../../components/SummaryCards/SummaryCard";
+import ImageViewerModal from "../../../components/ReviewCard/ImageViewerModal";
 
 const WithdrawalTab = ({
   totalRevenue,
@@ -44,7 +45,8 @@ const WithdrawalTab = ({
   const [showBankSuggestions, setShowBankSuggestions] = useState(false);
   const MIN_WITHDRAW = 50000;
   const MAX_WITHDRAW = 20000000;
-
+  const [imageModalVisible, setImageModalVisible] = useState(false);
+  const [imageUrls, setImageUrls] = useState([]);
   // Format currency to Vietnamese Dong
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("vi-VN").format(amount) + "₫";
@@ -198,11 +200,8 @@ const WithdrawalTab = ({
   };
 
   const handleViewProof = (url) => () => {
-    if (!url) return;
-    Linking.openURL(url).catch((err) => {
-      console.error("Failed to open proof URL:", err);
-      Alert.alert(t("withdrawal.openProofFailed", "Unable to open proof"));
-    });
+    setImageModalVisible(true);
+    setImageUrls([url]);
   };
 
   const getBankLogo = (bankName) => {
@@ -218,6 +217,13 @@ const WithdrawalTab = ({
 
   return (
     <View style={styles.withdrawalContainer}>
+    <ImageViewerModal
+      visible={imageModalVisible}
+      imageUrls={imageUrls || []}
+      selectedIndex={0}
+      onClose={() => setImageModalVisible(false)}
+      onNavigate={() => {}}
+    />
       {/* Financial Stats */}
       <View style={styles.financialStatsContainer}>
         <View style={styles.financialRow}>
