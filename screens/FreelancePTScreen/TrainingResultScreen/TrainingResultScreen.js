@@ -533,7 +533,7 @@ export const TrainingResultScreen = ({ route, navigation }) => {
                   label={t("trainingResults.averageSessionTime")}
                   value={`${stats.averageSessionTimePerSession?.toFixed(
                     1
-                  )} min`}
+                  )} ${t("trainingResults.seconds")}`}
                   icon="timer-outline"
                 />
                 <StatRow

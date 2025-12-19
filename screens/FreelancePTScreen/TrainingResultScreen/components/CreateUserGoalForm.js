@@ -29,7 +29,9 @@ const muscleGroupImages = {
   Shoulder: require("../../../../assets/images/bodyparts/shoulder.png"),
   Thigh: require("../../../../assets/images/bodyparts/thigh.png"),
   Waist: require("../../../../assets/images/bodyparts/waist.png"),
+  Back: require("../../../../assets/images/bodyparts/back.png"),
   Triceps: require("../../../../assets/images/bodyparts/triceps.png"),
+  Glutes: require("../../../../assets/images/bodyparts/glutes.png"),
   FullBody: require("../../../../assets/images/bodyparts/fullbody.png"),
 };
 const InputField = ({ label, value = "", onChange, onBlur, unit }) => {
@@ -139,12 +141,10 @@ export const CreateUserGoalForm = ({
   onSubmit,
   customerPurchasedId,
   t,
+  modalPosition,
   loading = false,
-  initialData = null,
-  initialSelectedTargetParts = null,
-  mode = "create", // 'create' | 'edit'
 }) => {
-  const buildInitialFormData = () => ({
+  const [formData, setFormData] = useState({
     customerPurchasedId: customerPurchasedId,
     // Start values
     startHeight: "",
@@ -152,41 +152,67 @@ export const CreateUserGoalForm = ({
     startBiceps: "",
     startForeArm: "",
     startChest: "",
+    startBack: "",
     startShoulder: "",
     startWaist: "",
     startHip: "",
     startThigh: "",
     startCalf: "",
+    startGlutes: "",
     // Target values
     targetHeight: "",
     targetWeight: "",
     targetBiceps: "",
     targetForeArm: "",
     targetChest: "",
+    targetBack: "",
     targetShoulder: "",
     targetWaist: "",
     targetHip: "",
     targetThigh: "",
     targetCalf: "",
+    targetGlutes: "",
     // Image
     imageUrl: null,
-    ...(initialData || {}),
   });
 
-  const [formData, setFormData] = useState(buildInitialFormData);
-
-  const [imageUri, setImageUri] = useState(initialData?.imageUrl || null);
+  const [imageUri, setImageUri] = useState(null);
   const [activeSection, setActiveSection] = useState("measurements"); // 'measurements', 'targets', 'photo'
-  const [selectedTargetParts, setSelectedTargetParts] = useState(
-    initialSelectedTargetParts || []
-  ); // Array of selected part keys
+  const [selectedTargetParts, setSelectedTargetParts] = useState([]); // Array of selected part keys
   const [showTargetPartsModal, setShowTargetPartsModal] = useState(false);
 
   const resetForm = () => {
-    setFormData(buildInitialFormData());
-    setImageUri(initialData?.imageUrl || null);
+    setFormData({
+      customerPurchasedId: customerPurchasedId,
+      startHeight: "",
+      startWeight: "",
+      startBiceps: "",
+      startForeArm: "",
+      startChest: "",
+      startBack: "",
+      startShoulder: "",
+      startWaist: "",
+      startHip: "",
+      startThigh: "",
+      startCalf: "",
+      startGlutes: "",
+      targetHeight: "",
+      targetWeight: "",
+      targetBiceps: "",
+      targetForeArm: "",
+      targetChest: "",
+      targetBack: "",
+      targetShoulder: "",
+      targetWaist: "",
+      targetHip: "",
+      targetThigh: "",
+      targetCalf: "",
+      targetGlutes: "",
+      imageUrl: null,
+    });
+    setImageUri(null);
     setActiveSection("measurements");
-    setSelectedTargetParts(initialSelectedTargetParts || []);
+    setSelectedTargetParts([]);
   };
 
   const toggleTargetPart = (partKey) => {
@@ -216,6 +242,7 @@ export const CreateUserGoalForm = ({
     { key: "Biceps", label: t("muscleGroups.biceps", "Biceps"), unit: "cm" },
     { key: "ForeArm", label: t("muscleGroups.foreArm", "Forearm"), unit: "cm" },
     { key: "Chest", label: t("muscleGroups.chest", "Chest"), unit: "cm" },
+    { key: "Back", label: t("muscleGroups.back", "Back"), unit: "cm" },
     {
       key: "Shoulder",
       label: t("muscleGroups.shoulder", "Shoulder"),
@@ -225,6 +252,7 @@ export const CreateUserGoalForm = ({
     { key: "Hip", label: t("muscleGroups.hip", "Hip"), unit: "cm" },
     { key: "Thigh", label: t("muscleGroups.thigh", "Thigh"), unit: "cm" },
     { key: "Calf", label: t("muscleGroups.calf", "Calf"), unit: "cm" },
+    { key: "Glutes", label: t("muscleGroups.glutes", "Glutes"), unit: "cm" },
   ];
 
   const handleOnChangeText = (field) => (value) => {
@@ -392,7 +420,7 @@ export const CreateUserGoalForm = ({
 
     // Prepare data for submission - convert strings to numbers
     // For target parts: if not selected, default to 0
-    const musclePartKeys = ["Biceps", "ForeArm", "Chest", "Shoulder", "Waist", "Hip", "Thigh", "Calf"];
+    const musclePartKeys = ["Biceps", "ForeArm", "Chest", "Back", "Shoulder", "Waist", "Hip", "Thigh", "Calf", "Glutes"];
     
     const submissionData = {
       ...formData,
@@ -405,6 +433,7 @@ export const CreateUserGoalForm = ({
         ? parseFloat(formData.startForeArm)
         : null,
       startChest: formData.startChest ? parseFloat(formData.startChest) : null,
+      startBack: formData.startBack ? parseFloat(formData.startBack) : null,
       startShoulder: formData.startShoulder
         ? parseFloat(formData.startShoulder)
         : null,
@@ -412,6 +441,9 @@ export const CreateUserGoalForm = ({
       startHip: formData.startHip ? parseFloat(formData.startHip) : null,
       startThigh: formData.startThigh ? parseFloat(formData.startThigh) : null,
       startCalf: formData.startCalf ? parseFloat(formData.startCalf) : null,
+      startGlutes: formData.startGlutes
+        ? parseFloat(formData.startGlutes)
+        : null,
       // Target Height and Weight: if selected and has value, use it; if not selected, use 0
       targetHeight: selectedTargetParts.includes("Height") && formData.targetHeight
         ? parseFloat(formData.targetHeight)
@@ -429,6 +461,9 @@ export const CreateUserGoalForm = ({
       targetChest: selectedTargetParts.includes("Chest") && formData.targetChest
         ? parseFloat(formData.targetChest)
         : 0,
+      targetBack: selectedTargetParts.includes("Back") && formData.targetBack
+        ? parseFloat(formData.targetBack)
+        : 0,
       targetShoulder: selectedTargetParts.includes("Shoulder") && formData.targetShoulder
         ? parseFloat(formData.targetShoulder)
         : 0,
@@ -443,6 +478,9 @@ export const CreateUserGoalForm = ({
         : 0,
       targetCalf: selectedTargetParts.includes("Calf") && formData.targetCalf
         ? parseFloat(formData.targetCalf)
+        : 0,
+      targetGlutes: selectedTargetParts.includes("Glutes") && formData.targetGlutes
+        ? parseFloat(formData.targetGlutes)
         : 0,
     };
 
@@ -878,7 +916,7 @@ const SCREEN_HEIGHT = Dimensions.get("window").height;
 const styles = StyleSheet.create({
   coverLayer: {
     position: "absolute",
-    top: 0,
+    top: 0 + modalPosition || 0,
     left: 0,
     right: 0,
     bottom: 0,
@@ -887,15 +925,16 @@ const styles = StyleSheet.create({
   },
   container: {
     position: "absolute",
+    top: 100,
     left: 0,
     right: 0,
     bottom: 0,
     backgroundColor: "#fff",
     zIndex: 1000,
-    maxHeight: SCREEN_HEIGHT * 0.9,
+    maxHeight: 700,
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
-    marginHorizontal: 0,
+    marginHorizontal: 10,
     paddingHorizontal: 10,
   },
   headerBar: {
@@ -916,7 +955,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: 16,
-    maxHeight: SCREEN_HEIGHT * 0.7, // Adjust based on header and footer height
+    maxHeight: SCREEN_HEIGHT - 450, // Adjust based on header and footer height
   },
   sectionTabs: {
     flexDirection: "row",

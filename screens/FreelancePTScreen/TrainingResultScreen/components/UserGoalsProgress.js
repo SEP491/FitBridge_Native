@@ -662,6 +662,7 @@ export const UserGoalsProgress = ({
       {showEditGoalForm && userGoals && (
         <CreateUserGoalForm
           visible={showEditGoalForm}
+          modalPostion={1000}
           onClose={() => setShowEditGoalForm(false)}
           onSubmit={handleSubmitEditGoals}
           customerPurchasedId={customerPurchasedId}

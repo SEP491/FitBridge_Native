@@ -1932,6 +1932,7 @@
     }
   },
   "trainingResults": {
+    "seconds":"Giây",
     "muscleGroupLabel": "Nhóm cơ:",
     "metricWeight": "Trọng lượng",
     "metricReps": "Số lần lặp",
