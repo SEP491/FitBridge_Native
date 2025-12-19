@@ -887,16 +887,15 @@ const styles = StyleSheet.create({
   },
   container: {
     position: "absolute",
-    top: SCREEN_HEIGHT - 900,
     left: 0,
     right: 0,
     bottom: 0,
     backgroundColor: "#fff",
     zIndex: 1000,
-    maxHeight: SCREEN_HEIGHT,
+    maxHeight: SCREEN_HEIGHT * 0.9,
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
-    marginHorizontal: 10,
+    marginHorizontal: 0,
     paddingHorizontal: 10,
   },
   headerBar: {
@@ -917,7 +916,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: 16,
-    maxHeight: SCREEN_HEIGHT - 450, // Adjust based on header and footer height
+    maxHeight: SCREEN_HEIGHT * 0.7, // Adjust based on header and footer height
   },
   sectionTabs: {
     flexDirection: "row",

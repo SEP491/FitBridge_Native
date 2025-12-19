@@ -16,6 +16,7 @@ import UserGoalService from "../../../../services/user-goalService";
 import BodyMeasurementsService from "../../../../services/body-measurementService";
 import BodyMeasurementHistoryModal from "./BodyMeasurementHistoryModal";
 import { CreateUserGoalForm } from "./CreateUserGoalForm";
+import { fetchUserFromStorage } from "../../../../lib";
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 // Muscle group images mapping
@@ -51,7 +52,16 @@ export const UserGoalsProgress = ({
   const [historyModalVisible, setHistoryModalVisible] = React.useState(false);
   const [updatingGoals, setUpdatingGoals] = React.useState(false);
   const [showEditGoalForm, setShowEditGoalForm] = React.useState(false);
+  const [userRole, setUserRole] = React.useState(null);
 
+  const fetchUser = async () => {
+    try {
+      const user = await fetchUserFromStorage();
+      setUserRole(user.role);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+    }
+  };
   const fetchUserGoals = async () => {
     try {
       setLoading(true);
@@ -91,6 +101,7 @@ export const UserGoalsProgress = ({
   };
 
   React.useEffect(() => {
+    fetchUser();
     fetchUserGoals();
     fetchBodyMeasurements();
   }, [customerPurchasedId]);
@@ -382,6 +393,7 @@ export const UserGoalsProgress = ({
         icon="trending-up"
       >
         {/* Update Goals Button */}
+        {userRole === "FreelancePT" && (
         <View style={styles.updateGoalsContainer}>
           <TouchableOpacity
             style={[
@@ -402,7 +414,7 @@ export const UserGoalsProgress = ({
             </Text>
           </TouchableOpacity>
         </View>
-
+            )}
         {/* Muscle Group Selection Buttons */}
         <ScrollView
           horizontal
