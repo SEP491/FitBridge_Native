@@ -12,6 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 import customerPurchasedService from "../../services/customerPurchased";
 import { useTranslation } from "../../hooks/useTranslation";
 import { t } from "../../i18n";
+import { fetchUserFromStorage } from "../../lib";
 
 const formatDateTime = (iso) => {
   if (!iso) return "-";
@@ -78,34 +79,75 @@ const getStatusColor = (status) => {
   };
 
 const TransactionItem = ({ item, t }) => {
+  const statusColor = getStatusColor(item.status);
+  const statusText = getStatusText(item.status);
+  const [userRole, setUserRole] = useState(null);
+
+
+  const fetchUser = async () => {
+    const user = await fetchUserFromStorage();
+    setUserRole(user.role);
+  }
+  
+  useEffect(() => {
+    fetchUser();
+  }, []);
+
   return (
-    <View style={styles.transactionCard}>
+    <View style={styles.transactionItem}>
       <View style={styles.transactionHeader}>
-        <Text style={styles.transactionTitle}>{item.description || t("customerPurchasedTransaction.transaction")}</Text>
-        <View style={[styles.statusBadge, item.status !== "Success" && styles.statusBadgeAlt]}>
+        <View style={styles.transactionInfo}>
+          <Text style={styles.transactionType}>
+            {item.description ||
+              t("customerPurchasedTransaction.transaction", "Transaction")}
+          </Text>
+          <Text style={styles.transactionId}>
+            {item.transactionId || item.orderId || "-"}
+          </Text>
+          <Text style={styles.courseName}>
+            {t("customerPurchasedTransaction.orderCode")}:{" "}
+            {item.orderCode ?? "-"}
+          </Text>
+          <Text style={styles.courseName}>
+            {t("customerPurchasedTransaction.method")}:{" "}
+            {item.paymentMethod ?? "-"}
+          </Text>
+        </View>
+
+        {/* Status & Date on the top-right */}
+        <View style={styles.statusContainer}>
           <Text
-            style={[
-              styles.statusText,
-              { color: getStatusColor(item.status) },
-            ]}
+            style={[styles.statusText, { color: statusColor }]}
+            numberOfLines={1}
           >
-            {getStatusText(item.status)}
+            {statusText}
+          </Text>
+          <Text style={styles.statusDate}>
+            {formatDateTime(item.transactionDate)}
           </Text>
         </View>
       </View>
 
-      <Text style={styles.metaText}>{formatDateTime(item.transactionDate)}</Text>
-      <Text style={styles.metaText}>{t("customerPurchasedTransaction.orderCode")}: {item.orderCode ?? "-"}</Text>
-      <Text style={styles.metaText}>{t("customerPurchasedTransaction.orderId")}: {item.orderId ?? "-"}</Text>
-      <Text style={styles.metaText}>{t("customerPurchasedTransaction.method")}: {item.paymentMethod ?? "-"}</Text>
-
-      <View style={styles.amountRow}>
-        <Text style={styles.amountLabel}>{t("customerPurchasedTransaction.total")}</Text>
-        <Text style={styles.amountValue}>{formatCurrency(item.totalAmount)}₫</Text>
-      </View>
-      <View style={styles.amountRow}>
-        <Text style={styles.amountLabel}>{t("customerPurchasedTransaction.merchantProfit")}</Text>
-        <Text style={styles.amountValue}>{formatCurrency(item.merchantProfit)}₫</Text>
+      {/* Amount badges row */}
+      <View style={styles.amountBadgesRow}>
+        <View style={[styles.amountBadge, styles.totalBadge,]}>
+          <Text style={styles.amountBadgeLabel}>
+            {t("customerPurchasedTransaction.total")}
+          </Text>
+          <Text style={styles.amountBadgeValue}>
+            {formatCurrency(item.totalAmount)}₫
+          </Text>
+        </View>
+        {userRole === "FreelancePT" && (
+        <View style={[styles.amountBadge, styles.profitBadge]}>
+          <Text style={styles.amountBadgeLabel}>
+            {t("customerPurchasedTransaction.merchantProfit")}
+          </Text>
+          <Text style={styles.amountBadgeValue}>
+            {formatCurrency(item.merchantProfit)}₫
+          </Text>
+        </View>
+        )}
       </View>
     </View>
   );
@@ -292,7 +334,7 @@ const styles = StyleSheet.create({
   },
   transactionHeader: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     justifyContent: "space-between",
   },
   transactionTitle: {
@@ -317,6 +359,15 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "700",
   },
+  statusContainer: {
+    alignItems: "flex-end",
+    marginLeft: 8,
+  },
+  statusDate: {
+    marginTop: 4,
+    fontSize: 11,
+    color: "#666",
+  },
   metaText: {
     marginTop: 6,
     fontSize: 13,
@@ -333,6 +384,95 @@ const styles = StyleSheet.create({
     color: "#555",
   },
   amountValue: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#111",
+  },
+  // New styles to match BalanceDetailScreen transaction cards
+  transactionItem: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  iconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  transactionInfo: {
+    flex: 1,
+  },
+  transactionType: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
+  },
+  transactionId: {
+    fontSize: 9,
+    color: "#999",
+    marginTop: 2,
+    fontWeight: "300",
+  },
+  courseName: {
+    fontSize: 11,
+    color: "#777",
+    marginTop: 4,
+  },
+  amountContainer: {
+    alignItems: "flex-end",
+    justifyContent: "flex-start",
+  },
+  amount: {
+    fontSize: 16,
+    fontWeight: "700",
+    marginBottom: 4,
+  },
+  balanceText: {
+    fontSize: 12,
+    color: "#999",
+    marginTop: 2,
+  },
+  amountBadgesRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 12,
+    gap: 8,
+  },
+  amountBadge: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    backgroundColor: "#f8f9fa",
+    justifyContent:'center',
+    alignItems:'flex-end'
+  },
+  totalBadge: {
+    borderWidth: 1,
+
+    borderColor: "rgba(237, 42, 70, 0.4)",
+    backgroundColor: "rgba(237, 42, 70, 0.06)",
+  },
+  profitBadge: {
+    borderWidth: 1,
+    borderColor: "rgba(76, 175, 80, 0.4)",
+    backgroundColor: "rgba(76, 175, 80, 0.06)",
+  },
+  amountBadgeLabel: {
+    fontSize: 11,
+    color: "#666",
+    marginBottom: 4,
+  },
+  amountBadgeValue: {
     fontSize: 15,
     fontWeight: "700",
     color: "#111",
