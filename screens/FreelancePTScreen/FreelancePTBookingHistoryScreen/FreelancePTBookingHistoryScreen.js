@@ -13,6 +13,7 @@ import {
   FlatList,
 } from "react-native";
 import { useEffect, useState, useMemo, useCallback } from "react";
+import { useNavigation } from "@react-navigation/native";
 import accountService from "../../../services/accountService";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
@@ -23,6 +24,7 @@ const { width } = Dimensions.get("window");
 
 export default function FreelancePTBookingHistoryScreen() {
   const { t } = useTranslation();
+  const navigation = useNavigation();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -176,6 +178,11 @@ export default function FreelancePTBookingHistoryScreen() {
       <TouchableOpacity
         style={[styles.bookingItem, { transform: [{ scale: 1 }] }]}
         activeOpacity={0.95}
+        onPress={() =>
+          navigation.navigate("BookingDetailScreen", {
+            Booking: booking,
+          })
+        }
       >
         {/* Header with date and status */}
         <View
@@ -313,83 +320,93 @@ export default function FreelancePTBookingHistoryScreen() {
 
   const renderStatusFilter = () => (
     <View style={styles.filterContainer}>
-      <TouchableOpacity
-        style={[styles.filterChip, !selectedStatus && styles.filterChipActive]}
-        onPress={() => setSelectedStatus("")}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.filterScrollContent}
       >
-        <Text
+        <TouchableOpacity
           style={[
-            styles.filterChipText,
-            !selectedStatus && styles.filterChipTextActive,
+            styles.filterChip,
+            !selectedStatus && styles.filterChipActive,
           ]}
+          onPress={() => setSelectedStatus("")}
         >
-          {t("booking.all")}
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[
-          styles.filterChip,
-          selectedStatus === "Booked" && styles.filterChipActive,
-        ]}
-        onPress={() => setSelectedStatus("Booked")}
-      >
-        <Text
+          <Text
+            style={[
+              styles.filterChipText,
+              !selectedStatus && styles.filterChipTextActive,
+            ]}
+          >
+            {t("booking.all")}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
           style={[
-            styles.filterChipText,
-            selectedStatus === "Booked" && styles.filterChipTextActive,
+            styles.filterChip,
+            selectedStatus === "Booked" && styles.filterChipActive,
           ]}
+          onPress={() => setSelectedStatus("Booked")}
         >
-          {t("booking.booked")}
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[
-          styles.filterChip,
-          selectedStatus === "Finished" && styles.filterChipActive,
-        ]}
-        onPress={() => setSelectedStatus("Finished")}
-      >
-        <Text
+          <Text
+            style={[
+              styles.filterChipText,
+              selectedStatus === "Booked" && styles.filterChipTextActive,
+            ]}
+          >
+            {t("booking.booked")}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
           style={[
-            styles.filterChipText,
-            selectedStatus === "Finished" && styles.filterChipTextActive,
+            styles.filterChip,
+            selectedStatus === "Finished" && styles.filterChipActive,
           ]}
+          onPress={() => setSelectedStatus("Finished")}
         >
-          {t("booking.completed")}
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[
-          styles.filterChip,
-          selectedStatus === "Cancelled" && styles.filterChipActive,
-        ]}
-        onPress={() => setSelectedStatus("Cancelled")}
-      >
-        <Text
+          <Text
+            style={[
+              styles.filterChipText,
+              selectedStatus === "Finished" && styles.filterChipTextActive,
+            ]}
+          >
+            {t("booking.completed")}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
           style={[
-            styles.filterChipText,
-            selectedStatus === "Cancelled" && styles.filterChipTextActive,
+            styles.filterChip,
+            selectedStatus === "Cancelled" && styles.filterChipActive,
           ]}
+          onPress={() => setSelectedStatus("Cancelled")}
         >
-          {t("booking.canceled")}
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[
-          styles.filterChip,
-          selectedStatus === "WaitingForEdit" && styles.filterChipActive,
-        ]}
-        onPress={() => setSelectedStatus("WaitingForEdit")}
-      >
-        <Text
+          <Text
+            style={[
+              styles.filterChipText,
+              selectedStatus === "Cancelled" && styles.filterChipTextActive,
+            ]}
+          >
+            {t("booking.canceled")}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
           style={[
-            styles.filterChipText,
-            selectedStatus === "WaitingForEdit" && styles.filterChipTextActive,
+            styles.filterChip,
+            selectedStatus === "WaitingForEdit" && styles.filterChipActive,
           ]}
+          onPress={() => setSelectedStatus("WaitingForEdit")}
         >
-          {t("booking.waitingForEdit")}
-        </Text>
-      </TouchableOpacity>
+          <Text
+            style={[
+              styles.filterChipText,
+              selectedStatus === "WaitingForEdit" &&
+                styles.filterChipTextActive,
+            ]}
+          >
+            {t("booking.waitingForEdit")}
+          </Text>
+        </TouchableOpacity>
+      </ScrollView>
     </View>
   );
 
@@ -845,11 +862,12 @@ const styles = StyleSheet.create({
     height: 20,
   },
   filterContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
     paddingHorizontal: 16,
     marginBottom: 8,
-    gap: 8,
+  },
+  filterScrollContent: {
+    paddingRight: 16,
+    columnGap: 8,
   },
   filterChip: {
     paddingHorizontal: 16,

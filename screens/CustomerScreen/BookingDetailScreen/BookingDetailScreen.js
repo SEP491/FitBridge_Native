@@ -144,7 +144,9 @@ export default function BookingDetailScreen({ route, navigation }) {
   const fetchBookingDetail = async () => {
     try {
       setLoading(true);
-      const response = await bookingService.getBookingDetail(Booking.bookingId);
+      const response = await bookingService.getBookingDetail(
+        Booking.bookingId || Booking.id
+      );
       console.log("Booking Detail:", response.data);
       setBookingDetail(response.data);
     } catch (error) {
@@ -189,7 +191,9 @@ export default function BookingDetailScreen({ route, navigation }) {
   const fetchBookingResult = async () => {
     try {
       setLoadingResult(true);
-      const response = await bookingService.getBookingResult(Booking.bookingId);
+      const response = await bookingService.getBookingResult(
+        Booking.bookingId || Booking.id
+      );
       console.log("Booking Result:", response.data);
       setBookingResult(response.data);
     } catch (error) {
