@@ -23,78 +23,176 @@ const getMuscleGroupImage = (muscleGroup) => {
   return muscleGroupImages[normalized] || null;
 };
 
-export const MuscleGroupPerformance = ({ stats, t, StatCard, getMuscleGroupText }) => {
+const hasNonZeroStats = (m) => {
+  if (!m) return false;
+  return (
+    (m.totalTime || 0) > 0 ||
+    (m.setsCompleted || 0) > 0 ||
+    (m.totalWeight || 0) > 0 ||
+    (m.totalReps || 0) > 0
+  );
+};
+
+
+export const MuscleGroupPerformance = ({
+  stats,
+  t,
+  StatCard,
+  getMuscleGroupText,
+}) => {
+
+  const MuscleCard = ({ title, muscle, t, getMuscleGroupText }) => {
+    if (!muscle) return null;
+    const image = getMuscleGroupImage(muscle.muscleGroup);
+    const name = getMuscleGroupText
+      ? getMuscleGroupText(muscle.muscleGroup)
+      : muscle.muscleGroup;
+
+    const metrics = [
+      {
+        key: 'sets',
+        value: `${muscle.setsCompleted}/${muscle.setsCount}`,
+        label: t('trainingResults.sets'),
+        color: '#2196F3',
+      },
+      {
+        key: 'weight',
+        value: muscle.totalWeight,
+        label: t('trainingResults.weightKg'),
+        color: '#FF6B35',
+      },
+      {
+        key: 'reps',
+        value: muscle.totalReps,
+        label: t('trainingResults.reps'),
+        color: '#4CAF50',
+      },
+      {
+        key: 'time',
+        value: muscle.totalTime,
+        label: t('trainingResults.time'),
+        color: '#9C27B0',
+      },
+    ];
+
+    // Chunk metrics into rows of 3
+    const rows = [];
+    for (let i = 0; i < metrics.length; i += 2) {
+      rows.push(metrics.slice(i, i + 2));
+    }
+
+    return (
+      <StatCard title={title} icon="body">
+        <View style={styles.muscleGroupCard}>
+          {image && (
+            <Image
+              source={image}
+              style={styles.muscleGroupImage}
+              resizeMode="contain"
+            />
+          )}
+          <Text style={styles.muscleGroupName}>{name}</Text>
+          <View style={styles.muscleGroupStats}>
+            {rows.map((row, rowIndex) => (
+              <View
+                key={`row-${rowIndex}`}
+                style={styles.muscleGroupStatsRow}
+              >
+                {row.map((metric) => (
+                  <View
+                    key={metric.key}
+                    style={styles.muscleGroupStat}
+                  >
+                    <Text
+                      style={[
+                        styles.muscleGroupStatValue,
+                        { color: metric.color },
+                      ]}
+                    >
+                      {metric.value}
+                    </Text>
+                    <Text style={styles.muscleGroupStatLabel}>
+                      {metric.label}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            ))}
+          </View>
+        </View>
+      </StatCard>
+    );
+  };
+  
+  // Try to get a list of muscle stats from possible keys
+  const listKeys = ['muscleGroupStats', 'muscleGroups', 'muscleGroupDetails'];
+  let muscleList = [];
+  for (const key of listKeys) {
+    if (Array.isArray(stats?.[key]) && stats[key].length > 0) {
+      muscleList = stats[key];
+      break;
+    }
+  }
+
+  let itemsToRender = [];
+
+  if (muscleList.length > 0) {
+    // Filter out zero-only stats and sort by setsCompleted desc
+    const nonZero = muscleList.filter(hasNonZeroStats);
+    const sorted = nonZero.sort(
+      (a, b) => (b.setsCompleted || 0) - (a.setsCompleted || 0)
+    );
+    itemsToRender = sorted.slice(0, 3);
+  } else {
+    // Fallback to most/least trained fields
+    const candidates = [];
+    if (hasNonZeroStats(stats.mostTrainedMuscleGroup)) {
+      candidates.push({
+        muscle: stats.mostTrainedMuscleGroup,
+        title: t('trainingResults.mostTrainedMuscleGroup'),
+      });
+    }
+    if (
+      hasNonZeroStats(stats.leastTrainedMuscleGroup) &&
+      stats.leastTrainedMuscleGroup?.muscleGroup !==
+        stats.mostTrainedMuscleGroup?.muscleGroup
+    ) {
+      candidates.push({
+        muscle: stats.leastTrainedMuscleGroup,
+        title: t('trainingResults.leastTrainedMuscleGroup'),
+      });
+    }
+    itemsToRender = candidates.map((c) => c.muscle);
+  }
+
+  if (!itemsToRender.length) return null;
+
   return (
     <>
-      {stats.mostTrainedMuscleGroup && (
-        <StatCard title={t('trainingResults.mostTrainedMuscleGroup')} icon="body">
-          <View style={styles.muscleGroupCard}>
-            {getMuscleGroupImage(stats.mostTrainedMuscleGroup.muscleGroup) && (
-              <Image 
-                source={getMuscleGroupImage(stats.mostTrainedMuscleGroup.muscleGroup)}
-                style={styles.muscleGroupImage}
-                resizeMode="contain"
-              />
-            )}
-            <Text style={styles.muscleGroupName}>
-              {getMuscleGroupText
-                ? getMuscleGroupText(stats.mostTrainedMuscleGroup.muscleGroup)
-                : stats.mostTrainedMuscleGroup.muscleGroup}
-            </Text>
-            <View style={styles.muscleGroupStats}>
-              <View style={styles.muscleGroupStat}>
-                <Text style={[styles.muscleGroupStatValue, { color: '#2196F3' }]}>
-                  {stats.mostTrainedMuscleGroup.setsCompleted}/{stats.mostTrainedMuscleGroup.setsCount}
-                </Text>
-                <Text style={styles.muscleGroupStatLabel}>{t('trainingResults.sets')}</Text>
-              </View>
-              <View style={styles.muscleGroupStat}>
-                <Text style={[styles.muscleGroupStatValue, { color: '#FF6B35' }]}>{stats.mostTrainedMuscleGroup.totalWeight}</Text>
-                <Text style={styles.muscleGroupStatLabel}>{t('trainingResults.weightKg')}</Text>
-              </View>
-              <View style={styles.muscleGroupStat}>
-                <Text style={[styles.muscleGroupStatValue, { color: '#4CAF50' }]}>{stats.mostTrainedMuscleGroup.totalReps}</Text>
-                <Text style={styles.muscleGroupStatLabel}>{t('trainingResults.reps')}</Text>
-              </View>
-            </View>
-          </View>
-        </StatCard>
-      )}
+      {itemsToRender.map((muscle, index) => {
+        // Choose titles for top 3 when coming from list
+        const defaultTitles = [
+          t('trainingResults.topMuscle1', 'Top Muscle Group'),
+          t('trainingResults.topMuscle2', 'Second Muscle Group'),
+          t('trainingResults.topMuscle3', 'Third Muscle Group'),
+        ];
+        const title =
+          muscleList.length > 0
+            ? defaultTitles[index] || defaultTitles[0]
+            : index === 0
+            ? t('trainingResults.mostTrainedMuscleGroup')
+            : t('trainingResults.leastTrainedMuscleGroup');
 
-      {stats.leastTrainedMuscleGroup && (
-        <StatCard title={t('trainingResults.leastTrainedMuscleGroup')} icon="body-outline">
-          <View style={styles.muscleGroupCard}>
-            {getMuscleGroupImage(stats.leastTrainedMuscleGroup.muscleGroup) && (
-              <Image 
-                source={getMuscleGroupImage(stats.leastTrainedMuscleGroup.muscleGroup)}
-                style={styles.muscleGroupImage}
-                resizeMode="contain"
-              />
-            )}
-            <Text style={styles.muscleGroupName}>
-              {getMuscleGroupText
-                ? getMuscleGroupText(stats.leastTrainedMuscleGroup.muscleGroup)
-                : stats.leastTrainedMuscleGroup.muscleGroup}
-            </Text>
-            <View style={styles.muscleGroupStats}>
-              <View style={styles.muscleGroupStat}>
-                <Text style={[styles.muscleGroupStatValue, { color: '#2196F3' }]}>
-                  {stats.leastTrainedMuscleGroup.setsCompleted}/{stats.leastTrainedMuscleGroup.setsCount}
-                </Text>
-                <Text style={styles.muscleGroupStatLabel}>{t('trainingResults.sets')}</Text>
-              </View>
-              <View style={styles.muscleGroupStat}>
-                <Text style={[styles.muscleGroupStatValue, { color: '#FF6B35' }]}>{stats.leastTrainedMuscleGroup.totalWeight}</Text>
-                <Text style={styles.muscleGroupStatLabel}>{t('trainingResults.weightKg')}</Text>
-              </View>
-              <View style={styles.muscleGroupStat}>
-                <Text style={[styles.muscleGroupStatValue, { color: '#4CAF50' }]}>{stats.leastTrainedMuscleGroup.totalReps}</Text>
-                <Text style={styles.muscleGroupStatLabel}>{t('trainingResults.reps')}</Text>
-              </View>
-            </View>
-          </View>
-        </StatCard>
-      )}
+        return (
+          <MuscleCard
+            key={`${muscle.muscleGroup || 'muscle'}-${index}`}
+            title={title}
+            muscle={muscle}
+            t={t}
+            getMuscleGroupText={getMuscleGroupText}
+          />
+        );
+      })}
     </>
   );
 };
@@ -119,9 +217,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   muscleGroupStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
     width: '100%',
+  },
+  muscleGroupStatsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
   },
   muscleGroupStat: {
     alignItems: 'center',
@@ -135,7 +236,8 @@ const styles = StyleSheet.create({
     borderRightWidth: 3,
     borderBottomColor: 'rgba(255, 255, 255, 0.3)',
     borderBottomWidth: 3,
-    minWidth: '30%',
+    flex: 1,
+    marginHorizontal: 4,
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 12,

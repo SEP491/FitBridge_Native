@@ -490,7 +490,10 @@ export const TrainingResultScreen = ({ route, navigation }) => {
                 t={t}
                 StatCard={StatCard}
                 stats={stats}
+                onlyLineChart={true}
+                customerPurchasedId={customerPurchasedId}
                 navigation={navigation}
+                initialUserGoals={stats?.userGoals}
               />
             </>
           )}
@@ -571,14 +574,14 @@ export const TrainingResultScreen = ({ route, navigation }) => {
                   <StatRow
                     label={t("trainingResults.totalPracticeTime")}
                     value={`${Math.floor(
-                      stats.workoutStatistics.totalPracticeTimeSeconds / 60
-                    )}m / ${Math.floor(
-                      stats.workoutStatistics.plannedPracticeTime / 60
-                    )}m`}
+                      stats.workoutStatistics.totalPracticeTimeSeconds 
+                    )} ${t("trainingResults.seconds")} / ${Math.floor(
+                      stats.workoutStatistics.plannedPracticeTime
+                    )} ${t("trainingResults.seconds")}`}
                   />
                   <StatRow
                     label={t("trainingResults.averageRestTime")}
-                    value={`${stats.workoutStatistics.averageRestTimeSeconds}s`}
+                    value={`${stats.workoutStatistics.averageRestTimeSeconds} ${t("trainingResults.seconds")}`}
                   />
                 </StatCard>
               )}
@@ -618,6 +621,7 @@ export const TrainingResultScreen = ({ route, navigation }) => {
                 stats={stats}
                 customerPurchasedId={customerPurchasedId}
                 navigation={navigation}
+                initialUserGoals={stats?.userGoals}
                 onCreateGoal={() => {
                   setShowCreateGoalForm(true);
                 }}

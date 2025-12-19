@@ -43,8 +43,10 @@ export const UserGoalsProgress = ({
   customerPurchasedId,
   onCreateGoal,
   navigation,
+  initialUserGoals,
+  onlyLineChart = false,
 }) => {
-  const [userGoals, setUserGoals] = React.useState(null);
+  const [userGoals, setUserGoals] = React.useState(initialUserGoals || null);
   const [bodyMeasurements, setBodyMeasurements] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [selectedMuscleGroup, setSelectedMuscleGroup] =
@@ -64,10 +66,8 @@ export const UserGoalsProgress = ({
   };
   const fetchUserGoals = async () => {
     try {
-      setLoading(true);
       if (!customerPurchasedId) {
         setUserGoals(null);
-        setLoading(false);
         return;
       }
       const response = await UserGoalService.getUserGoals(customerPurchasedId);
@@ -80,7 +80,7 @@ export const UserGoalsProgress = ({
       console.error("Error fetching user goals:", error);
       setUserGoals(null);
     } finally {
-      setLoading(false);
+      // loading state handled in effects
     }
   };
 
@@ -101,10 +101,27 @@ export const UserGoalsProgress = ({
   };
 
   React.useEffect(() => {
+    // If parent already provides user goals from stats, use them and avoid extra API
+    if (initialUserGoals) {
+      setUserGoals(initialUserGoals);
+      setLoading(false);
+      fetchUser();
+      fetchBodyMeasurements();
+      return;
+    }
+
+    setLoading(true);
     fetchUser();
-    fetchUserGoals();
+    fetchUserGoals().finally(() => setLoading(false));
     fetchBodyMeasurements();
-  }, [customerPurchasedId]);
+  }, [customerPurchasedId, initialUserGoals]);
+
+  // Keep userGoals in sync if initialUserGoals prop changes later
+  React.useEffect(() => {
+    if (initialUserGoals) {
+      setUserGoals(initialUserGoals);
+    }
+  }, [initialUserGoals]);
 
   const handleSubmitEditGoals = async (data) => {
     if (!customerPurchasedId) return;
@@ -268,6 +285,7 @@ export const UserGoalsProgress = ({
 
   return (
     <>
+    {onlyLineChart === false && (
       <StatCard
         title={t("trainingResults.currentUserStats", "Current User Stats")}
         icon="body"
@@ -387,6 +405,7 @@ export const UserGoalsProgress = ({
           )}
         </View>
       </StatCard>
+      )}
 
       <StatCard
         title={t("trainingResults.userGoalsProgress", "User Goals Progress")}
@@ -523,6 +542,8 @@ export const UserGoalsProgress = ({
           </View>
         )}
 
+        {onlyLineChart === false && (
+          <>
         {/* Detailed Goals Info */}
         <View style={styles.goalsDetailContainer}>
           {muscleGroups.map((group, index) => {
@@ -656,6 +677,8 @@ export const UserGoalsProgress = ({
             );
           })}
         </View>
+        </>
+        )}
       </StatCard>
 
       {/* Edit User Goal Form */}
