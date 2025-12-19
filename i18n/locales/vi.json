@@ -303,6 +303,7 @@
   },
 
   "bookingDetail": {
+    "selectExercise": "Chọn Bài Tập",
     "noContent": "Chưa Có Nội Dung",
     "ptHasNotCreatedContent": "PT chưa tạo nội dung cho buổi tập này",
     "sessionDetails": "Chi Tiết Buổi Tập",
@@ -668,7 +669,7 @@
     "maxImagesReached": "Đã đạt tối đa 3 ảnh",
     "saving": "Đang lưu...",
     "goBack": "Quay lại",
-    "done":"Xong"
+    "done": "Xong"
   },
 
   "account": {
@@ -2165,6 +2166,7 @@
     "rejectConfirmTitle": "Từ Chối Yêu Cầu",
     "rejectConfirmMessage": "Bạn có chắc chắn muốn từ chối yêu cầu đặt lịch cho",
     "pastTimeError": "Không thể chọn thời gian trong quá khứ",
+    "endTimeExceedsMidnight": "Giờ kết thúc không thể vượt quá 23:59. Vui lòng chọn giờ bắt đầu sớm hơn.",
     "selectStartTimeFirst": "Vui lòng chọn giờ bắt đầu trước",
     "endTimeMinimum": "Giờ kết thúc phải ít nhất 1 giờ sau giờ bắt đầu",
     "endTimeMinimumDynamic": "Giờ kết thúc phải ít nhất {{minutes}} phút sau giờ bắt đầu",

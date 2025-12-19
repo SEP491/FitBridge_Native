@@ -53,7 +53,7 @@ const { width } = Dimensions.get("window");
 export default function TrainingActivityScreen({ route, navigation }) {
   const { t } = useTranslation();
   const userRole = route.params?.userRole || "customer"; // Default to customer if not provided
-  const { activityId } = route.params;
+  const { activityId, sessionState } = route.params;
   const [activityDetail, setActivityDetail] = useState(null);
   const [currentSetIndex, setCurrentSetIndex] = useState(0);
   const [isWorkoutActive, setIsWorkoutActive] = useState(false);
@@ -875,9 +875,13 @@ export default function TrainingActivityScreen({ route, navigation }) {
                 currentSet.isCompleted &&
                   userRole !== "FreelancePT" &&
                   styles.actionButtonDisabled,
+                { opacity: sessionState === "not-started" ? 0.5 : 1 },
               ]}
               onPress={startSet}
-              disabled={currentSet.isCompleted && userRole !== "FreelancePT"}
+              disabled={
+                (currentSet.isCompleted && userRole !== "FreelancePT") ||
+                sessionState === "not-started"
+              }
             >
               <Text style={styles.actionButtonText}>
                 {currentSet.isCompleted && userRole === "FreelancePT"

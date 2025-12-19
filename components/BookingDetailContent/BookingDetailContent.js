@@ -502,18 +502,14 @@ export default function BookingDetailContent({
               ]}
             >
               <TouchableOpacity
-                style={[
-                  styles.setCardContent,
-                  { opacity: sessionState === "not-started" ? 0.5 : 1 },
-                ]}
+                style={[styles.setCardContent]}
                 onPress={() =>
                   navigation.navigate("TrainingActivityScreen", {
                     activityId: activity.id,
                     userRole: userRole,
+                    sessionState: sessionState,
                   })
                 }
-                activeOpacity={0.7}
-                disabled={sessionState === "not-started"}
               >
                 <View style={styles.activityCardRow}>
                   {/* Left: muscle thumbnail */}
