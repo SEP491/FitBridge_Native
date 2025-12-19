@@ -755,10 +755,10 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     color: "#333",
-    marginBottom: 4,
   },
   packageName: {
-    fontSize: 16,
+    marginTop:4,
+    fontSize: 14,
     color: "#666",
   },
   infoContactText: {

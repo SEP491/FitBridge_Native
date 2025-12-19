@@ -8,12 +8,14 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   ScrollView,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LineChart } from "react-native-chart-kit";
 import UserGoalService from "../../../../services/user-goalService";
 import BodyMeasurementsService from "../../../../services/body-measurementService";
 import BodyMeasurementHistoryModal from "./BodyMeasurementHistoryModal";
+import { CreateUserGoalForm } from "./CreateUserGoalForm";
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 // Muscle group images mapping
@@ -47,6 +49,8 @@ export const UserGoalsProgress = ({
   const [selectedMuscleGroup, setSelectedMuscleGroup] =
     React.useState("Weight");
   const [historyModalVisible, setHistoryModalVisible] = React.useState(false);
+  const [updatingGoals, setUpdatingGoals] = React.useState(false);
+  const [showEditGoalForm, setShowEditGoalForm] = React.useState(false);
 
   const fetchUserGoals = async () => {
     try {
@@ -90,6 +94,34 @@ export const UserGoalsProgress = ({
     fetchUserGoals();
     fetchBodyMeasurements();
   }, [customerPurchasedId]);
+
+  const handleSubmitEditGoals = async (data) => {
+    if (!customerPurchasedId) return;
+    try {
+      setUpdatingGoals(true);
+      await UserGoalService.updateUserGoals(customerPurchasedId, data);
+      Alert.alert(
+        t("userGoals.updateSuccessTitle", "Goals Updated"),
+        t(
+          "userGoals.updateSuccessMessage",
+          "User goals have been updated successfully."
+        )
+      );
+      setShowEditGoalForm(false);
+      fetchUserGoals();
+    } catch (error) {
+      console.error("Error updating user goals:", error);
+      Alert.alert(
+        t("userGoals.updateErrorTitle", "Update Failed"),
+        t(
+          "userGoals.updateErrorMessage",
+          "Unable to update user goals. Please try again."
+        )
+      );
+    } finally {
+      setUpdatingGoals(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -349,6 +381,28 @@ export const UserGoalsProgress = ({
         title={t("trainingResults.userGoalsProgress", "User Goals Progress")}
         icon="trending-up"
       >
+        {/* Update Goals Button */}
+        <View style={styles.updateGoalsContainer}>
+          <TouchableOpacity
+            style={[
+              styles.updateGoalsButton,
+              (!customerPurchasedId || updatingGoals) &&
+                styles.updateGoalsButtonDisabled,
+            ]}
+            onPress={() => setShowEditGoalForm(true)}
+            disabled={!customerPurchasedId || updatingGoals}
+          >
+            {updatingGoals ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Ionicons name="create-outline" size={15} color="#fff" />
+            )}
+            <Text style={styles.updateGoalsButtonText}>
+              {t("userGoals.updateGoals", "Update User Goals")}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         {/* Muscle Group Selection Buttons */}
         <ScrollView
           horizontal
@@ -592,6 +646,26 @@ export const UserGoalsProgress = ({
         </View>
       </StatCard>
 
+      {/* Edit User Goal Form */}
+      {showEditGoalForm && userGoals && (
+        <CreateUserGoalForm
+          visible={showEditGoalForm}
+          onClose={() => setShowEditGoalForm(false)}
+          onSubmit={handleSubmitEditGoals}
+          customerPurchasedId={customerPurchasedId}
+          t={t}
+          loading={updatingGoals}
+          initialData={userGoals}
+          initialSelectedTargetParts={muscleGroups
+            .map((g) => g.key)
+            .filter((key) => {
+              const targetVal = userGoals[`target${key}`];
+              return targetVal !== null && targetVal !== undefined && targetVal !== 0;
+            })}
+          mode="edit"
+        />
+      )}
+
       {/* Body Measurement History Modal */}
       <BodyMeasurementHistoryModal
         visible={historyModalVisible}
@@ -686,6 +760,29 @@ const styles = StyleSheet.create({
   legendText: {
     fontSize: 12,
     color: "#666",
+  },
+  updateGoalsContainer: {
+    alignItems: "flex-end",
+    position:'absolute',
+    right:15,
+    top:15,
+  },
+  updateGoalsButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    backgroundColor: "#ED2A46",
+    gap: 6,
+  },
+  updateGoalsButtonDisabled: {
+    opacity: 0.6,
+  },
+  updateGoalsButtonText: {
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: "600",
   },
   goalsDetailContainer: {
     paddingTop: 20,

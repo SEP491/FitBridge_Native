@@ -2025,6 +2025,7 @@
   },
 
   "userGoals": {
+    "updateGoals": "Chỉnh Sửa",
     "selectedParts": "Các Phần Cơ Thể Đã Chọn",
     "chooseParts": "Chọn Các Phần Cơ Thể",
     "start": "Bắt Đầu",
