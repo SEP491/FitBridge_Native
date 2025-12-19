@@ -22,6 +22,7 @@ import { CLIENT_METHODS } from "../../../services/signalR/Message/constants/hubM
 import { LIFECYCLE_METHODS } from "../../../services/signalR/Message/constants/lifecycleMethods";
 import { fetchUserFromStorage } from "../../../lib";
 import { useTranslation } from "../../../hooks/useTranslation";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 export default function MessageScreen({ navigation }) {
   const { t } = useTranslation();
@@ -617,9 +618,7 @@ export default function MessageScreen({ navigation }) {
             keyExtractor={(item, index) => item.id || `conversation-${index}`}
             ListFooterComponent={
               loading && !refreshing ? (
-                <View style={styles.loadingFooter}>
-                  <ActivityIndicator size="small" color={colors.red} />
-                </View>
+                <LoadingIndicator variant="inline" />
               ) : null
             }
             refreshControl={

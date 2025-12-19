@@ -12,6 +12,7 @@ import { useTranslation } from "../../../hooks/useTranslation";
 import gymService from "../../../services/gymService";
 import GymCard from "../../../components/GymCard/GymCard";
 import FullScreenSearch from "../../../components/FullScreenSearch/FullScreenSearch";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 export default function FeaturedGymsScreen() {
   const { t } = useTranslation();
@@ -79,12 +80,10 @@ export default function FeaturedGymsScreen() {
           }
         >
           {loading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#ED2A46" />
-              <Text style={styles.loadingText}>
-                {t("common.loading", "Loading...")}
-              </Text>
-            </View>
+            <LoadingIndicator
+              variant="page"
+              message={t("common.loading", "Loading...")}
+            />
           ) : gyms.length > 0 ? (
             <View style={styles.gridContainer}>
               {gyms.map((gym, index) => (

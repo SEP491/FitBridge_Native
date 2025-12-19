@@ -11,6 +11,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import customerPurchasedService from "../../services/customerPurchased";
 import { useTranslation } from "../../hooks/useTranslation";
+import LoadingIndicator from "../../components/LoadingIndicator";
 
 const formatDateTime = (iso) => {
   if (!iso) return "-";
@@ -121,10 +122,10 @@ const CustomerPurchasedTransactionScreen = ({ route, navigation }) => {
 
 
       {loading ? (
-        <View style={styles.centerContent}>
-          <ActivityIndicator size="large" color="#ED2A46" />
-          <Text style={styles.hintText}>{t("customerPurchasedTransaction.loadingTransactions")}</Text>
-        </View>
+        <LoadingIndicator
+          variant="page"
+          message={t("customerPurchasedTransaction.loadingTransactions")}
+        />
       ) : error ? (
         <View style={styles.centerContent}>
           <Ionicons name="alert-circle-outline" size={32} color="#F57C00" />

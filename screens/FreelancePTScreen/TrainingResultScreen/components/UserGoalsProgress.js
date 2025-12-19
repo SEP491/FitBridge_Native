@@ -14,6 +14,7 @@ import { LineChart } from "react-native-chart-kit";
 import UserGoalService from "../../../../services/user-goalService";
 import BodyMeasurementsService from "../../../../services/body-measurementService";
 import BodyMeasurementHistoryModal from "./BodyMeasurementHistoryModal";
+import LoadingIndicator from "../../../../../components/LoadingIndicator";
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 // Muscle group images mapping
@@ -98,10 +99,10 @@ export const UserGoalsProgress = ({
         icon="trending-up"
       >
         <View style={styles.emptyStateContainer}>
-          <ActivityIndicator size="large" color="#ED2A46" />
-          <Text style={styles.emptyStateTitle}>
-            {t("common.loading", "Loading...")}
-          </Text>
+          <LoadingIndicator
+            variant="page"
+            message={t("common.loading", "Loading...")}
+          />
         </View>
       </StatCard>
     );

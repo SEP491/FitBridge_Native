@@ -21,6 +21,7 @@ import WeekCalendar from "../../../components/WeekCalendar/WeekCalendar";
 import accountService from "../../../services/accountService";
 import { fetchUserFromStorage, formatDateForAPI } from "../../../lib";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 const { width, height } = Dimensions.get("window");
 
@@ -431,12 +432,10 @@ export default function CalendarScheduleScreen() {
               showsVerticalScrollIndicator={false}
             >
               {loading ? (
-                <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="large" color={colors.red} />
-                  <Text style={styles.loadingText}>
-                    {t("calendar.loadingSessions")}
-                  </Text>
-                </View>
+                <LoadingIndicator
+                  variant="page"
+                  message={t("calendar.loadingSessions")}
+                />
               ) : (
                 <>
                   {bookings

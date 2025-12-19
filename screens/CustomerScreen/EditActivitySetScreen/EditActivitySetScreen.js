@@ -11,6 +11,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import colors from "../../../constants/color";
 import bookingService from "../../../services/bookingService";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 export default function EditActivitySetScreen({ route, navigation }) {
   const { set: initialSet, activitySetType } = route.params;
@@ -140,7 +141,7 @@ export default function EditActivitySetScreen({ route, navigation }) {
           disabled={deleting}
         >
           {deleting ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
+            <LoadingIndicator variant="button" />
           ) : (
             <>
               <Ionicons name="trash-outline" size={18} color="#FFFFFF" />
@@ -154,7 +155,7 @@ export default function EditActivitySetScreen({ route, navigation }) {
           disabled={saving}
         >
           {saving ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
+            <LoadingIndicator variant="button" />
           ) : (
             <>
               <Ionicons name="save-outline" size={18} color="#FFFFFF" />

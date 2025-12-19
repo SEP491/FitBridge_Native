@@ -27,6 +27,7 @@ import {
 } from "../../../lib";
 import { useLocationContext } from "../../../context/LocationContext";
 import { useTranslation } from "../../../hooks/useTranslation";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 export default function MapScreen({ route }) {
   const { location, refreshLocation, coordinates, hasLocation } =
@@ -143,7 +144,7 @@ export default function MapScreen({ route }) {
   if (loading) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" />
+        <LoadingIndicator variant="page" />
       </View>
     );
   }

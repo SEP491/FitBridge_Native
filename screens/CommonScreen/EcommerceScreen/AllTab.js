@@ -17,6 +17,7 @@ import FreelancePTTrainersSection from "../HomeScreen/FreelancePTTrainersSection
 import TopRatingProductSection from "../HomeScreen/TopRatingProductSection";
 import BestSellerProductSection from "../HomeScreen/BestSellerProductSection";
 import productService from "../../../services/productService";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 export default function AllTab({ refreshTrigger }) {
   const { t } = useTranslation();
@@ -172,10 +173,10 @@ export default function AllTab({ refreshTrigger }) {
                   if (loadingMoreProducts) {
                     return (
                       <View style={styles.loadingMoreContainer}>
-                        <ActivityIndicator size="small" color={colors.red} />
-                        <Text style={styles.loadingMoreText}>
-                          {t("common.loading")}
-                        </Text>
+                        <LoadingIndicator
+                          variant="inline"
+                          message={t("common.loading")}
+                        />
                       </View>
                     );
                   }

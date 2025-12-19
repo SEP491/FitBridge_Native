@@ -20,6 +20,7 @@ import accountService from "../../../services/accountService";
 import { useTranslation } from "../../../hooks/useTranslation";
 import { formatNumber, formatDate, formatDateForAPI } from "../../../lib";
 import { useUser } from "../../../context/UserContext";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 const ProfileScreen = () => {
   const { t } = useTranslation();
@@ -631,7 +632,7 @@ const ProfileScreen = () => {
               disabled={isSaving}
             >
               {isSaving ? (
-                <ActivityIndicator size="small" color="#fff" />
+                <LoadingIndicator variant="button" />
               ) : (
                 <MaterialCommunityIcons
                   name="content-save"

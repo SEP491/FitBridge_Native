@@ -16,6 +16,7 @@ import couponService from '../../../services/couponService';
 import VoucherCardVertical from '../../../components/VoucherCard/VoucherCardVertical';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import EditVoucherModal from './EditVoucherModal';
+import LoadingIndicator from '../../../components/LoadingIndicator';
 
 const VoucherDetailScreen = ({ route, navigation }) => {
   const { voucherId } = route.params;
@@ -155,8 +156,10 @@ const VoucherDetailScreen = ({ route, navigation }) => {
   if (loading) {
     return (
       <SafeAreaView style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color="#ED2A46" />
-        <Text style={styles.loadingText}>{t('manageVoucher.loadingVoucherDetails')}</Text>
+        <LoadingIndicator
+          variant="page"
+          message={t('manageVoucher.loadingVoucherDetails')}
+        />
       </SafeAreaView>
     );
   }
@@ -272,7 +275,7 @@ const VoucherDetailScreen = ({ route, navigation }) => {
 
       {updating && (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color="#ED2A46" />
+          <LoadingIndicator variant="page" />
         </View>
       )}
 

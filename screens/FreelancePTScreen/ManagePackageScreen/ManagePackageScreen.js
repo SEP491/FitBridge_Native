@@ -18,6 +18,7 @@ import freelancePTPackageService from '../../../services/freelancePTPackageServi
 import PackageCard from './PackageCard';
 import CreatePackageModal from './CreatePackageModal';
 import EditPackageModal from './EditPackageModal';
+import LoadingIndicator from '../../../components/LoadingIndicator';
 
 const ManagePackageScreen = ({ navigation }) => {
   const { t } = useTranslation();
@@ -179,12 +180,10 @@ const ManagePackageScreen = ({ navigation }) => {
 
   if (loading && packages.length === 0) {
     return (
-      <View style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color="#ED2A46" />
-        <Text style={styles.loadingText}>
-          {t("managePackage.loadingPackages")}
-        </Text>
-      </View>
+      <LoadingIndicator
+        variant="page"
+        message={t("managePackage.loadingPackages")}
+      />
     );
   }
 console.log(selectedPackage);

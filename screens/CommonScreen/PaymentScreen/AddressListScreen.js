@@ -11,6 +11,7 @@ import {
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useTranslation } from "../../../hooks/useTranslation";
 import addressService from "../../../services/addressService";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 export default function AddressListScreen({ navigation, route }) {
   const { t } = useTranslation();
@@ -141,10 +142,7 @@ useEffect(() => {
 
       {/* Content */}
       {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#ED2A46" />
-          <Text style={styles.loadingText}>{t("common.loading")}</Text>
-        </View>
+        <LoadingIndicator variant="page" message={t("common.loading")} />
       ) : addresses.length === 0 ? (
         <View style={styles.emptyContainer}>
           <MaterialIcons name="location-off" size={64} color="#DDD" />

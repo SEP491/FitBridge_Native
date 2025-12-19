@@ -16,6 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { uploadImage } from "../../../../lib/userGoalHelper";
 import { SafeAreaView } from "react-native-web";
+import LoadingIndicator from "../../../../../components/LoadingIndicator";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -895,7 +896,7 @@ export const CreateUserGoalForm = ({
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator size="small" color="#fff" />
+              <LoadingIndicator variant="button" />
             ) : (
               <>
                 <Ionicons name="checkmark" size={20} color="#fff" />

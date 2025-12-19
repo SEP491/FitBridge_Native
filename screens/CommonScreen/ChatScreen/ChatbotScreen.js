@@ -28,6 +28,7 @@ import {
   TrainerCardsList,
 } from "../../../components/ChatComponents";
 import { useRevenueCat } from "../../../context/RevenueCatContext";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 import { useUser } from "../../../context/UserContext";
 
 const { width } = Dimensions.get("window");
@@ -757,7 +758,7 @@ export default function ChatbotScreen({ navigation }) {
               disabled={!inputText.trim() || isLoading}
             >
               {isLoading ? (
-                <ActivityIndicator size="small" color="#fff" />
+                <LoadingIndicator variant="button" />
               ) : (
                 <Ionicons name="send" size={18} color="#fff" />
               )}

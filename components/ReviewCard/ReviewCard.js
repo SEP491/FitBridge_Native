@@ -16,6 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import reviewService from "../../services/reviewService";
 import { fetchUserFromStorage } from "../../lib";
+import LoadingIndicator from "../LoadingIndicator";
 
 const ReviewCard = ({
   review,
@@ -648,7 +649,7 @@ const ReviewCard = ({
                 disabled={isLoading}
               >
                 {isLoading ? (
-                  <ActivityIndicator color="#FFF" />
+                  <LoadingIndicator variant="button" />
                 ) : (
                   <Text style={styles.saveButtonText}>
                     {t ? t("common.save") || "Save" : "Save"}

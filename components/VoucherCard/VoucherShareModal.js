@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import LoadingIndicator from '../LoadingIndicator';
 import { useTranslation } from '../../hooks/useTranslation';
 import QRCode from 'react-native-qrcode-svg';
 
@@ -140,7 +141,7 @@ const VoucherShareModal = ({ visible, onClose, voucher }) => {
               </Text>
               <TouchableOpacity onPress={handleCopyLink} style={styles.copyButton}>
                 {copying ? (
-                  <ActivityIndicator size="small" color="#ED2A46" />
+                  <LoadingIndicator variant="inline" />
                 ) : (
                   <Ionicons name="copy-outline" size={20} color="#ED2A46" />
                 )}

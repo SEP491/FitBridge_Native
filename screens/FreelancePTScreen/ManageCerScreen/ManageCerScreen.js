@@ -22,6 +22,7 @@ import certificateService from "../../../services/certificateService";
 import { fetchUserFromStorage } from "../../../lib";
 import { useTranslation } from "../../../hooks/useTranslation";
 import colors from "../../../constants/color";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 export default function ManageCerScreen() {
   const { t } = useTranslation();
@@ -503,12 +504,10 @@ export default function ManageCerScreen() {
 
       {/* Content */}
       {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.red} />
-          <Text style={styles.loadingText}>
-            {t("certificate.loadingCertificates")}
-          </Text>
-        </View>
+        <LoadingIndicator
+          variant="page"
+          message={t("certificate.loadingCertificates")}
+        />
       ) : (
         <FlatList
           data={filteredCertificates}
@@ -572,12 +571,10 @@ export default function ManageCerScreen() {
                   </View>
 
                   {loadingMetadata ? (
-                    <View style={styles.loadingContainer}>
-                      <ActivityIndicator size="large" color={colors.red} />
-                      <Text style={styles.loadingText}>
-                        {t("certificate.loadingCertificateTypes")}
-                      </Text>
-                    </View>
+                    <LoadingIndicator
+                      variant="inline"
+                      message={t("certificate.loadingCertificateTypes")}
+                    />
                   ) : (
                     <FlatList
                       data={certificateMetadata}
@@ -775,7 +772,7 @@ export default function ManageCerScreen() {
                       activeOpacity={0.8}
                     >
                       {submitting ? (
-                        <ActivityIndicator color="#fff" size="small" />
+                        <LoadingIndicator variant="button" />
                       ) : (
                         <>
                           <Ionicons

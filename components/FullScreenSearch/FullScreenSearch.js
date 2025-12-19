@@ -15,6 +15,7 @@ import {
 import React, { useEffect, useRef, useState } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useTranslation } from "../../hooks/useTranslation";
+import LoadingIndicator from "../LoadingIndicator";
 import {
   getRecentSearches,
   addRecentSearch,
@@ -668,12 +669,10 @@ export default function FullScreenSearch({
               !refreshing &&
               getCurrentSearchResults()?.length === 0 &&
               getCurrentRecommendedResults()?.length === 0 ? (
-                <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="large" color="#ED2A46" />
-                  <Text style={styles.loadingText}>
-                    {t("searchGymScreen.searching")}
-                  </Text>
-                </View>
+                <LoadingIndicator
+                  variant="page"
+                  message={t("searchGymScreen.searching")}
+                />
               ) : getCurrentSearchResults()?.length === 0 &&
                 getCurrentRecommendedResults()?.length === 0 ? (
                 <View style={styles.emptyContainer}>
@@ -795,12 +794,10 @@ export default function FullScreenSearch({
                   )}
 
                   {getCurrentHasMore() && (
-                    <View style={styles.loadMoreContainer}>
-                      <ActivityIndicator size="small" color="#ED2A46" />
-                      <Text style={styles.loadMoreText}>
-                        {t("searchGymScreen.loadingMore")}
-                      </Text>
-                    </View>
+                    <LoadingIndicator
+                      variant="inline"
+                      message={t("searchGymScreen.loadingMore")}
+                    />
                   )}
                 </View>
               )}

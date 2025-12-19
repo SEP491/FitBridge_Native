@@ -17,6 +17,7 @@ import messageService from "../../services/messageService";
 import colors from "../../constants/color";
 import { fetchUserFromStorage } from "../../lib";
 import { useTranslation } from "../../hooks/useTranslation";
+import LoadingIndicator from "../LoadingIndicator";
 
 const CreateConversationModal = ({
   visible,
@@ -213,7 +214,7 @@ const CreateConversationModal = ({
     if (!fetchingUsers) return null;
     return (
       <View style={styles.footerLoader}>
-        <ActivityIndicator size="small" color={colors.red} />
+        <LoadingIndicator variant="inline" />
       </View>
     );
   };
@@ -343,7 +344,7 @@ const CreateConversationModal = ({
               activeOpacity={0.8}
             >
               {creating ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
+                <LoadingIndicator variant="button" />
               ) : (
                 <Text style={styles.createButtonText}>
                   {t("messageScreen.createConversation.createButton")}

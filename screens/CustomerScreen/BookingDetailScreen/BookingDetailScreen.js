@@ -20,6 +20,7 @@ import colors from "../../../constants/color";
 import { useTranslation } from "../../../hooks/useTranslation";
 import BookingDetailContent from "../../../components/BookingDetailContent";
 import BookingResultCard from "../../../components/BookingResultCard";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 // Body part images mapping
 const bodyPartImages = {
@@ -365,11 +366,7 @@ export default function BookingDetailScreen({ route, navigation }) {
   };
 
   if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.orange} />
-      </View>
-    );
+    return <LoadingIndicator variant="page" color={colors.orange} />;
   }
 
   // Customer view - Empty state
@@ -399,11 +396,7 @@ export default function BookingDetailScreen({ route, navigation }) {
       );
     } else {
       if (loadingResult) {
-        return (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={colors.orange} />
-          </View>
-        );
+        return <LoadingIndicator variant="page" color={colors.orange} />;
       }
       return (
         <BookingResultCard
@@ -658,7 +651,7 @@ export default function BookingDetailScreen({ route, navigation }) {
               <View style={styles.formSection}>
                 <Text style={styles.formLabel}>{t("bookingDetail.asset")}</Text>
                 {loadingAssets ? (
-                  <ActivityIndicator size="small" color={colors.orange} />
+                  <LoadingIndicator variant="inline" color={colors.orange} />
                 ) : (
                   <>
                     <TouchableOpacity
@@ -906,7 +899,7 @@ export default function BookingDetailScreen({ route, navigation }) {
                 disabled={creating}
               >
                 {creating ? (
-                  <ActivityIndicator size="small" color={colors.white} />
+                  <LoadingIndicator variant="button" />
                 ) : (
                   <Text style={styles.submitButtonText}>
                     {t("bookingDetail.confirm")}

@@ -19,6 +19,7 @@ import { useTranslation } from '../../../hooks/useTranslation';
 import freelancePTPackageService from '../../../services/freelancePTPackageService';
 import uploadImageService from '../../../services/uploadImageService';
 import * as ImagePicker from 'expo-image-picker';
+import LoadingIndicator from '../../../components/LoadingIndicator';
 
 const EditPackageModal = ({ visible, onClose, packageData, onPackageUpdated, disableNumOfSessions = false }) => {
   const { t } = useTranslation();
@@ -400,8 +401,7 @@ const EditPackageModal = ({ visible, onClose, packageData, onPackageUpdated, dis
               >
                 {uploadingImage ? (
                   <View style={styles.imagePickerPlaceholder}>
-                    <ActivityIndicator size="large" color="#ED2A46" />
-                    <Text style={[styles.imagePickerText, { marginTop: 12 }]}>Uploading image...</Text>
+                    <LoadingIndicator variant="inline" message="Uploading image..." />
                   </View>
                 ) : selectedImage && uploadedImageUrl ? (
                   <View style={{ flex: 1 }}>
@@ -567,7 +567,7 @@ const EditPackageModal = ({ visible, onClose, packageData, onPackageUpdated, dis
               disabled={loading}
             >
               {loading ? (
-                <ActivityIndicator color="#fff" />
+                <LoadingIndicator variant="button" />
               ) : (
                 <Text style={styles.updateButtonText}>Update</Text>
               )}

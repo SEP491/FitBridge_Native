@@ -21,11 +21,11 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import gymService from "../../../services/gymService";
 import MapView, { Marker } from "react-native-maps";
-import { ActivityIndicator } from "react-native";
 import { FontAwesome6 } from "@expo/vector-icons";
 import { useCart } from "../../../context/CartContext";
 import { useTranslation } from "../../../hooks/useTranslation";
 import { formatPrice, formatNumber } from "../../../lib";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 export default function GymDetailScreen({ route }) {
   const { t } = useTranslation();
@@ -152,10 +152,7 @@ export default function GymDetailScreen({ route }) {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#ED2A46" />
-        <Text style={styles.loadingText}>{t("gymDetail.loading")}</Text>
-      </View>
+      <LoadingIndicator variant="page" message={t("gymDetail.loading")} />
     );
   }
   if (!gymId) {
@@ -621,7 +618,7 @@ export default function GymDetailScreen({ route }) {
                 disabled={isPostingComment || !newComment.trim()}
               >
                 {isPostingComment ? (
-                  <ActivityIndicator size="small" color="#FFF" />
+                  <LoadingIndicator variant="button" />
                 ) : (
                   <Ionicons name="send" size={20} color="#FFF" />
                 )}
@@ -665,7 +662,7 @@ export default function GymDetailScreen({ route }) {
                   disabled={commentsLoading}
                 >
                   {commentsLoading ? (
-                    <ActivityIndicator size="small" color="#ED2A46" />
+                    <LoadingIndicator variant="inline" />
                   ) : (
                     <>
                       <Text style={styles.loadMoreText}>

@@ -367,8 +367,7 @@ const MyCustomerScreen = ({ navigation }) => {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#ED2A46" />
-          <Text style={styles.loadingText}>Loading customers...</Text>
+          <LoadingIndicator variant="page" message="Loading customers..." />
         </View>
       ) : (
         <>

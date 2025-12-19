@@ -5,13 +5,14 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
+  RefreshControl,
   Alert,
   Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useFitnessContext } from "../../../context/FitnessContext";
 import { useTranslation } from "../../../hooks/useTranslation";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 const FitnessDetailScreen = () => {
   const { t } = useTranslation();
@@ -402,12 +403,11 @@ const FitnessDetailScreen = () => {
   if (isLoading || loadingStats) {
     return (
       <View style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
-          <Text style={styles.loadingText}>
-            {t("fitness.loadingFitnessData")}
-          </Text>
-        </View>
+        <LoadingIndicator
+          variant="page"
+          color="#007AFF"
+          message={t("fitness.loadingFitnessData")}
+        />
       </View>
     );
   }
@@ -417,8 +417,8 @@ const FitnessDetailScreen = () => {
       <ScrollView
         style={styles.content}
         refreshControl={
-          <ActivityIndicator
-            animating={refreshing}
+          <RefreshControl
+            refreshing={refreshing}
             onRefresh={handleRefresh}
             colors={["#007AFF"]}
             tintColor="#007AFF"

@@ -12,6 +12,7 @@ import { useTranslation } from "../../../hooks/useTranslation";
 import accountService from "../../../services/accountService";
 import FreelancePTProfileCard from "../../../components/FreelancePTProfileCard/FreelancePTProfileCard";
 import FullScreenSearch from "../../../components/FullScreenSearch/FullScreenSearch";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 export default function FeaturedFreelancePTScreen() {
   const { t } = useTranslation();
@@ -77,12 +78,10 @@ export default function FeaturedFreelancePTScreen() {
           }
         >
           {loading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#ED2A46" />
-              <Text style={styles.loadingText}>
-                {t("common.loading", "Loading...")}
-              </Text>
-            </View>
+            <LoadingIndicator
+              variant="page"
+              message={t("common.loading", "Loading...")}
+            />
           ) : freelancePTs.length > 0 ? (
             <View style={styles.gridContainer}>
               {freelancePTs.map((pt, index) => (

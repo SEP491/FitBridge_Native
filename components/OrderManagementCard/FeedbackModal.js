@@ -15,6 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useTranslation } from "../../hooks/useTranslation";
 import reviewService from "../../services/reviewService";
+import LoadingIndicator from "../../LoadingIndicator";
 
 const FeedbackModal = ({ visible, onClose, orderItems = [] }) => {
   const { t } = useTranslation();
@@ -455,7 +456,7 @@ const FeedbackModal = ({ visible, onClose, orderItems = [] }) => {
               disabled={currentFeedback.rating === 0 || !currentFeedback.content.trim() || isSubmitting}
             >
               {isSubmitting ? (
-                <ActivityIndicator color="#fff" />
+                <LoadingIndicator variant="button" />
               ) : (
                 <Text style={styles.submitButtonText}>
                   {currentItemIndex < orderItems.length - 1

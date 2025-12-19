@@ -17,6 +17,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useTranslation } from "../../hooks/useTranslation";
 import reviewService from "../../services/reviewService";
+import LoadingIndicator from "../../LoadingIndicator";
 
 const PackageFeedbackModal = ({ visible, onClose, packageItem }) => {
   const { t } = useTranslation();
@@ -411,7 +412,7 @@ const PackageFeedbackModal = ({ visible, onClose, packageItem }) => {
               disabled={rating === 0 || !content.trim() || isSubmitting}
             >
               {isSubmitting ? (
-                <ActivityIndicator color="#fff" />
+                <LoadingIndicator variant="button" />
               ) : (
                 <Text style={styles.submitButtonText}>
                   {t("orders.submitFeedback") || "Submit Feedback"}

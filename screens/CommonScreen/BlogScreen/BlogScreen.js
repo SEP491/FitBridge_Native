@@ -12,6 +12,7 @@ import {
   Platform,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 export default function BlogScreen() {
   const [blogs, setBlogs] = useState([]);
@@ -95,7 +96,7 @@ export default function BlogScreen() {
         onChangeText={setSearchQuery}
       />
       {loading ? (
-        <ActivityIndicator size="large" color="#ED2A46" style={styles.loader} />
+        <LoadingIndicator variant="page" />
       ) : (
         <FlatList
           data={filteredBlogs}

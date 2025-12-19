@@ -15,6 +15,7 @@ import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import ReportService from "../../../services/reportService";
 import colors from "../../../constants/color";
 import { useNavigation } from "@react-navigation/native";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 export default function MyReportsScreen() {
   const { t } = useTranslation();
@@ -275,8 +276,7 @@ export default function MyReportsScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.red} />
-          <Text style={styles.loadingText}>Loading reports...</Text>
+          <LoadingIndicator variant="page" message="Loading reports..." />
         </View>
       </SafeAreaView>
     );

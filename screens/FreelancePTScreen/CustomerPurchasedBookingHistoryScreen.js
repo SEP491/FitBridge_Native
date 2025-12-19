@@ -12,6 +12,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import bookingService from "../../services/bookingService";
 import BookingRequestCard from "../../components/BookingRequestCard/BookingRequestCard";
+import LoadingIndicator from "../../components/LoadingIndicator";
 
 // Format time for BookingRequestCard
 const formatTime = (timeString) => {
@@ -136,11 +137,7 @@ const CustomerPurchasedBookingHistoryScreen = ({ route, navigation }) => {
 
   const renderFooter = () => {
     if (!loading) return null;
-    return (
-      <View style={styles.footerLoader}>
-        <ActivityIndicator size="small" color="#ED2A46" />
-      </View>
-    );
+    return <LoadingIndicator variant="inline" />;
   };
 
   const renderEmpty = () => {
@@ -158,8 +155,7 @@ const CustomerPurchasedBookingHistoryScreen = ({ route, navigation }) => {
 
       {loading && bookings.length === 0 ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#ED2A46" />
-          <Text style={styles.loadingText}>Đang tải...</Text>
+          <LoadingIndicator variant="page" message="Đang tải..." />
         </View>
       ) : (
         <FlatList

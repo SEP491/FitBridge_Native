@@ -24,6 +24,7 @@ import * as ImagePicker from "expo-image-picker";
 import PackageFeedbackModal from "../../../components/OrderManagementCard/PackageFeedbackModal";
 import orderService from "../../../services/orderService";
 import PackageCard from "../../../components/PackageCard/PackageCard";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 export default function MyPackageScreen() {
   const { t } = useTranslation();
   const [packages, setPackages] = useState([]);
@@ -464,7 +465,7 @@ export default function MyPackageScreen() {
                 disabled={isSubmittingReport}
               >
                 {isSubmittingReport ? (
-                  <ActivityIndicator color="#fff" size="small" />
+                  <LoadingIndicator variant="button" />
                 ) : (
                   <>
                     <Ionicons name="send" size={18} color="#fff" />

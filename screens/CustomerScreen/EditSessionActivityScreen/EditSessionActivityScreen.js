@@ -17,6 +17,7 @@ import bookingService from "../../../services/bookingService";
 import { fetchUserFromStorage } from "../../../lib";
 import colors from "../../../constants/color";
 import { useTranslation } from "../../../hooks/useTranslation";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 // Body part images mapping
 const bodyPartImages = {
@@ -363,11 +364,7 @@ export default function EditSessionActivityScreen({ route, navigation }) {
   };
 
   if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.orange} />
-      </View>
-    );
+    return <LoadingIndicator variant="page" color={colors.orange} />;
   }
 
   return (
@@ -543,7 +540,7 @@ export default function EditSessionActivityScreen({ route, navigation }) {
             </Text>
             {loadingAssets ? (
               <View style={styles.loadingContainer}>
-                <ActivityIndicator size="small" color={colors.orange} />
+                <LoadingIndicator variant="inline" color={colors.orange} />
               </View>
             ) : (
               <View style={styles.assetContainer}>
@@ -718,9 +715,7 @@ export default function EditSessionActivityScreen({ route, navigation }) {
           </Text>
 
           {setsLoading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="small" color={colors.orange} />
-            </View>
+            <LoadingIndicator variant="inline" color={colors.orange} />
           ) : activitySets.length === 0 ? (
             <Text style={styles.emptySetsText}>
               {t("bookingDetail.noSets") || "Chưa có set nào"}
@@ -786,7 +781,7 @@ export default function EditSessionActivityScreen({ route, navigation }) {
             disabled={deleting}
           >
             {deleting ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
+              <LoadingIndicator variant="button" />
             ) : (
               <>
                 <Ionicons name="trash-outline" size={20} color="#FFFFFF" />
@@ -803,7 +798,7 @@ export default function EditSessionActivityScreen({ route, navigation }) {
             disabled={saving}
           >
             {saving ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
+              <LoadingIndicator variant="button" />
             ) : (
               <>
                 <Ionicons name="save-outline" size={20} color="#FFFFFF" />

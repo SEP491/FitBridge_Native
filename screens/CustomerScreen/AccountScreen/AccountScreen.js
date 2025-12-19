@@ -23,6 +23,7 @@ import * as Device from "expo-device";
 import accountService from "../../../services/accountService";
 import { useTranslation } from "../../../hooks/useTranslation";
 import { useUser } from "../../../context/UserContext";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 const { width } = Dimensions.get("window");
 
@@ -351,12 +352,7 @@ const AccountScreen = () => {
   };
 
   if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#ED2A46" />
-        <Text style={styles.loadingText}>{t("loading")}</Text>
-      </View>
-    );
+    return <LoadingIndicator variant="page" message={t("loading")} />;
   }
 
   return (
@@ -378,7 +374,7 @@ const AccountScreen = () => {
             />
             {uploadingAvatar && (
               <View style={styles.avatarLoadingOverlay}>
-                <ActivityIndicator size="large" color="#FFFFFF" />
+                <LoadingIndicator variant="button" color="#FFFFFF" />
               </View>
             )}
             <TouchableOpacity

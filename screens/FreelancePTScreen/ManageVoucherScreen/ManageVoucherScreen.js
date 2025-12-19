@@ -17,6 +17,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { VoucherCardWithGradient } from "../../../components/VoucherCard/VoucherCard";
 import VoucherCardVertical from "../../../components/VoucherCard/VoucherCardVertical";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 const ManageVoucherScreen = ({ navigation }) => {
   const { t } = useTranslation();
@@ -83,12 +84,10 @@ const ManageVoucherScreen = ({ navigation }) => {
 
   if (loading && vouchers.length === 0) {
     return (
-      <View style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color="#ED2A46" />
-        <Text style={styles.loadingText}>
-          {t("manageVoucher.loadingVouchers")}
-        </Text>
-      </View>
+      <LoadingIndicator
+        variant="page"
+        message={t("manageVoucher.loadingVouchers")}
+      />
     );
   }
 

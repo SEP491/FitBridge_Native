@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import LoadingIndicator from "../LoadingIndicator";
 import { formatDistanceToNow } from "date-fns";
 
 const { width } = Dimensions.get("window");
@@ -165,8 +166,7 @@ const MessageBubble = ({
                   />
                   {isUploading && (
                     <View style={styles.uploadingOverlay}>
-                      <ActivityIndicator size="large" color="#FFFFFF" />
-                      <Text style={styles.uploadingText}>Uploading...</Text>
+                      <LoadingIndicator variant="inline" color="#FFFFFF" message="Uploading..." />
                     </View>
                   )}
                 </View>

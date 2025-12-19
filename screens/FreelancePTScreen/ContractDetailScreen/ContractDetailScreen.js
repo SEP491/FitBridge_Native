@@ -17,6 +17,7 @@ import { useUser } from "../../../context/UserContext";
 import { useTranslation } from "../../../hooks/useTranslation";
 import contractService from "../../../services/contractService";
 import { SafeAreaView } from "react-native-safe-area-context";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 const { width, height } = Dimensions.get("window");
 
 export default function ContractDetailScreen({ route, navigation }) {
@@ -751,10 +752,11 @@ export default function ContractDetailScreen({ route, navigation }) {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
-        <Text style={styles.loadingText}>{t("contract.loadingContract")}</Text>
-      </View>
+      <LoadingIndicator
+        variant="page"
+        color="#007AFF"
+        message={t("contract.loadingContract")}
+      />
     );
   }
 
@@ -810,7 +812,7 @@ export default function ContractDetailScreen({ route, navigation }) {
             disabled={signing}
           >
             {signing ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
+              <LoadingIndicator variant="button" />
             ) : (
               <>
                 <Ionicons

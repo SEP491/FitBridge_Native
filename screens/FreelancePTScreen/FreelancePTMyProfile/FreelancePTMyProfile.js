@@ -26,6 +26,7 @@ import {
   buildAutocompleteUrl,
   buildPlaceDetailsUrl,
 } from "../../../config/googleMaps";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 const FreelancePTMyProfile = () => {
   const { t } = useTranslation();
@@ -1281,7 +1282,7 @@ const FreelancePTMyProfile = () => {
               disabled={isSaving}
             >
               {isSaving ? (
-                <ActivityIndicator size="small" color="#fff" />
+                <LoadingIndicator variant="button" />
               ) : (
                 <MaterialCommunityIcons
                   name="content-save"

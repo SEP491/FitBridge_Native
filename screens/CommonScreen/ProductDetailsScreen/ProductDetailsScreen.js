@@ -22,6 +22,7 @@ import addressService from "../../../services/addressService";
 import orderService from "../../../services/orderService";
 import reviewService from "../../../services/reviewService";
 import ReviewCard from "../../../components/ReviewCard/ReviewCard";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 export default function ProductDetailsScreen() {
   const navigation = useNavigation();
@@ -372,10 +373,7 @@ export default function ProductDetailsScreen() {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.red} />
-          <Text style={styles.loadingText}>{t("common.loading")}</Text>
-        </View>
+        <LoadingIndicator variant="page" message={t("common.loading")} />
       </SafeAreaView>
     );
   }
@@ -488,7 +486,7 @@ export default function ProductDetailsScreen() {
                     {t("product.shippingPrice")}:
                   </Text>
                   {shippingLoading ? (
-                    <ActivityIndicator size="small" color={colors.red} />
+                    <LoadingIndicator variant="inline" />
                   ) : (
                     <Text style={styles.shippingPrice}>
                       {formatPrice(shippingInfo.price)}
@@ -756,7 +754,7 @@ export default function ProductDetailsScreen() {
                   disabled={reviewsLoading}
                 >
                   {reviewsLoading ? (
-                    <ActivityIndicator size="small" color={colors.red} />
+                    <LoadingIndicator variant="inline" />
                   ) : (
                     <>
                       <Text style={styles.loadMoreText}>
@@ -1150,7 +1148,7 @@ export default function ProductDetailsScreen() {
                       </View>
 
                       {shippingLoading ? (
-                        <ActivityIndicator size="small" color={colors.red} />
+                        <LoadingIndicator variant="inline" />
                       ) : (
                         <Text style={styles.shippingMethodPrice}>
                           {formatPrice(shippingInfo?.price || 0)}

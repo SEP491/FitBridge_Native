@@ -16,6 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { useTranslation } from "../../../hooks/useTranslation";
 import couponService from "../../../services/couponService";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 const CreateVoucherModal = ({ visible, onClose, onSuccess }) => {
   const { t } = useTranslation();
@@ -319,7 +320,7 @@ const CreateVoucherModal = ({ visible, onClose, onSuccess }) => {
               disabled={creating}
             >
               {creating ? (
-                <ActivityIndicator color="#fff" />
+                <LoadingIndicator variant="button" />
               ) : (
                 <Text style={styles.createButtonText}>
                   {t("manageVoucher.create")}

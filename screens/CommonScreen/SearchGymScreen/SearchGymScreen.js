@@ -20,6 +20,7 @@ import FullScreenSearch from "../../../components/FullScreenSearch/FullScreenSea
 import gymService from "../../../services/gymService";
 import { useTranslation } from "../../../hooks/useTranslation";
 import accountService from "../../../services/accountService";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 export default function SearchGymScreen() {
   const [searchText, setSearchText] = useState("");
@@ -329,7 +330,7 @@ export default function SearchGymScreen() {
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator size="small" color="#ED2A46" />
+              <LoadingIndicator variant="button" />
             ) : (
               <Text style={styles.searchButtonText}>
                 {t("searchGymScreen.searchButton")}
@@ -437,10 +438,10 @@ export default function SearchGymScreen() {
 
         {loading && !refreshing && getCurrentResults()?.length === 0 ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#ED2A46" />
-            <Text style={styles.loadingText}>
-              {t("searchGymScreen.searching")}
-            </Text>
+          <LoadingIndicator
+            variant="page"
+            message={t("searchGymScreen.searching")}
+          />
           </View>
         ) : hasSearched && getCurrentResults()?.length === 0 ? (
           <View style={styles.emptyContainer}>
@@ -465,10 +466,10 @@ export default function SearchGymScreen() {
 
             {getCurrentHasMore() && (
               <View style={styles.loadMoreContainer}>
-                <ActivityIndicator size="small" color="#ED2A46" />
-                <Text style={styles.loadMoreText}>
-                  {t("searchGymScreen.loadingMore")}
-                </Text>
+                <LoadingIndicator
+                  variant="inline"
+                  message={t("searchGymScreen.loadingMore")}
+                />
               </View>
             )}
           </View>

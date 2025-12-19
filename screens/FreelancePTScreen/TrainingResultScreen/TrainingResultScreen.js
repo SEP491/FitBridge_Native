@@ -23,6 +23,7 @@ import { MuscleGroupDropdownModal } from "./components/MuscleGroupDropdownModal"
 import { CreateUserGoalModal } from "./components/CreateUserGoalModal";
 import { CreateUserGoalForm } from "./components/CreateUserGoalForm";
 import { createUserGoalWithImage } from "../../../lib/userGoalHelper";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -276,12 +277,10 @@ export const TrainingResultScreen = ({ route, navigation }) => {
   return (
     <View style={styles.container}>
       {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#ED2A46" />
-          <Text style={styles.loadingText}>
-            {t("trainingResults.loadingText")}
-          </Text>
-        </View>
+        <LoadingIndicator
+          variant="page"
+          message={t("trainingResults.loadingText")}
+        />
       ) : error ? (
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={48} color="#ED2A46" />
