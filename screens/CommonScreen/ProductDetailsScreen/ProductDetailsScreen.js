@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   Modal,
   FlatList,
+  RefreshControl,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -52,6 +53,7 @@ export default function ProductDetailsScreen() {
   const [reviewsPage, setReviewsPage] = useState(1);
   const [reviewsTotalPages, setReviewsTotalPages] = useState(1);
   const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   console.log(selectedVariant);
   useEffect(() => {
@@ -165,6 +167,13 @@ export default function ProductDetailsScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchProductDetails();
+    await fetchProductReviews(1);
+    setRefreshing(false);
   };
 
   const fetchProductReviews = async (pageNum = 1) => {
@@ -380,7 +389,13 @@ export default function ProductDetailsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.content}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
+      >
         {/* Product Image */}
         <View style={styles.imageContainer}>
           <Image

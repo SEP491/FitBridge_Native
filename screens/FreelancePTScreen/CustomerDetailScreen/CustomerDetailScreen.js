@@ -7,7 +7,8 @@ import {
   TouchableOpacity,
   Linking,
   ActivityIndicator,
-  Image
+  Image,
+  RefreshControl,
 } from 'react-native';
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import trainingResultsService from '../../../services/training-resultsService';
@@ -41,6 +42,7 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
   const [packageStatistics, setPackageStatistics] = useState({});
   const [packageMuscleReports, setPackageMuscleReports] = useState({});
   const [loadingStats, setLoadingStats] = useState({});
+  const [refreshing, setRefreshing] = useState(false);
 
   const fetchPackageStatistics = async (pkgId, index) => {
     if (packageStatistics[pkgId]) {
@@ -82,7 +84,15 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
     } catch (error) {
       console.error('Failed to fetch package muscle report:', error);
     }
-  }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    // Clear cached data to force refetch
+    setPackageStatistics({});
+    setPackageMuscleReports({});
+    setRefreshing(false);
+  };
 
   const getPackageStatus = (pkg) => {
     const expDate = new Date(pkg.expirationDate);
@@ -155,7 +165,12 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
   return (
     <View style={styles.container}>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
+      >
         {/* Customer Detail Section */}
         <View style={styles.customerDetailCard}>
           <View style={styles.customerAvatarLarge}>

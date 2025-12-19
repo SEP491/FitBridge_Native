@@ -12,6 +12,7 @@ import {
   Platform,
   Modal,
   KeyboardAvoidingView,
+  RefreshControl,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
@@ -42,6 +43,7 @@ const ProfileScreen = () => {
   const [showGenderPicker, setShowGenderPicker] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [displayDate, setDisplayDate] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
 
   const formatDisplayDate = (dateString) => {
     if (!dateString) return "";
@@ -218,6 +220,12 @@ const ProfileScreen = () => {
     }
   };
 
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchProfileData();
+    setRefreshing(false);
+  };
+
   const handleUpdateProfile = async () => {
     if (!isEditMode) {
       setIsEditMode(true);
@@ -285,6 +293,9 @@ const ProfileScreen = () => {
         style={styles.scrollContainer}
         contentContainerStyle={{ paddingBottom: 20 }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
       >
         {/* Header Section with Gradient */}
         <LinearGradient

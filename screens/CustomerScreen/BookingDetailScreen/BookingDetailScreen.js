@@ -83,6 +83,7 @@ export default function BookingDetailScreen({ route, navigation }) {
   const [creating, setCreating] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [activeTab, setActiveTab] = useState("details"); // "details" or "results"
+  const [refreshing, setRefreshing] = useState(false);
 
   // Form states for PT - Add Activity Modal
   const [activityType, setActivityType] = useState("WarmUp");
@@ -155,6 +156,15 @@ export default function BookingDetailScreen({ route, navigation }) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchBookingDetail();
+    if (activeTab === "results") {
+      await fetchBookingResult();
+    }
+    setRefreshing(false);
   };
 
   const fetchAssets = async () => {
@@ -392,6 +402,8 @@ export default function BookingDetailScreen({ route, navigation }) {
           navigation={navigation}
           t={t}
           onAddExercise={() => setShowAddModal(true)}
+          onRefresh={handleRefresh}
+          refreshing={refreshing}
         />
       );
     } else {

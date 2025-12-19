@@ -9,6 +9,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  RefreshControl,
 } from "react-native";
 import { useEffect, useRef, useState } from "react";
 import CarouselNative from "../../../components/Carousel/Carousel";
@@ -46,6 +47,7 @@ export default function GymDetailScreen({ route }) {
   const [hasMoreComments, setHasMoreComments] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [isPostingComment, setIsPostingComment] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     const fetchGymDetail = async () => {
@@ -89,6 +91,33 @@ export default function GymDetailScreen({ route }) {
     fetchCourseGym();
     // fetchComments();
   }, [gymId]);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      const response1 = await gymService.getGymById(gymId);
+      setGymDetail(response1.data);
+
+      const response2 = await gymService.getCourseByGymId(gymId);
+      const { items } = response2.data;
+      const lowestPackage =
+        items.length > 0 ? Math.min(...items.map((item) => item.price)) : 0;
+      setLowestPackage(lowestPackage);
+      const courseFiltered = {
+        packageNormal: items
+          .filter((item) => item.type === "Normal")
+          .sort((a, b) => a.price - b.price),
+        packagePT: items
+          .filter((item) => item.type === "WithPt")
+          .sort((a, b) => a.price - b.price),
+      };
+      setGymCourse(courseFiltered);
+    } catch (error) {
+      console.error("Error refreshing gym data:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   // Fetch comments function
   const fetchComments = async (page = 1, reset = false) => {
@@ -256,7 +285,12 @@ export default function GymDetailScreen({ route }) {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
       >
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+          }
+        >
           {/* Enhanced Carousel with Overlay */}
           <View style={styles.carouselContainer}>
             <CarouselNative

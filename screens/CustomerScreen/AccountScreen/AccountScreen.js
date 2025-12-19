@@ -15,6 +15,7 @@ import {
   Dimensions,
   ActionSheetIOS,
   Platform,
+  RefreshControl,
 } from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
 import * as ImagePicker from "expo-image-picker";
@@ -33,6 +34,7 @@ const AccountScreen = () => {
   const [loading, setLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const { avatarUrl, updateAvatarUrl } = useUser();
   // Original profile from API
   const [userProfile, setUserProfile] = useState({});
@@ -68,6 +70,12 @@ const AccountScreen = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchUserData();
+    setRefreshing(false);
   };
 
   const handleInputChange = (field, value) => {
@@ -397,6 +405,9 @@ const AccountScreen = () => {
         style={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
       >
         {/* Profile Form Card */}
         <View style={styles.formCard}>

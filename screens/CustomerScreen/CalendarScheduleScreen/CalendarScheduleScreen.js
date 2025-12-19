@@ -10,6 +10,7 @@ import {
   Modal,
   TextInput,
   Platform,
+  RefreshControl,
 } from "react-native";
 import React, { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "../../../hooks/useTranslation";
@@ -31,6 +32,7 @@ export default function CalendarScheduleScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Edit modal states
   const [showEditModal, setShowEditModal] = useState(false);
@@ -81,7 +83,13 @@ export default function CalendarScheduleScreen() {
       setBookings([]);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadBookingOfUser(selectedDate);
   };
 
   // Handle date selection
@@ -430,6 +438,9 @@ export default function CalendarScheduleScreen() {
             <ScrollView
               style={styles.scrollView}
               showsVerticalScrollIndicator={false}
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+              }
             >
               {loading ? (
                 <LoadingIndicator

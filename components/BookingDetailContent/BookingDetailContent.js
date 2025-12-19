@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  RefreshControl,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import colors from "../../constants/color";
@@ -69,6 +70,8 @@ export default function BookingDetailContent({
   navigation,
   t,
   onAddExercise,
+  onRefresh,
+  refreshing = false,
 }) {
   // Get unique activity types from sessionActivities
 
@@ -299,6 +302,11 @@ export default function BookingDetailContent({
         ref={scrollViewRef}
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          onRefresh ? (
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          ) : undefined
+        }
       >
         {/* Booking Detail Card */}
         {bookingDetail?.bookingName && (

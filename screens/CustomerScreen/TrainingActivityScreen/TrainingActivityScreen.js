@@ -8,6 +8,7 @@ import {
   Alert,
   Dimensions,
   Image,
+  RefreshControl,
 } from "react-native";
 import React, { useEffect, useState, useRef } from "react";
 import bookingService from "../../../services/bookingService";
@@ -78,6 +79,7 @@ export default function TrainingActivityScreen({ route, navigation }) {
 
   // Store actual time when in manual mode (in case it's > planned)
   const manualActualTimeRef = useRef(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   const getActivityAssetLabel = () => {
     if (!activityDetail) return "";
@@ -96,32 +98,39 @@ export default function TrainingActivityScreen({ route, navigation }) {
     return MUSCLE_GROUPS.find((m) => m.id === muscleId) || null;
   };
 
-  useEffect(() => {
-    const loadingActivityDetail = async () => {
-      try {
-        const response = await bookingService.getSessionActivityDetail(
-          activityId
-        );
-        console.log("Activity Detail Response:", response);
-        setActivityDetail(response.data);
+  const loadingActivityDetail = async () => {
+    try {
+      const response = await bookingService.getSessionActivityDetail(
+        activityId
+      );
+      console.log("Activity Detail Response:", response);
+      setActivityDetail(response.data);
 
-        // Find the first uncompleted set and set it as current
-        const firstUncompletedIndex = response.data.activitySets.findIndex(
-          (set) => !set.isCompleted
-        );
+      // Find the first uncompleted set and set it as current
+      const firstUncompletedIndex = response.data.activitySets.findIndex(
+        (set) => !set.isCompleted
+      );
 
-        // If found, set it as current index, otherwise keep at 0
-        if (firstUncompletedIndex !== -1) {
-          setCurrentSetIndex(firstUncompletedIndex);
-        }
-      } catch (error) {
-        console.error("Error fetching activity detail:", error);
-        Alert.alert(
-          t("common.error"),
-          t("trainingActivity.errorLoadingActivity")
-        );
+      // If found, set it as current index, otherwise keep at 0
+      if (firstUncompletedIndex !== -1) {
+        setCurrentSetIndex(firstUncompletedIndex);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching activity detail:", error);
+      Alert.alert(
+        t("common.error"),
+        t("trainingActivity.errorLoadingActivity")
+      );
+    }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadingActivityDetail();
+    setRefreshing(false);
+  };
+
+  useEffect(() => {
     loadingActivityDetail();
 
     return () => {
@@ -462,7 +471,13 @@ export default function TrainingActivityScreen({ route, navigation }) {
 
   return (
     <View style={styles.container} edges={["top"]}>
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.content}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
+      >
         {/* Main Timer Display */}
         <View style={styles.timerDisplayContainer}>
           {/* Show simple initial value only when not started, not resting and not in manual mode */}

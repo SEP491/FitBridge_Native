@@ -11,6 +11,7 @@ import {
   TextInput,
   ScrollView,
   ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "../../../hooks/useTranslation";
@@ -29,6 +30,7 @@ export default function MyPackageScreen() {
   const { t } = useTranslation();
   const [packages, setPackages] = useState([]);
   const [activeTab, setActiveTab] = useState("current");
+  const [refreshing, setRefreshing] = useState(false);
   const navigation = useNavigation();
 
   // Report Modal States
@@ -94,6 +96,12 @@ export default function MyPackageScreen() {
     } catch (error) {
       console.error("Error fetching package data:", error);
     }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchPackages();
+    setRefreshing(false);
   };
 
   const getPackageOrderInfo = async (customerPurchasedId) => {
@@ -542,6 +550,9 @@ export default function MyPackageScreen() {
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+          }
         />
       )}
     </SafeAreaView>

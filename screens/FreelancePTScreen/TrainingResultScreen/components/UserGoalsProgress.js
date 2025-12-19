@@ -14,7 +14,7 @@ import { LineChart } from "react-native-chart-kit";
 import UserGoalService from "../../../../services/user-goalService";
 import BodyMeasurementsService from "../../../../services/body-measurementService";
 import BodyMeasurementHistoryModal from "./BodyMeasurementHistoryModal";
-import LoadingIndicator from "../../../../../components/LoadingIndicator";
+import LoadingIndicator from "../../../../components/LoadingIndicator";
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 // Muscle group images mapping

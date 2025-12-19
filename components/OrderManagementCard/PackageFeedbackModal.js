@@ -17,7 +17,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useTranslation } from "../../hooks/useTranslation";
 import reviewService from "../../services/reviewService";
-import LoadingIndicator from "../../LoadingIndicator";
+import LoadingIndicator from "../LoadingIndicator";
 
 const PackageFeedbackModal = ({ visible, onClose, packageItem }) => {
   const { t } = useTranslation();
@@ -26,19 +26,17 @@ const PackageFeedbackModal = ({ visible, onClose, packageItem }) => {
   const [images, setImages] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   console.log("Package Item in Feedback Modal:", packageItem);
-  
+
   // Extract orderItem - support both direct orderItem or nested structure
   const orderItem = packageItem?.orderItem || packageItem;
   console.log("Extracted orderItem:", orderItem);
   console.log("OrderItem ID:", orderItem?.id);
   const handlePickImages = async () => {
     try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== "granted") {
-        Alert.alert(
-          t("errors.error"),
-          t("errors.photoPermissionRequired")
-        );
+        Alert.alert(t("errors.error"), t("errors.photoPermissionRequired"));
         return;
       }
 
@@ -69,7 +67,8 @@ const PackageFeedbackModal = ({ visible, onClose, packageItem }) => {
       if (status !== "granted") {
         Alert.alert(
           t("errors.error"),
-          t("errors.cameraPermissionRequired") || "Camera permission is required to take photos"
+          t("errors.cameraPermissionRequired") ||
+            "Camera permission is required to take photos"
         );
         return;
       }
@@ -90,7 +89,10 @@ const PackageFeedbackModal = ({ visible, onClose, packageItem }) => {
       }
     } catch (error) {
       console.error("Error taking picture:", error);
-      Alert.alert(t("errors.error"), t("errors.cameraError") || "Failed to take picture. Please try again.");
+      Alert.alert(
+        t("errors.error"),
+        t("errors.cameraError") || "Failed to take picture. Please try again."
+      );
     }
   };
 
@@ -122,12 +124,18 @@ const PackageFeedbackModal = ({ visible, onClose, packageItem }) => {
 
   const handleSubmit = async () => {
     if (rating === 0) {
-      Alert.alert(t("errors.error") || "Error", t("orders.pleaseSelectRating") || "Please select a rating");
+      Alert.alert(
+        t("errors.error") || "Error",
+        t("orders.pleaseSelectRating") || "Please select a rating"
+      );
       return;
     }
 
     if (!content.trim()) {
-      Alert.alert(t("errors.error") || "Error", t("orders.pleaseEnterFeedback") || "Please enter your feedback");
+      Alert.alert(
+        t("errors.error") || "Error",
+        t("orders.pleaseEnterFeedback") || "Please enter your feedback"
+      );
       return;
     }
 
@@ -143,7 +151,7 @@ const PackageFeedbackModal = ({ visible, onClose, packageItem }) => {
         console.error("Missing orderItemId. OrderItem:", orderItem);
         console.error("PackageItem:", packageItem);
         Alert.alert(
-          t("errors.error") || "Error", 
+          t("errors.error") || "Error",
           "Invalid package item: Missing orderItemId"
         );
         setIsSubmitting(false);
@@ -174,7 +182,8 @@ const PackageFeedbackModal = ({ visible, onClose, packageItem }) => {
 
       Alert.alert(
         t("common.success") || "Success",
-        t("orders.feedbackSubmitted") || "Your feedback has been submitted successfully!",
+        t("orders.feedbackSubmitted") ||
+          "Your feedback has been submitted successfully!",
         [
           {
             text: t("common.ok") || "OK",
@@ -195,7 +204,10 @@ const PackageFeedbackModal = ({ visible, onClose, packageItem }) => {
       });
       Alert.alert(
         t("errors.error") || "Error",
-        error.response?.data?.message || error.message || t("orders.feedbackError") || "Failed to submit feedback. Please try again."
+        error.response?.data?.message ||
+          error.message ||
+          t("orders.feedbackError") ||
+          "Failed to submit feedback. Please try again."
       );
     } finally {
       setIsSubmitting(false);
@@ -212,7 +224,8 @@ const PackageFeedbackModal = ({ visible, onClose, packageItem }) => {
     if (rating > 0 || content.trim() || images.length > 0) {
       Alert.alert(
         t("common.warning") || "Warning",
-        t("orders.discardFeedback") || "Are you sure you want to discard your feedback?",
+        t("orders.discardFeedback") ||
+          "Are you sure you want to discard your feedback?",
         [
           {
             text: t("common.cancel") || "Cancel",
@@ -235,7 +248,12 @@ const PackageFeedbackModal = ({ visible, onClose, packageItem }) => {
 
   const getPackageName = () => {
     // Use productName from orderItem, or fallback to packageName
-    return orderItem?.productName || packageItem?.packageName || t("myPackage.package") || "Package";
+    return (
+      orderItem?.productName ||
+      packageItem?.packageName ||
+      t("myPackage.package") ||
+      "Package"
+    );
   };
 
   const getPackageType = () => {
@@ -243,7 +261,7 @@ const PackageFeedbackModal = ({ visible, onClose, packageItem }) => {
     const isGymCourse = !!orderItem?.gymCourseId;
     const gymCourse = orderItem?.gymCourse;
     const freelancePTPackage = orderItem?.freelancePTPackage;
-    
+
     if (!isGymCourse && freelancePTPackage) {
       return t("myPackage.freelancePT") || "Freelance PT";
     } else if (isGymCourse && (gymCourse?.ptPrice > 0 || gymCourse?.pt)) {
@@ -251,7 +269,7 @@ const PackageFeedbackModal = ({ visible, onClose, packageItem }) => {
     } else if (isGymCourse) {
       return t("myPackage.gymMembership") || "Gym Membership";
     }
-    
+
     // Fallback to packageItem type if available
     if (packageItem?.type === "freelancePT") {
       return t("myPackage.freelancePT") || "Freelance PT";
@@ -265,9 +283,11 @@ const PackageFeedbackModal = ({ visible, onClose, packageItem }) => {
 
   const getPackageImageUrl = () => {
     // Get image from gymCourse or freelancePTPackage
-    return orderItem?.gymCourse?.imageUrl || 
-           orderItem?.freelancePTPackage?.imageUrl || 
-           packageItem?.courseImageUrl;
+    return (
+      orderItem?.gymCourse?.imageUrl ||
+      orderItem?.freelancePTPackage?.imageUrl ||
+      packageItem?.courseImageUrl
+    );
   };
 
   return (
@@ -286,7 +306,8 @@ const PackageFeedbackModal = ({ visible, onClose, packageItem }) => {
                 {t("myPackage.leaveFeedback") || "Leave Feedback"}
               </Text>
               <Text style={styles.headerSubtitle}>
-                {t("myPackage.shareExperience") || "Share your experience with this package"}
+                {t("myPackage.shareExperience") ||
+                  "Share your experience with this package"}
               </Text>
             </View>
             <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
@@ -357,7 +378,10 @@ const PackageFeedbackModal = ({ visible, onClose, packageItem }) => {
               </Text>
               <TextInput
                 style={styles.textInput}
-                placeholder={t("orders.reviewPlaceholder") || "Tell us about your experience..."}
+                placeholder={
+                  t("orders.reviewPlaceholder") ||
+                  "Tell us about your experience..."
+                }
                 placeholderTextColor="#999"
                 multiline
                 numberOfLines={6}

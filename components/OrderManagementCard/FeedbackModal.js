@@ -15,7 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useTranslation } from "../../hooks/useTranslation";
 import reviewService from "../../services/reviewService";
-import LoadingIndicator from "../../LoadingIndicator";
+import LoadingIndicator from "../LoadingIndicator";
 
 const FeedbackModal = ({ visible, onClose, orderItems = [] }) => {
   const { t } = useTranslation();
@@ -43,12 +43,10 @@ const FeedbackModal = ({ visible, onClose, orderItems = [] }) => {
 
   const handlePickImages = async () => {
     try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== "granted") {
-        Alert.alert(
-          t("errors.error"),
-          t("errors.photoPermissionRequired")
-        );
+        Alert.alert(t("errors.error"), t("errors.photoPermissionRequired"));
         return;
       }
 
@@ -81,7 +79,8 @@ const FeedbackModal = ({ visible, onClose, orderItems = [] }) => {
       if (status !== "granted") {
         Alert.alert(
           t("errors.error"),
-          t("errors.cameraPermissionRequired") || "Camera permission is required to take photos"
+          t("errors.cameraPermissionRequired") ||
+            "Camera permission is required to take photos"
         );
         return;
       }
@@ -104,7 +103,10 @@ const FeedbackModal = ({ visible, onClose, orderItems = [] }) => {
       }
     } catch (error) {
       console.error("Error taking picture:", error);
-      Alert.alert(t("errors.error"), t("errors.cameraError") || "Failed to take picture. Please try again.");
+      Alert.alert(
+        t("errors.error"),
+        t("errors.cameraError") || "Failed to take picture. Please try again."
+      );
     }
   };
 
@@ -216,22 +218,18 @@ const FeedbackModal = ({ visible, onClose, orderItems = [] }) => {
 
   const handleSkip = () => {
     if (currentItemIndex < orderItems.length - 1) {
-      Alert.alert(
-        t("common.warning"),
-        t("orders.skipFeedback"),
-        [
-          {
-            text: t("common.cancel"),
-            style: "cancel",
+      Alert.alert(t("common.warning"), t("orders.skipFeedback"), [
+        {
+          text: t("common.cancel"),
+          style: "cancel",
+        },
+        {
+          text: t("orders.skip"),
+          onPress: () => {
+            setCurrentItemIndex(currentItemIndex + 1);
           },
-          {
-            text: t("orders.skip"),
-            onPress: () => {
-              setCurrentItemIndex(currentItemIndex + 1);
-            },
-          },
-        ]
-      );
+        },
+      ]);
     } else {
       handleClose();
     }
@@ -255,24 +253,20 @@ const FeedbackModal = ({ visible, onClose, orderItems = [] }) => {
     );
 
     if (hasAnyFeedback) {
-      Alert.alert(
-        t("common.warning"),
-        t("orders.discardFeedback"),
-        [
-          {
-            text: t("common.cancel"),
-            style: "cancel",
+      Alert.alert(t("common.warning"), t("orders.discardFeedback"), [
+        {
+          text: t("common.cancel"),
+          style: "cancel",
+        },
+        {
+          text: t("common.confirm"),
+          onPress: () => {
+            resetForm();
+            onClose(false);
           },
-          {
-            text: t("common.confirm"),
-            onPress: () => {
-              resetForm();
-              onClose(false);
-            },
-            style: "destructive",
-          },
-        ]
-      );
+          style: "destructive",
+        },
+      ]);
     } else {
       onClose(false);
     }
@@ -285,7 +279,7 @@ const FeedbackModal = ({ visible, onClose, orderItems = [] }) => {
   const getProductName = () => {
     const detail = currentItem.productDetail;
     if (!detail) return t("orders.product");
-    
+
     let name = detail.flavourName || detail.productName || t("orders.product");
     if (detail.weightValue > 0) {
       name += ` - ${detail.weightValue}${detail.weightUnit || ""}`;
@@ -305,7 +299,9 @@ const FeedbackModal = ({ visible, onClose, orderItems = [] }) => {
           {/* Header */}
           <View style={styles.header}>
             <View style={styles.headerLeft}>
-              <Text style={styles.headerTitle}>{t("orders.leaveFeedback")}</Text>
+              <Text style={styles.headerTitle}>
+                {t("orders.leaveFeedback")}
+              </Text>
               <Text style={styles.headerSubtitle}>
                 {t("orders.item")} {currentItemIndex + 1} / {orderItems.length}
               </Text>
@@ -329,13 +325,16 @@ const FeedbackModal = ({ visible, onClose, orderItems = [] }) => {
                   />
                 )}
                 <View style={styles.productInfo}>
-                  <Text style={styles.productLabel}>{t("orders.product")}:</Text>
+                  <Text style={styles.productLabel}>
+                    {t("orders.product")}:
+                  </Text>
                   <Text style={styles.productName}>{getProductName()}</Text>
                   {currentItem.productDetail?.proteinPerServingGrams > 0 && (
                     <Text style={styles.productNutrition}>
-                      {t("orders.protein")}: {currentItem.productDetail.proteinPerServingGrams}g
-                      {" | "}
-                      {t("orders.calories")}: {currentItem.productDetail.caloriesPerServingKcal}kcal
+                      {t("orders.protein")}:{" "}
+                      {currentItem.productDetail.proteinPerServingGrams}g{" | "}
+                      {t("orders.calories")}:{" "}
+                      {currentItem.productDetail.caloriesPerServingKcal}kcal
                     </Text>
                   )}
                 </View>
@@ -355,9 +354,13 @@ const FeedbackModal = ({ visible, onClose, orderItems = [] }) => {
                     style={styles.starButton}
                   >
                     <Ionicons
-                      name={star <= currentFeedback.rating ? "star" : "star-outline"}
+                      name={
+                        star <= currentFeedback.rating ? "star" : "star-outline"
+                      }
                       size={40}
-                      color={star <= currentFeedback.rating ? "#FFD700" : "#DDD"}
+                      color={
+                        star <= currentFeedback.rating ? "#FFD700" : "#DDD"
+                      }
                     />
                   </TouchableOpacity>
                 ))}
@@ -385,7 +388,9 @@ const FeedbackModal = ({ visible, onClose, orderItems = [] }) => {
                 multiline
                 numberOfLines={6}
                 value={currentFeedback.content}
-                onChangeText={(text) => updateCurrentFeedback({ content: text })}
+                onChangeText={(text) =>
+                  updateCurrentFeedback({ content: text })
+                }
                 maxLength={500}
               />
               <Text style={styles.charCount}>
@@ -416,7 +421,9 @@ const FeedbackModal = ({ visible, onClose, orderItems = [] }) => {
                     onPress={handleAddImage}
                   >
                     <Ionicons name="camera-outline" size={32} color="#999" />
-                    <Text style={styles.addImageText}>{t("orders.addPhoto")}</Text>
+                    <Text style={styles.addImageText}>
+                      {t("orders.addPhoto")}
+                    </Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -432,10 +439,12 @@ const FeedbackModal = ({ visible, onClose, orderItems = [] }) => {
                   onPress={handlePrevious}
                 >
                   <Ionicons name="chevron-back" size={20} color="#ED2A46" />
-                  <Text style={styles.navButtonText}>{t("orders.previous")}</Text>
+                  <Text style={styles.navButtonText}>
+                    {t("orders.previous")}
+                  </Text>
                 </TouchableOpacity>
               )}
-              
+
               {currentItemIndex < orderItems.length - 1 && (
                 <TouchableOpacity
                   style={styles.skipButton}
@@ -449,11 +458,17 @@ const FeedbackModal = ({ visible, onClose, orderItems = [] }) => {
             <TouchableOpacity
               style={[
                 styles.submitButton,
-                (currentFeedback.rating === 0 || !currentFeedback.content.trim() || isSubmitting) &&
+                (currentFeedback.rating === 0 ||
+                  !currentFeedback.content.trim() ||
+                  isSubmitting) &&
                   styles.submitButtonDisabled,
               ]}
               onPress={handleSubmit}
-              disabled={currentFeedback.rating === 0 || !currentFeedback.content.trim() || isSubmitting}
+              disabled={
+                currentFeedback.rating === 0 ||
+                !currentFeedback.content.trim() ||
+                isSubmitting
+              }
             >
               {isSubmitting ? (
                 <LoadingIndicator variant="button" />
