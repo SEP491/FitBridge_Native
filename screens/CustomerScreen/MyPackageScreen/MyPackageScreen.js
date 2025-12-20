@@ -25,12 +25,14 @@ import * as ImagePicker from "expo-image-picker";
 import PackageFeedbackModal from "../../../components/OrderManagementCard/PackageFeedbackModal";
 import orderService from "../../../services/orderService";
 import PackageCard from "../../../components/PackageCard/PackageCard";
+import { PackageCardSkeletonList } from "../../../components/PackageCard/PackageCardSkeleton";
 import LoadingIndicator from "../../../components/LoadingIndicator";
 export default function MyPackageScreen() {
   const { t } = useTranslation();
   const [packages, setPackages] = useState([]);
   const [activeTab, setActiveTab] = useState("current");
   const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
 
   // Report Modal States
@@ -53,6 +55,7 @@ export default function MyPackageScreen() {
 
   const fetchPackages = async () => {
     try {
+      setLoading(true);
       const response = await packageService.getPackages();
       console.log("Package Response:", response);
 
@@ -95,6 +98,8 @@ export default function MyPackageScreen() {
       }
     } catch (error) {
       console.error("Error fetching package data:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -320,7 +325,42 @@ export default function MyPackageScreen() {
     }
   };
 
+  // Construct customer object for Freelance PT packages
+  const getCustomerForPackage = (packageItem) => {
+    if (packageItem.type !== "freelancePT") return null;
+    
+    // Get all Freelance PT packages for this customer
+    const freelancePTPackages = packages.filter(pkg => pkg.type === "freelancePT");
+    
+    // Construct a customer object from package data
+    // Note: This constructs a customer object for navigation to CustomerDetailScreen
+    const customer = {
+      id: packageItem.customerId || packageItem.id, // Use customerId if available, fallback to package id
+      name: packageItem.customerName || packageItem.ptName || "Customer", // Use customerName if available
+      email: packageItem.customerEmail || "",
+      phone: packageItem.customerPhone || "",
+      avatarUrl: packageItem.customerAvatarUrl || null,
+      status: "active",
+      joinDate: packageItem.purchaseDate || new Date().toISOString(),
+      totalPackages: freelancePTPackages.length,
+      activePackages: freelancePTPackages.filter(pkg => !isPackageExpired(pkg.expirationDate)).length,
+      totalSessions: freelancePTPackages.reduce((sum, pkg) => sum + (pkg.availableSessions || 0), 0),
+      packages: freelancePTPackages.map(pkg => ({
+        id: pkg.id,
+        packageName: pkg.packageName,
+        availableSessions: pkg.availableSessions || 0,
+        expirationDate: pkg.expirationDate,
+        purchaseDate: pkg.purchaseDate || pkg.expirationDate,
+        totalSessions: pkg.totalSessions || pkg.availableSessions || 0,
+      })),
+    };
+    
+    return customer;
+  };
+
   const renderPackageItem = ({ item }) => {
+    const customer = getCustomerForPackage(item);
+    
     return (
       <PackageCard
         item={item}
@@ -329,6 +369,7 @@ export default function MyPackageScreen() {
         onFeedback={handleOpenFeedbackModal}
         t={t}
         mode="package"
+        customer={customer}
       />
     );
   };
@@ -527,7 +568,11 @@ export default function MyPackageScreen() {
         </TouchableOpacity>
       </View>
 
-      {filteredPackages.length === 0 ? (
+      {loading ? (
+        <View style={styles.listContainer}>
+          <PackageCardSkeletonList count={4} />
+        </View>
+      ) : filteredPackages.length === 0 ? (
         <View style={styles.emptyContainer}>
           <View style={styles.emptyIconContainer}>
             <MaterialIcons name="fitness-center" size={48} color="#e0e0e0" />

@@ -147,6 +147,7 @@
     "reviewCoursesMessage": "Your course reviews will appear here",
     "package": "Course",
     "viewFeedback": "View Feedback",
+    "viewDetail": "View Detail",
     "report": "Report",
     "feedback": {
       "errorLoadingOrder": "Failed to load order information. Please try again.",
