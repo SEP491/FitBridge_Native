@@ -6,16 +6,16 @@ import {
   Image,
   ScrollView,
   TouchableOpacity,
-  Modal,
-  Dimensions,
   TextInput,
   Alert,
   ActivityIndicator,
+  Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import reviewService from "../../services/reviewService";
 import { fetchUserFromStorage } from "../../lib";
+import ImageViewerModal from "./ImageViewerModal";
 import LoadingIndicator from "../LoadingIndicator";
 
 const ReviewCard = ({
@@ -402,16 +402,16 @@ const ReviewCard = ({
               )}
             </View>
           </View>
-            <View style={styles.actionsContainer}>
-              {user?.id === review.userId && (
+          <View style={styles.actionsContainer}>
+            {user?.id === review.userId && (
               <TouchableOpacity
                 onPress={handleEditReview}
                 style={styles.editButton}
               >
                 <Ionicons name="create-outline" size={20} color="#666" />
               </TouchableOpacity>
-              )}
-            </View>
+            )}
+          </View>
         </View>
 
         {review.content && (
@@ -447,53 +447,13 @@ const ReviewCard = ({
       </View>
 
       {/* Image Viewer Modal */}
-      <Modal
+      <ImageViewerModal
         visible={modalVisible}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={closeImageViewer}
-      >
-        <View style={styles.modalContainer}>
-          <TouchableOpacity
-            style={styles.modalCloseButton}
-            onPress={closeImageViewer}
-          >
-            <Ionicons name="close" size={32} color="#FFF" />
-          </TouchableOpacity>
-
-          <View style={styles.modalContent}>
-            <Image
-              source={{ uri: review.imageUrls[selectedImageIndex] }}
-              style={styles.modalImage}
-              resizeMode="contain"
-            />
-
-            {review.imageUrls.length > 1 && (
-              <>
-                <TouchableOpacity
-                  style={[styles.navButton, styles.navButtonLeft]}
-                  onPress={() => navigateImage("prev")}
-                >
-                  <Ionicons name="chevron-back" size={32} color="#FFF" />
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.navButton, styles.navButtonRight]}
-                  onPress={() => navigateImage("next")}
-                >
-                  <Ionicons name="chevron-forward" size={32} color="#FFF" />
-                </TouchableOpacity>
-
-                <View style={styles.imageCounter}>
-                  <Text style={styles.imageCounterText}>
-                    {selectedImageIndex + 1} / {review.imageUrls.length}
-                  </Text>
-                </View>
-              </>
-            )}
-          </View>
-        </View>
-      </Modal>
+        imageUrls={review.imageUrls || []}
+        selectedIndex={selectedImageIndex}
+        onClose={closeImageViewer}
+        onNavigate={navigateImage}
+      />
 
       {/* Edit Review Modal */}
       <Modal
@@ -763,56 +723,6 @@ const styles = StyleSheet.create({
     gap: 4,
   },
 
-  // Modal styles
-  modalContainer: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.95)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalCloseButton: {
-    position: "absolute",
-    top: 50,
-    right: 20,
-    zIndex: 10,
-    padding: 8,
-  },
-  modalContent: {
-    width: Dimensions.get("window").width,
-    height: Dimensions.get("window").height,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalImage: {
-    width: "100%",
-    height: "80%",
-  },
-  navButton: {
-    position: "absolute",
-    top: "50%",
-    padding: 16,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    borderRadius: 30,
-  },
-  navButtonLeft: {
-    left: 20,
-  },
-  navButtonRight: {
-    right: 20,
-  },
-  imageCounter: {
-    position: "absolute",
-    bottom: 50,
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  imageCounterText: {
-    color: "#FFF",
-    fontSize: 14,
-    fontWeight: "600",
-  },
   // Edit Modal styles
   editModalOverlay: {
     flex: 1,

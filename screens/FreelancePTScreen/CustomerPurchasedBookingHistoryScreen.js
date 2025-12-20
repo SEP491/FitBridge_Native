@@ -76,6 +76,7 @@ const CustomerPurchasedBookingHistoryScreen = ({ route, navigation }) => {
         customerPurchasedId,
         page,
         size: 10,
+        sortOrder:'dsc'
       });
 
       if (response?.status === "200" && response?.data) {

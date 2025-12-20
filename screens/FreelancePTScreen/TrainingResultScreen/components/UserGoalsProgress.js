@@ -8,12 +8,15 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   ScrollView,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LineChart } from "react-native-chart-kit";
 import UserGoalService from "../../../../services/user-goalService";
 import BodyMeasurementsService from "../../../../services/body-measurementService";
 import BodyMeasurementHistoryModal from "./BodyMeasurementHistoryModal";
+import { CreateUserGoalForm } from "./CreateUserGoalForm";
+import { fetchUserFromStorage } from "../../../../lib";
 import LoadingIndicator from "../../../../components/LoadingIndicator";
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -41,20 +44,31 @@ export const UserGoalsProgress = ({
   customerPurchasedId,
   onCreateGoal,
   navigation,
+  initialUserGoals,
+  onlyLineChart = false,
 }) => {
-  const [userGoals, setUserGoals] = React.useState(null);
+  const [userGoals, setUserGoals] = React.useState(initialUserGoals || null);
   const [bodyMeasurements, setBodyMeasurements] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [selectedMuscleGroup, setSelectedMuscleGroup] =
     React.useState("Weight");
   const [historyModalVisible, setHistoryModalVisible] = React.useState(false);
+  const [updatingGoals, setUpdatingGoals] = React.useState(false);
+  const [showEditGoalForm, setShowEditGoalForm] = React.useState(false);
+  const [userRole, setUserRole] = React.useState(null);
 
+  const fetchUser = async () => {
+    try {
+      const user = await fetchUserFromStorage();
+      setUserRole(user.role);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+    }
+  };
   const fetchUserGoals = async () => {
     try {
-      setLoading(true);
       if (!customerPurchasedId) {
         setUserGoals(null);
-        setLoading(false);
         return;
       }
       const response = await UserGoalService.getUserGoals(customerPurchasedId);
@@ -67,7 +81,7 @@ export const UserGoalsProgress = ({
       console.error("Error fetching user goals:", error);
       setUserGoals(null);
     } finally {
-      setLoading(false);
+      // loading state handled in effects
     }
   };
 
@@ -88,9 +102,55 @@ export const UserGoalsProgress = ({
   };
 
   React.useEffect(() => {
-    fetchUserGoals();
+    // If parent already provides user goals from stats, use them and avoid extra API
+    if (initialUserGoals) {
+      setUserGoals(initialUserGoals);
+      setLoading(false);
+      fetchUser();
+      fetchBodyMeasurements();
+      return;
+    }
+
+    setLoading(true);
+    fetchUser();
+    fetchUserGoals().finally(() => setLoading(false));
     fetchBodyMeasurements();
-  }, [customerPurchasedId]);
+  }, [customerPurchasedId, initialUserGoals]);
+
+  // Keep userGoals in sync if initialUserGoals prop changes later
+  React.useEffect(() => {
+    if (initialUserGoals) {
+      setUserGoals(initialUserGoals);
+    }
+  }, [initialUserGoals]);
+
+  const handleSubmitEditGoals = async (data) => {
+    if (!customerPurchasedId) return;
+    try {
+      setUpdatingGoals(true);
+      await UserGoalService.updateUserGoals(customerPurchasedId, data);
+      Alert.alert(
+        t("userGoals.updateSuccessTitle", "Goals Updated"),
+        t(
+          "userGoals.updateSuccessMessage",
+          "User goals have been updated successfully."
+        )
+      );
+      setShowEditGoalForm(false);
+      fetchUserGoals();
+    } catch (error) {
+      console.error("Error updating user goals:", error);
+      Alert.alert(
+        t("userGoals.updateErrorTitle", "Update Failed"),
+        t(
+          "userGoals.updateErrorMessage",
+          "Unable to update user goals. Please try again."
+        )
+      );
+    } finally {
+      setUpdatingGoals(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -226,130 +286,155 @@ export const UserGoalsProgress = ({
 
   return (
     <>
-      <StatCard
-        title={t("trainingResults.currentUserStats", "Current User Stats")}
-        icon="body"
-      >
-        {/* Add Measurement and View History Button */}
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={styles.addMeasurementButton}
-            onPress={() =>
-              navigation?.navigate("AddMeasurementScreen", {
-                customerPurchasedId,
-                firstTimeScan: firstTimeScanMeasurements,
-              })
-            }
-          >
-            <Ionicons name="add-circle" size={20} color="#fff" />
-            <Text style={styles.addMeasurementButtonText}>
-              {t("bodyMeasurements.addMeasurement", "Add Measurement")}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.viewHistoryButton}
-            onPress={() => setHistoryModalVisible(true)}
-          >
-            <Ionicons name="time-outline" size={20} color="#ED2A46" />
-            <Text style={styles.viewHistoryButtonText}>
-              {t("bodyMeasurements.viewHistory", "View History")}
-            </Text>
-          </TouchableOpacity>
-        </View>
+      {onlyLineChart === false && (
+        <StatCard
+          title={t("trainingResults.currentUserStats", "Current User Stats")}
+          icon="body"
+        >
+          {/* Add Measurement and View History Button */}
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={styles.addMeasurementButton}
+              onPress={() =>
+                navigation?.navigate("AddMeasurementScreen", {
+                  customerPurchasedId,
+                  firstTimeScan: firstTimeScanMeasurements,
+                })
+              }
+            >
+              <Ionicons name="add-circle" size={20} color="#fff" />
+              <Text style={styles.addMeasurementButtonText}>
+                {t("bodyMeasurements.addMeasurement", "Add Measurement")}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.viewHistoryButton}
+              onPress={() => setHistoryModalVisible(true)}
+            >
+              <Ionicons name="time-outline" size={20} color="#ED2A46" />
+              <Text style={styles.viewHistoryButtonText}>
+                {t("bodyMeasurements.viewHistory", "View History")}
+              </Text>
+            </TouchableOpacity>
+          </View>
 
-        <View style={styles.currentStatsContainer}>
-          {/* Latest Measurement Stats */}
-          {bodyMeasurements.length > 0 ? (
-            <>
-              <View style={styles.mainStatsRow}>
-                <View style={styles.mainStatCard}>
-                  <Text style={styles.mainStatLabel}>
-                    {t("userGoals.height", "Height")}
-                  </Text>
-                  <Text style={styles.mainStatValue}>
-                    {bodyMeasurements[0]?.height || "-"}
-                  </Text>
-                  <Text style={styles.mainStatUnit}>
-                    {t("profile.units.cm", "cm")}
-                  </Text>
+          <View style={styles.currentStatsContainer}>
+            {/* Latest Measurement Stats */}
+            {bodyMeasurements.length > 0 ? (
+              <>
+                <View style={styles.mainStatsRow}>
+                  <View style={styles.mainStatCard}>
+                    <Text style={styles.mainStatLabel}>
+                      {t("userGoals.height", "Height")}
+                    </Text>
+                    <Text style={styles.mainStatValue}>
+                      {bodyMeasurements[0]?.height || "-"}
+                    </Text>
+                    <Text style={styles.mainStatUnit}>
+                      {t("profile.units.cm", "cm")}
+                    </Text>
+                  </View>
+                  <View style={styles.mainStatDivider} />
+                  <View style={styles.mainStatCard}>
+                    <Text style={styles.mainStatLabel}>
+                      {t("userGoals.weight", "Weight")}
+                    </Text>
+                    <Text style={styles.mainStatValue}>
+                      {bodyMeasurements[0]?.weight || "-"}
+                    </Text>
+                    <Text style={styles.mainStatUnit}>
+                      {t("profile.units.kg", "kg")}
+                    </Text>
+                  </View>
                 </View>
-                <View style={styles.mainStatDivider} />
-                <View style={styles.mainStatCard}>
-                  <Text style={styles.mainStatLabel}>
-                    {t("userGoals.weight", "Weight")}
-                  </Text>
-                  <Text style={styles.mainStatValue}>
-                    {bodyMeasurements[0]?.weight || "-"}
-                  </Text>
-                  <Text style={styles.mainStatUnit}>
-                    {t("profile.units.kg", "kg")}
-                  </Text>
-                </View>
-              </View>
 
-              {/* Muscle Stats Grid - 2 Columns Full Width */}
-              <View style={styles.muscleStatsGrid}>
-                {muscleGroups.map((group, index) => {
-                  // Skip Height and Weight as they are displayed in the main stats row
-                  if (group.key === "Weight" || group.key === "Height")
-                    return null;
+                {/* Muscle Stats Grid - 2 Columns Full Width */}
+                <View style={styles.muscleStatsGrid}>
+                  {muscleGroups.map((group, index) => {
+                    // Skip Height and Weight as they are displayed in the main stats row
+                    if (group.key === "Weight" || group.key === "Height")
+                      return null;
 
-                  const latestValue = bodyMeasurements[0]?.[group.apiKey];
+                    const latestValue = bodyMeasurements[0]?.[group.apiKey];
 
-                  // Skip if no value
-                  if (latestValue === null || latestValue === undefined)
-                    return null;
+                    // Skip if no value
+                    if (latestValue === null || latestValue === undefined)
+                      return null;
 
-                  const muscleImage = muscleGroupImages[group.key];
+                    const muscleImage = muscleGroupImages[group.key];
 
-                  return (
-                    <View key={index} style={styles.muscleStatCard}>
-                      {muscleImage && (
-                        <Image
-                          source={muscleImage}
-                          style={styles.muscleStatImage}
-                          resizeMode="contain"
-                        />
-                      )}
-                      <View style={styles.muscleStatInfo}>
-                        <Text style={styles.muscleStatLabel}>
-                          {group.label}
-                        </Text>
-                        <View style={styles.muscleStatValueContainer}>
-                          <Text style={styles.muscleStatValue}>
-                            {latestValue || 0}
+                    return (
+                      <View key={index} style={styles.muscleStatCard}>
+                        {muscleImage && (
+                          <Image
+                            source={muscleImage}
+                            style={styles.muscleStatImage}
+                            resizeMode="contain"
+                          />
+                        )}
+                        <View style={styles.muscleStatInfo}>
+                          <Text style={styles.muscleStatLabel}>
+                            {group.label}
                           </Text>
-                          <Text style={styles.muscleStatUnit}>
-                            {t("profile.units.cm", "cm")}
-                          </Text>
+                          <View style={styles.muscleStatValueContainer}>
+                            <Text style={styles.muscleStatValue}>
+                              {latestValue || 0}
+                            </Text>
+                            <Text style={styles.muscleStatUnit}>
+                              {t("profile.units.cm", "cm")}
+                            </Text>
+                          </View>
                         </View>
                       </View>
-                    </View>
-                  );
-                })}
+                    );
+                  })}
+                </View>
+              </>
+            ) : (
+              <View style={styles.emptyStateContainer}>
+                <Ionicons name="body-outline" size={48} color="#ED2A46" />
+                <Text style={styles.emptyStateTitle}>
+                  {t("userGoals.noMeasurements", "No Measurements Yet")}
+                </Text>
+                <Text style={styles.emptyStateDescription}>
+                  {t(
+                    "userGoals.addMeasurements",
+                    "Add body measurements to track your progress"
+                  )}
+                </Text>
               </View>
-            </>
-          ) : (
-            <View style={styles.emptyStateContainer}>
-              <Ionicons name="body-outline" size={48} color="#ED2A46" />
-              <Text style={styles.emptyStateTitle}>
-                {t("userGoals.noMeasurements", "No Measurements Yet")}
-              </Text>
-              <Text style={styles.emptyStateDescription}>
-                {t(
-                  "userGoals.addMeasurements",
-                  "Add body measurements to track your progress"
-                )}
-              </Text>
-            </View>
-          )}
-        </View>
-      </StatCard>
+            )}
+          </View>
+        </StatCard>
+      )}
 
       <StatCard
         title={t("trainingResults.userGoalsProgress", "User Goals Progress")}
         icon="trending-up"
       >
+        {/* Update Goals Button */}
+        {userRole === "FreelancePT" && (
+          <View style={styles.updateGoalsContainer}>
+            <TouchableOpacity
+              style={[
+                styles.updateGoalsButton,
+                (!customerPurchasedId || updatingGoals) &&
+                  styles.updateGoalsButtonDisabled,
+              ]}
+              onPress={() => setShowEditGoalForm(true)}
+              disabled={!customerPurchasedId || updatingGoals}
+            >
+              {updatingGoals ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Ionicons name="create-outline" size={15} color="#fff" />
+              )}
+              <Text style={styles.updateGoalsButtonText}>
+                {t("userGoals.updateGoals", "Update User Goals")}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
         {/* Muscle Group Selection Buttons */}
         <ScrollView
           horizontal
@@ -458,140 +543,168 @@ export const UserGoalsProgress = ({
           </View>
         )}
 
-        {/* Detailed Goals Info */}
-        <View style={styles.goalsDetailContainer}>
-          {muscleGroups.map((group, index) => {
-            const start = userGoals[`start${group.key}`];
-            const target = userGoals[`target${group.key}`];
+        {onlyLineChart === false && (
+          <>
+            {/* Detailed Goals Info */}
+            <View style={styles.goalsDetailContainer}>
+              {muscleGroups.map((group, index) => {
+                const start = userGoals[`start${group.key}`];
+                const target = userGoals[`target${group.key}`];
 
-            // Skip if no target is set or start is missing
-            if (!target || start === null || start === undefined) return null;
+                // Skip if no target is set or start is missing
+                if (!target || start === null || start === undefined)
+                  return null;
 
-            // Get latest measurement value
-            const latestMeasurement =
-              bodyMeasurements.length > 0
-                ? bodyMeasurements[0][group.apiKey]
-                : null;
-            const currentValue =
-              latestMeasurement !== null ? latestMeasurement : start;
+                // Get latest measurement value
+                const latestMeasurement =
+                  bodyMeasurements.length > 0
+                    ? bodyMeasurements[0][group.apiKey]
+                    : null;
+                const currentValue =
+                  latestMeasurement !== null ? latestMeasurement : start;
 
-            // Calculate progress percentage based on goal direction
-            let progressPercent = 0;
+                // Calculate progress percentage based on goal direction
+                let progressPercent = 0;
 
-            if (target === start) {
-              // Goal is to MAINTAIN (e.g., Start: 175, Target: 175)
-              // Start at 100% since they're already at goal
-              // But adjust based on latest measurement deviation
-              if (currentValue === target) {
-                progressPercent = 100;
-              } else if (currentValue > target) {
-                // Latest is higher than target - show as exceeding (positive over 100%)
-                const deviation = currentValue - target;
-                const deviationPercent = (deviation / target) * 100;
-                progressPercent = 100 + deviationPercent;
-              } else {
-                // Latest is lower than target - show as below goal (less than 100%)
-                const deviation = target - currentValue;
-                const deviationPercent = (deviation / target) * 100;
-                progressPercent = -deviationPercent;
-              }
-            } else if (target > start) {
-              // Goal is to INCREASE (e.g., Start: 40, Target: 50)
-              // Positive progress: moving from start towards target
-              // Negative progress: moving away from target (going down instead of up)
-              const totalChange = target - start;
-              const currentChange = currentValue - start;
-              progressPercent = (currentChange / totalChange) * 100;
-            } else {
-              // Goal is to DECREASE (e.g., Start: 40, Target: 30)
-              // Positive progress: moving from start towards target (going down)
-              // Negative progress: moving away from target (going up instead of down)
-              const totalChange = start - target;
-              const currentChange = start - currentValue;
-              progressPercent = (currentChange / totalChange) * 100;
-            }
+                if (target === start) {
+                  // Goal is to MAINTAIN (e.g., Start: 175, Target: 175)
+                  // Start at 100% since they're already at goal
+                  // But adjust based on latest measurement deviation
+                  if (currentValue === target) {
+                    progressPercent = 100;
+                  } else if (currentValue > target) {
+                    // Latest is higher than target - show as exceeding (positive over 100%)
+                    const deviation = currentValue - target;
+                    const deviationPercent = (deviation / target) * 100;
+                    progressPercent = 100 + deviationPercent;
+                  } else {
+                    // Latest is lower than target - show as below goal (less than 100%)
+                    const deviation = target - currentValue;
+                    const deviationPercent = (deviation / target) * 100;
+                    progressPercent = -deviationPercent;
+                  }
+                } else if (target > start) {
+                  // Goal is to INCREASE (e.g., Start: 40, Target: 50)
+                  // Positive progress: moving from start towards target
+                  // Negative progress: moving away from target (going down instead of up)
+                  const totalChange = target - start;
+                  const currentChange = currentValue - start;
+                  progressPercent = (currentChange / totalChange) * 100;
+                } else {
+                  // Goal is to DECREASE (e.g., Start: 40, Target: 30)
+                  // Positive progress: moving from start towards target (going down)
+                  // Negative progress: moving away from target (going up instead of down)
+                  const totalChange = start - target;
+                  const currentChange = start - currentValue;
+                  progressPercent = (currentChange / totalChange) * 100;
+                }
 
-            // Don't cap the percentage - show actual progress
-            // This allows showing if someone exceeded their goal or went very wrong direction
+                // Don't cap the percentage - show actual progress
+                // This allows showing if someone exceeded their goal or went very wrong direction
 
-            return (
-              <View key={index} style={styles.goalDetailItem}>
-                <View style={styles.goalHeader}>
-                  <Text style={styles.goalMuscleGroup}>{group.label}</Text>
-                  <Text
-                    style={[
-                      styles.goalProgress,
-                      {
-                        color:
-                          progressPercent < 0
-                            ? "#F44336" // Red for negative progress (wrong direction)
-                            : progressPercent >= 100
-                            ? "#4CAF50" // Green for completed
-                            : progressPercent >= 50
-                            ? "#FF9800" // Orange for halfway
-                            : "#FF6B35", // Orange-red for low progress
-                      },
-                    ]}
-                  >
-                    {progressPercent >= 0 ? "+" : ""}
-                    {progressPercent.toFixed(1)}%
-                  </Text>
-                </View>
-                <View style={styles.goalValues}>
-                  <View style={styles.goalValue}>
-                    <Text style={styles.goalValueLabel}>
-                      {t("userGoals.start", "Start")}
+                return (
+                  <View key={index} style={styles.goalDetailItem}>
+                    <View style={styles.goalHeader}>
+                      <Text style={styles.goalMuscleGroup}>{group.label}</Text>
+                      <Text
+                        style={[
+                          styles.goalProgress,
+                          {
+                            color:
+                              progressPercent < 0
+                                ? "#F44336" // Red for negative progress (wrong direction)
+                                : progressPercent >= 100
+                                ? "#4CAF50" // Green for completed
+                                : progressPercent >= 50
+                                ? "#FF9800" // Orange for halfway
+                                : "#FF6B35", // Orange-red for low progress
+                          },
+                        ]}
+                      >
+                        {progressPercent >= 0 ? "+" : ""}
+                        {progressPercent.toFixed(1)}%
+                      </Text>
+                    </View>
+                    <View style={styles.goalValues}>
+                      <View style={styles.goalValue}>
+                        <Text style={styles.goalValueLabel}>
+                          {t("userGoals.start", "Start")}
+                        </Text>
+                        <Text style={styles.goalValueNumber}>{start || 0}</Text>
+                      </View>
+                      <View style={styles.goalValue}>
+                        <Text style={styles.goalValueLabel}>
+                          {t("userGoals.latest", "Latest")}
+                        </Text>
+                        <Text
+                          style={[styles.goalValueNumber, { color: "#4CAF50" }]}
+                        >
+                          {currentValue || start || 0}
+                        </Text>
+                      </View>
+                      <View style={styles.goalValue}>
+                        <Text style={styles.goalValueLabel}>
+                          {t("userGoals.target", "Target")}
+                        </Text>
+                        <Text
+                          style={[styles.goalValueNumber, { color: "#ED2A46" }]}
+                        >
+                          {target}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={styles.progressBar}>
+                      <View
+                        style={[
+                          styles.progressBarFill,
+                          {
+                            width: `${Math.min(
+                              Math.max(progressPercent, 0),
+                              100
+                            )}%`,
+                            backgroundColor:
+                              progressPercent < 0 ? "#F44336" : "#4CAF50",
+                          },
+                        ]}
+                      />
+                    </View>
+
+                    {/* Show measurement count */}
+                    <Text style={styles.measurementCount}>
+                      {bodyMeasurements.length}{" "}
+                      {t("userGoals.measurements", "measurements")}{" "}
+                      {t("userGoals.recorded", "recorded")}
                     </Text>
-                    <Text style={styles.goalValueNumber}>{start || 0}</Text>
                   </View>
-                  <View style={styles.goalValue}>
-                    <Text style={styles.goalValueLabel}>
-                      {t("userGoals.latest", "Latest")}
-                    </Text>
-                    <Text
-                      style={[styles.goalValueNumber, { color: "#4CAF50" }]}
-                    >
-                      {currentValue || start || 0}
-                    </Text>
-                  </View>
-                  <View style={styles.goalValue}>
-                    <Text style={styles.goalValueLabel}>
-                      {t("userGoals.target", "Target")}
-                    </Text>
-                    <Text
-                      style={[styles.goalValueNumber, { color: "#ED2A46" }]}
-                    >
-                      {target}
-                    </Text>
-                  </View>
-                </View>
-                <View style={styles.progressBar}>
-                  <View
-                    style={[
-                      styles.progressBarFill,
-                      {
-                        width: `${Math.min(
-                          Math.max(progressPercent, 0),
-                          100
-                        )}%`,
-                        backgroundColor:
-                          progressPercent < 0 ? "#F44336" : "#4CAF50",
-                      },
-                    ]}
-                  />
-                </View>
-
-                {/* Show measurement count */}
-                <Text style={styles.measurementCount}>
-                  {bodyMeasurements.length}{" "}
-                  {t("userGoals.measurements", "measurements")}{" "}
-                  {t("userGoals.recorded", "recorded")}
-                </Text>
-              </View>
-            );
-          })}
-        </View>
+                );
+              })}
+            </View>
+          </>
+        )}
       </StatCard>
+
+      {/* Edit User Goal Form */}
+      {showEditGoalForm && userGoals && (
+        <CreateUserGoalForm
+          visible={showEditGoalForm}
+          modalPostion={1000}
+          onClose={() => setShowEditGoalForm(false)}
+          onSubmit={handleSubmitEditGoals}
+          customerPurchasedId={customerPurchasedId}
+          t={t}
+          loading={updatingGoals}
+          initialData={userGoals}
+          initialSelectedTargetParts={muscleGroups
+            .map((g) => g.key)
+            .filter((key) => {
+              const targetVal = userGoals[`target${key}`];
+              return (
+                targetVal !== null && targetVal !== undefined && targetVal !== 0
+              );
+            })}
+          mode="edit"
+        />
+      )}
 
       {/* Body Measurement History Modal */}
       <BodyMeasurementHistoryModal
@@ -687,6 +800,29 @@ const styles = StyleSheet.create({
   legendText: {
     fontSize: 12,
     color: "#666",
+  },
+  updateGoalsContainer: {
+    alignItems: "flex-end",
+    position: "absolute",
+    right: 15,
+    top: 15,
+  },
+  updateGoalsButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    backgroundColor: "#ED2A46",
+    gap: 6,
+  },
+  updateGoalsButtonDisabled: {
+    opacity: 0.6,
+  },
+  updateGoalsButtonText: {
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: "600",
   },
   goalsDetailContainer: {
     paddingTop: 20,

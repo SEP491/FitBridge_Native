@@ -38,14 +38,17 @@ export const DailyProgressChart = ({
     >
       {/* Muscle Group Dropdown */}
       <View style={styles.chartControlsContainer}>
-        <Text style={styles.chartControlLabel}>Muscle Group:</Text>
+        <Text style={styles.chartControlLabel}>
+          {t("trainingResults.muscleGroupLabel", "Muscle Group:")}
+        </Text>
         <TouchableOpacity
           style={styles.dropdownButton}
           onPress={() => setShowMuscleDropdown(true)}
         >
           <Text style={styles.dropdownButtonText}>
-            {selectedMuscleGroup ||
-              t("trainingResults.selectMuscleGroup", "Select Muscle Group")}
+            {selectedMuscleGroup
+              ? t(`muscleGroups.${selectedMuscleGroup}`, selectedMuscleGroup)
+              : t("trainingResults.selectMuscleGroup", "Select Muscle Group")}
           </Text>
           <Ionicons name="chevron-down" size={20} color="#666" />
         </TouchableOpacity>
@@ -71,7 +74,7 @@ export const DailyProgressChart = ({
               selectedMetric === "Weight" && styles.metricButtonTextActive,
             ]}
           >
-            Weight
+            {t("trainingResults.metricWeight", "Weight")}
           </Text>
         </TouchableOpacity>
 
@@ -93,7 +96,7 @@ export const DailyProgressChart = ({
               selectedMetric === "Reps" && styles.metricButtonTextActive,
             ]}
           >
-            Reps
+            {t("trainingResults.metricReps", "Reps")}
           </Text>
         </TouchableOpacity>
 
@@ -115,7 +118,7 @@ export const DailyProgressChart = ({
               selectedMetric === "Time" && styles.metricButtonTextActive,
             ]}
           >
-            Time
+            {t("trainingResults.metricTime", "Time")}
           </Text>
         </TouchableOpacity>
       </View>

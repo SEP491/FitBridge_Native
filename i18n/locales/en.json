@@ -1001,10 +1001,16 @@
     "quickActions": "Quick Actions",
     "viewTransactions": "View Transactions",
     "requestWithdrawal": "Request Withdrawal",
+    "availableBalance": "Available Balance",
+    "pendingBalance": "Pending Balance",
+    "canWithdrawNow": "Can withdraw now",
+    "awaitingPayment": "Awaiting payment",
+    "withdraw": "Withdraw",
     "selectYears": "Select Years",
     "selectUpTo3Years": "Select up to 3 years to compare",
     "selectOneYear": "Select one year to view monthly revenue",
     "selectYearsToView": "Select years to view revenue trend",
+    "noTransactionsForChart": "No transaction data available to display chart",
     "noYearsAvailable": "No years available",
     "yearsSelected": "years selected",
     "yearSelected": "year selected",
@@ -1028,7 +1034,13 @@
     "september": "September",
     "october": "October",
     "november": "November",
-    "december": "December"
+    "december": "December",
+    "totalPackagesSold": "Packages Sold",
+    "newCustomers": "New Customers",
+    "activeCustomers": "Active Customers",
+    "totalRevenue": "Revenue",
+    "thisMonth": "This Month",
+    "currentlyActive": "Currently Active"
   },
 
   "withdrawal": {
@@ -1898,6 +1910,10 @@
   },
 
   "trainingResults": {
+    "muscleGroupLabel": "Muscle Group:",
+    "metricWeight": "Weight",
+    "metricReps": "Reps",
+    "metricTime": "Time",
     "title": "Training Statistics",
     "overview": "Overview",
     "overviewAndProgress": "Overview & Progress",
@@ -2513,5 +2529,20 @@
     "firstSessionStart": "First Session Start",
     "latestSessionEnd": "Latest Session End",
     "notAvailable": "N/A"
+  },
+
+  "userDetail": {
+    "updateDetails": "Update User Details",
+    "updateBodyMeasurements": "Update body measurements and bio",
+    "bodyMeasurements": "Body Measurements",
+    "additionalInfo": "Additional Information",
+    "experience": "Experience",
+    "years": "years",
+    "enterExperience": "Enter years of experience",
+    "loading": "Loading...",
+    "failedToLoad": "Failed to load user details",
+    "fillAllFields": "Please fill all required fields",
+    "updateSuccess": "User details updated successfully",
+    "updateFailed": "Failed to update user details"
   }
 }

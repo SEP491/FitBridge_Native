@@ -454,14 +454,21 @@ export default function ProductSearch({
                 )}
 
                 {/* Search Results */}
-                {!loading && productSearchResults.length > 0 && (
+                {!loading && (
                   <View style={styles.resultsContainer}>
                     <View style={styles.sectionWrapper}>
                       <View style={styles.sectionHeaderBar}>
                         <View style={styles.sectionHeaderContent}>
                           <Ionicons name="search" size={20} color="#ED2A46" />
                           <Text style={styles.sectionHeaderTitle}>
-                            {t("search.searchResults")}
+                          {totalProductSearchResults.length > 0 ? t(
+                            "search.searchResults",
+                            "Search Results"
+                          ) : t(
+                            "searchGymScreen.noResultsTitle",
+                            "No Results"
+                          )
+                            }
                           </Text>
                           <View style={styles.countBadge}>
                             <Text style={styles.countBadgeText}>

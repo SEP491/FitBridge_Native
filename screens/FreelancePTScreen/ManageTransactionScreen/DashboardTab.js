@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,9 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LineChart, BarChart, ProgressChart } from 'react-native-chart-kit';
+import { useFocusEffect } from '@react-navigation/native';
+import SummaryCard from '../../../components/SummaryCards/SummaryCard';
+import dashBoardService from '../../../services/dashBoardService';
 
 const { width } = Dimensions.get('window');
 const CHART_WIDTH = width - 32;
@@ -32,6 +35,54 @@ const DashboardTab = ({
   const [showDisplayModeModal, setShowDisplayModeModal] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth()); // 0-11
   const [showMonthModal, setShowMonthModal] = useState(false);
+  const [availableBalance, setAvailableBalance] = useState(0);
+  const [pendingBalance, setPendingBalance] = useState(0);
+
+  // Format currency to Vietnamese Dong
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("vi-VN").format(amount) + "₫";
+  };
+
+  const fetchWalletData = async () => {
+    try {
+      const response = await dashBoardService.getWalletBalance();
+      setAvailableBalance(response.data.totalAvailableBalance || 0);
+      setPendingBalance(response.data.totalPendingBalance || 0);
+    } catch (error) {
+      console.error("Error fetching wallet data:", error);
+      setAvailableBalance(0);
+      setPendingBalance(0);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchWalletData();
+    }, [])
+  );
+
+  const summaryFinancialStats = [
+    {
+      id: "availableBalance",
+      label: t("dashboard.availableBalance", "Số dư khả dụng"),
+      value: formatCurrency(availableBalance),
+      helper: t("dashboard.canWithdrawNow", "Có thể rút ngay"),
+      icon: "wallet",
+      accent: "#FF914D",
+      variant: "wide",
+      style: '',
+    },
+    {
+      id: "pendingBalance",
+      label: t("dashboard.pendingBalance", "Số dư chờ xử lý"),
+      value: formatCurrency(pendingBalance),
+      helper: t("dashboard.awaitingPayment", "Đang chờ thanh toán"),
+      icon: "timer-outline",
+      accent: "#ED2A46",
+      variant: "wide",
+      style: '',
+    },
+  ];
 
   // Get available years from transactions
   const availableYears = useMemo(() => {
@@ -248,6 +299,15 @@ const DashboardTab = ({
 
   return (
     <>
+      {/* Financial Stats */}
+      <View style={styles.financialStatsContainer}>
+        <View style={styles.financialRow}>
+          {summaryFinancialStats.map((stat) => (
+            <SummaryCard stat={stat} key={stat.id} />
+          ))}
+        </View>
+      </View>
+
       {/* Header Stats */}
       <View style={styles.statsContainer}>
         <View style={styles.statCard}>
@@ -484,32 +544,6 @@ const DashboardTab = ({
         </View>
       )}
 
-      {/* Quick Actions */}
-      <View style={styles.quickActionsContainer}>
-        <Text style={styles.sectionTitle}>
-          {t('dashboard.quickActions', 'Quick Actions')}
-        </Text>
-        <View style={styles.quickActionsGrid}>
-          <TouchableOpacity 
-            style={styles.quickActionCard}
-            onPress={() => setActiveTab('transactions')}
-          >
-            <Ionicons name="receipt-outline" size={32} color="#ED2A46" />
-            <Text style={styles.quickActionText}>
-              {t('dashboard.viewTransactions', 'View Transactions')}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.quickActionCard}
-            onPress={() => setActiveTab('withdrawal')}
-          >
-            <Ionicons name="wallet-outline" size={32} color="#4CAF50" />
-            <Text style={styles.quickActionText}>
-              {t('dashboard.requestWithdrawal', 'Request Withdrawal')}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
 
       {/* Year Selection Modal */}
       <Modal
@@ -775,6 +809,14 @@ const DashboardTab = ({
 };
 
 const styles = StyleSheet.create({
+  financialStatsContainer: {
+    paddingHorizontal: 20,
+    marginTop: 20,
+  },
+  financialRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
   statsContainer: {
     flexDirection: 'row',
     margin: 16,

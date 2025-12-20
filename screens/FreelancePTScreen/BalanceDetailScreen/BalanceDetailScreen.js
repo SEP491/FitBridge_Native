@@ -30,12 +30,16 @@ const BalanceDetailScreen = () => {
   const [activeTab, setActiveTab] = useState(initialTab);
   const [availableData, setAvailableData] = useState([]);
   const [pendingData, setPendingData] = useState([]);
+  const [disbursementData, setDisbursementData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [availableTotal, setAvailableTotal] = useState(0);
   const [pendingTotal, setPendingTotal] = useState(0);
+  const [disbursementTotal, setDisbursementTotal] = useState(0);
   const [availableTotalProfitSum, setAvailableTotalProfitSum] = useState(0);
   const [pendingTotalProfitSum, setPendingTotalProfitSum] = useState(0);
+  const [disbursementTotalProfitSum, setDisbursementTotalProfitSum] =
+    useState(0);
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [selectedImageUri, setSelectedImageUri] = useState(null);
 
@@ -53,13 +57,13 @@ const BalanceDetailScreen = () => {
           setAvailableTotal(response.data.total || 0);
           setAvailableTotalProfitSum(response.data.totalProfitSum || 0);
         }
-      } else {
+      } else if (activeTab === "pending") {
         const response = await dashBoardService.getPendingBalanceDetail();
         if (response && response.data) {
           // Normalize pending items so the UI can render them like transactions
           const normalizedItems = (response.data.items || []).map((item) => ({
             ...item,
-            transactionType: "Order",
+            transactionType: item.transactionType,
             transactionId: item.transactionDetail?.transactionId,
             description:
               item.transactionDetail?.description || item.courseName || "",
@@ -72,6 +76,22 @@ const BalanceDetailScreen = () => {
           setPendingData(normalizedItems);
           setPendingTotal(response.data.total || 0);
           setPendingTotalProfitSum(response.data.totalProfitSum || 0);
+        }
+      } else if (activeTab === "disbursement") {
+        const response = await dashBoardService.getDisbursementDetail();
+        if (response && response.data) {
+          const normalizedItems = (response.data.items || []).map((item) => ({
+            ...item,
+            transactionType: "Disbursement",
+            transactionId: item.transactionId,
+            description: item.description,
+            transactionDate: item.withdrawDate|| item.transactionDate || item.transactionDetail?.transactionDate || item.actualDistributionDate ,
+            orderCode: item.withdrawalRequestId,
+            paymentMethod: item.paymentMethod,
+          }));
+          setDisbursementData(normalizedItems);
+          setDisbursementTotal(response.data.total || 0);
+          setDisbursementTotalProfitSum(response.data.totalProfitSum || 0);
         }
       }
     } catch (error) {
@@ -183,26 +203,21 @@ const BalanceDetailScreen = () => {
   const getTransactionTypeIcon = (type) => {
     switch (type) {
       case "Withdraw":
+        return "arrow-down-circle-outline";       
+      case "PendingDeduction":
         return "arrow-down-circle-outline";
-      case "DistributeProfit":
-        return "arrow-up-circle-outline";
-      case "Order":
-        return "receipt-outline";
       default:
-        return "cash-outline";
+        return "arrow-up-circle-outline";
     }
   };
 
   const getTransactionTypeIconColor = (type) => {
     switch (type) {
       case "Withdraw":
+      case "PendingDeduction":
         return "#ED2A46";
-      case "DistributeProfit":
-        return "#4CAF50";
-      case "Order":
-        return "#FF914D";
       default:
-        return "#666";
+        return "#4CAF50";
     }
   };
   
@@ -210,12 +225,10 @@ const BalanceDetailScreen = () => {
     switch (type){
       case "Withdraw":
         return "#ED2A46";
-      case "DistributeProfit":
-        return "#4CAF50";
-      case "Order":
-        return "#4CAF50";
+      case "PendingDeduction":
+        return "#ED2A46";
       default:
-        return "#666";
+        return "#4CAF50";
     }
   };
 
@@ -223,21 +236,27 @@ const BalanceDetailScreen = () => {
     switch (type){
       case "Withdraw":
         return "rgba(237, 42, 70, 0.1)"; // #ED2A46 with 10% opacity
-      case "DistributeProfit":
-        return "rgba(76, 175, 80, 0.1)"; // #4CAF50 with 10% opacity
-      case "Order":
-        return "rgba(255, 145, 77, 0.1)"; // #FF914D with 10% opacity
+      case "PendingDeduction":
+        return "rgba(237, 42, 70, 0.1)"; // #ED2A46 with 10% opacity
       default:
-        return "rgba(102, 102, 102, 0.1)"; // #666 with 10% opacity
+        return "rgba(76, 175, 80, 0.1)"; // #666 with 10% opacity
     }
   };
 
   const getTransactionTypeText = (type) => {
-    switch (type) {
+  switch (type) {
       case "Withdraw":
         return t("transactionType.withdraw", "Rút tiền");
+      case "Disbursement":
+        return t("transactionType.disbursement", "Giải ngân");
       case "DistributeProfit":
         return t("transactionType.distributeProfit", "Phân bổ lợi nhuận");
+      case "PendingDeduction":
+        return t("transactionType.pendingDeduction", "Khấu trừ chờ xử lý");
+      case "FreelancePTPackage":
+        return t("transactionType.freelancePTPackage", "Gói PT");
+      case "ExtendFreelancePTPackage":
+        return t("transactionType.extendFreelancePTPackage", "Gói PT mở rộng");
       default:
         return type;
     }
@@ -249,11 +268,15 @@ const BalanceDetailScreen = () => {
     const text = getTransactionTypeText(item.transactionType);
     const iconColor = getTransactionTypeIconColor(item.transactionType);
     const backgroundColor = getTransactionTypeBackgroundColor(item.transactionType);
-    const isWithdraw = item.transactionType === "Withdraw";
+    const isWithdraw =
+      item.transactionType === "Withdraw";
+    const isPendingDeduction = item.transactionType === "PendingDeduction";
     const amount = item.totalProfit || 0;
 
+    const key = `${item.transactionId || "tx"}-${index}`;
+
     return (
-      <View key={item.transactionId || index} style={styles.transactionItem}>
+      <View key={key} style={styles.transactionItem}>
         <View style={styles.transactionHeader}>
           <View style={[styles.iconContainer, { backgroundColor }]}>
               <Ionicons name={icon} size={20} color={iconColor} />
@@ -261,7 +284,7 @@ const BalanceDetailScreen = () => {
           <View style={styles.transactionInfo}>
             <Text style={styles.transactionType}>{text || "N/A"}</Text>
             <Text style={styles.transactionId}>
-              {item.transactionId?.substring(0, 100).toUpperCase() || "N/A"}
+              {item.transactionId ? item.transactionId : "N/A"}
             </Text>
             {item.description && (
               <Text style={styles.courseName}>{item.description}</Text>
@@ -269,14 +292,19 @@ const BalanceDetailScreen = () => {
 
           </View> 
           <View style={styles.amountContainer}>
+          
             <Text style={[styles.amount, { color }]}>
-              {isWithdraw ? " " : "+"} {formatPrice(amount)}
+              {isWithdraw || isPendingDeduction ? " " : "+"} {formatPrice(amount)}
             </Text>
             {item.balance !== undefined && (
               <Text style={styles.balanceText}>
                 SD: {formatPrice(item.balance)}
               </Text>
             )}
+            <Text style={styles.transactionId}>
+              {item.withdrawDate || item.transactionDetail?.transactionDate || item.transactionDate ? formatDate(item.withdrawDate || item.transactionDetail?.transactionDate || item.transactionDate) : "N/A"}
+            </Text>
+            
           </View>
         </View>
       </View>
@@ -295,8 +323,18 @@ const BalanceDetailScreen = () => {
     );
   };
 
-  const currentData = activeTab === "available" ? availableData : pendingData;
-  const currentTotal = activeTab === "available" ? availableTotal : pendingTotal;
+  const currentData =
+    activeTab === "available"
+      ? availableData
+      : activeTab === "pending"
+      ? pendingData
+      : disbursementData;
+  const currentTotal =
+    activeTab === "available"
+      ? availableTotal
+      : activeTab === "pending"
+      ? pendingTotal
+      : disbursementTotal;
   const groupedTransactions = groupTransactionsByDate(currentData);
   const dateKeys = Object.keys(groupedTransactions).sort((a, b) => new Date(b) - new Date(a));
 
@@ -331,6 +369,19 @@ const BalanceDetailScreen = () => {
             Chờ xử lý
           </Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === "disbursement" && styles.activeTab]}
+          onPress={() => setActiveTab("disbursement")}
+        >
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === "disbursement" && styles.activeTabText,
+            ]}
+          >
+            Giải ngân
+          </Text>
+        </TouchableOpacity>
       </View>
 
       {loading ? (
@@ -340,10 +391,20 @@ const BalanceDetailScreen = () => {
           {/* Summary Card */}
           <View style={styles.summaryCard}>
             <Text style={styles.summaryLabel}>
-              {activeTab === "available" ? "Tổng số dư khả dụng" : "Tổng số dư chờ xử lý"}
+              {activeTab === "available"
+                ? "Tổng số dư khả dụng"
+                : activeTab === "pending"
+                ? "Tổng số dư chờ xử lý"
+                : "Tổng số tiền đã giải ngân"}
             </Text>
             <Text style={styles.summaryAmount}>
-              {formatPrice(activeTab === "available" ? availableTotalProfitSum : pendingTotalProfitSum)}
+              {formatPrice(
+                activeTab === "available"
+                  ? availableTotalProfitSum
+                  : activeTab === "pending"
+                  ? pendingTotalProfitSum
+                  : disbursementTotalProfitSum
+              )}
             </Text>
             <Text style={styles.summaryCount}>
               {currentData.length} giao dịch
@@ -353,7 +414,10 @@ const BalanceDetailScreen = () => {
           {/* Transaction List */}
           <ScrollView
             style={styles.scrollView}
-            contentContainerStyle={styles.scrollContent}
+            contentContainerStyle={[
+              styles.scrollContent,
+              activeTab === "available" && styles.scrollContentWithButton,
+            ]}
             refreshControl={
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
@@ -368,6 +432,24 @@ const BalanceDetailScreen = () => {
               </View>
             )}
           </ScrollView>
+
+          {/* Withdrawal Button - Only show for available balance, absolutely positioned at bottom */}
+          {activeTab === "available" && (
+            <TouchableOpacity
+              style={styles.withdrawalButton}
+              onPress={() => {
+                navigation.navigate("ManageTransactionScreen", {
+                  initialTab: "withdrawal",
+                });
+              }}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="arrow-down-circle-outline" size={20} color="#fff" />
+              <Text style={styles.withdrawalButtonText}>
+                {t("dashboard.withdraw", "Rút tiền")}
+              </Text>
+            </TouchableOpacity>
+          )}
         </>
       )}
 
@@ -489,12 +571,41 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#999",
   },
+  withdrawalButton: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#ED2A46",
+    marginHorizontal: 16,
+    marginBottom: 16,
+    paddingVertical: 14,
+    borderRadius: 12,
+    gap: 8,
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    zIndex: 10,
+  },
+  withdrawalButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
     padding: 16,
     paddingBottom: 20,
+  },
+  scrollContentWithButton: {
+    paddingBottom: 90, // Extra padding when button is visible
   },
   dateSection: {
     marginBottom: 24,
@@ -558,7 +669,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#333",
-    marginBottom: 4,
   },
   transactionId: {
     fontSize: 9,

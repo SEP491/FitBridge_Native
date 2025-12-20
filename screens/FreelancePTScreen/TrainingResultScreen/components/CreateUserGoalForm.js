@@ -139,6 +139,7 @@ export const CreateUserGoalForm = ({
   onSubmit,
   customerPurchasedId,
   t,
+  modalPosition,
   loading = false,
 }) => {
   const [formData, setFormData] = useState({
@@ -972,13 +973,13 @@ const styles = StyleSheet.create({
   },
   container: {
     position: "absolute",
-    top: SCREEN_HEIGHT - 900,
+    top: 100,
     left: 0,
     right: 0,
     bottom: 0,
     backgroundColor: "#fff",
     zIndex: 1000,
-    maxHeight: SCREEN_HEIGHT,
+    maxHeight: 700,
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     marginHorizontal: 10,

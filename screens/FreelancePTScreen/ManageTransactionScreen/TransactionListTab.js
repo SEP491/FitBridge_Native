@@ -32,7 +32,7 @@ const TransactionListTab = ({
 
   const filterButtons = [
     { key: 'all', label: t('transaction.all', 'All') },
-    { key: 'COMPLETED', label: t('transaction.completed', 'Completed') },
+    { key: 'SUCCESS', label: t('transaction.completed', 'Success') },
     { key: 'PENDING', label: t('transaction.pending', 'Pending') },
     { key: 'FAILED', label: t('transaction.failed', 'Failed') }
   ];
@@ -41,7 +41,7 @@ const TransactionListTab = ({
     { key: 'all', label: t('transactionType.all', 'All Types'), icon: 'apps-outline' },
     { key: 'FreelancePTPackage', label: t('transactionType.ptPackage', 'PT Package'), icon: 'fitness-outline' },
     { key: 'ExtendFreelancePTPackage', label: t('transactionType.extendPT', 'Extend PT'), icon: 'refresh-outline' },
-    { key: 'DistributeProfit', label: t('transactionType.profit', 'Profit'), icon: 'trending-up-outline' },
+    // { key: 'DistributeProfit', label: t('transactionType.profit', 'Profit'), icon: 'trending-up-outline' },
     { key: 'Withdraw', label: t('transactionType.withdraw', 'Withdraw'), icon: 'wallet-outline' },
   ];
 
