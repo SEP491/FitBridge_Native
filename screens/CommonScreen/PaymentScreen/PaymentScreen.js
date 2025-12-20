@@ -116,7 +116,7 @@ export default function PaymentScreen({ navigation, route }) {
               text: t("navigation.login"), 
               onPress: () => {
                 navigation.goBack();
-                navigation.navigate("GuestProfileStack", { screen: "Login" });
+                navigation.navigate(t("navigation.login"), { screen: "Login" });
               }
             },
           ]

@@ -38,36 +38,13 @@ export default function FreelancePTPackageDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [addingToCart, setAddingToCart] = useState(false);
   const [user, setUser] = useState(null);
-  const [userLoading, setUserLoading] = useState(true);
 
   useEffect(() => {
     const fetchUser = async () => {
-      setUserLoading(true);
       const userData = await fetchUserFromStorage();
       if (userData) {
         setUser(userData);
-      } else {
-        // Guest user - show login prompt
-        Alert.alert(
-          t("auth.loginRequired"),
-          t("auth.pleaseLoginToContinue"),
-          [
-            { 
-              text: t("common.cancel"), 
-              style: "cancel",
-              onPress: () => navigation.goBack()
-            },
-            { 
-              text: t("navigation.login"), 
-              onPress: () => {
-                navigation.goBack();
-                navigation.navigate("GuestProfileStack", { screen: "Login" });
-              }
-            },
-          ]
-        );
       }
-      setUserLoading(false);
     };
     fetchUser();
   }, []);
@@ -108,9 +85,7 @@ export default function FreelancePTPackageDetailScreen() {
   }, [route.params]);
 
   useEffect(() => {
-    // Only fetch package details if user is authenticated
-    if (!user || userLoading) return;
-    
+    // Fetch package details for all users (including guests)
     if (packageId) {
       fetchPackageDetail();
       fetchPackageReview();
@@ -121,7 +96,7 @@ export default function FreelancePTPackageDetailScreen() {
       );
       navigation.goBack();
     }
-  }, [packageId, user, userLoading]);
+  }, [packageId]);
 
   const fetchPackageDetail = async () => {
     try {
@@ -176,6 +151,23 @@ export default function FreelancePTPackageDetailScreen() {
 
   const handleBuyNow = async () => {
     if (!packageData) return;
+
+    // Check if user is logged in (guest needs to login to buy)
+    if (!user) {
+      Alert.alert(t("auth.loginRequired"), t("auth.pleaseLoginToBuy"), [
+        {
+          text: t("common.cancel"),
+          style: "cancel",
+        },
+        {
+          text: t("navigation.login"),
+          onPress: () => {
+            navigation.navigate(t("navigation.login"), { screen: "Login" });
+          },
+        },
+      ]);
+      return;
+    }
 
     // Check if PT is at full capacity
     if (
@@ -239,35 +231,13 @@ export default function FreelancePTPackageDetailScreen() {
     }
   };
 
-  if (loading || userLoading) {
+  if (loading) {
     return (
       <SafeAreaView style={styles.container}>
         <LoadingIndicator
           variant="page"
           message={t("common.loading") || "Loading..."}
         />
-      </SafeAreaView>
-    );
-  }
-
-  // If user is not logged in (guest), don't render the content
-  if (!user) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.errorContainer}>
-          <Ionicons name="lock-closed-outline" size={80} color="#ED2A46" />
-          <Text style={styles.errorText}>
-            {t("auth.loginRequired") || "Login Required"}
-          </Text>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Text style={styles.backButtonText}>
-              {t("common.goBack") || "Go Back"}
-            </Text>
-          </TouchableOpacity>
-        </View>
       </SafeAreaView>
     );
   }
@@ -651,132 +621,134 @@ export default function FreelancePTPackageDetailScreen() {
       </ScrollView>
 
       {/* Bottom Action Bar - Compact */}
-      {user?.role === "Customer" && (
-      !purchasedPackage ? (
-        // Check if PT is at full capacity
-        ptCurrentCourse !== null &&
-        ptMaxCourse !== null &&
-        ptCurrentCourse >= ptMaxCourse ? (
-          <View style={styles.fullCapacityBottomBar}>
-            <View style={styles.fullCapacityNotification}>
-              <View style={styles.fullCapacityIconContainer}>
-                <Ionicons name="information-circle" size={28} color="#FF9800" />
+      {user?.role === "Customer" &&
+        (!purchasedPackage ? (
+          // Check if PT is at full capacity
+          ptCurrentCourse !== null &&
+          ptMaxCourse !== null &&
+          ptCurrentCourse >= ptMaxCourse ? (
+            <View style={styles.fullCapacityBottomBar}>
+              <View style={styles.fullCapacityNotification}>
+                <View style={styles.fullCapacityIconContainer}>
+                  <Ionicons
+                    name="information-circle"
+                    size={28}
+                    color="#FF9800"
+                  />
+                </View>
+                <View style={styles.fullCapacityContent}>
+                  <Text style={styles.fullCapacityTitle}>
+                    {t("freelancePT.trainerFull") ||
+                      "Trainer is at Full Capacity"}
+                  </Text>
+                  <Text style={styles.fullCapacityMessage}>
+                    {t("freelancePT.trainerFullMessage") ||
+                      "This trainer has reached the maximum number of students. Please check back later or explore other trainers."}
+                  </Text>
+                  <View style={styles.fullCapacityWarning}>
+                    <Ionicons
+                      name="alert-circle-outline"
+                      size={16}
+                      color="#FF9800"
+                    />
+                    <Text style={styles.fullCapacityWarningText}>
+                      {t("freelancePT.comeBackLater") ||
+                        "Please come back later to register for a course with this trainer"}
+                    </Text>
+                  </View>
+                </View>
               </View>
-              <View style={styles.fullCapacityContent}>
-                <Text style={styles.fullCapacityTitle}>
-                  {t("freelancePT.trainerFull") ||
-                    "Trainer is at Full Capacity"}
+            </View>
+          ) : (
+            <View style={styles.bottomBar}>
+              <View style={styles.priceInfoContainer}>
+                <Text style={styles.bottomPriceLabel}>
+                  {t("freelancePT.totalInvestment") || "TOTAL INVESTMENT"}
                 </Text>
-                <Text style={styles.fullCapacityMessage}>
-                  {t("freelancePT.trainerFullMessage") ||
-                    "This trainer has reached the maximum number of students. Please check back later or explore other trainers."}
+                <Text style={styles.bottomPriceValue}>
+                  {formatPrice(packageData.price)}
                 </Text>
-                <View style={styles.fullCapacityWarning}>
+              </View>
+              <TouchableOpacity
+                style={[
+                  styles.buyNowButton,
+                  (addingToCart ||
+                    (ptCurrentCourse !== null &&
+                      ptMaxCourse !== null &&
+                      ptCurrentCourse >= ptMaxCourse)) &&
+                    styles.buyNowButtonDisabled,
+                ]}
+                onPress={handleBuyNow}
+                disabled={
+                  addingToCart ||
+                  (ptCurrentCourse !== null &&
+                    ptMaxCourse !== null &&
+                    ptCurrentCourse >= ptMaxCourse)
+                }
+                activeOpacity={0.85}
+              >
+                <LinearGradient
+                  colors={
+                    addingToCart ||
+                    (ptCurrentCourse !== null &&
+                      ptMaxCourse !== null &&
+                      ptCurrentCourse >= ptMaxCourse)
+                      ? ["#CCCCCC", "#CCCCCC"]
+                      : ["#ED2A46", "#FF6B6B"]
+                  }
+                  style={styles.buyNowGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                >
+                  {addingToCart ? (
+                    <Text style={styles.buyNowText}>
+                      {t("common.loading") || "Loading..."}
+                    </Text>
+                  ) : (
+                    <>
+                      <Text style={styles.buyNowText}>
+                        {t("freelancePT.buyNow") || "BUY NOW"}
+                      </Text>
+                    </>
+                  )}
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          )
+        ) : (
+          <View style={styles.purchasedBottomBar}>
+            <View style={styles.purchasedNotification}>
+              <View style={styles.purchasedIconContainer}>
+                <Ionicons name="checkmark-circle" size={28} color="#4CAF50" />
+              </View>
+              <View style={styles.purchasedContent}>
+                <Text style={styles.purchasedTitle}>
+                  {t("freelancePT.alreadyPurchased") ||
+                    "You Already Have a Package"}
+                </Text>
+                <Text style={styles.purchasedPackageName} numberOfLines={1}>
+                  {purchasedPackage.name}
+                </Text>
+                {purchasedPackage.description && (
+                  <Text style={styles.purchasedDescription} numberOfLines={2}>
+                    {purchasedPackage.description}
+                  </Text>
+                )}
+                <View style={styles.purchasedWarning}>
                   <Ionicons
                     name="alert-circle-outline"
                     size={16}
                     color="#FF9800"
                   />
-                  <Text style={styles.fullCapacityWarningText}>
-                    {t("freelancePT.comeBackLater") ||
-                      "Please come back later to register for a course with this trainer"}
+                  <Text style={styles.purchasedWarningText}>
+                    {t("freelancePT.completeCurrentPackage") ||
+                      "Please complete your current package before purchasing a new one"}
                   </Text>
                 </View>
               </View>
             </View>
           </View>
-        ) : (
-          <View style={styles.bottomBar}>
-            <View style={styles.priceInfoContainer}>
-              <Text style={styles.bottomPriceLabel}>
-                {t("freelancePT.totalInvestment") || "TOTAL INVESTMENT"}
-              </Text>
-              <Text style={styles.bottomPriceValue}>
-                {formatPrice(packageData.price)}
-              </Text>
-            </View>
-            <TouchableOpacity
-              style={[
-                styles.buyNowButton,
-                (addingToCart ||
-                  (ptCurrentCourse !== null &&
-                    ptMaxCourse !== null &&
-                    ptCurrentCourse >= ptMaxCourse)) &&
-                  styles.buyNowButtonDisabled,
-              ]}
-              onPress={handleBuyNow}
-              disabled={
-                addingToCart ||
-                (ptCurrentCourse !== null &&
-                  ptMaxCourse !== null &&
-                  ptCurrentCourse >= ptMaxCourse)
-              }
-              activeOpacity={0.85}
-            >
-              <LinearGradient
-                colors={
-                  addingToCart ||
-                  (ptCurrentCourse !== null &&
-                    ptMaxCourse !== null &&
-                    ptCurrentCourse >= ptMaxCourse)
-                    ? ["#CCCCCC", "#CCCCCC"]
-                    : ["#ED2A46", "#FF6B6B"]
-                }
-                style={styles.buyNowGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-              >
-                {addingToCart ? (
-                  <Text style={styles.buyNowText}>
-                    {t("common.loading") || "Loading..."}
-                  </Text>
-                ) : (
-                  <>
-                    <Text style={styles.buyNowText}>
-                      {t("freelancePT.buyNow") || "BUY NOW"}
-                    </Text>
-                  </>
-                )}
-              </LinearGradient>
-            </TouchableOpacity>
-          </View>
-        )
-      ) : (
-        <View style={styles.purchasedBottomBar}>
-          <View style={styles.purchasedNotification}>
-            <View style={styles.purchasedIconContainer}>
-              <Ionicons name="checkmark-circle" size={28} color="#4CAF50" />
-            </View>
-            <View style={styles.purchasedContent}>
-              <Text style={styles.purchasedTitle}>
-                {t("freelancePT.alreadyPurchased") ||
-                  "You Already Have a Package"}
-              </Text>
-              <Text style={styles.purchasedPackageName} numberOfLines={1}>
-                {purchasedPackage.name}
-              </Text>
-              {purchasedPackage.description && (
-                <Text style={styles.purchasedDescription} numberOfLines={2}>
-                  {purchasedPackage.description}
-                </Text>
-              )}
-              <View style={styles.purchasedWarning}>
-                <Ionicons
-                  name="alert-circle-outline"
-                  size={16}
-                  color="#FF9800"
-                />
-                <Text style={styles.purchasedWarningText}>
-                  {t("freelancePT.completeCurrentPackage") ||
-                    "Please complete your current package before purchasing a new one"}
-                </Text>
-              </View>
-            </View>
-          </View>
-        </View>
-        )
-      )}
-      
+        ))}
     </SafeAreaView>
   );
 }

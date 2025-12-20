@@ -44,47 +44,25 @@ const PTProfileScreen = ({ route, navigation }) => {
   const [selectedCertificateUrl, setSelectedCertificateUrl] = useState(null);
   const [expandedCertificates, setExpandedCertificates] = useState(new Set());
   const [currentUser, setCurrentUser] = useState(null);
-  const [userLoading, setUserLoading] = useState(true);
 
   console.log("PT Data:", pt);
 
-  // Auth guard - check if user is logged in
+  // Fetch current user (but don't block guests from viewing)
   useEffect(() => {
-    const checkAuth = async () => {
-      setUserLoading(true);
+    const fetchUser = async () => {
       const userData = await fetchUserFromStorage();
-      if (!userData) {
-        Alert.alert(
-          t("auth.loginRequired"),
-          t("auth.pleaseLoginToContinue"),
-          [
-            { 
-              text: t("common.cancel"), 
-              style: "cancel",
-              onPress: () => navigation.goBack()
-            },
-            { 
-              text: t("navigation.login"), 
-              onPress: () => {
-                navigation.goBack();
-                navigation.navigate("GuestProfileStack", { screen: "Login" });
-              }
-            },
-          ]
-        );
-      } else {
+      if (userData) {
         setCurrentUser(userData);
       }
-      setUserLoading(false);
     };
-    checkAuth();
+    fetchUser();
   }, []);
 
   useEffect(() => {
-    if (ptId && currentUser && !userLoading) {
+    if (ptId) {
       fetchPTDetail();
     }
-  }, [ptId, currentUser, userLoading]);
+  }, [ptId]);
 
   const fetchPTDetail = async () => {
     try {
@@ -124,14 +102,19 @@ const PTProfileScreen = ({ route, navigation }) => {
 
   // Extract all specializations from certificates
   const getAllSpecializations = () => {
-    if (!pt?.freelancePt?.certifications || pt.freelancePt.certifications.length === 0) {
+    if (
+      !pt?.freelancePt?.certifications ||
+      pt.freelancePt.certifications.length === 0
+    ) {
       return [];
     }
 
     const specializationsSet = new Set();
-    
     pt.freelancePt.certifications.forEach((cert) => {
-      if (cert.certificateMetadata?.specializations && Array.isArray(cert.certificateMetadata.specializations)) {
+      if (
+        cert.certificateMetadata?.specializations &&
+        Array.isArray(cert.certificateMetadata.specializations)
+      ) {
         cert.certificateMetadata.specializations.forEach((spec) => {
           if (spec && spec.trim()) {
             specializationsSet.add(spec.trim());
@@ -219,47 +202,7 @@ const PTProfileScreen = ({ route, navigation }) => {
     ];
   };
 
-  const handleContactPress = () => {
-    // Handle contact action (e.g., open chat or phone)
-    Alert.alert(t("common.contact"), t("freelancePT.contactTrainer"), [
-      { text: t("common.cancel"), style: "cancel" },
-      { text: t("common.ok") },
-    ]);
-  };
-
-  const handleBookSession = () => {
-    // Navigate to booking screen or show available packages
-    navigation.navigate("FreelancePTPackageDetailScreen", {
-      freelancePTPackageId: pt?.packageId,
-      ptCurrentCourse: pt?.freelancePt?.ptCurrentCourse || 0,
-      ptMaxCourse: pt?.freelancePt?.ptMaxCourse || 0,
-    });
-  };
-
-  // Show loading while checking auth
-  if (userLoading) {
-    return (
-      <SafeAreaView style={styles.loadingContainer}>
-        <PTProfileScreenSkeleton />
-      </SafeAreaView>
-    );
-  }
-
-  // If user is not logged in (guest), show error state
-  if (!currentUser) {
-    return (
-      <SafeAreaView style={styles.errorContainer}>
-        <Ionicons name="lock-closed-outline" size={64} color="#ED2A46" />
-        <Text style={styles.errorText}>{t("auth.loginRequired")}</Text>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Text style={styles.backButtonText}>{t("common.goBack")}</Text>
-        </TouchableOpacity>
-      </SafeAreaView>
-    );
-  }
+  // Check if user is logged in (guest needs to login to book)
 
   if (loading) {
     return (
@@ -286,110 +229,121 @@ const PTProfileScreen = ({ route, navigation }) => {
 
   return (
     <>
-    <ScrollView
-      style={styles.scrollContainer}
-      contentContainerStyle={{ paddingBottom: 20 }}
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Header Section with Gradient */}
-      <LinearGradient
-        colors={["#FF914D", "#ED2A46"]}
-        style={styles.gradientContainer}
+      <ScrollView
+        style={styles.scrollContainer}
+        contentContainerStyle={{ paddingBottom: 20 }}
+        showsVerticalScrollIndicator={false}
       >
-        <View style={styles.profileHeader}>
-          <View style={styles.avatarContainer}>
-            <Image
-              source={
-                pt.freelancePt?.avatarUrl
-                  ? { uri: pt.freelancePt.avatarUrl }
-                  : LogoColor
-              }
-              style={styles.avatar}
-            />
-            {pt.freelancePt?.rating ? (
-              <View style={styles.ratingBadge}>
-                <Ionicons name="star" size={14} color="#FFD700" />
-                <Text style={styles.ratingText}>{pt.freelancePt.rating}</Text>
-              </View>
-            ) : (
-              <View style={styles.ratingBadge}>
-                <Ionicons name="star" size={14} color="#FFD700" />
-                <Text style={styles.ratingText}>N/A</Text>
-              </View>
-            )}
-          </View>
-
-          <Text style={styles.name}>{pt.freelancePt?.fullName}</Text>
-          <Text style={styles.description}>
-            {pt.freelancePt?.description ||
-              t("freelancePT.professionalPersonalTrainer")}
-          </Text>
-
-          <View style={styles.basicInfoContainer}>
-            <View style={styles.basicInfoItem}>
-              <MaterialCommunityIcons
-                name="medal-outline"
-                size={18}
-                color="#FFD700"
+        {/* Header Section with Gradient */}
+        <LinearGradient
+          colors={["#FF914D", "#ED2A46"]}
+          style={styles.gradientContainer}
+        >
+          <View style={styles.profileHeader}>
+            <View style={styles.avatarContainer}>
+              <Image
+                source={
+                  pt.freelancePt?.avatarUrl
+                    ? { uri: pt.freelancePt.avatarUrl }
+                    : LogoColor
+                }
+                style={styles.avatar}
               />
-              <Text style={styles.basicInfoText}>
-                {pt.freelancePt?.experienceYears || 0}{" "}
-                {t("freelancePT.experienceYears")}
-              </Text>
+              {pt.freelancePt?.rating ? (
+                <View style={styles.ratingBadge}>
+                  <Ionicons name="star" size={14} color="#FFD700" />
+                  <Text style={styles.ratingText}>{pt.freelancePt.rating}</Text>
+                </View>
+              ) : (
+                <View style={styles.ratingBadge}>
+                  <Ionicons name="star" size={14} color="#FFD700" />
+                  <Text style={styles.ratingText}>N/A</Text>
+                </View>
+              )}
             </View>
-            <View style={styles.basicInfoItem}>
-              <Ionicons name="people-outline" size={18} color="#FFD700" />
-              <Text style={styles.basicInfoText}>
-                {pt.freelancePt?.totalPurchased ?? 0}{" "}
-                {t("freelancePT.totalPurchased")}
-              </Text>
+
+            <Text style={styles.name}>{pt.freelancePt?.fullName}</Text>
+            <Text style={styles.description}>
+              {pt.freelancePt?.description ||
+                t("freelancePT.professionalPersonalTrainer")}
+            </Text>
+
+            <View style={styles.basicInfoContainer}>
+              <View style={styles.basicInfoItem}>
+                <MaterialCommunityIcons
+                  name="medal-outline"
+                  size={18}
+                  color="#FFD700"
+                />
+                <Text style={styles.basicInfoText}>
+                  {pt.freelancePt?.experienceYears || 0}{" "}
+                  {t("freelancePT.experienceYears")}
+                </Text>
+              </View>
+              <View style={styles.basicInfoItem}>
+                <Ionicons name="people-outline" size={18} color="#FFD700" />
+                <Text style={styles.basicInfoText}>
+                  {pt.freelancePt?.totalPurchased ?? 0}{" "}
+                  {t("freelancePT.totalPurchased")}
+                </Text>
+              </View>
             </View>
           </View>
-        </View>
-      </LinearGradient>
+        </LinearGradient>
 
-      {/* Quick Stats Cards */}
-      <View style={styles.statsContainer}>
-        <View style={styles.statCard}>
-          <MaterialCommunityIcons
-            name="human-male-height"
-            size={24}
-            color="#FF914D"
-          />
-          <Text style={styles.statValue}>
-            {pt?.userDetail?.height || "N/A"}
-          </Text>
-          <Text style={styles.statLabel}>{t("freelancePT.heightLabel")}</Text>
+        {/* Quick Stats Cards */}
+        <View style={styles.statsContainer}>
+          <View style={styles.statCard}>
+            <MaterialCommunityIcons
+              name="human-male-height"
+              size={24}
+              color="#FF914D"
+            />
+            <Text style={styles.statValue}>
+              {pt?.userDetail?.height || "N/A"}
+            </Text>
+            <Text style={styles.statLabel}>{t("freelancePT.heightLabel")}</Text>
+          </View>
+
+          <View style={styles.statCard}>
+            <MaterialCommunityIcons
+              name="weight-kilogram"
+              size={24}
+              color="#FF914D"
+            />
+            <Text style={styles.statValue}>
+              {pt?.userDetail?.weight || "N/A"}
+            </Text>
+            <Text style={styles.statLabel}>{t("freelancePT.weightLabel")}</Text>
+          </View>
+
+          <View style={styles.statCard}>
+            <Ionicons name="people-outline" size={24} color="#FF914D" />
+            <Text style={styles.statValue}>
+              {pt?.freelancePt?.totalPurchased ?? 0}
+            </Text>
+            <Text style={styles.statLabel}>{t("freelancePT.clients")}</Text>
+          </View>
         </View>
 
-        <View style={styles.statCard}>
-          <MaterialCommunityIcons
-            name="weight-kilogram"
-            size={24}
-            color="#FF914D"
-          />
-          <Text style={styles.statValue}>
-            {pt?.userDetail?.weight || "N/A"}
-          </Text>
-          <Text style={styles.statLabel}>{t("freelancePT.weightLabel")}</Text>
-        </View>
-
-        <View style={styles.statCard}>
-          <Ionicons name="people-outline" size={24} color="#FF914D" />
-          <Text style={styles.statValue}>
-            {pt?.freelancePt?.totalPurchased ?? 0}
-          </Text>
-          <Text style={styles.statLabel}>{t("freelancePT.clients")}</Text>
-        </View>
-      </View>
-
-      {/* Available Announcements */}
-      <View style={[
-          styles.announcementSectionContainer,
-          { borderLeftColor: pt?.freelancePt?.ptCurrentCourse === pt?.freelancePt?.ptMaxCourse ? '#FF9800' : '#4CAF50',
-            borderBottomColor: pt?.freelancePt?.ptCurrentCourse === pt?.freelancePt?.ptMaxCourse ? '#FF9800' : '#4CAF50',
-           }
-        ]}>
+        {/* Available Announcements */}
+        <View
+          style={[
+            styles.announcementSectionContainer,
+            {
+              borderLeftColor:
+                pt?.freelancePt?.ptCurrentCourse ===
+                pt?.freelancePt?.ptMaxCourse
+                  ? "#FF9800"
+                  : "#4CAF50",
+              borderBottomColor:
+                pt?.freelancePt?.ptCurrentCourse ===
+                pt?.freelancePt?.ptMaxCourse
+                  ? "#FF9800"
+                  : "#4CAF50",
+            },
+          ]}
+        >
           {pt?.freelancePt?.ptCurrentCourse >= pt?.freelancePt?.ptMaxCourse ? (
             <>
               <Ionicons name="information-circle" size={24} color="#FF9800" />
@@ -407,7 +361,10 @@ const PTProfileScreen = ({ route, navigation }) => {
               <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
               <View style={styles.announcementTextContainer}>
                 <Text style={styles.announcementText}>
-                  Hiện tại huấn luyện viên còn nhận {pt?.freelancePt?.ptMaxCourse - pt?.freelancePt?.ptCurrentCourse} học viên
+                  Hiện tại huấn luyện viên còn nhận{" "}
+                  {pt?.freelancePt?.ptMaxCourse -
+                    pt?.freelancePt?.ptCurrentCourse}{" "}
+                  học viên
                 </Text>
                 <Text style={styles.announcementText2}>
                   Hãy đăng ký khóa học với PT này trong thời gian sớm nhất
@@ -417,530 +374,582 @@ const PTProfileScreen = ({ route, navigation }) => {
           )}
         </View>
 
-      {/* Tab Navigation */}
-      <View style={styles.tabContainer}>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === "profile" && styles.activeTab]}
-          onPress={() => setActiveTab("profile")}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "profile" && styles.activeTabText,
-            ]}
+        {/* Tab Navigation */}
+        <View style={styles.tabContainer}>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === "profile" && styles.activeTab]}
+            onPress={() => setActiveTab("profile")}
           >
-            {t("freelancePT.ptProfileTab")}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === "packages" && styles.activeTab]}
-          onPress={() => setActiveTab("packages")}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "packages" && styles.activeTabText,
-            ]}
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === "profile" && styles.activeTabText,
+              ]}
+            >
+              {t("freelancePT.ptProfileTab")}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === "packages" && styles.activeTab]}
+            onPress={() => setActiveTab("packages")}
           >
-            {t("freelancePT.packagesTab")} (
-            {pt?.freelancePTPackages?.filter((pkg) => pkg.isDisplayed === true || pkg.isDisplayed === "true").length || 0})
-          </Text>
-        </TouchableOpacity>
-      </View>
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === "packages" && styles.activeTabText,
+              ]}
+            >
+              {t("freelancePT.packagesTab")} (
+              {pt?.freelancePTPackages?.filter(
+                (pkg) => pkg.isDisplayed === true || pkg.isDisplayed === "true"
+              ).length || 0}
+              )
+            </Text>
+          </TouchableOpacity>
+        </View>
 
-      {/* Profile Tab Content */}
-      {activeTab === "profile" && (
-        <>
-        
-          {/* Price Information Section */}
-          <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>{t("freelancePT.pricing")}</Text>
-
-            <View style={styles.healthCard}>
-              <View style={styles.healthHeader}>
-                <MaterialCommunityIcons name="cash" size={24} color="#FF914D" />
-                <View style={styles.healthInfo}>
-                  <Text style={styles.healthTitle}>
-                    {t("freelancePT.priceFrom")}
-                  </Text>
-                  <Text style={styles.healthSubtitle}>
-                    {t("freelancePT.perSession")}
-                  </Text>
-                </View>
-                <Text style={[styles.healthValue, { color: "#FF914D" }]}>
-                  {pt.freelancePt?.priceFrom
-                    ? formatPrice(pt.freelancePt.priceFrom)
-                    : t("freelancePT.contactForPricing")}
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Body Measurements Section */}
-          <View style={styles.sectionContainer}>
-            <View style={styles.sectionHeader}>
+        {/* Profile Tab Content */}
+        {activeTab === "profile" && (
+          <>
+            {/* Price Information Section */}
+            <View style={styles.sectionContainer}>
               <Text style={styles.sectionTitle}>
-                <MaterialCommunityIcons
-                  name="human-handsup"
-                  size={20}
-                  color="#FF914D"
-                />{" "}
-                {t("freelancePT.bodyMeasurements")}
+                {t("freelancePT.pricing")}
               </Text>
-            </View>
 
-            <View style={styles.measurementsGrid}>
-              {getBodyMeasurements().map((measurement, index) => (
-                <View key={measurement.key} style={styles.measurementCard}>
-                  {measurement.image ? (
-                    <Image
-                      source={measurement.image}
-                      style={styles.bodyPartImage}
-                      resizeMode="contain"
-                    />
-                  ) : (
-                    <View style={styles.bodyPartImagePlaceholder}>
-                      <MaterialCommunityIcons
-                        name="human"
-                        size={32}
-                        color="#FF"
-                      />
-                    </View>
-                  )}
-                  <Text style={styles.measurementLabel}>
-                    {measurement.label}
-                  </Text>
-                  <Text style={styles.measurementValue}>
-                    {measurement.value || "N/A"}{" "}
-                    {measurement.value && (
-                      <Text style={styles.measurementUnit}>
-                        {measurement.unit}
-                      </Text>
-                    )}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          </View>
-
-          {/* Trainer Information Section */}
-          <View style={styles.sectionContainer}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>
-                {t("freelancePT.trainerInfo")}
-              </Text>
-            </View>
-
-            <View style={styles.formContainer}>
-              {/* Specializations */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>
-                  <Ionicons name="fitness-outline" size={16} color="#FF914D" />{" "}
-                  {t("freelancePT.specializations")}
-                </Text>
-                <View style={styles.tagsContainer}>
-                  {(() => {
-                    const specializations = getAllSpecializations();
-                    return specializations.length > 0 ? (
-                      specializations.map((spec, index) => (
-                        <View key={index} style={styles.tag}>
-                          <Text style={styles.tagText}>{spec}</Text>
-                        </View>
-                      ))
-                    ) : (
-                      <View style={styles.emptyTag}>
-                        <Text style={styles.emptyTagText}>
-                          {t("freelancePT.noSpecializations")}
-                        </Text>
-                      </View>
-                    );
-                  })()}
-                </View>
-              </View>
-
-              {/* Certifications */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>
-                  <Ionicons name="ribbon-outline" size={16} color="#FF914D" />{" "}
-                  {t("freelancePT.certifications")}
-                </Text>
-                <View style={styles.certificationsContainer}>
-                  {pt.freelancePt?.certifications &&
-                  pt.freelancePt.certifications.length > 0 ? (
-                    pt.freelancePt.certifications.map((cert, index) => {
-                      const certMetadata = cert.certificateMetadata;
-                      const isActive = cert.certificateStatus === "Active";
-                      const certId = cert.id || `cert-${index}`;
-                      const isExpanded = expandedCertificates.has(certId);
-                      
-                      return (
-                        <View
-                          key={certId}
-                          style={[
-                            styles.certificationCard,
-                            !isActive && styles.certificationCardInactive,
-                          ]}
-                        >
-                          <TouchableOpacity
-                            style={styles.certificationHeader}
-                            onPress={() => toggleCertificate(certId)}
-                            activeOpacity={0.7}
-                          >
-                            <View style={styles.certificationHeaderLeft}>
-                              <View style={styles.certificationIconContainer}>
-                                <Ionicons
-                                  name="ribbon"
-                                  size={24}
-                                  color={isActive ? "#FF914D" : "#999"}
-                                />
-                              </View>
-                              <View style={styles.certificationTitleContainer}>
-                                <Text style={styles.certificationName}>
-                                  {certMetadata?.certName || t("freelancePT.certificateModal.title")}
-                                </Text>
-                                <Text style={styles.certificationProvider}>
-                                  {certMetadata?.providerName || ""}
-                                </Text>
-                              </View>
-                            </View>
-                            <View style={styles.certificationHeaderRight}>
-
-                              <Ionicons
-                                name={isExpanded ? "chevron-up" : "chevron-down"}
-                                size={20}
-                                color="#666"
-                                style={styles.certificationChevron}
-                              />
-                            </View>
-                          </TouchableOpacity>
-
-                          {isExpanded && (
-                            <View style={styles.certificationContent}>
-                              {certMetadata?.certCode && (
-                                <View style={styles.certificationCodeContainer}>
-                                  <Text style={styles.certificationCodeLabel}>
-                                    {t("freelancePT.certificateModal.code")}
-                                  </Text>
-                                  <Text style={styles.certificationCode}>
-                                    {certMetadata.certCode}
-                                  </Text>
-                                </View>
-                              )}
-
-                              {certMetadata?.certificateType && (
-                                <View style={styles.certificationTypeContainer}>
-                                  <Ionicons
-                                    name="globe-outline"
-                                    size={14}
-                                    color="#666"
-                                  />
-                                  <Text style={styles.certificationType}>
-                                    {certMetadata.certificateType}
-                                  </Text>
-                                </View>
-                              )}
-
-                              {certMetadata?.description && (
-                                <Text style={styles.certificationDescription}>
-                                  {certMetadata.description}
-                                </Text>
-                              )}
-
-                              {certMetadata?.specializations &&
-                                certMetadata.specializations.length > 0 && (
-                                  <View style={styles.certificationSpecializations}>
-                                    {certMetadata.specializations.map(
-                                      (spec, specIndex) => (
-                                        <View
-                                          key={specIndex}
-                                          style={styles.specializationTag}
-                                        >
-                                          <Text style={styles.specializationTagText}>
-                                            {spec}
-                                          </Text>
-                                        </View>
-                                      )
-                                    )}
-                                  </View>
-                                )}
-
-                              <View style={styles.certificationDates}>
-                                {cert.providedDate && (
-                                  <View style={styles.certificationDateItem}>
-                                    <Ionicons
-                                      name="calendar-outline"
-                                      size={12}
-                                      color="#666"
-                                    />
-                                    <Text style={styles.certificationDateText}>
-                                      {t("freelancePT.certificateModal.issued")} {cert.providedDate}
-                                    </Text>
-                                  </View>
-                                )}
-                                {cert.expirationDate && (
-                                  <View style={styles.certificationDateItem}>
-                                    <Ionicons
-                                      name="time-outline"
-                                      size={12}
-                                      color="#666"
-                                    />
-                                    <Text style={styles.certificationDateText}>
-                                      {t("freelancePT.certificateModal.expires")} {cert.expirationDate}
-                                    </Text>
-                                  </View>
-                                )}
-                              </View>
-
-                              {cert.certUrl && (
-                                <TouchableOpacity
-                                  style={styles.certificationViewLink}
-                                  onPress={() => {
-                                    setSelectedCertificateUrl(cert.certUrl);
-                                    setCertificateModalVisible(true);
-                                  }}
-                                  activeOpacity={0.7}
-                                >
-                                  <Ionicons
-                                    name="open-outline"
-                                    size={14}
-                                    color="#FF914D"
-                                  />
-                                  <Text style={styles.certificationViewLinkText}>
-                                    {t("freelancePT.certificateModal.viewCertificate")}
-                                  </Text>
-                                </TouchableOpacity>
-                              )}
-                            </View>
-                          )}
-                        </View>
-                      );
-                    })
-                  ) : (
-                    <View style={styles.certificationItem}>
-                      <Text
-                        style={[styles.certificationText, { color: "#999" }]}
-                      >
-                        {t("freelancePT.noCertifications")}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-              </View>
-
-              {/* About/Bio */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>
+              <View style={styles.healthCard}>
+                <View style={styles.healthHeader}>
                   <MaterialCommunityIcons
-                    name="information-outline"
-                    size={16}
+                    name="cash"
+                    size={24}
+                    color="#FF914D"
+                  />
+                  <View style={styles.healthInfo}>
+                    <Text style={styles.healthTitle}>
+                      {t("freelancePT.priceFrom")}
+                    </Text>
+                    <Text style={styles.healthSubtitle}>
+                      {t("freelancePT.perSession")}
+                    </Text>
+                  </View>
+                  <Text style={[styles.healthValue, { color: "#FF914D" }]}>
+                    {pt.freelancePt?.priceFrom
+                      ? formatPrice(pt.freelancePt.priceFrom)
+                      : t("freelancePT.contactForPricing")}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Body Measurements Section */}
+            <View style={styles.sectionContainer}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>
+                  <MaterialCommunityIcons
+                    name="human-handsup"
+                    size={20}
                     color="#FF914D"
                   />{" "}
-                  {t("freelancePT.about")}
+                  {t("freelancePT.bodyMeasurements")}
                 </Text>
-                <View style={[styles.textInput, styles.disabledInput]}>
-                  <Text style={styles.bioText}>
-                    {pt.bio || pt.description || t("freelancePT.noDescription")}
-                  </Text>
-                </View>
+              </View>
+
+              <View style={styles.measurementsGrid}>
+                {getBodyMeasurements().map((measurement, index) => (
+                  <View key={measurement.key} style={styles.measurementCard}>
+                    {measurement.image ? (
+                      <Image
+                        source={measurement.image}
+                        style={styles.bodyPartImage}
+                        resizeMode="contain"
+                      />
+                    ) : (
+                      <View style={styles.bodyPartImagePlaceholder}>
+                        <MaterialCommunityIcons
+                          name="human"
+                          size={32}
+                          color="#FF"
+                        />
+                      </View>
+                    )}
+                    <Text style={styles.measurementLabel}>
+                      {measurement.label}
+                    </Text>
+                    <Text style={styles.measurementValue}>
+                      {measurement.value || "N/A"}{" "}
+                      {measurement.value && (
+                        <Text style={styles.measurementUnit}>
+                          {measurement.unit}
+                        </Text>
+                      )}
+                    </Text>
+                  </View>
+                ))}
               </View>
             </View>
-          </View>
-        </>
-      )}
 
-      {/* Packages Tab Content */}
-      {activeTab === "packages" && (
-        <View style={styles.packagesContainer}>
-          {pt?.freelancePTPackages && pt.freelancePTPackages.length > 0 ? (
-            // Sort packages: purchased packages first, then unpurchased
-            [...pt.freelancePTPackages]
-            .filter((pkg) => pkg.isDisplayed === true || pkg.isDisplayed === "true")
-              .sort((a, b) => {
-                // If a is purchased and b is not, a comes first (return -1)
-                // If b is purchased and a is not, b comes first (return 1)
-                // If both have same purchase status, keep original order (return 0)
-                if (a.isPurchased && !b.isPurchased) return -1;
-                if (!a.isPurchased && b.isPurchased) return 1;
-                return 0;
-              })
-              .map((packageItem, index) => (
-                <TouchableOpacity
-                  key={packageItem.id}
-                  style={[
-                    styles.packageCard,
-                    packageItem.isPurchased && styles.purchasedPackageCard,
-                  ]}
-                  onPress={() =>
-                    navigation.navigate("FreelancePTPackageDetailScreen", {
-                      freelancePTPackageId: packageItem.id,
-                      purchasedPackage: purchasedPackage,
-                      ptCurrentCourse: pt?.freelancePt?.ptCurrentCourse || 0,
-                      ptMaxCourse: pt?.freelancePt?.ptMaxCourse || 0,
-                    })
-                  }
-                >
-                  {/* Package Image */}
-                  <View style={styles.packageImageContainer}>
-                    <Image
-                      source={
-                        packageItem.imageUrl &&
-                        packageItem.imageUrl !== "string"
-                          ? { uri: packageItem.imageUrl }
-                          : require("../../../assets/images/gymroom.jpg")
-                      }
-                      style={styles.packageImage}
-                      resizeMode="cover"
-                    />
-                    <LinearGradient
-                      colors={["transparent", "rgba(0,0,0,0.6)"]}
-                      style={styles.packageGradient}
-                    />
-                    {/* Purchased Badge */}
-                    {packageItem.isPurchased && (
-                      <View style={styles.purchasedBadge}>
-                        <Ionicons
-                          name="checkmark-circle"
-                          size={20}
-                          color="#fff"
-                        />
-                        <Text style={styles.purchasedBadgeText}>
-                          {t("freelancePT.purchased")}
+            {/* Trainer Information Section */}
+            <View style={styles.sectionContainer}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>
+                  {t("freelancePT.trainerInfo")}
+                </Text>
+              </View>
+
+              <View style={styles.formContainer}>
+                {/* Specializations */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>
+                    <Ionicons
+                      name="fitness-outline"
+                      size={16}
+                      color="#FF914D"
+                    />{" "}
+                    {t("freelancePT.specializations")}
+                  </Text>
+                  <View style={styles.tagsContainer}>
+                    {(() => {
+                      const specializations = getAllSpecializations();
+                      return specializations.length > 0 ? (
+                        specializations.map((spec, index) => (
+                          <View key={index} style={styles.tag}>
+                            <Text style={styles.tagText}>{spec}</Text>
+                          </View>
+                        ))
+                      ) : (
+                        <View style={styles.emptyTag}>
+                          <Text style={styles.emptyTagText}>
+                            {t("freelancePT.noSpecializations")}
+                          </Text>
+                        </View>
+                      );
+                    })()}
+                  </View>
+                </View>
+
+                {/* Certifications */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>
+                    <Ionicons name="ribbon-outline" size={16} color="#FF914D" />{" "}
+                    {t("freelancePT.certifications")}
+                  </Text>
+                  <View style={styles.certificationsContainer}>
+                    {pt.freelancePt?.certifications &&
+                    pt.freelancePt.certifications.length > 0 ? (
+                      pt.freelancePt.certifications.map((cert, index) => {
+                        const certMetadata = cert.certificateMetadata;
+                        const isActive = cert.certificateStatus === "Active";
+                        const certId = cert.id || `cert-${index}`;
+                        const isExpanded = expandedCertificates.has(certId);
+
+                        return (
+                          <View
+                            key={certId}
+                            style={[
+                              styles.certificationCard,
+                              !isActive && styles.certificationCardInactive,
+                            ]}
+                          >
+                            <TouchableOpacity
+                              style={styles.certificationHeader}
+                              onPress={() => toggleCertificate(certId)}
+                              activeOpacity={0.7}
+                            >
+                              <View style={styles.certificationHeaderLeft}>
+                                <View style={styles.certificationIconContainer}>
+                                  <Ionicons
+                                    name="ribbon"
+                                    size={24}
+                                    color={isActive ? "#FF914D" : "#999"}
+                                  />
+                                </View>
+                                <View
+                                  style={styles.certificationTitleContainer}
+                                >
+                                  <Text style={styles.certificationName}>
+                                    {certMetadata?.certName ||
+                                      t("freelancePT.certificateModal.title")}
+                                  </Text>
+                                  <Text style={styles.certificationProvider}>
+                                    {certMetadata?.providerName || ""}
+                                  </Text>
+                                </View>
+                              </View>
+                              <View style={styles.certificationHeaderRight}>
+                                <Ionicons
+                                  name={
+                                    isExpanded ? "chevron-up" : "chevron-down"
+                                  }
+                                  size={20}
+                                  color="#666"
+                                  style={styles.certificationChevron}
+                                />
+                              </View>
+                            </TouchableOpacity>
+
+                            {isExpanded && (
+                              <View style={styles.certificationContent}>
+                                {certMetadata?.certCode && (
+                                  <View
+                                    style={styles.certificationCodeContainer}
+                                  >
+                                    <Text style={styles.certificationCodeLabel}>
+                                      {t("freelancePT.certificateModal.code")}
+                                    </Text>
+                                    <Text style={styles.certificationCode}>
+                                      {certMetadata.certCode}
+                                    </Text>
+                                  </View>
+                                )}
+
+                                {certMetadata?.certificateType && (
+                                  <View
+                                    style={styles.certificationTypeContainer}
+                                  >
+                                    <Ionicons
+                                      name="globe-outline"
+                                      size={14}
+                                      color="#666"
+                                    />
+                                    <Text style={styles.certificationType}>
+                                      {certMetadata.certificateType}
+                                    </Text>
+                                  </View>
+                                )}
+
+                                {certMetadata?.description && (
+                                  <Text style={styles.certificationDescription}>
+                                    {certMetadata.description}
+                                  </Text>
+                                )}
+
+                                {certMetadata?.specializations &&
+                                  certMetadata.specializations.length > 0 && (
+                                    <View
+                                      style={
+                                        styles.certificationSpecializations
+                                      }
+                                    >
+                                      {certMetadata.specializations.map(
+                                        (spec, specIndex) => (
+                                          <View
+                                            key={specIndex}
+                                            style={styles.specializationTag}
+                                          >
+                                            <Text
+                                              style={
+                                                styles.specializationTagText
+                                              }
+                                            >
+                                              {spec}
+                                            </Text>
+                                          </View>
+                                        )
+                                      )}
+                                    </View>
+                                  )}
+
+                                <View style={styles.certificationDates}>
+                                  {cert.providedDate && (
+                                    <View style={styles.certificationDateItem}>
+                                      <Ionicons
+                                        name="calendar-outline"
+                                        size={12}
+                                        color="#666"
+                                      />
+                                      <Text
+                                        style={styles.certificationDateText}
+                                      >
+                                        {t(
+                                          "freelancePT.certificateModal.issued"
+                                        )}{" "}
+                                        {cert.providedDate}
+                                      </Text>
+                                    </View>
+                                  )}
+                                  {cert.expirationDate && (
+                                    <View style={styles.certificationDateItem}>
+                                      <Ionicons
+                                        name="time-outline"
+                                        size={12}
+                                        color="#666"
+                                      />
+                                      <Text
+                                        style={styles.certificationDateText}
+                                      >
+                                        {t(
+                                          "freelancePT.certificateModal.expires"
+                                        )}{" "}
+                                        {cert.expirationDate}
+                                      </Text>
+                                    </View>
+                                  )}
+                                </View>
+
+                                {cert.certUrl && (
+                                  <TouchableOpacity
+                                    style={styles.certificationViewLink}
+                                    onPress={() => {
+                                      setSelectedCertificateUrl(cert.certUrl);
+                                      setCertificateModalVisible(true);
+                                    }}
+                                    activeOpacity={0.7}
+                                  >
+                                    <Ionicons
+                                      name="open-outline"
+                                      size={14}
+                                      color="#FF914D"
+                                    />
+                                    <Text
+                                      style={styles.certificationViewLinkText}
+                                    >
+                                      {t(
+                                        "freelancePT.certificateModal.viewCertificate"
+                                      )}
+                                    </Text>
+                                  </TouchableOpacity>
+                                )}
+                              </View>
+                            )}
+                          </View>
+                        );
+                      })
+                    ) : (
+                      <View style={styles.certificationItem}>
+                        <Text
+                          style={[styles.certificationText, { color: "#999" }]}
+                        >
+                          {t("freelancePT.noCertifications")}
                         </Text>
                       </View>
                     )}
                   </View>
+                </View>
 
-                  {/* Package Info */}
-                  <View style={styles.packageInfo}>
-                    <Text style={styles.packageName} numberOfLines={2}>
-                      {packageItem.name || t("freelancePT.untitledPackage")}
-                    </Text>
-
-                    <Text style={styles.packageDescription} numberOfLines={2}>
-                      {packageItem.description ||
+                {/* About/Bio */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>
+                    <MaterialCommunityIcons
+                      name="information-outline"
+                      size={16}
+                      color="#FF914D"
+                    />{" "}
+                    {t("freelancePT.about")}
+                  </Text>
+                  <View style={[styles.textInput, styles.disabledInput]}>
+                    <Text style={styles.bioText}>
+                      {pt.bio ||
+                        pt.description ||
                         t("freelancePT.noDescription")}
                     </Text>
-
-                    <View style={styles.packageDetailsRow}>
-                      <View style={styles.packageDetailItem}>
-                        <Ionicons
-                          name="calendar-outline"
-                          size={14}
-                          color="#666"
-                        />
-                        <Text style={styles.packageDetailText}>
-                          {packageItem.durationInDays || 0}{" "}
-                          {t("freelancePT.days")}
-                        </Text>
-                      </View>
-                      <View style={styles.packageDetailItem}>
-                        <MaterialCommunityIcons
-                          name="dumbbell"
-                          size={14}
-                          color="#666"
-                        />
-                        <Text style={styles.packageDetailText}>
-                          {packageItem.numOfSessions || 0}{" "}
-                          {t("freelancePT.sessions")}
-                        </Text>
-                      </View>
-                      <View style={styles.packageDetailItem}>
-                        <Ionicons name="time-outline" size={14} color="#666" />
-                        <Text style={styles.packageDetailText}>
-                          {packageItem.sessionDurationInMinutes || 0}{" "}
-                          {t("freelancePT.minutes")}
-                        </Text>
-                      </View>
-                    </View>
-
-                    <View style={styles.packageFooter}>
-                      <View style={styles.packagePriceContainer}>
-                        <Text style={styles.packagePrice}>
-                          {packageItem.price
-                            ? formatPrice(packageItem.price)
-                            : t("freelancePT.contactForPricing")}
-                        </Text>
-                      </View>
-                      <TouchableOpacity
-                        style={styles.packageButton}
-                        onPress={() =>
-                          navigation.navigate(
-                            "FreelancePTPackageDetailScreen",
-                            {
-                              freelancePTPackageId: packageItem.id,
-                              purchasedPackage: purchasedPackage,
-                              ptCurrentCourse: pt?.freelancePt?.ptCurrentCourse || 0,
-                              ptMaxCourse: pt?.freelancePt?.ptMaxCourse || 0,
-                            }
-                          )
-                        }
-                      >
-                        <Text style={styles.packageButtonText}>
-                          {t("freelancePT.viewDetails")}
-                        </Text>
-                        <Ionicons
-                          name="arrow-forward"
-                          size={16}
-                          color="#ED2A46"
-                        />
-                      </TouchableOpacity>
-                    </View>
                   </View>
-                </TouchableOpacity>
-              ))
-          ) : (
-            <View style={styles.emptyPackagesContainer}>
-              <MaterialCommunityIcons
-                name="package-variant"
-                size={64}
-                color="#ccc"
-              />
-              <Text style={styles.emptyPackagesText}>
-                {t("freelancePT.noPackagesAvailableYet")}
-              </Text>
+                </View>
+              </View>
             </View>
-          )}
-        </View>
-      )}
-    </ScrollView>
+          </>
+        )}
 
-    {/* Certificate Modal */}
-    <Modal
-      visible={certificateModalVisible}
-      transparent={true}
-      animationType="fade"
-      onRequestClose={() => setCertificateModalVisible(false)}
-    >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>
-              {t("freelancePT.certificateModal.title")}
-            </Text>
-            <TouchableOpacity
-              onPress={() => setCertificateModalVisible(false)}
-              style={styles.modalCloseButton}
-            >
-              <Ionicons name="close" size={24} color="#333" />
-            </TouchableOpacity>
-          </View>
-          <ScrollView
-            style={styles.modalImageContainer}
-            contentContainerStyle={styles.modalImageContent}
-            showsVerticalScrollIndicator={true}
-            showsHorizontalScrollIndicator={true}
-          >
-            {selectedCertificateUrl && (
-              <Image
-                source={{ uri: selectedCertificateUrl }}
-                style={styles.modalImage}
-                resizeMode="contain"
-              />
+        {/* Packages Tab Content */}
+        {activeTab === "packages" && (
+          <View style={styles.packagesContainer}>
+            {pt?.freelancePTPackages && pt.freelancePTPackages.length > 0 ? (
+              // Sort packages: purchased packages first, then unpurchased
+              [...pt.freelancePTPackages]
+                .filter(
+                  (pkg) =>
+                    pkg.isDisplayed === true || pkg.isDisplayed === "true"
+                )
+                .sort((a, b) => {
+                  // If a is purchased and b is not, a comes first (return -1)
+                  // If b is purchased and a is not, b comes first (return 1)
+                  // If both have same purchase status, keep original order (return 0)
+                  if (a.isPurchased && !b.isPurchased) return -1;
+                  if (!a.isPurchased && b.isPurchased) return 1;
+                  return 0;
+                })
+                .map((packageItem, index) => (
+                  <TouchableOpacity
+                    key={packageItem.id}
+                    style={[
+                      styles.packageCard,
+                      packageItem.isPurchased && styles.purchasedPackageCard,
+                    ]}
+                    onPress={() =>
+                      navigation.navigate("FreelancePTPackageDetailScreen", {
+                        freelancePTPackageId: packageItem.id,
+                        purchasedPackage: purchasedPackage,
+                        ptCurrentCourse: pt?.freelancePt?.ptCurrentCourse || 0,
+                        ptMaxCourse: pt?.freelancePt?.ptMaxCourse || 0,
+                      })
+                    }
+                  >
+                    {/* Package Image */}
+                    <View style={styles.packageImageContainer}>
+                      <Image
+                        source={
+                          packageItem.imageUrl &&
+                          packageItem.imageUrl !== "string"
+                            ? { uri: packageItem.imageUrl }
+                            : require("../../../assets/images/gymroom.jpg")
+                        }
+                        style={styles.packageImage}
+                        resizeMode="cover"
+                      />
+                      <LinearGradient
+                        colors={["transparent", "rgba(0,0,0,0.6)"]}
+                        style={styles.packageGradient}
+                      />
+                      {/* Purchased Badge */}
+                      {packageItem.isPurchased && (
+                        <View style={styles.purchasedBadge}>
+                          <Ionicons
+                            name="checkmark-circle"
+                            size={20}
+                            color="#fff"
+                          />
+                          <Text style={styles.purchasedBadgeText}>
+                            {t("freelancePT.purchased")}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+
+                    {/* Package Info */}
+                    <View style={styles.packageInfo}>
+                      <Text style={styles.packageName} numberOfLines={2}>
+                        {packageItem.name || t("freelancePT.untitledPackage")}
+                      </Text>
+
+                      <Text style={styles.packageDescription} numberOfLines={2}>
+                        {packageItem.description ||
+                          t("freelancePT.noDescription")}
+                      </Text>
+
+                      <View style={styles.packageDetailsRow}>
+                        <View style={styles.packageDetailItem}>
+                          <Ionicons
+                            name="calendar-outline"
+                            size={14}
+                            color="#666"
+                          />
+                          <Text style={styles.packageDetailText}>
+                            {packageItem.durationInDays || 0}{" "}
+                            {t("freelancePT.days")}
+                          </Text>
+                        </View>
+                        <View style={styles.packageDetailItem}>
+                          <MaterialCommunityIcons
+                            name="dumbbell"
+                            size={14}
+                            color="#666"
+                          />
+                          <Text style={styles.packageDetailText}>
+                            {packageItem.numOfSessions || 0}{" "}
+                            {t("freelancePT.sessions")}
+                          </Text>
+                        </View>
+                        <View style={styles.packageDetailItem}>
+                          <Ionicons
+                            name="time-outline"
+                            size={14}
+                            color="#666"
+                          />
+                          <Text style={styles.packageDetailText}>
+                            {packageItem.sessionDurationInMinutes || 0}{" "}
+                            {t("freelancePT.minutes")}
+                          </Text>
+                        </View>
+                      </View>
+
+                      <View style={styles.packageFooter}>
+                        <View style={styles.packagePriceContainer}>
+                          <Text style={styles.packagePrice}>
+                            {packageItem.price
+                              ? formatPrice(packageItem.price)
+                              : t("freelancePT.contactForPricing")}
+                          </Text>
+                        </View>
+                        <TouchableOpacity
+                          style={styles.packageButton}
+                          onPress={() =>
+                            navigation.navigate(
+                              "FreelancePTPackageDetailScreen",
+                              {
+                                freelancePTPackageId: packageItem.id,
+                                purchasedPackage: purchasedPackage,
+                                ptCurrentCourse:
+                                  pt?.freelancePt?.ptCurrentCourse || 0,
+                                ptMaxCourse: pt?.freelancePt?.ptMaxCourse || 0,
+                              }
+                            )
+                          }
+                        >
+                          <Text style={styles.packageButtonText}>
+                            {t("freelancePT.viewDetails")}
+                          </Text>
+                          <Ionicons
+                            name="arrow-forward"
+                            size={16}
+                            color="#ED2A46"
+                          />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                ))
+            ) : (
+              <View style={styles.emptyPackagesContainer}>
+                <MaterialCommunityIcons
+                  name="package-variant"
+                  size={64}
+                  color="#ccc"
+                />
+                <Text style={styles.emptyPackagesText}>
+                  {t("freelancePT.noPackagesAvailableYet")}
+                </Text>
+              </View>
             )}
-          </ScrollView>
+          </View>
+        )}
+      </ScrollView>
+
+      {/* Certificate Modal */}
+      <Modal
+        visible={certificateModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setCertificateModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>
+                {t("freelancePT.certificateModal.title")}
+              </Text>
+              <TouchableOpacity
+                onPress={() => setCertificateModalVisible(false)}
+                style={styles.modalCloseButton}
+              >
+                <Ionicons name="close" size={24} color="#333" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView
+              style={styles.modalImageContainer}
+              contentContainerStyle={styles.modalImageContent}
+              showsVerticalScrollIndicator={true}
+              showsHorizontalScrollIndicator={true}
+            >
+              {selectedCertificateUrl && (
+                <Image
+                  source={{ uri: selectedCertificateUrl }}
+                  style={styles.modalImage}
+                  resizeMode="contain"
+                />
+              )}
+            </ScrollView>
+          </View>
         </View>
-      </View>
-    </Modal>
+      </Modal>
     </>
   );
 };
@@ -1100,7 +1109,7 @@ const styles = StyleSheet.create({
   statCard: {
     backgroundColor: "#fff",
     borderRadius: 16,
-    paddingHorizontal:15,
+    paddingHorizontal: 15,
     paddingVertical: 20,
     alignItems: "center",
     flex: 1,
@@ -1695,13 +1704,13 @@ const styles = StyleSheet.create({
   },
   // Announcement Section Styles
   announcementSectionContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderRadius: 12,
     marginHorizontal: 16,
-    marginTop: 16,  
+    marginTop: 16,
     backgroundColor: "rgba(255, 255, 255, 0.15)",
     backdropFilter: "blur(100px)",
     borderWidth: 2,
@@ -1714,7 +1723,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 4,
-
   },
   announcementTextContainer: {
     flex: 1,
@@ -1722,13 +1730,13 @@ const styles = StyleSheet.create({
   },
   announcementText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
     marginBottom: 4,
   },
   announcementText2: {
     fontSize: 12,
-    color: '#666',
+    color: "#666",
     lineHeight: 18,
   },
   // Certificate Modal Styles

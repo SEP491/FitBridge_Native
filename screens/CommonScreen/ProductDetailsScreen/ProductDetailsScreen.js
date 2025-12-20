@@ -381,7 +381,7 @@ export default function ProductDetailsScreen() {
           { text: t("common.cancel"), style: "cancel" },
           { 
             text: t("navigation.login"), 
-            onPress: () => navigation.navigate("GuestProfileStack", { screen: "Login" })
+            onPress: () => navigation.navigate(t("navigation.login"), { screen: "Login" })
           },
         ]
       );
@@ -402,7 +402,7 @@ export default function ProductDetailsScreen() {
           { text: t("common.cancel"), style: "cancel" },
           { 
             text: t("navigation.login"), 
-            onPress: () => navigation.navigate("GuestProfileStack", { screen: "Login" })
+            onPress: () => navigation.navigate(t("navigation.login"), { screen: "Login" })
           },
         ]
       );
