@@ -25,12 +25,15 @@ import * as ImagePicker from "expo-image-picker";
 import PackageFeedbackModal from "../../../components/OrderManagementCard/PackageFeedbackModal";
 import orderService from "../../../services/orderService";
 import PackageCard from "../../../components/PackageCard/PackageCard";
+import { PackageCardSkeletonList } from "../../../components/PackageCard/PackageCardSkeleton";
 import LoadingIndicator from "../../../components/LoadingIndicator";
+import { fetchUserFromStorage } from "../../../lib";
 export default function MyPackageScreen() {
   const { t } = useTranslation();
   const [packages, setPackages] = useState([]);
   const [activeTab, setActiveTab] = useState("current");
   const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
 
   // Report Modal States
@@ -41,18 +44,24 @@ export default function MyPackageScreen() {
   const [reportDescription, setReportDescription] = useState("");
   const [reportImages, setReportImages] = useState([]);
   const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+  const [user, setUser] = useState(null);
 
   // Feedback Modal States
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
-  const [selectedPackageForFeedback, setSelectedPackageForFeedback] =
-    useState(null);
+  const [selectedPackageForFeedback, setSelectedPackageForFeedback] =useState(null);
 
+  const fetchUser = async () => {
+    const user = await fetchUserFromStorage();
+    setUser(user);
+  };
   useEffect(() => {
     fetchPackages();
+    fetchUser();
   }, []);
 
   const fetchPackages = async () => {
     try {
+      setLoading(true);
       const response = await packageService.getPackages();
       console.log("Package Response:", response);
 
@@ -95,6 +104,8 @@ export default function MyPackageScreen() {
       }
     } catch (error) {
       console.error("Error fetching package data:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -320,7 +331,61 @@ export default function MyPackageScreen() {
     }
   };
 
-  const renderPackageItem = ({ item }) => {
+  // Construct customer object for packages (Freelance PT and Gym Course)
+  const getCustomerForPackage = (packageItem, user) => {
+    // For Freelance PT packages, construct customer object for CustomerDetailScreen
+    console.log(packageItem, user);
+    if (packageItem.type === "freelancePT") {
+      const freelancePTPackages = packages.filter(
+        (pkg) => pkg.type === "freelancePT"
+      );
+      return {
+        id: user?.id,
+        name: user?.fullName || "Customer",
+        email: user?.email || "",
+        phone: user?.phone || "",
+        avatarUrl: user?.avatarUrl || null,
+        status: "active",
+        joinDate: packageItem.purchaseDate || new Date().toISOString(),
+        totalPackages: freelancePTPackages.length,
+        activePackages: freelancePTPackages.filter(
+          (pkg) => !isPackageExpired(pkg.expirationDate)
+        ).length,
+        totalSessions: freelancePTPackages.reduce(
+          (sum, pkg) => sum + (pkg.availableSessions || 0),
+          0
+        ),
+        packages: freelancePTPackages.map((pkg) => ({
+          id: pkg.id,
+          packageName: pkg.packageName,
+          availableSessions: pkg.availableSessions || 0,
+          expirationDate: pkg.expirationDate,
+          purchaseDate: pkg.purchaseDate || pkg.expirationDate,
+          totalSessions: pkg.totalSessions || pkg.availableSessions || 0,
+        })),
+      };
+    }
+
+    // For Gym Course packages, return a basic customer object for PackageHistoryScreen
+    if (
+      packageItem.type === "gymCourseWithPT" ||
+      packageItem.type === "gymCourseNormal"
+    ) {
+      return {
+        id: user?.id,
+        name: user?.fullName || "Customer",
+        email: user?.email || "",
+        phone: user?.phone || "",
+        avatarUrl: user?.avatarUrl || null,
+      };
+    }
+
+    return null;
+  };
+
+  const renderPackageItem = ({ item, user }) => {
+    const customer = getCustomerForPackage(item, user);
+
     return (
       <PackageCard
         item={item}
@@ -329,6 +394,7 @@ export default function MyPackageScreen() {
         onFeedback={handleOpenFeedbackModal}
         t={t}
         mode="package"
+        customer={customer}
       />
     );
   };
@@ -527,7 +593,11 @@ export default function MyPackageScreen() {
         </TouchableOpacity>
       </View>
 
-      {filteredPackages.length === 0 ? (
+      {loading ? (
+        <View style={styles.listContainer}>
+          <PackageCardSkeletonList count={4} />
+        </View>
+      ) : filteredPackages.length === 0 ? (
         <View style={styles.emptyContainer}>
           <View style={styles.emptyIconContainer}>
             <MaterialIcons name="fitness-center" size={48} color="#e0e0e0" />
@@ -546,7 +616,7 @@ export default function MyPackageScreen() {
       ) : (
         <FlatList
           data={filteredPackages}
-          renderItem={renderPackageItem}
+          renderItem={({ item }) => renderPackageItem({ item, user: user })}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}

@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 import colors from "../../constants/color";
 
 export default function PackageCard({
@@ -10,7 +11,9 @@ export default function PackageCard({
   onFeedback,
   t,
   mode = "package", // "package" for MyPackage, "review" for MyReviewsRatings
+  customer = null, // Customer object for Freelance PT context
 }) {
+  const navigation = useNavigation();
   console.log("item", item);  
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -79,6 +82,28 @@ export default function PackageCard({
   const isGymWithPT = item.type === "gymCourseWithPT";
   const isGymNormal = item.type === "gymCourseNormal";
   const isReviewMode = mode === "review";
+
+  const handleViewDetail = () => {
+    if (isFreelancePT && customer) {
+      // For Freelance PT packages, navigate to CustomerDetailScreen
+      const packageIndex = customer.packages?.findIndex(
+        (pkg) => pkg.id === item.id
+      );
+      
+      navigation.navigate("CustomerDetailScreen", {
+        customer: customer,
+        expandPackageIndex: packageIndex >= 0 ? packageIndex : null,
+      });
+    } else if (isGymWithPT || isGymNormal) {
+      // For Gym Course packages, navigate to PackageHistoryScreen
+      navigation.navigate("PackageHistoryScreen", {
+        customerPurchasedId: item.id,
+        packageName: item.packageName,
+        packageType: item.type,
+        customer: customer,
+      });
+    }
+  };
 
 
   return (
@@ -299,6 +324,22 @@ export default function PackageCard({
           >
             <Ionicons name="flag-outline" size={18} color={colors.red} />
             <Text style={styles.reportButtonText}>{t("myPackage.report")}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Third Row: View Detail Button (For Freelance PT and Gym Course Packages) */}
+      {((isFreelancePT && customer) || isGymWithPT || isGymNormal) && (
+        <View style={styles.viewDetailRow}>
+          <TouchableOpacity
+            style={styles.viewDetailButton}
+            onPress={handleViewDetail}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="eye-outline" size={18} color="#fff" />
+            <Text style={styles.viewDetailButtonText}>
+              {t("myPackage.viewDetail") || "View Detail"}
+            </Text>
           </TouchableOpacity>
         </View>
       )}
@@ -580,6 +621,33 @@ const styles = StyleSheet.create({
   feedbackButtonText: {
     fontSize: 14,
     color: "#FF9800",
+    fontWeight: "700",
+    letterSpacing: 0.3,
+  },
+  viewDetailRow: {
+    marginHorizontal: 12,
+    marginBottom: 12,
+  },
+  viewDetailButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    borderRadius: 10,
+    backgroundColor: "#FF9800",
+    gap: 6,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  viewDetailButtonText: {
+    fontSize: 14,
+    color: colors.white,
     fontWeight: "700",
     letterSpacing: 0.3,
   },

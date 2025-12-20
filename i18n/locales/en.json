@@ -49,6 +49,7 @@
   },
 
   "screenTitles": {
+    "packageHistory": "Package History",
     "freelancePTBookingHistory": "Booking History - Freelance PT",
     "noneEquipment": "Exercise",
     "equipment": "Equipment",
@@ -147,6 +148,7 @@
     "reviewCoursesMessage": "Your course reviews will appear here",
     "package": "Course",
     "viewFeedback": "View Feedback",
+    "viewDetail": "View Detail",
     "report": "Report",
     "feedback": {
       "errorLoadingOrder": "Failed to load order information. Please try again.",
@@ -2499,6 +2501,12 @@
     "failedToLoad": "Failed to load transactions",
     "availableSessions": "Available sessions",
     "expires": "Expires"
+  },
+
+  "packageHistory": {
+    "title": "Package History",
+    "transaction": "Transaction",
+    "booking": "Booking"
   },
 
   "customerDetail": {

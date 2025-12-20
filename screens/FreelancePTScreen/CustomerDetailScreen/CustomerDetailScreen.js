@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import { ProgressChart } from 'react-native-chart-kit';
 import customerPurchasedService from '../../../services/customerPurchased';
 import { useTranslation } from '../../../hooks/useTranslation';
 import LoadingIndicator from '../../../components/LoadingIndicator';
+import { formatDate } from '../../../lib/formatting/dateTimeUtils';
 
 // Muscle group images mapping
 const muscleGroupImages = {
@@ -36,13 +37,16 @@ const getMuscleGroupImage = (muscleGroup) => {
 
 export const CustomerDetailScreen = ({ route, navigation }) => {
   const { t } = useTranslation();
-  const { customer } = route.params;
+  const { customer, expandPackageIndex } = route.params || {};
   console.log('Customer Data:', customer);  
   const [expandedPackages, setExpandedPackages] = useState({});
   const [packageStatistics, setPackageStatistics] = useState({});
   const [packageMuscleReports, setPackageMuscleReports] = useState({});
   const [loadingStats, setLoadingStats] = useState({});
   const [refreshing, setRefreshing] = useState(false);
+  const scrollViewRef = useRef(null);
+  const packagePositions = useRef({});
+  const packagesSectionY = useRef(0);
 
   const fetchPackageStatistics = async (pkgId, index) => {
     if (packageStatistics[pkgId]) {
@@ -93,6 +97,38 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
     setPackageMuscleReports({});
     setRefreshing(false);
   };
+
+  // Auto-expand package if expandPackageIndex is provided
+  useEffect(() => {
+    if (expandPackageIndex !== null && expandPackageIndex !== undefined && customer?.packages?.[expandPackageIndex]) {
+      const pkg = customer.packages[expandPackageIndex];
+      setExpandedPackages({ [expandPackageIndex]: true });
+      // Fetch statistics and muscle report for the expanded package
+      fetchPackageStatistics(pkg.id, expandPackageIndex);
+      fetchPackageMuscleReport(pkg.id, expandPackageIndex);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [expandPackageIndex]);
+
+  // Auto-scroll to expanded package
+  useEffect(() => {
+    if (expandPackageIndex !== null && expandPackageIndex !== undefined && expandedPackages[expandPackageIndex]) {
+      // Wait for layout to complete and package position to be measured
+      const scrollTimeout = setTimeout(() => {
+        const packageY = packagePositions.current[expandPackageIndex];
+        if (packageY !== undefined && scrollViewRef.current) {
+          // Calculate scroll position: packages section Y + package Y - offset
+          const scrollY = packagesSectionY.current + packageY - 20; // Offset by 20px for better visibility
+          scrollViewRef.current.scrollTo({
+            y: Math.max(0, scrollY), // Ensure non-negative
+            animated: true,
+          });
+        }
+      }, 600); // Delay to ensure layout and expansion animation is complete
+
+      return () => clearTimeout(scrollTimeout);
+    }
+  }, [expandPackageIndex, expandedPackages]);
 
   const getPackageStatus = (pkg) => {
     const expDate = new Date(pkg.expirationDate);
@@ -151,6 +187,7 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
   const handleViewTransactionHistory = (pkg) => {
     navigation.navigate('CustomerPurchasedTransactionScreen', {
       customerPurchasedId: pkg.id,
+      customer: customer,
     });
   };
 
@@ -166,6 +203,7 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
     <View style={styles.container}>
 
       <ScrollView
+        ref={scrollViewRef}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
@@ -206,10 +244,10 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
               <Text style={styles.contactText}>{customer.phone || t("customerDetail.notAvailable")}</Text>
             </View>
             
-            <View style={styles.contactRow}>
+            {customer.joinDate && <View style={styles.contactRow}>
               <Ionicons name="calendar-outline" size={20} color="#ED2A46" />
-              <Text style={styles.contactText}>{t("customerDetail.joined")}: {customer.joinDate || t("customerDetail.notAvailable")}</Text>
-            </View>
+              <Text style={styles.contactText}>{t("customerDetail.joined")}: {formatDate(customer.joinDate) || t("customerDetail.notAvailable")}</Text>
+            </View>}
           </View>
 
           {/* Quick Stats */}
@@ -249,7 +287,13 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
         </View>
 
         {/* All Packages Section */}
-        <View style={styles.packagesSection}>
+        <View 
+          style={styles.packagesSection}
+          onLayout={(event) => {
+            const { y } = event.nativeEvent.layout;
+            packagesSectionY.current = y;
+          }}
+        >
           <Text style={styles.packagesSectionTitle}>
             {t("customerDetail.allPackages")} ({customer.packages.length})
           </Text>
@@ -268,7 +312,14 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
               const isLoadingStats = loadingStats[index];
               
               return (
-                <View key={index} style={styles.packageCard}>
+                <View 
+                  key={index} 
+                  style={styles.packageCard}
+                  onLayout={(event) => {
+                    const { y } = event.nativeEvent.layout;
+                    packagePositions.current[index] = y;
+                  }}
+                >
                   {/* Package Header - Always Visible */}
                   <TouchableOpacity 
                     style={styles.packageHeader}

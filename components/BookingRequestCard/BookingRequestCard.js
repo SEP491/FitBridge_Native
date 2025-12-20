@@ -195,6 +195,7 @@ const BookingRequestCard = ({
         </View>
 
         {/* Request Type */}
+        {request.requestType !== null && (
         <View style={styles.infoRow}>
           <Ionicons name="bookmark-outline" size={18} color="#666" />
           <Text style={styles.infoLabel}>{t("bookingRequest.type")}:</Text>
@@ -202,6 +203,7 @@ const BookingRequestCard = ({
             {getRequestTypeLabel(request.requestType)}
           </Text>
         </View>
+        )}
 
         {/* Note */}
         {request.note && (

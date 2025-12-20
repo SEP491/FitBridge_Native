@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  Modal,
   Dimensions,
   Alert,
   ActivityIndicator,
@@ -14,8 +13,9 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import UserDetailService from "../../../services/user-detailService";
 import { useTranslation } from "../../../hooks/useTranslation";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
-const { height: SCREEN_HEIGHT } = Dimensions.get("window");
+const SCREEN_HEIGHT = Dimensions.get("window").height;
 
 const UpdateUserDetailModal = ({ visible, onClose, onSuccess }) => {
   const { t } = useTranslation();
@@ -152,12 +152,12 @@ const UpdateUserDetailModal = ({ visible, onClose, onSuccess }) => {
     const [isFocused, setIsFocused] = useState(false);
 
     return (
-      <View style={styles.inputGroup}>
+      <View style={styles.inputFieldContainer}>
         <Text style={styles.inputLabel}>{label}</Text>
         <View
           style={[
-            styles.inputContainer,
-            isFocused && styles.inputContainerFocused,
+            styles.inputWithUnit,
+            isFocused && styles.inputWithUnitFocused,
           ]}
         >
           <TextInput
@@ -170,6 +170,11 @@ const UpdateUserDetailModal = ({ visible, onClose, onSuccess }) => {
             keyboardType="decimal-pad"
             placeholderTextColor="#ccc"
             maxLength={8}
+            editable={true}
+            autoCorrect={false}
+            autoCapitalize="none"
+            returnKeyType="done"
+            selectTextOnFocus={true}
           />
           {unit && <Text style={styles.unitText}>{unit}</Text>}
         </View>
@@ -177,38 +182,34 @@ const UpdateUserDetailModal = ({ visible, onClose, onSuccess }) => {
     );
   };
 
-  return (
-    <Modal
-      visible={visible}
-      transparent={true}
-      animationType="slide"
-      onRequestClose={onClose}
-    >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContainer}>
-          {/* Header */}
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>
-              {t("userDetail.updateDetails", "Update User Details")}
-            </Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <Ionicons name="close" size={24} color="#333" />
-            </TouchableOpacity>
-          </View>
+  if (!visible) return null;
 
-          {fetching ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#ED2A46" />
-              <Text style={styles.loadingText}>
-                {t("userDetail.loading", "Loading...")}
-              </Text>
-            </View>
-          ) : (
-            <ScrollView
-              style={styles.scrollView}
-              contentContainerStyle={styles.scrollContent}
-              showsVerticalScrollIndicator={true}
-            >
+  return (
+    <>
+      <View style={styles.coverLayer}></View>
+      <View style={styles.container}>
+        <View style={styles.headerBar}>
+          <TouchableOpacity onPress={onClose}>
+            <Ionicons name="close" size={24} color="#333" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>
+            {t("userDetail.updateDetails", "Update User Details")}
+          </Text>
+          <View style={{ width: 24 }} />
+        </View>
+
+        {fetching ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#ED2A46" />
+            <Text style={styles.loadingText}>
+              {t("userDetail.loading", "Loading...")}
+            </Text>
+          </View>
+        ) : (
+          <ScrollView
+            style={styles.content}
+            showsVerticalScrollIndicator={false}
+          >
               {/* Body Measurements */}
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>
@@ -319,11 +320,11 @@ const UpdateUserDetailModal = ({ visible, onClose, onSuccess }) => {
                   {t("userDetail.additionalInfo", "Additional Information")}
                 </Text>
 
-                <View style={styles.inputGroup}>
+                <View style={styles.inputFieldContainer}>
                   <Text style={styles.inputLabel}>
                     {t("userDetail.experience", "Experience")} ({t("userDetail.years", "years")})
                   </Text>
-                  <View style={styles.inputContainer}>
+                  <View style={styles.inputWithUnit}>
                     <TextInput
                       style={styles.textInput}
                       placeholder={t("userDetail.enterExperience", "Enter years of experience")}
@@ -337,7 +338,7 @@ const UpdateUserDetailModal = ({ visible, onClose, onSuccess }) => {
                   </View>
                 </View>
 
-                <View style={styles.inputGroup}>
+                <View style={styles.inputFieldContainer}>
                   <Text style={styles.inputLabel}>
                     {t("profile.bio", "Bio")}
                   </Text>
@@ -356,67 +357,85 @@ const UpdateUserDetailModal = ({ visible, onClose, onSuccess }) => {
                 </View>
               </View>
 
-              {/* Action Buttons */}
-              <View style={styles.buttonContainer}>
-                <TouchableOpacity
-                  style={[styles.button, styles.cancelButton]}
-                  onPress={onClose}
-                  disabled={loading}
-                >
-                  <Text style={styles.cancelButtonText}>
-                    {t("common.cancel", "Cancel")}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.button, styles.submitButton]}
-                  onPress={handleSubmit}
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <ActivityIndicator size="small" color="#fff" />
-                  ) : (
-                    <Text style={styles.submitButtonText}>
-                      {t("common.save", "Save")}
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              </View>
-            </ScrollView>
-          )}
+            <View style={{ height: 20 }} />
+          </ScrollView>
+        )}
+
+        {/* Footer Buttons */}
+        <View style={styles.footer}>
+          <TouchableOpacity
+            style={styles.cancelButton}
+            onPress={onClose}
+            disabled={loading}
+          >
+            <Text style={styles.cancelButtonText}>
+              {t("common.cancel", "Cancel")}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.submitButton,
+              loading && styles.submitButtonDisabled,
+            ]}
+            onPress={handleSubmit}
+            disabled={loading}
+          >
+            {loading ? (
+              <LoadingIndicator variant="button" />
+            ) : (
+              <>
+                <Ionicons name="checkmark" size={20} color="#fff" />
+                <Text style={styles.submitButtonText}>
+                  {t("common.save", "Save")}
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
         </View>
       </View>
-    </Modal>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
+  coverLayer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "flex-end",
+    zIndex: 999,
   },
-  modalContainer: {
+  container: {
+    position: "absolute",
+    top: 100,
+    left: 0,
+    right: 0,
+    bottom: 0,
     backgroundColor: "#fff",
+    zIndex: 1000,
+    maxHeight: 700,
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
-    minHeight:SCREEN_HEIGHT -100,
-    paddingBottom: 20,
+    marginHorizontal: 10,
+    paddingHorizontal: 10,
   },
-  modalHeader: {
+  headerBar: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#F0F0F0",
+    borderBottomColor: "#f0f0f0",
+    marginTop: 12,
   },
-  modalTitle: {
-    fontSize: 20,
+  headerTitle: {
+    fontSize: 18,
     fontWeight: "bold",
     color: "#333",
-  },
-  closeButton: {
-    padding: 4,
   },
   loadingContainer: {
     padding: 40,
@@ -428,20 +447,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#666",
   },
-  scrollView: {
+  content: {
     flex: 1,
-  },
-  scrollContent: {
-    padding: 20,
+    padding: 16,
+    maxHeight: SCREEN_HEIGHT - 450,
   },
   section: {
     marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
+    fontSize: 16,
+    fontWeight: "bold",
     color: "#333",
-    marginBottom: 16,
+    marginBottom: 8,
   },
   inputRow: {
     flexDirection: "row",
@@ -451,84 +469,97 @@ const styles = StyleSheet.create({
   inputHalf: {
     flex: 1,
   },
-  inputGroup: {
-    marginBottom: 16,
+  inputFieldContainer: {
+    flex: 1,
   },
   inputLabel: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "600",
     color: "#333",
     marginBottom: 8,
   },
-  inputContainer: {
+  inputWithUnit: {
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#E5E5E5",
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    backgroundColor: "#F8F9FA",
-    height: 50,
+    borderColor: "#E5E7EB",
+    borderRadius: 8,
+    backgroundColor: "#f9f9f9",
+    overflow: "hidden",
   },
-  inputContainerFocused: {
+  inputWithUnitFocused: {
     borderColor: "#ED2A46",
     backgroundColor: "#fff",
+    borderWidth: 2,
   },
   textInput: {
     flex: 1,
-    fontSize: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
     color: "#333",
-    paddingVertical: 0,
+    fontWeight: "500",
   },
   unitText: {
-    fontSize: 14,
-    color: "#666",
-    marginLeft: 8,
+    paddingHorizontal: 10,
+    fontSize: 12,
+    color: "#999",
+    fontWeight: "600",
   },
   textAreaContainer: {
     borderWidth: 1,
-    borderColor: "#E5E5E5",
-    borderRadius: 12,
+    borderColor: "#E5E7EB",
+    borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: "#F8F9FA",
+    backgroundColor: "#f9f9f9",
     minHeight: 100,
   },
   textArea: {
-    fontSize: 16,
+    fontSize: 14,
     color: "#333",
     textAlignVertical: "top",
+    fontWeight: "500",
   },
-  buttonContainer: {
+  footer: {
     flexDirection: "row",
     gap: 12,
-    marginTop: 8,
-    marginBottom: 20,
-  },
-  button: {
-    flex: 1,
-    height: 50,
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: "#f0f0f0",
+    backgroundColor: "#fff",
   },
   cancelButton: {
-    backgroundColor: "#F8F9FA",
-    borderWidth: 1,
-    borderColor: "#E5E5E5",
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: "#ED2A46",
+    alignItems: "center",
+    justifyContent: "center",
   },
   cancelButtonText: {
-    fontSize: 16,
+    color: "#ED2A46",
     fontWeight: "600",
-    color: "#666",
+    fontSize: 14,
   },
   submitButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
     backgroundColor: "#ED2A46",
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 6,
+  },
+  submitButtonDisabled: {
+    backgroundColor: "#ccc",
   },
   submitButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
     color: "#fff",
+    fontWeight: "600",
+    fontSize: 14,
   },
 });
 
