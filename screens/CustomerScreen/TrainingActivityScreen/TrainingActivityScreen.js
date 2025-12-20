@@ -60,7 +60,6 @@ export default function TrainingActivityScreen({ route, navigation }) {
   const [isWorkoutActive, setIsWorkoutActive] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [manualInputMode, setManualInputMode] = useState(false); // allow PT to type values
-
   // For Reps tracking
   const [currentReps, setCurrentReps] = useState(0);
 

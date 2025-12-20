@@ -72,6 +72,7 @@ export default function BookingDetailContent({
   onAddExercise,
   onRefresh,
   refreshing = false,
+  timeBeforeStart = 30,
 }) {
   // Get unique activity types from sessionActivities
 
@@ -255,6 +256,29 @@ export default function BookingDetailContent({
       return bookingDate.getTime() === today.getTime();
     } catch (error) {
       console.error("Error comparing booking date:", error);
+      return false;
+    }
+  };
+
+  // Check if current time is within the allowed window (timeBeforeStart minutes before planned time)
+  const canStartSession = () => {
+    if (!bookingDetail?.sessionStartTime) return false;
+
+    try {
+      const plannedStartTime = new Date(bookingDetail.sessionStartTime);
+      const now = new Date();
+
+      // Calculate the earliest allowed start time (timeBeforeStart minutes before planned time)
+      const earliestStartTime = new Date(plannedStartTime);
+      earliestStartTime.setMinutes(
+        earliestStartTime.getMinutes() - timeBeforeStart
+      );
+
+      // Can start if current time is >= earliest allowed time and < planned start time
+      // (or if planned time has passed, allow starting)
+      return now >= earliestStartTime;
+    } catch (error) {
+      console.error("Error checking if can start session:", error);
       return false;
     }
   };
@@ -771,22 +795,24 @@ export default function BookingDetailContent({
         </View>
         {userRole === "Customer" && (
           <View style={styles.controlsContainer}>
-            {sessionState === "not-started" && isBookingDateToday() && (
-              <TouchableOpacity
-                style={styles.actionButton}
-                onPress={handleStartSession}
-              >
-                <Ionicons
-                  name="play-circle"
-                  size={24}
-                  color="#FFFFFF"
-                  style={styles.buttonIcon}
-                />
-                <Text style={styles.actionButtonText}>
-                  {t("bookingDetail.startSession", "Start Session")}
-                </Text>
-              </TouchableOpacity>
-            )}
+            {sessionState === "not-started" &&
+              isBookingDateToday() &&
+              canStartSession() && (
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={handleStartSession}
+                >
+                  <Ionicons
+                    name="play-circle"
+                    size={24}
+                    color="#FFFFFF"
+                    style={styles.buttonIcon}
+                  />
+                  <Text style={styles.actionButtonText}>
+                    {t("bookingDetail.startSession", "Start Session")}
+                  </Text>
+                </TouchableOpacity>
+              )}
 
             {sessionState === "in-progress" && (
               <TouchableOpacity

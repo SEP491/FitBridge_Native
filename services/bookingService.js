@@ -4,6 +4,8 @@ const bookingService = {
   getBookingDetail: (bookingId) =>
     request("GET", `v1/session-activities/practice-content/${bookingId}`),
 
+  getTimeBeforeStart: (key) =>
+    request("GET", `v1/system-configurations/${key}`),
   // Get asset metadata used when creating session activities
   // Accepts optional query params: assetType, muscleGroup, doApplyPaging, page, size, etc.
   getActivityMetadata: (params) =>

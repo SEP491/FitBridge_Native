@@ -98,6 +98,20 @@ export default function BookingDetailScreen({ route, navigation }) {
   const [loadingAssets, setLoadingAssets] = useState(false);
   const [showAssetDropdown, setShowAssetDropdown] = useState(false);
 
+  const [timeBeforeStart, setTimeBeforeStart] = useState(0);
+
+  const loadTimeBeforeStart = async () => {
+    const response = await bookingService.getTimeBeforeStart(
+      "EarlyStartSessionBeforeMinutes"
+    );
+    console.log("Time Before Start Response:", response.data);
+    setTimeBeforeStart(response.data);
+  };
+
+  useEffect(() => {
+    loadTimeBeforeStart();
+  }, []);
+
   const [activitySets, setActivitySets] = useState([
     {
       plannedNumOfReps: "",
@@ -404,6 +418,7 @@ export default function BookingDetailScreen({ route, navigation }) {
           onAddExercise={() => setShowAddModal(true)}
           onRefresh={handleRefresh}
           refreshing={refreshing}
+          timeBeforeStart={timeBeforeStart}
         />
       );
     } else {
