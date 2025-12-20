@@ -14,6 +14,7 @@ import { useTranslation } from "../../hooks/useTranslation";
 import { t } from "../../i18n";
 import { fetchUserFromStorage } from "../../lib";
 import LoadingIndicator from "../../components/LoadingIndicator";
+import { TransactionItemSkeletonList } from "../../components/TransactionItem/TransactionItemSkeleton";
 
 const formatDateTime = (iso) => {
   if (!iso) return "-";
@@ -213,10 +214,12 @@ const CustomerPurchasedTransactionScreen = ({ route, navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       {loading ? (
-        <LoadingIndicator
-          variant="page"
-          message={t("customerPurchasedTransaction.loadingTransactions")}
-        />
+        <View style={styles.skeletonContainer}>
+          <TransactionItemSkeletonList
+            count={4}
+            showProfitBadge={userRole === "FreelancePT"}
+          />
+        </View>
       ) : error ? (
         <View style={styles.centerContent}>
           <Ionicons name="alert-circle-outline" size={32} color="#F57C00" />
@@ -276,6 +279,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "700",
     color: "#111",
+  },
+  skeletonContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
   },
   centerContent: {
     flex: 1,
