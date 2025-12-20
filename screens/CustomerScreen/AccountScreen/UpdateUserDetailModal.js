@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   Dimensions,
   Alert,
   ActivityIndicator,
+  Animated,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import UserDetailService from "../../../services/user-detailService";
@@ -16,6 +17,75 @@ import { useTranslation } from "../../../hooks/useTranslation";
 import LoadingIndicator from "../../../components/LoadingIndicator";
 
 const SCREEN_HEIGHT = Dimensions.get("window").height;
+
+const FormSkeleton = () => {
+  const shimmerAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const shimmer = Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmerAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shimmerAnim, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    shimmer.start();
+
+    return () => shimmer.stop();
+  }, [shimmerAnim]);
+
+  const opacity = shimmerAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.3, 0.7],
+  });
+
+  const InputFieldSkeleton = () => (
+    <View style={styles.inputFieldContainer}>
+      <Animated.View style={[styles.skeletonLabel, { opacity }]} />
+      <Animated.View style={[styles.skeletonInput, { opacity }]} />
+    </View>
+  );
+
+  return (
+    <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      {/* Body Measurements Section */}
+      <View style={styles.section}>
+        <Animated.View style={[styles.skeletonSectionTitle, { opacity }]} />
+
+        {/* Input Rows */}
+        {[1, 2, 3, 4, 5].map((row) => (
+          <View key={row} style={styles.inputRow}>
+            <View style={styles.inputHalf}>
+              <InputFieldSkeleton />
+            </View>
+            <View style={styles.inputHalf}>
+              <InputFieldSkeleton />
+            </View>
+          </View>
+        ))}
+      </View>
+
+      {/* Additional Info Section */}
+      <View style={styles.section}>
+        <Animated.View style={[styles.skeletonSectionTitle, { opacity }]} />
+        <InputFieldSkeleton />
+        <View style={styles.inputFieldContainer}>
+          <Animated.View style={[styles.skeletonLabel, { opacity }]} />
+          <Animated.View style={[styles.skeletonTextArea, { opacity }]} />
+        </View>
+      </View>
+
+      <View style={{ height: 20 }} />
+    </ScrollView>
+  );
+};
 
 const UpdateUserDetailModal = ({ visible, onClose, onSuccess }) => {
   const { t } = useTranslation();
@@ -165,16 +235,10 @@ const UpdateUserDetailModal = ({ visible, onClose, onSuccess }) => {
             placeholder={placeholder || "0"}
             value={value}
             onChangeText={onChange}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
             keyboardType="decimal-pad"
             placeholderTextColor="#ccc"
-            maxLength={8}
+            maxLength={2}
             editable={true}
-            autoCorrect={false}
-            autoCapitalize="none"
-            returnKeyType="done"
-            selectTextOnFocus={true}
           />
           {unit && <Text style={styles.unitText}>{unit}</Text>}
         </View>
@@ -199,12 +263,7 @@ const UpdateUserDetailModal = ({ visible, onClose, onSuccess }) => {
         </View>
 
         {fetching ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#ED2A46" />
-            <Text style={styles.loadingText}>
-              {t("userDetail.loading", "Loading...")}
-            </Text>
-          </View>
+          <FormSkeleton />
         ) : (
           <ScrollView
             style={styles.content}
@@ -482,9 +541,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#E5E7EB",
-    borderRadius: 8,
-    backgroundColor: "#f9f9f9",
+    borderColor: "#e0e0e0",
+    borderRadius: 12,
+    backgroundColor: "#fff",
     overflow: "hidden",
   },
   inputWithUnitFocused: {
@@ -494,11 +553,10 @@ const styles = StyleSheet.create({
   },
   textInput: {
     flex: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
     color: "#333",
-    fontWeight: "500",
   },
   unitText: {
     paddingHorizontal: 10,
@@ -508,18 +566,17 @@ const styles = StyleSheet.create({
   },
   textAreaContainer: {
     borderWidth: 1,
-    borderColor: "#E5E7EB",
-    borderRadius: 8,
+    borderColor: "#e0e0e0",
+    borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: "#f9f9f9",
+    backgroundColor: "#fff",
     minHeight: 100,
   },
   textArea: {
-    fontSize: 14,
+    fontSize: 16,
     color: "#333",
     textAlignVertical: "top",
-    fontWeight: "500",
   },
   footer: {
     flexDirection: "row",
@@ -560,6 +617,32 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "600",
     fontSize: 14,
+  },
+  skeletonSectionTitle: {
+    width: "60%",
+    height: 16,
+    borderRadius: 4,
+    backgroundColor: "#E5E7EB",
+    marginBottom: 16,
+  },
+  skeletonLabel: {
+    width: "40%",
+    height: 13,
+    borderRadius: 4,
+    backgroundColor: "#E5E7EB",
+    marginBottom: 8,
+  },
+  skeletonInput: {
+    width: "100%",
+    height: 50,
+    borderRadius: 12,
+    backgroundColor: "#E5E7EB",
+  },
+  skeletonTextArea: {
+    width: "100%",
+    height: 100,
+    borderRadius: 12,
+    backgroundColor: "#E5E7EB",
   },
 });
 
