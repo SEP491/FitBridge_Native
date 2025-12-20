@@ -51,7 +51,7 @@ const TopPackageCard = ({ packageData, formatCurrency, renderRevenueComparison }
           <View style={styles.revenueDisplayContainer}>
             <Text style={styles.revenueLabel}>Doanh thu</Text>
             <Text style={styles.packageRevenue}>
-              {formatCurrency(packageData.totalIncome || 0)}
+              {formatCurrency(packageData.totalProfit || packageData.totalIncome || 0)}
             </Text>
           </View>
 
@@ -160,7 +160,7 @@ const SecondaryPackageCard = ({ packageData, rank, hasMargin, formatCurrency, re
           <View style={styles.secondaryRevenueSection}>
             <View style={styles.secondaryRevenueContainer}>
               <Text style={styles.secondaryPackageRevenue}>
-                {formatCurrency(packageData.totalIncome || 0)}
+                {formatCurrency(packageData.totalProfit || packageData.totalIncome || 0)}
               </Text>
               {renderComparisonBadge(packageData.compareToLastMonth)}
             </View>
@@ -185,11 +185,26 @@ const SecondaryPackageCard = ({ packageData, rank, hasMargin, formatCurrency, re
   );
 };
 
-const BestsellerPackages = ({ formatCurrency, renderRevenueComparison, renderComparisonBadge }) => {
-  const bestSellerPackages = mockedDataDashboard[0]?.bestSellerPackage || [];
-  const sortedPackages = [...bestSellerPackages].sort(
-    (a, b) => b.totalIncome - a.totalIncome
+const BestsellerPackages = ({ formatCurrency, renderRevenueComparison, renderComparisonBadge, mostPopularPackages = [] }) => {
+  // Transform API data to match component structure
+  const transformedPackages = mostPopularPackages.map((pkg, index) => ({
+    packageName: pkg.packageName,
+    totalPurchase: pkg.totalPackagesSold,
+    totalIncome: pkg.totalProfit, // Using totalProfit as income
+    imageURL: pkg.packageImageUrl,
+    packageId: pkg.packageId,
+    packagePrice: pkg.packagePrice,
+    totalRevenue: pkg.totalRevenue,
+    totalProfit: pkg.totalProfit,
+  }));
+
+  const sortedPackages = [...transformedPackages].sort(
+    (a, b) => (b.totalProfit || 0) - (a.totalProfit || 0)
   );
+
+  if (sortedPackages.length === 0) {
+    return null;
+  }
 
   return (
     <View style={styles.bestsellerSection}>
@@ -197,16 +212,16 @@ const BestsellerPackages = ({ formatCurrency, renderRevenueComparison, renderCom
         Top gói tập nhiều doanh thu nhất
       </Text>
 
-      {sortedPackages.length > 0 && (
-        <View style={styles.bestsellerContainer}>
-          {/* Top Package Card */}
-          <TopPackageCard 
-            packageData={sortedPackages[0]} 
-            formatCurrency={formatCurrency}
-            renderRevenueComparison={renderRevenueComparison}
-          />
+      <View style={styles.bestsellerContainer}>
+        {/* Top Package Card */}
+        <TopPackageCard 
+          packageData={sortedPackages[0]} 
+          formatCurrency={formatCurrency}
+          renderRevenueComparison={renderRevenueComparison}
+        />
 
-          {/* Secondary Packages Container */}
+        {/* Secondary Packages Container */}
+        {sortedPackages.length > 1 && (
           <View style={styles.secondaryPackagesContainer}>
             <SecondaryPackageCard
               packageData={sortedPackages[1]}
@@ -215,16 +230,18 @@ const BestsellerPackages = ({ formatCurrency, renderRevenueComparison, renderCom
               formatCurrency={formatCurrency}
               renderComparisonBadge={renderComparisonBadge}
             />
-            <SecondaryPackageCard
-              packageData={sortedPackages[2]}
-              rank={3}
-              hasMargin={false}
-              formatCurrency={formatCurrency}
-              renderComparisonBadge={renderComparisonBadge}
-            />
+            {sortedPackages[2] && (
+              <SecondaryPackageCard
+                packageData={sortedPackages[2]}
+                rank={3}
+                hasMargin={false}
+                formatCurrency={formatCurrency}
+                renderComparisonBadge={renderComparisonBadge}
+              />
+            )}
           </View>
-        </View>
-      )}
+        )}
+      </View>
     </View>
   );
 };

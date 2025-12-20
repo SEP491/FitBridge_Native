@@ -687,16 +687,20 @@ export default function FullScreenSearch({
               ) : (
                 <View style={styles.resultsContainer}>
                   {/* Search Results Section */}
-                  {getCurrentSearchResults()?.length > 0 && (
                     <View style={styles.sectionWrapper}>
                       <View style={styles.sectionHeaderBar}>
                         <View style={styles.sectionHeaderContent}>
                           <Ionicons name="search" size={20} color="#ED2A46" />
                           <Text style={styles.sectionHeaderTitle}>
-                            {t(
+                          {
+                            getCurrentSearchTotal() > 0 ? t(
                               "searchGymScreen.searchResults",
                               "Search Results"
-                            )}
+                            ) : t(
+                              "searchGymScreen.noResultsTitle",
+                              "No Results"
+                            )
+                          }
                           </Text>
                           <View style={styles.countBadge}>
                             <Text style={styles.countBadgeText}>
@@ -734,7 +738,6 @@ export default function FullScreenSearch({
                         )}
                       </View>
                     </View>
-                  )}
 
                   {/* Recommended Section */}
                   {getCurrentRecommendedResults()?.length > 0 && (

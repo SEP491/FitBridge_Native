@@ -79,7 +79,7 @@ const getStatusText = (status) => {
   }
 };
 
-const TransactionItem = ({ item, t }) => {
+const TransactionItem = ({ item, t, userRole }) => {
   const statusColor = getStatusColor(item.status);
   const statusText = getStatusText(item.status);
   const [userRole, setUserRole] = useState(null);
@@ -129,8 +129,15 @@ const TransactionItem = ({ item, t }) => {
       </View>
 
       {/* Amount badges row */}
-      <View style={styles.amountBadgesRow}>
-        <View style={[styles.amountBadge, styles.totalBadge]}>
+      <View style={[
+        styles.amountBadgesRow,
+        userRole !== "FreelancePT" && styles.amountBadgesRowFullWidth
+      ]}>
+        <View style={[
+          styles.amountBadge, 
+          styles.totalBadge,
+          userRole !== "FreelancePT" && styles.fullWidthBadge
+        ]}>
           <Text style={styles.amountBadgeLabel}>
             {t("customerPurchasedTransaction.total")}
           </Text>
@@ -159,6 +166,15 @@ const CustomerPurchasedTransactionScreen = ({ route, navigation }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [data, setData] = useState(null);
+  const [userRole, setUserRole] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const user = await fetchUserFromStorage();
+      setUserRole(user?.role);
+    };
+    fetchUser();
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -226,7 +242,7 @@ const CustomerPurchasedTransactionScreen = ({ route, navigation }) => {
           <FlatList
             data={data.transactions || []}
             keyExtractor={(item) => item.transactionId}
-            renderItem={({ item }) => <TransactionItem item={item} t={t} />}
+            renderItem={({ item }) => <TransactionItem item={item} t={t} userRole={userRole} />}
             contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
             ListEmptyComponent={
               <View style={styles.centerContent}>
@@ -450,6 +466,9 @@ const styles = StyleSheet.create({
     marginTop: 12,
     gap: 8,
   },
+  amountBadgesRowFullWidth: {
+    justifyContent: "flex-start",
+  },
   amountBadge: {
     flex: 1,
     paddingVertical: 10,
@@ -479,6 +498,10 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "700",
     color: "#111",
+  },
+  fullWidthBadge: {
+    flex: 1,
+    width: "100%",
   },
 });
 
