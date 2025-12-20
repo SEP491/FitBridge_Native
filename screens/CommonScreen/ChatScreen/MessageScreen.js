@@ -44,8 +44,10 @@ export default function MessageScreen({ navigation }) {
       try {
         const userData = await fetchUserFromStorage();
         console.log("Fetched user data:", userData);
-        setCurrentUserId(userData.id);
-        setCurrentUserRole(userData.role);
+        if (userData) {
+          setCurrentUserId(userData.id);
+          setCurrentUserRole(userData.role);
+        }
       } catch (error) {
         console.error("Error fetching current user", error);
       }

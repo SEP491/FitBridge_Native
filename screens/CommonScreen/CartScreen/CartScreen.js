@@ -17,6 +17,7 @@ import { useCart } from "../../../context/CartContext"; // Import the cart conte
 import { SafeAreaView } from "react-native-safe-area-context";
 import { showConfirmAlert, showAlert, formatPrice } from "../../../lib";
 import { useTranslation } from "../../../hooks/useTranslation";
+import { fetchUserFromStorage } from "../../../lib/async/asyncUtils";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -27,11 +28,23 @@ export default function CartScreen() {
     useCart(); // Use the cart context
   const { t } = useTranslation();
 
+  // State for current user (guest check)
+  const [currentUser, setCurrentUser] = useState(null);
+
   // Set initial tab based on route params, default to gym
   const [activeTab, setActiveTab] = useState(route.params?.initialTab || "gym"); // gym, freelance, product
 
   // State for selected items (checkbox selection)
   const [selectedItems, setSelectedItems] = useState(new Set());
+
+  // Load user on mount
+  useEffect(() => {
+    const loadUser = async () => {
+      const user = await fetchUserFromStorage();
+      setCurrentUser(user);
+    };
+    loadUser();
+  }, []);
 
   // Reset selected items when switching tabs
   useEffect(() => {
@@ -199,6 +212,22 @@ export default function CartScreen() {
 
   // Function to handle checkout
   const handleCheckout = () => {
+    // Check if user is logged in
+    if (!currentUser) {
+      Alert.alert(
+        t("auth.loginRequired"),
+        t("auth.pleaseLoginToCheckout"),
+        [
+          { text: t("common.cancel"), style: "cancel" },
+          { 
+            text: t("navigation.login"), 
+            onPress: () => navigation.navigate("GuestProfileStack", { screen: "Login" })
+          },
+        ]
+      );
+      return;
+    }
+
     if (selectedItems.size === 0) {
       showAlert(
         t("cart.noItemsSelected") || "No items selected",

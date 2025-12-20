@@ -24,6 +24,7 @@ import orderService from "../../../services/orderService";
 import reviewService from "../../../services/reviewService";
 import ReviewCard from "../../../components/ReviewCard/ReviewCard";
 import LoadingIndicator from "../../../components/LoadingIndicator";
+import { fetchUserFromStorage } from "../../../lib/async/asyncUtils";
 
 export default function ProductDetailsScreen() {
   const navigation = useNavigation();
@@ -54,14 +55,25 @@ export default function ProductDetailsScreen() {
   const [reviewsTotalPages, setReviewsTotalPages] = useState(1);
   const [reviewsLoading, setReviewsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
 
   console.log(selectedVariant);
   useEffect(() => {
+    const loadUser = async () => {
+      const user = await fetchUserFromStorage();
+      setCurrentUser(user);
+    };
+    loadUser();
     fetchProductDetails();
     fetchProductReviews();
   }, [product.id]);
   console.log("Product Details:", productDetails);
   const fetchAddresses = async () => {
+    // Skip fetching addresses for guests
+    if (!currentUser) {
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       const response = await addressService.getAllAddresses();
@@ -100,8 +112,10 @@ export default function ProductDetailsScreen() {
   };
 
   useEffect(() => {
-    fetchAddresses();
-  }, []);
+    if (currentUser) {
+      fetchAddresses();
+    }
+  }, [currentUser]);
 
   useEffect(() => {
     if (selectedAddress) {
@@ -358,12 +372,42 @@ export default function ProductDetailsScreen() {
   };
 
   const handleAddToCart = () => {
+    // Check if user is logged in
+    if (!currentUser) {
+      Alert.alert(
+        t("auth.loginRequired"),
+        t("auth.pleaseLoginToAddToCart"),
+        [
+          { text: t("common.cancel"), style: "cancel" },
+          { 
+            text: t("navigation.login"), 
+            onPress: () => navigation.navigate("GuestProfileStack", { screen: "Login" })
+          },
+        ]
+      );
+      return;
+    }
     setPendingAction("addToCart");
     setModalQuantity(1);
     setVariantModalVisible(true);
   };
 
   const handleBuyNow = () => {
+    // Check if user is logged in
+    if (!currentUser) {
+      Alert.alert(
+        t("auth.loginRequired"),
+        t("auth.pleaseLoginToBuy"),
+        [
+          { text: t("common.cancel"), style: "cancel" },
+          { 
+            text: t("navigation.login"), 
+            onPress: () => navigation.navigate("GuestProfileStack", { screen: "Login" })
+          },
+        ]
+      );
+      return;
+    }
     setPendingAction("buyNow");
     setModalQuantity(1);
     setVariantModalVisible(true);

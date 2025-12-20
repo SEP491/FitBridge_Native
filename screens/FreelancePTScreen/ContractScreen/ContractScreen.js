@@ -27,6 +27,11 @@ const ContractScreen = () => {
     try {
       setLoading(true);
       const user = await fetchUserFromStorage();
+      if (!user?.id) {
+        console.log("No user found, skipping contract fetch");
+        setLoading(false);
+        return;
+      }
       const response = await contractService.getContractForCustomer(user.id);
       if (response?.data?.items) {
         setContracts(response.data.items);

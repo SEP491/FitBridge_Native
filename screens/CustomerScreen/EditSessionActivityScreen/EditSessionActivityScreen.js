@@ -111,6 +111,11 @@ export default function EditSessionActivityScreen({ route, navigation }) {
   const fetchUser = async () => {
     try {
       const user = await fetchUserFromStorage();
+      if (!user) {
+        console.log("No user found");
+        navigation.goBack();
+        return;
+      }
       setUserRole(user.role);
       // Only allow FreelancePT to edit
       if (user.role !== "FreelancePT") {

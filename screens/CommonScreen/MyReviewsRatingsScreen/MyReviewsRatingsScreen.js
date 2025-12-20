@@ -41,7 +41,9 @@ export default function MyReviewsRatingsScreen() {
     const fetchCurrentUser = async () => {
       try {
         const userData = await fetchUserFromStorage();
-        setCurrentUserId(userData.id);
+        if (userData?.id) {
+          setCurrentUserId(userData.id);
+        }
       } catch (error) {
         console.error("Error fetching current user", error);
       }

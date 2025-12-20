@@ -19,6 +19,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import accountService from "../../../services/accountService";
 import LogoColor from "../../../assets/images/LogoColor.png";
 import PTProfileScreenSkeleton from "./PTProfileScreenSkeleton";
+import { fetchUserFromStorage } from "../../../lib/async/asyncUtils";
 // Body part images mapping
 const bodyPartImages = {
   shoulder: require("../../../assets/images/bodyparts/shoulder.png"),
@@ -42,14 +43,48 @@ const PTProfileScreen = ({ route, navigation }) => {
   const [certificateModalVisible, setCertificateModalVisible] = useState(false);
   const [selectedCertificateUrl, setSelectedCertificateUrl] = useState(null);
   const [expandedCertificates, setExpandedCertificates] = useState(new Set());
+  const [currentUser, setCurrentUser] = useState(null);
+  const [userLoading, setUserLoading] = useState(true);
 
   console.log("PT Data:", pt);
 
+  // Auth guard - check if user is logged in
   useEffect(() => {
-    if (ptId) {
+    const checkAuth = async () => {
+      setUserLoading(true);
+      const userData = await fetchUserFromStorage();
+      if (!userData) {
+        Alert.alert(
+          t("auth.loginRequired"),
+          t("auth.pleaseLoginToContinue"),
+          [
+            { 
+              text: t("common.cancel"), 
+              style: "cancel",
+              onPress: () => navigation.goBack()
+            },
+            { 
+              text: t("navigation.login"), 
+              onPress: () => {
+                navigation.goBack();
+                navigation.navigate("GuestProfileStack", { screen: "Login" });
+              }
+            },
+          ]
+        );
+      } else {
+        setCurrentUser(userData);
+      }
+      setUserLoading(false);
+    };
+    checkAuth();
+  }, []);
+
+  useEffect(() => {
+    if (ptId && currentUser && !userLoading) {
       fetchPTDetail();
     }
-  }, [ptId]);
+  }, [ptId, currentUser, userLoading]);
 
   const fetchPTDetail = async () => {
     try {
@@ -200,6 +235,31 @@ const PTProfileScreen = ({ route, navigation }) => {
       ptMaxCourse: pt?.freelancePt?.ptMaxCourse || 0,
     });
   };
+
+  // Show loading while checking auth
+  if (userLoading) {
+    return (
+      <SafeAreaView style={styles.loadingContainer}>
+        <PTProfileScreenSkeleton />
+      </SafeAreaView>
+    );
+  }
+
+  // If user is not logged in (guest), show error state
+  if (!currentUser) {
+    return (
+      <SafeAreaView style={styles.errorContainer}>
+        <Ionicons name="lock-closed-outline" size={64} color="#ED2A46" />
+        <Text style={styles.errorText}>{t("auth.loginRequired")}</Text>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.backButtonText}>{t("common.goBack")}</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
 
   if (loading) {
     return (

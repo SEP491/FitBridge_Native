@@ -40,8 +40,10 @@ const CreateConversationModal = ({
     const fetchCurrentUser = async () => {
       try {
         const userData = await fetchUserFromStorage();
-        setCurrentUserId(userData.id);
-        setCurrentUser(userData);
+        if (userData) {
+          setCurrentUserId(userData.id);
+          setCurrentUser(userData);
+        }
       } catch (error) {
         console.error("Error fetching current user", error);
       }

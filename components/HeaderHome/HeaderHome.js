@@ -202,16 +202,19 @@ export default function HeaderHome({ user, showFullScreenSearch, setShowFullScre
                 </TouchableOpacity>
               )}
 
-              <TouchableOpacity
-                style={styles.actionButton}
-                activeOpacity={0.7}
-                onPress={() => navigation.navigate("NotificationScreen")}
-              >
-                <View style={styles.iconContainer}>
-                  <Ionicons name="notifications" size={30} color="white" />
-                  <View style={styles.notificationDot} />
-                </View>
-              </TouchableOpacity>
+              {/* Only show notification button for authenticated users */}
+              {user && (
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  activeOpacity={0.7}
+                  onPress={() => navigation.navigate("NotificationScreen")}
+                >
+                  <View style={styles.iconContainer}>
+                    <Ionicons name="notifications" size={30} color="white" />
+                    <View style={styles.notificationDot} />
+                  </View>
+                </TouchableOpacity>
+              )}
             </View>
           </View>
         </View>

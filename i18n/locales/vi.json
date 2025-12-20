@@ -35,6 +35,7 @@
     "aiChatbox": "AI Chatbox",
     "message": "Tin nhắn",
     "me": "Tôi",
+    "login": "Đăng nhập",
     "ptSchedule": "Lịch Dạy",
     "registerSlot": "Đăng Ký Lịch",
 
@@ -1376,7 +1377,12 @@
     "privacyPolicy": "Chính sách bảo mật",
     "required": "*",
     "alreadyHaveAccountLogin": "Đã có tài khoản? Đăng nhập ngay",
-    "enterPasswordAgain": "Nhập lại mật khẩu"
+    "enterPasswordAgain": "Nhập lại mật khẩu",
+    "loginRequired": "Yêu cầu đăng nhập",
+    "pleaseLoginToAddToCart": "Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng",
+    "pleaseLoginToBuy": "Vui lòng đăng nhập để mua sản phẩm",
+    "pleaseLoginToCheckout": "Vui lòng đăng nhập để thanh toán",
+    "pleaseLoginToContinue": "Vui lòng đăng nhập để tiếp tục"
   },
 
   "chat": {

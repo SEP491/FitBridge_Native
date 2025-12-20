@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Dimensions,
+  Alert,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -37,11 +38,36 @@ export default function FreelancePTPackageDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [addingToCart, setAddingToCart] = useState(false);
   const [user, setUser] = useState(null);
+  const [userLoading, setUserLoading] = useState(true);
 
   useEffect(() => {
     const fetchUser = async () => {
-      const user = await fetchUserFromStorage();
-      setUser(user);
+      setUserLoading(true);
+      const userData = await fetchUserFromStorage();
+      if (userData) {
+        setUser(userData);
+      } else {
+        // Guest user - show login prompt
+        Alert.alert(
+          t("auth.loginRequired"),
+          t("auth.pleaseLoginToContinue"),
+          [
+            { 
+              text: t("common.cancel"), 
+              style: "cancel",
+              onPress: () => navigation.goBack()
+            },
+            { 
+              text: t("navigation.login"), 
+              onPress: () => {
+                navigation.goBack();
+                navigation.navigate("GuestProfileStack", { screen: "Login" });
+              }
+            },
+          ]
+        );
+      }
+      setUserLoading(false);
     };
     fetchUser();
   }, []);
@@ -82,6 +108,9 @@ export default function FreelancePTPackageDetailScreen() {
   }, [route.params]);
 
   useEffect(() => {
+    // Only fetch package details if user is authenticated
+    if (!user || userLoading) return;
+    
     if (packageId) {
       fetchPackageDetail();
       fetchPackageReview();
@@ -92,7 +121,7 @@ export default function FreelancePTPackageDetailScreen() {
       );
       navigation.goBack();
     }
-  }, [packageId]);
+  }, [packageId, user, userLoading]);
 
   const fetchPackageDetail = async () => {
     try {
@@ -210,13 +239,35 @@ export default function FreelancePTPackageDetailScreen() {
     }
   };
 
-  if (loading) {
+  if (loading || userLoading) {
     return (
       <SafeAreaView style={styles.container}>
         <LoadingIndicator
           variant="page"
           message={t("common.loading") || "Loading..."}
         />
+      </SafeAreaView>
+    );
+  }
+
+  // If user is not logged in (guest), don't render the content
+  if (!user) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.errorContainer}>
+          <Ionicons name="lock-closed-outline" size={80} color="#ED2A46" />
+          <Text style={styles.errorText}>
+            {t("auth.loginRequired") || "Login Required"}
+          </Text>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={styles.backButtonText}>
+              {t("common.goBack") || "Go Back"}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </SafeAreaView>
     );
   }

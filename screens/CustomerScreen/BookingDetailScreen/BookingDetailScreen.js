@@ -150,8 +150,10 @@ export default function BookingDetailScreen({ route, navigation }) {
   const fetchUser = async () => {
     try {
       const user = await fetchUserFromStorage();
-      console.log("Current user:", user.role);
-      setUserRole(user.role);
+      if (user) {
+        console.log("Current user:", user.role);
+        setUserRole(user.role);
+      }
     } catch (error) {
       console.error("Error fetching user:", error);
     }

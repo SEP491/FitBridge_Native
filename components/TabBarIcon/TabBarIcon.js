@@ -52,6 +52,10 @@ const TabBarIcon = ({ routeName, focused, color, size = 24 }) => {
       "Đăng Ký Lịch": focused ? "time" : "time-outline",
       Message: focused ? "chatbubbles" : "chatbubbles-outline",
       "Tin nhắn": focused ? "chatbubbles" : "chatbubbles-outline",
+
+      // Login icons (for Guest users)
+      Login: focused ? "log-in" : "log-in-outline",
+      "Đăng nhập": focused ? "log-in" : "log-in-outline",
     };
 
     return iconMap[routeName] || (focused ? "ellipse" : "ellipse-outline");

@@ -27,6 +27,7 @@ import { useCart } from "../../../context/CartContext";
 import { useTranslation } from "../../../hooks/useTranslation";
 import { formatPrice, formatNumber } from "../../../lib";
 import LoadingIndicator from "../../../components/LoadingIndicator";
+import { fetchUserFromStorage } from "../../../lib/async/asyncUtils";
 
 export default function GymDetailScreen({ route }) {
   const { t } = useTranslation();
@@ -148,6 +149,23 @@ export default function GymDetailScreen({ route }) {
 
   // Post comment function
   const handlePostComment = async () => {
+    // Check if user is logged in
+    const userData = await fetchUserFromStorage();
+    if (!userData) {
+      Alert.alert(
+        t("auth.loginRequired"),
+        t("auth.pleaseLoginToContinue"),
+        [
+          { text: t("common.cancel"), style: "cancel" },
+          { 
+            text: t("navigation.login"), 
+            onPress: () => navigation.navigate("GuestProfileStack", { screen: "Login" })
+          },
+        ]
+      );
+      return;
+    }
+
     if (!newComment.trim()) {
       Alert.alert(t("gymDetail.error"), t("gymDetail.enterCommentContent"));
       return;

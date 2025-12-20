@@ -36,6 +36,7 @@
     "aiChatbox": "AI Chatbox",
     "message": "Message",
     "me": "Me",
+    "login": "Login",
     "ptSchedule": "Schedule",
 
     "registerSlot": "Register Slot",
@@ -1395,7 +1396,12 @@
     "privacyPolicy": "Privacy Policy",
     "required": "*",
     "alreadyHaveAccountLogin": "Already have an account? Login now",
-    "enterPasswordAgain": "Enter password again"
+    "enterPasswordAgain": "Enter password again",
+    "loginRequired": "Login Required",
+    "pleaseLoginToAddToCart": "Please login to add products to your cart",
+    "pleaseLoginToBuy": "Please login to purchase products",
+    "pleaseLoginToCheckout": "Please login to checkout",
+    "pleaseLoginToContinue": "Please login to continue"
   },
 
   "messages": {

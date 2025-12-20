@@ -24,8 +24,22 @@ export default function App() {
   registerGlobals();
   const [appIsReady, setAppIsReady] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isGuest, setIsGuest] = useState(true); // Default to guest mode
   const [user, setUser] = useState(null);
   const [authCheckComplete, setAuthCheckComplete] = useState(false);
+  
+  // Expose setters globally for Navigator to update auth state after login
+  useEffect(() => {
+    global.setAppAuthState = (authState) => {
+      setIsAuthenticated(authState.isAuthenticated);
+      setIsGuest(authState.isGuest);
+      setUser(authState.user);
+    };
+    return () => {
+      delete global.setAppAuthState;
+    };
+  }, []);
+  
   useEffect(() => {
     async function prepare() {
       try {
@@ -41,10 +55,12 @@ export default function App() {
           //   authResult.user?.email || "unknown"
           // );
           setIsAuthenticated(true);
+          setIsGuest(false);
           setUser(authResult.user);
         } else {
-          console.log("User not authenticated");
+          console.log("User not authenticated - starting as guest");
           setIsAuthenticated(false);
+          setIsGuest(true);
           setUser(null);
         }
 
@@ -53,8 +69,9 @@ export default function App() {
         // console.log("App initialization complete");
       } catch (e) {
         console.error("App initialization error:", e.message);
-        // Even if there's an error, we should continue with unauthenticated state
+        // Even if there's an error, we should continue with guest state
         setIsAuthenticated(false);
+        setIsGuest(true);
         setUser(null);
         setAuthCheckComplete(true);
       } finally {
@@ -96,6 +113,7 @@ export default function App() {
                             <UserProvider>
                               <Navigator
                                 isAuthenticated={isAuthenticated}
+                                isGuest={isGuest}
                                 user={user}
                               />
                             </UserProvider>

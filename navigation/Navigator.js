@@ -109,6 +109,7 @@ import CustomerPurchasedBookingHistoryScreen from "../screens/FreelancePTScreen/
 
 export default function Navigator({
   isAuthenticated: propIsAuthenticated,
+  isGuest: propIsGuest,
   user: propUser,
 }) {
   const { t } = useTranslation();
@@ -118,13 +119,15 @@ export default function Navigator({
   // Use authentication state from App.js props
   const [user, setUser] = useState(propUser);
   const [isAuthenticated, setIsAuthenticated] = useState(propIsAuthenticated);
+  const [isGuest, setIsGuest] = useState(propIsGuest ?? true);
   const [isLoading, setIsLoading] = useState(false);
   const { fetchOfferings, fetchCustomerInfo } = useRevenueCat();
   // Update local state when props change
   useEffect(() => {
     setUser(propUser);
     setIsAuthenticated(propIsAuthenticated);
-  }, [propUser, propIsAuthenticated]);
+    setIsGuest(propIsGuest ?? true);
+  }, [propUser, propIsAuthenticated, propIsGuest]);
 
   const linking = {
     prefixes: [
@@ -137,24 +140,18 @@ export default function Navigator({
           screens: {
             [t("navigation.home")]: {
               screens: {
-                PaymentScreen: "payment",
                 OrderSuccessScreen: "orderprocess",
-                GymDetailScreen: "gym/:gymId",
               },
             },
-            [t("navigation.map")]: {
+            // Login/Register are now within the guest profile tab
+            [t("navigation.login")]: {
               screens: {
-                MapScreen: "map/user",
+                Login: "login",
+                Register: "register",
               },
             },
           },
         },
-
-        Login: "login",
-        Register: "register",
-        Splash: "splash",
-
-        // Thêm các màn khác nếu cần
       },
     },
   };
@@ -168,21 +165,51 @@ export default function Navigator({
 
           if (authResult.isValid) {
             setIsAuthenticated(true);
+            setIsGuest(false);
             setUser(authResult.user);
             await AsyncStorage.setItem("user", JSON.stringify(authResult.user));
+            
+            // Update App.js state as well
+            if (global.setAppAuthState) {
+              global.setAppAuthState({
+                isAuthenticated: true,
+                isGuest: false,
+                user: authResult.user,
+              });
+            }
 
             // Avatar will be automatically updated when screens refresh
           } else {
             setIsAuthenticated(false);
+            setIsGuest(true);
             setUser(null);
-            console.log("User cleared");
+            console.log("User cleared - reverting to guest mode");
             await AsyncStorage.multiRemove(["token", "user"]);
+            
+            // Update App.js state as well
+            if (global.setAppAuthState) {
+              global.setAppAuthState({
+                isAuthenticated: false,
+                isGuest: true,
+                user: null,
+              });
+            }
           }
         } catch (error) {
           console.error("Error updating navigation user:", error);
           setIsAuthenticated(false);
+          setIsGuest(true);
           setUser(null);
           await AsyncStorage.multiRemove(["token", "user"]);
+          
+          // Update App.js state as well
+          if (global.setAppAuthState) {
+            global.setAppAuthState({
+              isAuthenticated: false,
+              isGuest: true,
+              user: null,
+            });
+          }
         }
       };
     }
@@ -1400,6 +1427,124 @@ export default function Navigator({
     );
   };
 
+  // Guest Profile Stack - shows login/register options for guests
+  const GuestProfileStack = () => {
+    return (
+      <Stack.Navigator
+        screenOptions={({ navigation, route }) => ({
+          headerTitleAlign: "center",
+          headerShown: false,
+          headerTintColor: "#ED2A46",
+          headerLeft: (props) =>
+            navigation.canGoBack() ? (
+              <TouchableOpacity onPress={() => navigation.goBack()}>
+                <Ionicons name="caret-back" size={30} color="#ED2A46" />
+              </TouchableOpacity>
+            ) : null,
+        })}
+      >
+        <Stack.Screen
+          name="Login"
+          component={LoginScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.login"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="Register"
+          component={RegisterScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.register"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="ForgotPasswordScreen1"
+          component={ForgotPasswordScreen1}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.forgotPassword"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="ForgotPasswordScreen2"
+          component={ForgotPasswordScreen2}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.forgotPassword"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="ForgotPasswordScreen3"
+          component={ForgotPasswordScreen3}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.forgotPassword"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="SettingScreen"
+          component={SettingScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.settings"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="LanguageSelectScreen"
+          component={LanguageSelectScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.chooseLanguage"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+      </Stack.Navigator>
+    );
+  };
+
   const ProfileStack = () => {
     return (
       <Stack.Navigator
@@ -1891,6 +2036,11 @@ export default function Navigator({
     const { startConnection } = useMessagingState();
     const { getAvatarUser } = useUser();
     const registerPushToken = async () => {
+      // Only register push token for authenticated users
+      if (!isAuthenticated || isGuest) {
+        console.log("Skipping push token registration for guest user");
+        return;
+      }
       try {
         // Check current permission status
         const { status: existingStatus } =
@@ -1922,12 +2072,15 @@ export default function Navigator({
       }
     };
     useEffect(() => {
-      registerPushToken();
-      getAvatarUser();
-      signalrService.startConnection();
-      // Start messaging SignalR connection when MainTab mounts
-      startConnection();
-    }, []);
+      // Only initialize services for authenticated users
+      if (isAuthenticated && !isGuest) {
+        registerPushToken();
+        getAvatarUser();
+        signalrService.startConnection();
+        // Start messaging SignalR connection when MainTab mounts
+        startConnection();
+      }
+    }, [isAuthenticated, isGuest]);
 
     return (
       <Tab.Navigator
@@ -1982,8 +2135,8 @@ export default function Navigator({
             }}
           />
         )}
-        {/* Role-specific tabs */}
-        {user?.role === "Customer" && (
+        {/* Ecommerce tab - available for Customers and Guests */}
+        {(user?.role === "Customer" || isGuest) && (
           <Tab.Screen
             name={t("navigation.ecommerce")}
             component={EcommerceStack}
@@ -1992,6 +2145,7 @@ export default function Navigator({
             }}
           />
         )}
+        {/* Role-specific tabs - only for authenticated users */}
         {user?.role === "Customer" && (
           <Tab.Screen
             name={t("navigation.schedule")}
@@ -2083,10 +2237,10 @@ export default function Navigator({
               }}
             />
           )} */}
-        {/* Profile tab - available for all authenticated users */}
+        {/* Profile/Login tab - shows login for guests, profile for authenticated users */}
         <Tab.Screen
-          name={t("navigation.me")}
-          component={ProfileStack}
+          name={isGuest ? t("navigation.login") : t("navigation.me")}
+          component={isGuest ? GuestProfileStack : ProfileStack}
           options={{
             headerShown: false,
           }}
@@ -2126,86 +2280,10 @@ export default function Navigator({
                 </TouchableOpacity>
               ) : null,
           })}
-          initialRouteName={isAuthenticated ? "MainApp" : "Login"}
+          initialRouteName="MainApp"
         >
-          {isAuthenticated ? (
-            // User is authenticated - show main app
-            <Stack.Screen name="MainApp" component={MainTab} />
-          ) : (
-            // User is not authenticated - show auth screens
-            <>
-              <Stack.Screen
-                name="Login"
-                component={LoginScreen}
-                options={{
-                  headerShown: true,
-                  title: t("screenTitles.login"),
-                  headerTitleAlign: "center",
-                  headerTitleStyle: {
-                    fontWeight: "bold",
-                    fontSize: 20,
-                    color: "#ED2A46",
-                  },
-                }}
-              />
-              <Stack.Screen
-                name="ForgotPasswordScreen1"
-                component={ForgotPasswordScreen1}
-                options={{
-                  headerShown: true,
-                  title: t("screenTitles.forgotPassword"),
-                  headerTitleAlign: "center",
-                  headerTitleStyle: {
-                    fontWeight: "bold",
-                    fontSize: 20,
-                    color: "#ED2A46",
-                  },
-                }}
-              />
-              <Stack.Screen
-                name="ForgotPasswordScreen2"
-                component={ForgotPasswordScreen2}
-                options={{
-                  headerShown: true,
-                  title: t("screenTitles.forgotPassword"),
-                  headerTitleAlign: "center",
-                  headerTitleStyle: {
-                    fontWeight: "bold",
-                    fontSize: 20,
-                    color: "#ED2A46",
-                  },
-                }}
-              />
-              <Stack.Screen
-                name="ForgotPasswordScreen3"
-                component={ForgotPasswordScreen3}
-                options={{
-                  headerShown: true,
-                  title: t("screenTitles.forgotPassword"),
-                  headerTitleAlign: "center",
-                  headerTitleStyle: {
-                    fontWeight: "bold",
-                    fontSize: 20,
-                    color: "#ED2A46",
-                  },
-                }}
-              />
-              <Stack.Screen
-                name="Register"
-                component={RegisterScreen}
-                options={{
-                  headerShown: true,
-                  title: t("screenTitles.register"),
-                  headerTitleAlign: "center",
-                  headerTitleStyle: {
-                    fontWeight: "bold",
-                    fontSize: 20,
-                    color: "#ED2A46",
-                  },
-                }}
-              />
-            </>
-          )}
+          {/* MainApp is always accessible - guests can browse, login is available in tabs */}
+          <Stack.Screen name="MainApp" component={MainTab} />
         </Stack.Navigator>
         <FloatingVideoCall />
       </NotificationBannerWrapper>

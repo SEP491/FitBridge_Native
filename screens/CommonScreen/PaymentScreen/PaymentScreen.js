@@ -13,7 +13,7 @@ import CartCard from "../../../components/CartCard/CartCard";
 import Cart_FreelancePTCard from "../../../components/CartCard/Cart_FreelancePTCard";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import cartService from "../../../services/cartService";
-import { formatPrice, showErrorAlert, showSuccessAlert } from "../../../lib";
+import { formatPrice, showErrorAlert, showSuccessAlert, fetchUserFromStorage } from "../../../lib";
 import { useTranslation } from "../../../hooks/useTranslation";
 import CartCard_Extend from "../../../components/CartCard_Extend/CartCard_Extend";
 import {
@@ -25,6 +25,8 @@ import {
 } from "./components";
 import addressService from "../../../services/addressService";
 import orderService from "../../../services/orderService";
+import LoadingIndicator from "../../../components/LoadingIndicator";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function PaymentScreen({ navigation, route }) {
   const {
@@ -87,13 +89,45 @@ export default function PaymentScreen({ navigation, route }) {
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [addresses, setAddresses] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [userLoading, setUserLoading] = useState(true);
+  
   // Check if cart contains any products
   const hasProducts = displayItems.some(
     (item) => item.selectedVariant && !item.gymId
   );
 
+  // Auth guard - check if user is logged in
   useEffect(() => {
-    fetchAddresses();
+    const checkAuth = async () => {
+      setUserLoading(true);
+      const userData = await fetchUserFromStorage();
+      if (!userData) {
+        Alert.alert(
+          t("auth.loginRequired"),
+          t("auth.pleaseLoginToCheckout"),
+          [
+            { 
+              text: t("common.cancel"), 
+              style: "cancel",
+              onPress: () => navigation.goBack()
+            },
+            { 
+              text: t("navigation.login"), 
+              onPress: () => {
+                navigation.goBack();
+                navigation.navigate("GuestProfileStack", { screen: "Login" });
+              }
+            },
+          ]
+        );
+      } else {
+        setCurrentUser(userData);
+        fetchAddresses();
+      }
+      setUserLoading(false);
+    };
+    checkAuth();
   }, []);
 
   // Clear voucher code when user exits the screen
@@ -405,6 +439,27 @@ export default function PaymentScreen({ navigation, route }) {
       },
     ]);
   };
+
+  // Show loading while checking auth
+  if (userLoading) {
+    return (
+      <View style={styles.container}>
+        <LoadingIndicator variant="page" message={t("common.loading")} />
+      </View>
+    );
+  }
+
+  // If user is not logged in, show empty state (alert already shown)
+  if (!currentUser) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>{t("auth.loginRequired")}</Text>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <ScrollView

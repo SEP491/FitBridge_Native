@@ -33,6 +33,11 @@ export default function SchedulePTScreen({ navigation }) {
     try {
       setLoading(true);
       const user = await fetchUserFromStorage();
+      if (!user?.id) {
+        console.log("No user found, skipping slot fetch");
+        setLoading(false);
+        return;
+      }
       const selectDate = formatDateForAPI(date);
       const response = await ptService.getAllSlotsOfGym({
         ptId: user.id,
