@@ -234,7 +234,8 @@ export default function GymDetailScreen({ route }) {
       gymName: gymDetail.gymName,
       gymAddress: gymDetail.gymAddress,
       gymImage:
-        gymDetail?.gymImages[0].url ||
+        packageGym.image ||
+        gymDetail?.gymImages[0]?.url ||
         "https://levelfyc.com/wp-content/uploads/2024/08/khong-gian-4.jpg",
       id: packageGym.id,
       name: packageGym.name,
@@ -266,7 +267,8 @@ export default function GymDetailScreen({ route }) {
       id: packageGym.id,
       name: packageGym.name,
       type: packageGym.type,
-      price: packageGym.price,
+      price: (packageGym.price || 0) + (packageGym.ptPrice || 0),
+      ptPrice: packageGym.ptPrice || 0,
     };
 
     navigation.navigate("PTinCourseScreen", { gymPackage: gymPackage });

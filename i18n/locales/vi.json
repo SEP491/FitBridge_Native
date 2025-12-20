@@ -239,7 +239,9 @@
     "packageSelection": "Lựa chọn gói tập",
     "monthlyPackages": "Gói Tập",
     "monthlyPackagesWithPT": "Gói Tập Kèm PT",
-    "noPackagesAvailable": "Hiện tại chưa có gói tập nào có sẵn"
+    "noPackagesAvailable": "Hiện tại chưa có gói tập nào có sẵn",
+    "validForDays": "Hiệu lực trong {{days}} ngày",
+    "ptFee": "phí PT"
   },
 
   "gymDetail": {
@@ -1983,7 +1985,7 @@
     }
   },
   "trainingResults": {
-    "seconds":"Giây",
+    "seconds": "Giây",
     "muscleGroupLabel": "Nhóm cơ:",
     "metricWeight": "Trọng lượng",
     "metricReps": "Số lần lặp",

@@ -228,7 +228,9 @@
     "packageSelection": "Package Selection",
     "monthlyPackages": "Membership Packages",
     "monthlyPackagesWithPT": "Membership Packages with PT",
-    "noPackagesAvailable": "No packages are currently available"
+    "noPackagesAvailable": "No packages are currently available",
+    "validForDays": "Valid for {{days}} days",
+    "ptFee": "PT fee"
   },
 
   "gymDetail": {

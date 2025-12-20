@@ -66,7 +66,7 @@ const PackageSelectionBottomSheet = ({
                       <View style={styles.packageInfo}>
                         <Text style={styles.packageName}>{item.name}</Text>
                         <Text style={styles.packageDuration}>
-                          Active in {item.duration} days
+                          {t("gym.validForDays", { days: item.duration })}
                         </Text>
 
                         <Text style={styles.packagePrice}>
@@ -120,11 +120,16 @@ const PackageSelectionBottomSheet = ({
                       <View style={styles.packageInfo}>
                         <Text style={styles.packageName}>{item.name}</Text>
                         <Text style={styles.packageDuration}>
-                          {item.duration}
+                          {t("gym.validForDays", { days: item.duration })}
                         </Text>
 
                         <Text style={styles.packagePrice}>
-                          {formatPrice(item.price)}
+                          {formatPrice(item.price || 0)}
+                          {Number(item.ptPrice) > 0
+                            ? ` + ${formatPrice(Number(item.ptPrice))} ${t(
+                                "gym.ptFee"
+                              )}`
+                            : ""}
                         </Text>
                       </View>
 
