@@ -373,7 +373,10 @@ export default function FreelancePTRequestScreen({ route }) {
         <View style={styles.modalContent}>
           {/* Header */}
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Create Booking Request</Text>
+            <Text style={styles.modalTitle}>
+              {" "}
+              {t("bookingRequest.createRequest")}
+            </Text>
             <TouchableOpacity
               onPress={() => {
                 setShowCreateModal(false);

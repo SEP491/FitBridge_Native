@@ -46,6 +46,7 @@ export default function ChoosingCourseScreen() {
           expirationDate: item.expirationDate,
           sessionDurationInMinutes: item.sessionDurationInMinutes,
           packageType: "FreelancePTPackage",
+          totalAwaitingBookingRequests: item.totalAwaitingBookingRequests || 0,
           pt: item.ptId
             ? {
                 id: item.ptId,
@@ -64,6 +65,7 @@ export default function ChoosingCourseScreen() {
           packageType: "GymCourse",
           canAssignPT: item.canAssignPT,
           gymCourseId: item.gymCourseId,
+          totalAwaitingBookingRequests: item.totalAwaitingBookingRequests || 0,
           pt: item.ptId
             ? {
                 id: item.ptId,

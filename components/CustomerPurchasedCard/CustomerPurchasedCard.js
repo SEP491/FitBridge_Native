@@ -50,18 +50,22 @@ const CustomerPurchasedCard = ({ purchase, onPress }) => {
                 <Text style={styles.packageTitle} numberOfLines={1}>
                   {purchase.packageName}
                 </Text>
-                {purchase.totalAwaitingBookingRequests > 0 && (
-                  <View style={styles.pendingBadge}>
-                    <Ionicons
-                      name="notifications"
-                      size={18}
-                      color={colors.white}
-                    />
-                    <Text style={styles.pendingBadgeText}>
-                      {purchase.totalAwaitingBookingRequests}
-                    </Text>
-                  </View>
-                )}
+                <View
+                  style={[
+                    styles.pendingBadge,
+                    purchase.totalAwaitingBookingRequests === 0 &&
+                      styles.pendingBadgeInactive,
+                  ]}
+                >
+                  <Ionicons
+                    name="notifications"
+                    size={18}
+                    color={colors.white}
+                  />
+                  <Text style={styles.pendingBadgeText}>
+                    {purchase.totalAwaitingBookingRequests || 0}
+                  </Text>
+                </View>
               </View>
               <View style={styles.sessionsBadge}>
                 <MaterialIcons name="event" size={14} color={colors.white} />
@@ -73,19 +77,6 @@ const CustomerPurchasedCard = ({ purchase, onPress }) => {
             </View>
 
             {/* Awaiting Booking Requests Badge */}
-            {purchase.totalAwaitingBookingRequests > 0 && (
-              <View style={styles.awaitingBadge}>
-                <Ionicons
-                  name="time-outline"
-                  size={14}
-                  color={colors.red}
-                  style={{ marginRight: 4 }}
-                />
-                <Text style={styles.awaitingBadgeText}>
-                  {purchase.totalAwaitingBookingRequests}
-                </Text>
-              </View>
-            )}
           </View>
 
           {/* Customer Information */}
@@ -228,6 +219,10 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     letterSpacing: 0.5,
   },
+  pendingBadgeInactive: {
+    backgroundColor: "rgba(255,255,255,0.2)",
+    borderColor: "rgba(255,255,255,0.3)",
+  },
   sessionsBadge: {
     flexDirection: "row",
     alignItems: "center",
@@ -326,9 +321,9 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   awaitingBadge: {
-    position:'absolute',
-    right:-22,
-    top:-22,
+    position: "absolute",
+    right: -22,
+    top: -22,
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "rgba(255,255,255,0.9)",
@@ -337,12 +332,19 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     alignSelf: "flex-start",
     borderWidth: 4,
-    borderColor:colors.white,
+    borderColor: colors.white,
   },
   awaitingBadgeText: {
     fontSize: 12,
     fontWeight: "700",
     color: colors.red,
+  },
+  awaitingBadgeInactive: {
+    backgroundColor: "rgba(255,255,255,0.7)",
+    borderColor: "rgba(255,255,255,0.5)",
+  },
+  awaitingBadgeTextInactive: {
+    color: "#999",
   },
 });
 
