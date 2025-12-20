@@ -16,6 +16,7 @@ import { ProgressChart } from 'react-native-chart-kit';
 import customerPurchasedService from '../../../services/customerPurchased';
 import { useTranslation } from '../../../hooks/useTranslation';
 import LoadingIndicator from '../../../components/LoadingIndicator';
+import { formatDate } from '../../../lib/formatting/dateTimeUtils';
 
 // Muscle group images mapping
 const muscleGroupImages = {
@@ -243,10 +244,10 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
               <Text style={styles.contactText}>{customer.phone || t("customerDetail.notAvailable")}</Text>
             </View>
             
-            <View style={styles.contactRow}>
+            {customer.joinDate && <View style={styles.contactRow}>
               <Ionicons name="calendar-outline" size={20} color="#ED2A46" />
-              <Text style={styles.contactText}>{t("customerDetail.joined")}: {customer.joinDate || t("customerDetail.notAvailable")}</Text>
-            </View>
+              <Text style={styles.contactText}>{t("customerDetail.joined")}: {formatDate(customer.joinDate) || t("customerDetail.notAvailable")}</Text>
+            </View>}
           </View>
 
           {/* Quick Stats */}
