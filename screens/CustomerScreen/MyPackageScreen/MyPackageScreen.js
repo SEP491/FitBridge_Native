@@ -48,7 +48,8 @@ export default function MyPackageScreen() {
 
   // Feedback Modal States
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
-  const [selectedPackageForFeedback, setSelectedPackageForFeedback] =useState(null);
+  const [selectedPackageForFeedback, setSelectedPackageForFeedback] =
+    useState(null);
 
   const fetchUser = async () => {
     const user = await fetchUserFromStorage();
@@ -82,21 +83,32 @@ export default function MyPackageScreen() {
             "Has PT:",
             hasPTAssigned
           );
+
+          // Determine if package can be extended (check if gymCourse exists and is active)
+          const canExtend = item.gymCourse && item.gymCourse.isActive !== false;
+
           return {
             ...item,
             type: hasPTAssigned ? "gymCourseWithPT" : "gymCourseNormal",
             packageType: hasPTAssigned ? "Gym + PT" : "Gym Membership",
-            toExtend: true,
+            toExtend: canExtend,
           };
         });
 
         // Map freelance PT packages
-        const mappedFreelancePt = freelancePtItems.map((item) => ({
-          ...item,
-          type: "freelancePT",
-          packageType: "Freelance PT",
-          toExtend: true,
-        }));
+        const mappedFreelancePt = freelancePtItems.map((item) => {
+          // Determine if package can be extended (check if freelancePTPackage exists and is active)
+          const canExtend =
+            item.freelancePTPackage &&
+            item.freelancePTPackage.isActive !== false;
+
+          return {
+            ...item,
+            type: "freelancePT",
+            packageType: "Freelance PT",
+            toExtend: canExtend,
+          };
+        });
 
         // Combine both arrays
         const allPackages = [...mappedGymCourses, ...mappedFreelancePt];
@@ -144,6 +156,54 @@ export default function MyPackageScreen() {
     const expDate = new Date(expirationDate);
     expDate.setHours(0, 0, 0, 0);
     return expDate < today;
+  };
+
+  // Check if an expired package can be renewed
+  const canRenewPackage = (pkg) => {
+    // If package is not expired, it can be renewed
+    if (!isPackageExpired(pkg.expirationDate)) {
+      return true;
+    }
+
+    // If package is expired, check if it can still be renewed
+    // A package cannot be renewed if:
+    // 1. The package/product is no longer available (gymCourse or freelancePTPackage is null/inactive)
+    // 2. The package has toExtend set to false
+    // 3. The gymCourse or freelancePTPackage doesn't exist or is inactive
+
+    if (pkg.toExtend === false) {
+      return false;
+    }
+
+    // Check if the underlying package/product still exists and is active
+    const gymCourse = pkg.gymCourse;
+    const freelancePTPackage = pkg.freelancePTPackage;
+
+    if (
+      pkg.type === "freelancePT" ||
+      pkg.type === "gymCourseWithPT" ||
+      pkg.type === "gymCourseNormal"
+    ) {
+      // For gym courses, check if gymCourse exists and is active
+      if (gymCourse && gymCourse.isActive === false) {
+        return false;
+      }
+      if (!gymCourse) {
+        return false;
+      }
+    }
+
+    if (pkg.type === "freelancePT") {
+      // For freelance PT packages, check if freelancePTPackage exists and is active
+      if (freelancePTPackage && freelancePTPackage.isActive === false) {
+        return false;
+      }
+      if (!freelancePTPackage) {
+        return false;
+      }
+    }
+
+    return true;
   };
 
   const filteredPackages = packages.filter((pkg) => {
@@ -385,16 +445,18 @@ export default function MyPackageScreen() {
 
   const renderPackageItem = ({ item, user }) => {
     const customer = getCustomerForPackage(item, user);
+    const canRenew = canRenewPackage(item);
 
     return (
       <PackageCard
         item={item}
-        onRenew={handleRenew}
+        onRenew={canRenew ? handleRenew : null}
         onReport={handleReport}
         onFeedback={handleOpenFeedbackModal}
         t={t}
         mode="package"
         customer={customer}
+        canRenew={canRenew}
       />
     );
   };

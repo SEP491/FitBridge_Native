@@ -21,7 +21,6 @@ import UpcomingSessions from "./UpcomingSessions";
 import BestsellerPackages from "./BestsellerPackages";
 import dashBoardService from "../../../services/dashBoardService";
 import transactionService from "../../../services/transactionService";
-import { useFocusEffect } from "@react-navigation/native";
 import accountService from "../../../services/accountService";
 import { useTranslation } from "../../../hooks/useTranslation";
 
@@ -38,7 +37,7 @@ const FreelancePTDashboard = ({ navigation }) => {
   const [loadingSessions, setLoadingSessions] = useState(false);
   const [monthLyRevenue, setMonthLyRevenue] = useState(null);
   const [dashboardStats, setDashboardStats] = useState(null);
-  
+
   // Charts state
   const [showCharts, setShowCharts] = useState(true);
   const [transactions, setTransactions] = useState([]);
@@ -171,8 +170,6 @@ const FreelancePTDashboard = ({ navigation }) => {
     return { labels, datasets };
   };
 
-
-
   const chartConfig = {
     backgroundGradientFrom: "#fff",
     backgroundGradientTo: "#fff",
@@ -210,16 +207,13 @@ const FreelancePTDashboard = ({ navigation }) => {
       t.status?.toUpperCase() === "CANCELLED"
   ).length;
 
-
-  useFocusEffect(
-    useCallback(() => {
-      fetchWalletData();
-      loadTodaySessions();
-      fetchMonthLyRevenue();
-      loadTransactions();
-      fetchDashboardStats();
-    }, [])
-  );
+  useEffect(() => {
+    fetchWalletData();
+    loadTodaySessions();
+    fetchMonthLyRevenue();
+    loadTransactions();
+    fetchDashboardStats();
+  }, []);
 
   const loadTransactions = async () => {
     try {
@@ -331,7 +325,7 @@ const FreelancePTDashboard = ({ navigation }) => {
   const summaryFinancialStats = [
     {
       id: "availableBalance",
-      label:  t("dashboard.availableBalance", "Số dư khả dụng"),
+      label: t("dashboard.availableBalance", "Số dư khả dụng"),
       value: formatCurrency(availableBalance || 0),
       helper: t("dashboard.canWithdrawNow", "Có thể rút ngay"),
       icon: "wallet",
@@ -660,7 +654,11 @@ const FreelancePTDashboard = ({ navigation }) => {
 
               {transactions.length === 0 ? (
                 <View style={styles.emptyChartMessage}>
-                  <Ionicons name="analytics-outline" size={40} color="#E0E0E0" />
+                  <Ionicons
+                    name="analytics-outline"
+                    size={40}
+                    color="#E0E0E0"
+                  />
                   <Text style={styles.emptyChartText}>
                     {t(
                       "dashboard.noTransactionsForChart",
@@ -686,7 +684,11 @@ const FreelancePTDashboard = ({ navigation }) => {
                 />
               ) : (
                 <View style={styles.emptyChartMessage}>
-                  <Ionicons name="analytics-outline" size={40} color="#E0E0E0" />
+                  <Ionicons
+                    name="analytics-outline"
+                    size={40}
+                    color="#E0E0E0"
+                  />
                   <Text style={styles.emptyChartText}>
                     {t(
                       "dashboard.selectYearsToView",
@@ -814,11 +816,7 @@ const FreelancePTDashboard = ({ navigation }) => {
 
               {availableYears.length === 0 && (
                 <View style={styles.emptyYearList}>
-                  <Ionicons
-                    name="calendar-outline"
-                    size={40}
-                    color="#E0E0E0"
-                  />
+                  <Ionicons name="calendar-outline" size={40} color="#E0E0E0" />
                   <Text style={styles.emptyYearText}>
                     {t("dashboard.noYearsAvailable", "No years available")}
                   </Text>
@@ -829,8 +827,14 @@ const FreelancePTDashboard = ({ navigation }) => {
             <View style={styles.modalFooter}>
               <Text style={styles.selectedCountText}>
                 {displayMode === "month"
-                  ? `${selectedYears.length} ${t("dashboard.yearSelected", "year selected")}`
-                  : `${selectedYears.length} / 3 ${t("dashboard.yearsSelected", "years selected")}`}
+                  ? `${selectedYears.length} ${t(
+                      "dashboard.yearSelected",
+                      "year selected"
+                    )}`
+                  : `${selectedYears.length} / 3 ${t(
+                      "dashboard.yearsSelected",
+                      "years selected"
+                    )}`}
               </Text>
               <TouchableOpacity
                 style={styles.doneButton}
@@ -865,10 +869,7 @@ const FreelancePTDashboard = ({ navigation }) => {
             </View>
 
             <Text style={styles.modalSubtitle}>
-              {t(
-                "dashboard.chooseMonth",
-                "Choose a month to view weekly data"
-              )}
+              {t("dashboard.chooseMonth", "Choose a month to view weekly data")}
             </Text>
 
             <ScrollView
@@ -942,9 +943,7 @@ const FreelancePTDashboard = ({ navigation }) => {
               <Text style={styles.modalTitle}>
                 {t("dashboard.selectDisplayMode", "Select Display Mode")}
               </Text>
-              <TouchableOpacity
-                onPress={() => setShowDisplayModeModal(false)}
-              >
+              <TouchableOpacity onPress={() => setShowDisplayModeModal(false)}>
                 <Ionicons name="close" size={24} color="#333" />
               </TouchableOpacity>
             </View>
@@ -1001,11 +1000,7 @@ const FreelancePTDashboard = ({ navigation }) => {
                   </View>
                 </View>
                 {displayMode === "year" && (
-                  <Ionicons
-                    name="checkmark-circle"
-                    size={24}
-                    color="#4CAF50"
-                  />
+                  <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
                 )}
               </TouchableOpacity>
 
@@ -1049,11 +1044,7 @@ const FreelancePTDashboard = ({ navigation }) => {
                   </View>
                 </View>
                 {displayMode === "month" && (
-                  <Ionicons
-                    name="checkmark-circle"
-                    size={24}
-                    color="#4CAF50"
-                  />
+                  <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
                 )}
               </TouchableOpacity>
             </View>

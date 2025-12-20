@@ -12,9 +12,10 @@ export default function PackageCard({
   t,
   mode = "package", // "package" for MyPackage, "review" for MyReviewsRatings
   customer = null, // Customer object for Freelance PT context
+  canRenew = true, // Whether the package can be renewed
 }) {
   const navigation = useNavigation();
-  console.log("item", item);  
+  console.log("item", item);
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return `${date.getDate().toString().padStart(2, "0")}/${(
@@ -89,7 +90,7 @@ export default function PackageCard({
       const packageIndex = customer.packages?.findIndex(
         (pkg) => pkg.id === item.id
       );
-      
+
       navigation.navigate("CustomerDetailScreen", {
         customer: customer,
         expandPackageIndex: packageIndex >= 0 ? packageIndex : null,
@@ -104,7 +105,6 @@ export default function PackageCard({
       });
     }
   };
-
 
   return (
     <View style={[styles.packageCard, expired && styles.expiredCard]}>
@@ -283,16 +283,39 @@ export default function PackageCard({
       </View>
 
       {/* Second Row: Action Buttons */}
-      {!isReviewMode  ? ( // Review mode: no action buttons
+      {!isReviewMode ? ( // Review mode: no action buttons
         <View style={styles.actionButtonsRow}>
-          <TouchableOpacity
-            style={[styles.renewButton, { backgroundColor: typeConfig.color }]}
-            onPress={() => onRenew && onRenew(item)}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="refresh" size={18} color="#fff" />
-            <Text style={styles.renewButtonText}>{t("myPackage.renew")}</Text>
-          </TouchableOpacity>
+          {expired
+            ? // For expired packages: Show View Detail button if applicable
+              ((isFreelancePT && customer) || isGymWithPT || isGymNormal) && (
+                <TouchableOpacity
+                  style={styles.viewDetailButton}
+                  onPress={handleViewDetail}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="eye-outline" size={18} color="#fff" />
+                  <Text style={styles.viewDetailButtonText}>
+                    {t("myPackage.viewDetail") || "View Detail"}
+                  </Text>
+                </TouchableOpacity>
+              )
+            : // For current packages: Show Renew button if can renew
+              canRenew &&
+              onRenew && (
+                <TouchableOpacity
+                  style={[
+                    styles.renewButton,
+                    { backgroundColor: typeConfig.color },
+                  ]}
+                  onPress={() => onRenew(item)}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="refresh" size={18} color="#fff" />
+                  <Text style={styles.renewButtonText}>
+                    {t("myPackage.renew")}
+                  </Text>
+                </TouchableOpacity>
+              )}
 
           <TouchableOpacity
             style={styles.reportButton}
@@ -318,7 +341,10 @@ export default function PackageCard({
             </TouchableOpacity>
           )}
           <TouchableOpacity
-            style={[styles.reportButton, { flex: onFeedback && !item.hasReviewed ? 1 : 1 }]}
+            style={[
+              styles.reportButton,
+              { flex: onFeedback && !item.hasReviewed ? 1 : 1 },
+            ]}
             onPress={() => onReport && onReport(item)}
             activeOpacity={0.8}
           >
@@ -328,21 +354,22 @@ export default function PackageCard({
         </View>
       )}
 
-      {/* Third Row: View Detail Button (For Freelance PT and Gym Course Packages) */}
-      {((isFreelancePT && customer) || isGymWithPT || isGymNormal) && (
-        <View style={styles.viewDetailRow}>
-          <TouchableOpacity
-            style={styles.viewDetailButton}
-            onPress={handleViewDetail}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="eye-outline" size={18} color="#fff" />
-            <Text style={styles.viewDetailButtonText}>
-              {t("myPackage.viewDetail") || "View Detail"}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
+      {/* Third Row: View Detail Button (For current packages only - Freelance PT and Gym Course Packages) */}
+      {!expired &&
+        ((isFreelancePT && customer) || isGymWithPT || isGymNormal) && (
+          <View style={styles.viewDetailRow}>
+            <TouchableOpacity
+              style={styles.viewDetailButton}
+              onPress={handleViewDetail}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="eye-outline" size={18} color="#fff" />
+              <Text style={styles.viewDetailButtonText}>
+                {t("myPackage.viewDetail") || "View Detail"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
     </View>
   );
 }
@@ -629,6 +656,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   viewDetailButton: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",

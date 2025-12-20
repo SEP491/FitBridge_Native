@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import React, { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "../../../hooks/useTranslation";
-import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 import colors from "../../../constants/color";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import SessionBookingCard from "../../../components/SessionBookingCard/SessionBookingCard";
@@ -102,12 +102,10 @@ export default function CalendarScheduleScreen() {
   };
 
   // Load bookings when component mounts
-  useFocusEffect(
-    useCallback(() => {
-      setLoading(true);
-      loadBookingOfUser();
-    }, [])
-  );
+  useEffect(() => {
+    setLoading(true);
+    loadBookingOfUser();
+  }, []);
 
   // Debug: Log picker state changes
   useEffect(() => {

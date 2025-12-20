@@ -9,7 +9,7 @@ import {
   RefreshControl,
   Alert,
 } from "react-native";
-import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import contractService from "../../../services/contractService";
 import { useTranslation } from "../../../hooks/useTranslation";
@@ -50,11 +50,9 @@ const ContractScreen = () => {
     setRefreshing(false);
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchContracts();
-    }, [])
-  );
+  useEffect(() => {
+    fetchContracts();
+  }, []);
 
   const getStatusColor = (status) => {
     switch (status) {

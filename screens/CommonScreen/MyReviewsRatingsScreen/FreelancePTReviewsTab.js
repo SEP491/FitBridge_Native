@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 import { useTranslation } from "../../../hooks/useTranslation";
 import orderService from "../../../services/orderService";
 import PackageCard from "../../../components/PackageCard/PackageCard";
@@ -32,7 +32,10 @@ export default function FreelancePTReviewsTab() {
   const [selectedCourseForFeedback, setSelectedCourseForFeedback] =
     useState(null);
 
-  const fetchFreelancePTCoursesReviews = async (pageNum = 1, append = false) => {
+  const fetchFreelancePTCoursesReviews = async (
+    pageNum = 1,
+    append = false
+  ) => {
     try {
       if (!append) {
         setLoading(true);
@@ -129,11 +132,9 @@ export default function FreelancePTReviewsTab() {
     fetchFreelancePTCoursesReviews();
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchFreelancePTCoursesReviews(1, false);
-    }, [])
-  );
+  useEffect(() => {
+    fetchFreelancePTCoursesReviews(1, false);
+  }, []);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -306,5 +307,3 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 });
-
-

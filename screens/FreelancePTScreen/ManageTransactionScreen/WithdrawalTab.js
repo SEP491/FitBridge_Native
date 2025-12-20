@@ -12,7 +12,6 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import paymentService from "../../../services/paymentService";
-import { useFocusEffect } from "@react-navigation/native";
 import dashBoardService from "../../../services/dashBoardService";
 import banks from "../../../constants/banks";
 import SummaryCard from "../../../components/SummaryCards/SummaryCard";
@@ -64,11 +63,9 @@ const WithdrawalTab = ({
     }
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchWalletData();
-    }, [])
-  );
+  useEffect(() => {
+    fetchWalletData();
+  }, []);
 
   const summaryFinancialStats = [
     {
@@ -79,7 +76,7 @@ const WithdrawalTab = ({
       icon: "wallet",
       accent: "#FF914D",
       variant: "wide",
-      style: ''
+      style: "",
     },
     {
       id: "pendingBalance",
@@ -89,7 +86,7 @@ const WithdrawalTab = ({
       icon: "timer-outline",
       accent: "#ED2A46",
       variant: "wide",
-      style: ''
+      style: "",
     },
   ];
 
@@ -217,13 +214,13 @@ const WithdrawalTab = ({
 
   return (
     <View style={styles.withdrawalContainer}>
-    <ImageViewerModal
-      visible={imageModalVisible}
-      imageUrls={imageUrls || []}
-      selectedIndex={0}
-      onClose={() => setImageModalVisible(false)}
-      onNavigate={() => {}}
-    />
+      <ImageViewerModal
+        visible={imageModalVisible}
+        imageUrls={imageUrls || []}
+        selectedIndex={0}
+        onClose={() => setImageModalVisible(false)}
+        onNavigate={() => {}}
+      />
       {/* Financial Stats */}
       <View style={styles.financialStatsContainer}>
         <View style={styles.financialRow}>
@@ -266,14 +263,14 @@ const WithdrawalTab = ({
             {t("withdrawal.bankName", "Bank Name")} *
           </Text>
           <View style={styles.inputContainer}>
-          {selectedBank?.logo ? (
-            <Image
-              source={{ uri: selectedBank.logo }}
-              style={styles.selectedBankIcon}
-            />
-          ) : (
-            <Ionicons name="business-outline" size={20} color="#666" />
-          )}
+            {selectedBank?.logo ? (
+              <Image
+                source={{ uri: selectedBank.logo }}
+                style={styles.selectedBankIcon}
+              />
+            ) : (
+              <Ionicons name="business-outline" size={20} color="#666" />
+            )}
             <TextInput
               style={styles.input}
               placeholder={t("withdrawal.enterBankName", "Enter bank name")}
@@ -386,31 +383,36 @@ const WithdrawalTab = ({
               <View style={styles.transactionHeader}>
                 <View style={styles.transactionInfo}>
                   <View style={styles.orderCodeRow}>
-                    <Ionicons 
-                      name="wallet-outline" 
-                      size={20} 
-                      color="#ED2A46" 
-                    />
+                    <Ionicons name="wallet-outline" size={20} color="#ED2A46" />
                     <Text style={styles.orderCode}>
-                      {item.id?.toString().substring(0, 8).toUpperCase() || "N/A"}
+                      {item.id?.toString().substring(0, 8).toUpperCase() ||
+                        "N/A"}
                     </Text>
                   </View>
-                  <View style={[
-                    styles.transactionTypeBadge, 
-                    { backgroundColor: "#ED2A4615" }
-                  ]}>
-                    <Text style={[
-                      styles.transactionTypeText,
-                      { color: "#ED2A46" }
-                    ]}>
+                  <View
+                    style={[
+                      styles.transactionTypeBadge,
+                      { backgroundColor: "#ED2A4615" },
+                    ]}
+                  >
+                    <Text
+                      style={[styles.transactionTypeText, { color: "#ED2A46" }]}
+                    >
                       {t("transactionType.withdraw", "Withdraw")}
                     </Text>
                   </View>
                 </View>
                 <View style={styles.amountContainer}>
                   <Text style={styles.amount}>{formatAmount(item.amount)}</Text>
-                  <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
-                    <Text style={styles.statusText}>{getStatusText(item.status)}</Text>
+                  <View
+                    style={[
+                      styles.statusBadge,
+                      { backgroundColor: getStatusColor(item.status) },
+                    ]}
+                  >
+                    <Text style={styles.statusText}>
+                      {getStatusText(item.status)}
+                    </Text>
                   </View>
                 </View>
               </View>
@@ -418,7 +420,9 @@ const WithdrawalTab = ({
               <View style={styles.transactionDetails}>
                 <View style={styles.detailRow}>
                   <Ionicons name="calendar-outline" size={16} color="#666" />
-                  <Text style={styles.detailText}>{formatDate(item.createdAt)}</Text>
+                  <Text style={styles.detailText}>
+                    {formatDate(item.createdAt)}
+                  </Text>
                 </View>
                 {item.bankName && (
                   <View style={styles.detailRow}>
@@ -429,7 +433,11 @@ const WithdrawalTab = ({
                         resizeMode="contain"
                       />
                     ) : (
-                      <Ionicons name="business-outline" size={16} color="#666" />
+                      <Ionicons
+                        name="business-outline"
+                        size={16}
+                        color="#666"
+                      />
                     )}
                     <Text style={styles.detailText}>{item.bankName}</Text>
                   </View>
@@ -437,12 +445,18 @@ const WithdrawalTab = ({
                 {item.accountName && (
                   <View style={styles.detailRow}>
                     <Ionicons name="person-outline" size={16} color="#666" />
-                    <Text style={styles.detailText}>{item.accountName} - {item.accountNumber}</Text>
+                    <Text style={styles.detailText}>
+                      {item.accountName} - {item.accountNumber}
+                    </Text>
                   </View>
                 )}
                 {item.reason && (
                   <View style={styles.detailRow}>
-                    <Ionicons name="alert-circle-outline" size={16} color="#FF9800" />
+                    <Ionicons
+                      name="alert-circle-outline"
+                      size={16}
+                      color="#FF9800"
+                    />
                     <Text style={[styles.detailText, { color: "#FF9800" }]}>
                       {t("withdrawal.reason", "Reason")}: {item.reason}
                     </Text>
@@ -451,7 +465,11 @@ const WithdrawalTab = ({
                 {item.imageUrl && (
                   <TouchableOpacity onPress={handleViewProof(item.imageUrl)}>
                     <View style={styles.detailRow}>
-                      <Ionicons name="image-outline" size={16} color="#2196F3" />
+                      <Ionicons
+                        name="image-outline"
+                        size={16}
+                        color="#2196F3"
+                      />
                       <Text style={[styles.detailText, { color: "#2196F3" }]}>
                         {t("withdrawal.hasProof", "Proof attached")}
                       </Text>
@@ -680,7 +698,7 @@ const styles = StyleSheet.create({
   withdrawalButtonAction: {
     marginTop: 12,
     flexDirection: "row",
-    flex:1,
+    flex: 1,
     width: "100%",
     alignItems: "flex-end",
   },
@@ -691,9 +709,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     elevation: 1,
     width: "100%",
-    justifyContent:'center',
-    flex:1,
-    alignItems:'center'
+    justifyContent: "center",
+    flex: 1,
+    alignItems: "center",
   },
   withdrawalButtonActionText: {
     color: "#fff",

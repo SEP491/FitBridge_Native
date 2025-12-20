@@ -8,7 +8,6 @@ import {
   StyleSheet,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useFocusEffect } from "@react-navigation/native";
 import { useTranslation } from "../../../hooks/useTranslation";
 import orderService from "../../../services/orderService";
 import OrderManagementCard from "../../../components/OrderManagementCard/OrderManagementCard";
@@ -35,7 +34,11 @@ export default function ProductReviewsTab() {
     fetchUser();
   }, []);
 
-  const fetchProductReviews = async (pageNum = 1, append = false, userId = null) => {
+  const fetchProductReviews = async (
+    pageNum = 1,
+    append = false,
+    userId = null
+  ) => {
     try {
       if (!append) {
         setLoading(true);
@@ -50,7 +53,8 @@ export default function ProductReviewsTab() {
 
       const allOrders = summaryResponse.data?.productOrders?.items || [];
       let filtered = allOrders.filter(
-        (order) => order.currentStatus === "Finished" && order.customerId === userId
+        (order) =>
+          order.currentStatus === "Finished" && order.customerId === userId
       );
       filtered = filtered.filter((order) =>
         order.orderItems.some((item) => !item.isFeedback)
@@ -77,12 +81,9 @@ export default function ProductReviewsTab() {
     }
   };
 
-
-  useFocusEffect(
-    useCallback(() => {
-      fetchProductReviews(1, false, user?.id);
-    }, [])
-  );
+  useEffect(() => {
+    fetchProductReviews(1, false, user?.id);
+  }, []);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -201,5 +202,3 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 });
-
-

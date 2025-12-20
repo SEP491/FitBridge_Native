@@ -13,7 +13,6 @@ import FreelancePTPackagesSection from "./FreelancePTPackagesSection";
 import FeaturedGymsSection from "./FeaturedGymsSection";
 import NearbyGymsSection from "./NearbyGymsSection";
 import BlogSection from "./BlogSection";
-import { useFocusEffect } from "@react-navigation/native";
 
 export default function HomeScreen() {
   const [user, setUser] = useState(null);
@@ -47,11 +46,9 @@ export default function HomeScreen() {
     }
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      loadUserData();
-    }, [])
-  );
+  useEffect(() => {
+    loadUserData();
+  }, []);
   return (
     <View style={styles.container}>
       <HeaderHome

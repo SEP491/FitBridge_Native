@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 import orderService from "../../../services/orderService";
 import { fetchUserFromStorage } from "../../../lib";
 import OrderManagementCard from "../../../components/OrderManagementCard";
@@ -23,7 +23,11 @@ import LoadingIndicator from "../../../components/LoadingIndicator";
 const ManageOrderScreen = ({ route }) => {
   const navigation = useNavigation();
   const { t } = useTranslation();
-  const { initialStatus = "All", filterFeedback = false, orders: passedOrders = [] } = route.params || {};
+  const {
+    initialStatus = "All",
+    filterFeedback = false,
+    orders: passedOrders = [],
+  } = route.params || {};
   const [orders, setOrders] = useState(passedOrders);
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -85,11 +89,11 @@ const ManageOrderScreen = ({ route }) => {
       status: "Assigning",
     },
     {
-      id: 'accepted',
+      id: "accepted",
       label: t("orders.accepted"),
-      icon: 'checkmark-done-outline',
-      color: '#27AE60',
-      status: 'Accepted',
+      icon: "checkmark-done-outline",
+      color: "#27AE60",
+      status: "Accepted",
     },
     {
       id: "shipping",
@@ -114,11 +118,11 @@ const ManageOrderScreen = ({ route }) => {
       filterFeedback: true,
     },
     {
-      id:'finished',
+      id: "finished",
       label: t("orders.finished"),
-      icon: 'checkmark-circle-outline',
-      color: '#27AE60',
-      status: 'Finished',
+      icon: "checkmark-circle-outline",
+      color: "#27AE60",
+      status: "Finished",
     },
     {
       id: "cancelled",
@@ -133,28 +137,25 @@ const ManageOrderScreen = ({ route }) => {
       icon: "arrow-undo-outline",
       color: "#C0392B",
       status: "Returned",
-    }
+    },
   ];
-  useFocusEffect(
-    useCallback(() => {
-      if (!user?.id) return;
+  useEffect(() => {
+    if (!user?.id) return;
 
-      if (selectedStatus === "Feedback") {
-        filterOrdersByStatus();
-        fetchOrdersSummary();
-      } else if (selectedStatus === "All") {
-        fetchOrders(1, true);
-        fetchOrdersSummary();
-      } else if (selectedStatus) {
-        fetchOrdersByStatus(selectedStatus, 1, false);
-        fetchOrdersSummary();
-      } else {
-        fetchOrders(1, true);
-        fetchOrdersSummary();
-      }
-    }, [selectedStatus, user])
-  );
-
+    if (selectedStatus === "Feedback") {
+      filterOrdersByStatus();
+      fetchOrdersSummary();
+    } else if (selectedStatus === "All") {
+      fetchOrders(1, true);
+      fetchOrdersSummary();
+    } else if (selectedStatus) {
+      fetchOrdersByStatus(selectedStatus, 1, false);
+      fetchOrdersSummary();
+    } else {
+      fetchOrders(1, true);
+      fetchOrdersSummary();
+    }
+  }, [selectedStatus, user]);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -168,7 +169,11 @@ const ManageOrderScreen = ({ route }) => {
     }
   }, [selectedStatus, user]);
 
-  const fetchOrders = async (pageNum = 1, isRefresh = false, isLoadMore = false) => {
+  const fetchOrders = async (
+    pageNum = 1,
+    isRefresh = false,
+    isLoadMore = false
+  ) => {
     if (!user?.id) return;
     try {
       if (isRefresh) {
@@ -184,17 +189,17 @@ const ManageOrderScreen = ({ route }) => {
         customerId: user?.id,
       });
       const newItems = response.data.productOrders.items || [];
-      
+
       if (isLoadMore) {
         // Append new items to existing list
-        setOrders(prevOrders => [...prevOrders, ...newItems]);
-        setFilteredOrders(prevFiltered => [...prevFiltered, ...newItems]);
+        setOrders((prevOrders) => [...prevOrders, ...newItems]);
+        setFilteredOrders((prevFiltered) => [...prevFiltered, ...newItems]);
       } else {
         // Replace list with new items
         setOrders(newItems);
         setFilteredOrders(newItems);
       }
-      
+
       setTotalPages(response.data.productOrders.totalPages || 1);
       setPage(pageNum);
     } catch (error) {
@@ -210,14 +215,21 @@ const ManageOrderScreen = ({ route }) => {
   const fetchOrdersSummary = async () => {
     if (!user?.id) return;
     try {
-      const response = await orderService.getProductOrder({ doApplyPaging: false, customerId: user?.id });
+      const response = await orderService.getProductOrder({
+        doApplyPaging: false,
+        customerId: user?.id,
+      });
       setOrderSummary(response.data || null);
     } catch (error) {
       console.error("Error fetching order summary:", error);
     }
   };
 
-  const fetchOrdersByStatus = async (status, pageNum = 1, isLoadMore = false) => {
+  const fetchOrdersByStatus = async (
+    status,
+    pageNum = 1,
+    isLoadMore = false
+  ) => {
     if (!user?.id) return;
     try {
       if (isLoadMore) {
@@ -226,29 +238,39 @@ const ManageOrderScreen = ({ route }) => {
         setLoading(true);
       }
       let apiStatus = status;
-      
+
       // Map combined statuses to API parameters
       if (status === "All") {
         apiStatus = null; // Fetch all orders
-      }  else if (status === "Arrived") {
+      } else if (status === "Arrived") {
         // For Arrived, fetch Arrived + CustomerNotReceived
         const [arrivedRes, notReceivedRes] = await Promise.all([
-          orderService.getProductOrder({ status: "Arrived", sortOrder: "dsc", pageNumber: pageNum, customerId: user?.id }),
-          orderService.getProductOrder({ status: "CustomerNotReceived", sortOrder: "dsc", pageNumber: pageNum, customerId: user?.id })
+          orderService.getProductOrder({
+            status: "Arrived",
+            sortOrder: "dsc",
+            pageNumber: pageNum,
+            customerId: user?.id,
+          }),
+          orderService.getProductOrder({
+            status: "CustomerNotReceived",
+            sortOrder: "dsc",
+            pageNumber: pageNum,
+            customerId: user?.id,
+          }),
         ]);
         const combined = [
           ...(arrivedRes.data.productOrders.items || []),
-          ...(notReceivedRes.data.productOrders.items || [])
+          ...(notReceivedRes.data.productOrders.items || []),
         ];
-        
+
         if (isLoadMore) {
-          setFilteredOrders(prev => [...prev, ...combined]);
-          setOrders(prev => [...prev, ...combined]);
+          setFilteredOrders((prev) => [...prev, ...combined]);
+          setOrders((prev) => [...prev, ...combined]);
         } else {
           setFilteredOrders(combined);
           setOrders(combined);
         }
-        
+
         // Use max of both total pages
         const maxPages = Math.max(
           arrivedRes.data.productOrders.totalPages || 1,
@@ -260,22 +282,32 @@ const ManageOrderScreen = ({ route }) => {
       } else if (status === "Returned") {
         // For Returned, fetch Returned + InReturn
         const [returnedRes, inReturnRes] = await Promise.all([
-          orderService.getProductOrder({ status: "Returned", sortOrder: "dsc", pageNumber: pageNum, customerId: user?.id }),
-          orderService.getProductOrder({ status: "InReturn", sortOrder: "dsc", pageNumber: pageNum, customerId: user?.id })
+          orderService.getProductOrder({
+            status: "Returned",
+            sortOrder: "dsc",
+            pageNumber: pageNum,
+            customerId: user?.id,
+          }),
+          orderService.getProductOrder({
+            status: "InReturn",
+            sortOrder: "dsc",
+            pageNumber: pageNum,
+            customerId: user?.id,
+          }),
         ]);
         const combined = [
           ...(returnedRes.data.productOrders.items || []),
-          ...(inReturnRes.data.productOrders.items || [])
+          ...(inReturnRes.data.productOrders.items || []),
         ];
-        
+
         if (isLoadMore) {
-          setFilteredOrders(prev => [...prev, ...combined]);
-          setOrders(prev => [...prev, ...combined]);
+          setFilteredOrders((prev) => [...prev, ...combined]);
+          setOrders((prev) => [...prev, ...combined]);
         } else {
           setFilteredOrders(combined);
           setOrders(combined);
         }
-        
+
         // Use max of both total pages
         const maxPages = Math.max(
           returnedRes.data.productOrders.totalPages || 1,
@@ -285,22 +317,27 @@ const ManageOrderScreen = ({ route }) => {
         setPage(pageNum);
         return;
       }
-      
+
       // For other statuses, fetch directly
-      const params = apiStatus 
-        ? { status: apiStatus, sortOrder: "dsc", pageNumber: pageNum, customerId: user?.id } 
+      const params = apiStatus
+        ? {
+            status: apiStatus,
+            sortOrder: "dsc",
+            pageNumber: pageNum,
+            customerId: user?.id,
+          }
         : { sortOrder: "dsc", pageNumber: pageNum, customerId: user?.id };
       const response = await orderService.getProductOrder(params);
       const newItems = response.data.productOrders.items || [];
-      
+
       if (isLoadMore) {
-        setFilteredOrders(prev => [...prev, ...newItems]);
-        setOrders(prev => [...prev, ...newItems]);
+        setFilteredOrders((prev) => [...prev, ...newItems]);
+        setOrders((prev) => [...prev, ...newItems]);
       } else {
         setFilteredOrders(newItems);
         setOrders(newItems);
       }
-      
+
       setTotalPages(response.data.productOrders.totalPages || 1);
       setPage(pageNum);
     } catch (error) {
@@ -312,11 +349,13 @@ const ManageOrderScreen = ({ route }) => {
     }
   };
 
-
   const filterOrdersByStatus = () => {
     // This function is now only used for the Feedback special case
     if (selectedStatus === "Feedback") {
-      let filtered = orderSummary?.productOrders?.items?.filter((order) => order.currentStatus === "Finished") || [];
+      let filtered =
+        orderSummary?.productOrders?.items?.filter(
+          (order) => order.currentStatus === "Finished"
+        ) || [];
       filtered = filtered.filter((order) =>
         order.orderItems.some((item) => !item.isFeedback)
       );
@@ -341,7 +380,7 @@ const ManageOrderScreen = ({ route }) => {
   const handleLoadMore = () => {
     // Don't load more for Feedback (uses local filtering)
     if (selectedStatus === "Feedback") return;
-    
+
     if (!loadingMore && !loading && page < totalPages) {
       if (selectedStatus === "All") {
         fetchOrders(page + 1, false, true);
@@ -383,7 +422,10 @@ const ManageOrderScreen = ({ route }) => {
       <View
         style={[
           styles.statusBadge,
-          { backgroundColor: selectedStatus === item.status ? "#fff" : item.color },
+          {
+            backgroundColor:
+              selectedStatus === item.status ? "#fff" : item.color,
+          },
         ]}
       >
         <Text
@@ -395,11 +437,13 @@ const ManageOrderScreen = ({ route }) => {
           {item.status === "All"
             ? orderSummary?.summaryProductOrder?.totalProductOrders || 0
             : item.status === "Arrived"
-            ? (orderSummary?.summaryProductOrder?.totalArrived ?? 0) + (orderSummary?.summaryProductOrder?.totalCustomerNotReceived ?? 0)
+            ? (orderSummary?.summaryProductOrder?.totalArrived ?? 0) +
+              (orderSummary?.summaryProductOrder?.totalCustomerNotReceived ?? 0)
             : item.status === "Processing"
             ? orderSummary?.summaryProductOrder?.totalProcessing || 0
             : item.status === "Returned"
-            ? (orderSummary?.summaryProductOrder?.totalReturned ?? 0) + (orderSummary?.summaryProductOrder?.totalInReturn ?? 0)
+            ? (orderSummary?.summaryProductOrder?.totalReturned ?? 0) +
+              (orderSummary?.summaryProductOrder?.totalInReturn ?? 0)
             : item.status === "Created"
             ? orderSummary?.summaryProductOrder?.totalCreated || 0
             : item.status === "Pending"
@@ -417,7 +461,7 @@ const ManageOrderScreen = ({ route }) => {
             : item.filterFeedback
             ? orderSummary?.productOrders?.items?.filter(
                 (order) =>
-                  order.currentStatus === 'Finished' &&
+                  order.currentStatus === "Finished" &&
                   order.orderItems.some((i) => !i.isFeedback)
               ).length || 0
             : orders.filter((order) => order.currentStatus === item.status)
@@ -430,11 +474,15 @@ const ManageOrderScreen = ({ route }) => {
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
       <Ionicons name="receipt-outline" size={80} color="#DDD" />
-      <Text style={styles.emptyTitle}>{t("orders.noOrdersFound") || "No Orders Found"}</Text>
+      <Text style={styles.emptyTitle}>
+        {t("orders.noOrdersFound") || "No Orders Found"}
+      </Text>
       <Text style={styles.emptySubtitle}>
         {selectedStatus === "All"
           ? t("orders.noOrdersMessage") || "You haven't placed any orders yet"
-          : `${t("orders.noStatusOrders", { status: selectedStatus.toLowerCase() })}`}
+          : `${t("orders.noStatusOrders", {
+              status: selectedStatus.toLowerCase(),
+            })}`}
       </Text>
     </View>
   );
@@ -451,19 +499,18 @@ const ManageOrderScreen = ({ route }) => {
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
-
       {/* Status Filter with PairSwiper */}
       <View style={styles.filterSection}>
-        <Text style={styles.filterTitle}>{t("orders.filterByStatus") || "Filter by Status"}</Text>
+        <Text style={styles.filterTitle}>
+          {t("orders.filterByStatus") || "Filter by Status"}
+        </Text>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.statusScrollContent}
         >
           {statusFilters.map((item) => (
-            <View key={item.id}>
-              {renderStatusButton(item)}
-            </View>
+            <View key={item.id}>{renderStatusButton(item)}</View>
           ))}
         </ScrollView>
       </View>

@@ -19,7 +19,7 @@ import {
   Ionicons,
 } from "@expo/vector-icons";
 import { TouchableOpacity } from "react-native";
-import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 import { useCart } from "../../../context/CartContext";
 import authService from "../../../services/authService";
 import DeleteAccountBottomSheet from "../../../components/DeleteAccountBottomSheet/DeleteAccountBottomSheet";
@@ -64,14 +64,12 @@ export default function UserMenuScreen() {
   }, [user]);
 
   // Refresh orders when screen comes into focus
-  useFocusEffect(
-    useCallback(() => {
-      if (user && user.role === "Customer") {
-        fetchOrders();
-        fetchOrdersSummary();
-      }
-    }, [user])
-  );
+  useEffect(() => {
+    if (user && user.role === "Customer") {
+      fetchOrders();
+      fetchOrdersSummary();
+    }
+  }, [user]);
 
   const fetchOrders = async () => {
     try {

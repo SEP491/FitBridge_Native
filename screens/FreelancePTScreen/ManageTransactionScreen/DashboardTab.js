@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -7,14 +7,13 @@ import {
   Dimensions,
   Modal,
   ScrollView,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { LineChart, BarChart, ProgressChart } from 'react-native-chart-kit';
-import { useFocusEffect } from '@react-navigation/native';
-import SummaryCard from '../../../components/SummaryCards/SummaryCard';
-import dashBoardService from '../../../services/dashBoardService';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { LineChart, BarChart, ProgressChart } from "react-native-chart-kit";
+import SummaryCard from "../../../components/SummaryCards/SummaryCard";
+import dashBoardService from "../../../services/dashBoardService";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 const CHART_WIDTH = width - 32;
 
 const DashboardTab = ({
@@ -31,7 +30,7 @@ const DashboardTab = ({
 }) => {
   const [selectedYears, setSelectedYears] = useState([]);
   const [showYearModal, setShowYearModal] = useState(false);
-  const [displayMode, setDisplayMode] = useState('year'); // 'year', 'month'
+  const [displayMode, setDisplayMode] = useState("year"); // 'year', 'month'
   const [showDisplayModeModal, setShowDisplayModeModal] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth()); // 0-11
   const [showMonthModal, setShowMonthModal] = useState(false);
@@ -55,11 +54,9 @@ const DashboardTab = ({
     }
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchWalletData();
-    }, [])
-  );
+  useEffect(() => {
+    fetchWalletData();
+  }, []);
 
   const summaryFinancialStats = [
     {
@@ -70,7 +67,7 @@ const DashboardTab = ({
       icon: "wallet",
       accent: "#FF914D",
       variant: "wide",
-      style: '',
+      style: "",
     },
     {
       id: "pendingBalance",
@@ -80,14 +77,14 @@ const DashboardTab = ({
       icon: "timer-outline",
       accent: "#ED2A46",
       variant: "wide",
-      style: '',
+      style: "",
     },
   ];
 
   // Get available years from transactions
   const availableYears = useMemo(() => {
     const years = new Set();
-    transactions.forEach(t => {
+    transactions.forEach((t) => {
       const year = new Date(t.createdAt).getFullYear();
       years.add(year);
     });
@@ -97,25 +94,28 @@ const DashboardTab = ({
   // Initialize years based on display mode
   useMemo(() => {
     if (selectedYears.length === 0 && availableYears.length > 0) {
-      if (displayMode === 'month') {
+      if (displayMode === "month") {
         // In month mode, select only 1 latest year
         setSelectedYears([availableYears[0]]);
       } else {
         // In year mode, select up to 3 latest years
-        const latestYears = availableYears.slice(0, Math.min(3, availableYears.length));
+        const latestYears = availableYears.slice(
+          0,
+          Math.min(3, availableYears.length)
+        );
         setSelectedYears(latestYears);
       }
     }
   }, [availableYears, displayMode]);
 
   const toggleYearSelection = (year) => {
-    if (displayMode === 'month') {
+    if (displayMode === "month") {
       // In monthly mode, only allow 1 year selection
       setSelectedYears([year]);
     } else {
       // In yearly mode, allow up to 3 years
       if (selectedYears.includes(year)) {
-        setSelectedYears(selectedYears.filter(y => y !== year));
+        setSelectedYears(selectedYears.filter((y) => y !== year));
       } else {
         if (selectedYears.length < 3) {
           setSelectedYears([...selectedYears, year].sort((a, b) => b - a));
@@ -125,26 +125,43 @@ const DashboardTab = ({
   };
 
   const getYearColor = (index) => {
-    const colors = ['rgba(237, 42, 70, 1)', 'rgba(76, 175, 80, 1)', 'rgba(33, 150, 243, 1)'];
+    const colors = [
+      "rgba(237, 42, 70, 1)",
+      "rgba(76, 175, 80, 1)",
+      "rgba(33, 150, 243, 1)",
+    ];
     return colors[index] || colors[0];
   };
   const prepareLineChartData = () => {
-    console.log('=== prepareLineChartData ===');
-    console.log('Display mode:', displayMode);
-    console.log('Selected years:', selectedYears);
-    console.log('Total transactions:', transactions.length);
-    
+    console.log("=== prepareLineChartData ===");
+    console.log("Display mode:", displayMode);
+    console.log("Selected years:", selectedYears);
+    console.log("Total transactions:", transactions.length);
+
     let labels = [];
     let groupingFunction;
-    
+
     // Determine labels and grouping based on display mode
-    if (displayMode === 'year') {
+    if (displayMode === "year") {
       // Show all 12 months
-      labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      labels = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ];
       groupingFunction = (t) => new Date(t.createdAt).getMonth();
-    } else if (displayMode === 'month') {
+    } else if (displayMode === "month") {
       // Show 4 weeks
-      labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+      labels = ["Week 1", "Week 2", "Week 3", "Week 4"];
       groupingFunction = (t) => {
         const date = new Date(t.createdAt);
         const dayOfMonth = date.getDate();
@@ -152,31 +169,41 @@ const DashboardTab = ({
         return Math.min(Math.floor((dayOfMonth - 1) / 7), 3);
       };
     }
-    
+
     // Prepare datasets for each selected year
     const datasets = selectedYears.map((year, index) => {
-      const yearTransactions = transactions.filter(t => {
+      const yearTransactions = transactions.filter((t) => {
         const txDate = new Date(t.createdAt);
         const txYear = txDate.getFullYear();
         const status = t.status?.toUpperCase();
-        
+
         // Filter based on display mode
-        let includeTransaction = txYear === year && (status === 'COMPLETED' || status === 'SUCCESS');
-        
-        if (displayMode === 'month') {
+        let includeTransaction =
+          txYear === year && (status === "COMPLETED" || status === "SUCCESS");
+
+        if (displayMode === "month") {
           // Only include transactions from the selected month of the selected year
-          includeTransaction = includeTransaction && 
-            txDate.getMonth() === selectedMonth && 
+          includeTransaction =
+            includeTransaction &&
+            txDate.getMonth() === selectedMonth &&
             txYear === year;
         }
-        
+
         return includeTransaction;
       });
 
-      console.log(`Year ${year}: Found ${yearTransactions.length} transactions`);
-      yearTransactions.forEach(t => {
+      console.log(
+        `Year ${year}: Found ${yearTransactions.length} transactions`
+      );
+      yearTransactions.forEach((t) => {
         const txDate = new Date(t.createdAt);
-        console.log(`  - ${t.orderCode}: ${txDate.toISOString()}, Month: ${txDate.getMonth()}, Amount: ${t.amount}`);
+        console.log(
+          `  - ${
+            t.orderCode
+          }: ${txDate.toISOString()}, Month: ${txDate.getMonth()}, Amount: ${
+            t.amount
+          }`
+        );
       });
 
       // Initialize revenue data structure
@@ -186,19 +213,19 @@ const DashboardTab = ({
       }
 
       // Group transactions by the appropriate time unit
-      yearTransactions.forEach(t => {
+      yearTransactions.forEach((t) => {
         const key = groupingFunction(t);
         if (key >= 0 && key < labels.length) {
-          revenueData[key] += (t.amount || 0);
+          revenueData[key] += t.amount || 0;
         }
       });
 
       console.log(`Year ${year} revenue data:`, revenueData);
 
       const color = getYearColor(index);
-      
+
       return {
-        data: Object.values(revenueData).map(val => val / 1000), // Convert to thousands
+        data: Object.values(revenueData).map((val) => val / 1000), // Convert to thousands
         color: () => color,
         strokeWidth: 2,
       };
@@ -207,7 +234,7 @@ const DashboardTab = ({
     // If no years selected, return empty data
     if (datasets.length === 0) {
       return {
-        labels: ['N/A'],
+        labels: ["N/A"],
         datasets: [{ data: [0] }],
         legend: [],
       };
@@ -216,7 +243,7 @@ const DashboardTab = ({
     return {
       labels: labels,
       datasets: datasets,
-      legend: selectedYears.map(year => `${year}`),
+      legend: selectedYears.map((year) => `${year}`),
     };
   };
 
@@ -224,69 +251,84 @@ const DashboardTab = ({
     const total = completedCount + pendingCount + failedCount;
     return {
       labels: [
-        t('transaction.failed', 'Failed'),
-        t('transaction.pending', 'Pending'),
-        t('transaction.completed', 'Completed'),
+        t("transaction.failed", "Failed"),
+        t("transaction.pending", "Pending"),
+        t("transaction.completed", "Completed"),
       ],
       data: [
         total > 0 ? failedCount / total : 0,
         total > 0 ? pendingCount / total : 0,
         total > 0 ? completedCount / total : 0,
       ],
-      colors: ['#F44336', '#FF9800', '#4CAF50'],
+      colors: ["#F44336", "#FF9800", "#4CAF50"],
       counts: [failedCount, pendingCount, completedCount],
-      icons: ['close-circle', 'time', 'checkmark-circle'],
+      icons: ["close-circle", "time", "checkmark-circle"],
     };
   };
 
   const prepareBarChartData = () => {
     const monthlyData = {};
-    transactions.forEach(t => {
+    transactions.forEach((t) => {
       const date = new Date(t.createdAt);
       const monthKey = `${date.getMonth() + 1}`;
       if (!monthlyData[monthKey]) {
         monthlyData[monthKey] = { completed: 0, pending: 0, failed: 0 };
       }
       const status = t.status?.toUpperCase();
-      if (status === 'COMPLETED' || status === 'SUCCESS') {
+      if (status === "COMPLETED" || status === "SUCCESS") {
         monthlyData[monthKey].completed += t.amount || 0;
-      } else if (status === 'PENDING') {
+      } else if (status === "PENDING") {
         monthlyData[monthKey].pending += t.amount || 0;
       } else {
         monthlyData[monthKey].failed += t.amount || 0;
       }
     });
 
-    const months = Object.keys(monthlyData).sort((a, b) => Number(a) - Number(b));
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const months = Object.keys(monthlyData).sort(
+      (a, b) => Number(a) - Number(b)
+    );
+    const monthNames = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
 
     return {
-      labels: months.map(m => monthNames[Number(m) - 1]),
+      labels: months.map((m) => monthNames[Number(m) - 1]),
       datasets: [
         {
-          data: months.map(m => monthlyData[m].completed / 1000),
-          color: () => '#4CAF50',
+          data: months.map((m) => monthlyData[m].completed / 1000),
+          color: () => "#4CAF50",
         },
         {
-          data: months.map(m => monthlyData[m].pending / 1000),
-          color: () => '#FF9800',
+          data: months.map((m) => monthlyData[m].pending / 1000),
+          color: () => "#FF9800",
         },
         {
-          data: months.map(m => monthlyData[m].failed / 1000),
-          color: () => '#F44336',
+          data: months.map((m) => monthlyData[m].failed / 1000),
+          color: () => "#F44336",
         },
       ],
       legend: [
-        t('transaction.completed', 'Completed'),
-        t('transaction.pending', 'Pending'),
-        t('transaction.failed', 'Failed')
+        t("transaction.completed", "Completed"),
+        t("transaction.pending", "Pending"),
+        t("transaction.failed", "Failed"),
       ],
     };
   };
 
   const chartConfig = {
-    backgroundGradientFrom: '#fff',
-    backgroundGradientTo: '#fff',
+    backgroundGradientFrom: "#fff",
+    backgroundGradientTo: "#fff",
     color: (opacity = 1) => `rgba(237, 42, 70, ${opacity})`,
     strokeWidth: 2,
     barPercentage: 0.5,
@@ -314,41 +356,40 @@ const DashboardTab = ({
           <Ionicons name="list-outline" size={24} color="#ED2A46" />
           <Text style={styles.statNumber}>{transactions.length}</Text>
           <Text style={styles.statLabel}>
-            {t('transaction.totalTransactions', 'Total')}
+            {t("transaction.totalTransactions", "Total")}
           </Text>
         </View>
         <View style={styles.statCard}>
           <Ionicons name="cash-outline" size={24} color="#4CAF50" />
           <Text style={styles.statNumber}>{formatAmount(totalRevenue)}</Text>
           <Text style={styles.statLabel}>
-            {t('transaction.totalRevenue', 'Revenue')}
+            {t("transaction.totalRevenue", "Revenue")}
           </Text>
         </View>
         <View style={styles.statCard}>
           <Ionicons name="time-outline" size={24} color="#FF9800" />
           <Text style={styles.statNumber}>{pendingCount}</Text>
           <Text style={styles.statLabel}>
-            {t('transaction.pending', 'Pending')}
+            {t("transaction.pending", "Pending")}
           </Text>
         </View>
       </View>
 
       {/* Toggle Charts Button */}
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.toggleChartsButton}
         onPress={() => setShowCharts(!showCharts)}
         activeOpacity={0.7}
       >
-        <Ionicons 
-          name={showCharts ? "chevron-up" : "chevron-down"} 
-          size={20} 
-          color="#ED2A46" 
+        <Ionicons
+          name={showCharts ? "chevron-up" : "chevron-down"}
+          size={20}
+          color="#ED2A46"
         />
         <Text style={styles.toggleChartsText}>
-          {showCharts 
-            ? t('transaction.hideCharts', 'Hide Charts') 
-            : t('transaction.showCharts', 'Show Charts')
-          }
+          {showCharts
+            ? t("transaction.hideCharts", "Hide Charts")
+            : t("transaction.showCharts", "Show Charts")}
         </Text>
       </TouchableOpacity>
 
@@ -360,56 +401,82 @@ const DashboardTab = ({
             <View style={styles.chartHeader}>
               <View style={styles.chartTitleContainer}>
                 <Text style={styles.chartTitle}>
-                  {t('transaction.revenueTrend', 'Revenue Trend by Year')}
+                  {t("transaction.revenueTrend", "Revenue Trend by Year")}
                 </Text>
                 <Text style={styles.chartSubtitle}>
-                  {t('transaction.amountInThousands', 'Amount in thousands (VND)')}
+                  {t(
+                    "transaction.amountInThousands",
+                    "Amount in thousands (VND)"
+                  )}
                 </Text>
               </View>
-              
+
               {/* Selector Buttons Row */}
               <View style={styles.selectorButtonsRow}>
                 {/* Display Mode Selector */}
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.displayModeButton}
                   onPress={() => setShowDisplayModeModal(true)}
                   activeOpacity={0.7}
                 >
-                  <Ionicons name="stats-chart-outline" size={16} color="#ED2A46" />
+                  <Ionicons
+                    name="stats-chart-outline"
+                    size={16}
+                    color="#ED2A46"
+                  />
                   <Text style={styles.displayModeText}>
-                    {displayMode === 'year' ? t('dashboard.yearly', 'Yearly') :
-                     t('dashboard.monthly', 'Monthly')}
+                    {displayMode === "year"
+                      ? t("dashboard.yearly", "Yearly")
+                      : t("dashboard.monthly", "Monthly")}
                   </Text>
                   <Ionicons name="chevron-down" size={16} color="#ED2A46" />
                 </TouchableOpacity>
 
                 {/* Month Selector Button (only show in monthly mode) */}
-                {displayMode === 'month' && (
-                  <TouchableOpacity 
+                {displayMode === "month" && (
+                  <TouchableOpacity
                     style={styles.monthSelectorButton}
                     onPress={() => setShowMonthModal(true)}
                     activeOpacity={0.7}
                   >
-                    <Ionicons name="calendar-number-outline" size={16} color="#ED2A46" />
+                    <Ionicons
+                      name="calendar-number-outline"
+                      size={16}
+                      color="#ED2A46"
+                    />
                     <Text style={styles.monthSelectorText}>
-                      {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][selectedMonth]}
+                      {
+                        [
+                          "Jan",
+                          "Feb",
+                          "Mar",
+                          "Apr",
+                          "May",
+                          "Jun",
+                          "Jul",
+                          "Aug",
+                          "Sep",
+                          "Oct",
+                          "Nov",
+                          "Dec",
+                        ][selectedMonth]
+                      }
                     </Text>
                     <Ionicons name="chevron-down" size={16} color="#ED2A46" />
                   </TouchableOpacity>
                 )}
 
                 {/* Year Selector Button */}
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.yearSelectorButton}
                   onPress={() => setShowYearModal(true)}
                   activeOpacity={0.7}
                 >
                   <Ionicons name="calendar-outline" size={16} color="#ED2A46" />
                   <Text style={styles.yearSelectorText}>
-                    {selectedYears.length > 0 
-                      ? selectedYears.join(', ')
-                      : t('dashboard.selectYears', 'Select Years')
-                    }
+                    {selectedYears.length > 0
+                      ? selectedYears.join(", ")
+                      : t("dashboard.selectYears", "Select Years")}
                   </Text>
                   <Ionicons name="chevron-down" size={16} color="#ED2A46" />
                 </TouchableOpacity>
@@ -421,7 +488,12 @@ const DashboardTab = ({
               <View style={styles.legendContainer}>
                 {selectedYears.map((year, index) => (
                   <View key={year} style={styles.legendItem}>
-                    <View style={[styles.legendColor, { backgroundColor: getYearColor(index) }]} />
+                    <View
+                      style={[
+                        styles.legendColor,
+                        { backgroundColor: getYearColor(index) },
+                      ]}
+                    />
                     <Text style={styles.legendText}>{year}</Text>
                   </View>
                 ))}
@@ -448,20 +520,25 @@ const DashboardTab = ({
               <View style={styles.emptyChartMessage}>
                 <Ionicons name="analytics-outline" size={40} color="#E0E0E0" />
                 <Text style={styles.emptyChartText}>
-                  {t('dashboard.selectYearsToView', 'Select years to view revenue trend')}
+                  {t(
+                    "dashboard.selectYearsToView",
+                    "Select years to view revenue trend"
+                  )}
                 </Text>
               </View>
             )}
           </View>
 
           {/* Status Distribution Progress Rings */}
-          {(completedCount + pendingCount + failedCount) >= 0 && (
+          {completedCount + pendingCount + failedCount >= 0 && (
             <View style={styles.chartCard}>
               <Text style={styles.chartTitle}>
-                {t('transaction.statusDistribution', 'Transaction Status Distribution')}
+                {t(
+                  "transaction.statusDistribution",
+                  "Transaction Status Distribution"
+                )}
               </Text>
               <View style={styles.progressRingsWrapper}>
-
                 <ProgressChart
                   data={{
                     labels: prepareProgressRingsData().labels,
@@ -472,17 +549,17 @@ const DashboardTab = ({
                   strokeWidth={16}
                   radius={28}
                   chartConfig={{
-                    backgroundGradientFrom: '#fff',
-                    backgroundGradientTo: '#fff',
+                    backgroundGradientFrom: "#fff",
+                    backgroundGradientTo: "#fff",
                     color: (opacity = 1, index) => {
-                      const colors = ['#F44336', '#FF9800', '#11ed18ff'];
+                      const colors = ["#F44336", "#FF9800", "#11ed18ff"];
                       const hexColor = colors[index] || colors[0];
-                      
+
                       // Convert hex to rgba with opacity
                       const r = parseInt(hexColor.slice(1, 3), 16);
                       const g = parseInt(hexColor.slice(3, 5), 16);
                       const b = parseInt(hexColor.slice(5, 7), 16);
-                      
+
                       return `rgba(${r}, ${g}, ${b}, ${opacity})`;
                     },
                     propsForLabels: {
@@ -501,18 +578,27 @@ const DashboardTab = ({
                     return (
                       <View key={index} style={styles.progressRingLegendItem}>
                         <View style={styles.progressRingLegendHeader}>
-                          <Ionicons 
-                            name={ringData.icons[index]} 
-                            size={20} 
-                            color={ringData.colors[index]} 
+                          <Ionicons
+                            name={ringData.icons[index]}
+                            size={20}
+                            color={ringData.colors[index]}
                           />
-                          <Text style={[styles.progressRingLabel, { color: ringData.colors[index] }]}>
+                          <Text
+                            style={[
+                              styles.progressRingLabel,
+                              { color: ringData.colors[index] },
+                            ]}
+                          >
                             {label}
                           </Text>
                         </View>
                         <View style={styles.progressRingStats}>
-                          <Text style={styles.progressRingCount}>{ringData.counts[index]}</Text>
-                          <Text style={styles.progressRingPercentage}>({percentage}%)</Text>
+                          <Text style={styles.progressRingCount}>
+                            {ringData.counts[index]}
+                          </Text>
+                          <Text style={styles.progressRingPercentage}>
+                            ({percentage}%)
+                          </Text>
                         </View>
                       </View>
                     );
@@ -525,10 +611,10 @@ const DashboardTab = ({
           {/* Monthly Revenue Bar Chart */}
           <View style={styles.chartCard}>
             <Text style={styles.chartTitle}>
-              {t('transaction.monthlyRevenue', 'Monthly Revenue by Status')}
+              {t("transaction.monthlyRevenue", "Monthly Revenue by Status")}
             </Text>
             <Text style={styles.chartSubtitle}>
-              {t('transaction.amountInThousands', 'Amount in thousands (VND)')}
+              {t("transaction.amountInThousands", "Amount in thousands (VND)")}
             </Text>
             <BarChart
               data={prepareBarChartData()}
@@ -544,7 +630,6 @@ const DashboardTab = ({
         </View>
       )}
 
-
       {/* Year Selection Modal */}
       <Modal
         visible={showYearModal}
@@ -556,25 +641,33 @@ const DashboardTab = ({
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
-                {t('dashboard.selectYears', 'Select Years')}
+                {t("dashboard.selectYears", "Select Years")}
               </Text>
               <TouchableOpacity onPress={() => setShowYearModal(false)}>
                 <Ionicons name="close" size={24} color="#333" />
               </TouchableOpacity>
             </View>
-            
+
             <Text style={styles.modalSubtitle}>
-              {displayMode === 'month' 
-                ? t('dashboard.selectOneYear', 'Select a year to view monthly data')
-                : t('dashboard.selectUpTo3Years', 'Select up to 3 years to compare')
-              }
+              {displayMode === "month"
+                ? t(
+                    "dashboard.selectOneYear",
+                    "Select a year to view monthly data"
+                  )
+                : t(
+                    "dashboard.selectUpTo3Years",
+                    "Select up to 3 years to compare"
+                  )}
             </Text>
 
             <ScrollView style={styles.yearList}>
               {availableYears.map((year) => {
                 const isSelected = selectedYears.includes(year);
-                const canSelect = displayMode === 'month' ? true : (selectedYears.length < 3 || isSelected);
-                
+                const canSelect =
+                  displayMode === "month"
+                    ? true
+                    : selectedYears.length < 3 || isSelected;
+
                 return (
                   <TouchableOpacity
                     key={year}
@@ -588,32 +681,44 @@ const DashboardTab = ({
                     activeOpacity={0.7}
                   >
                     <View style={styles.yearItemContent}>
-                      <Text style={[
-                        styles.yearItemText,
-                        isSelected && styles.yearItemTextSelected,
-                        !canSelect && styles.yearItemTextDisabled,
-                      ]}>
+                      <Text
+                        style={[
+                          styles.yearItemText,
+                          isSelected && styles.yearItemTextSelected,
+                          !canSelect && styles.yearItemTextDisabled,
+                        ]}
+                      >
                         {year}
                       </Text>
                       {isSelected && (
-                        <View style={[
-                          styles.yearColorIndicator,
-                          { backgroundColor: getYearColor(selectedYears.indexOf(year)) }
-                        ]} />
+                        <View
+                          style={[
+                            styles.yearColorIndicator,
+                            {
+                              backgroundColor: getYearColor(
+                                selectedYears.indexOf(year)
+                              ),
+                            },
+                          ]}
+                        />
                       )}
                     </View>
                     {isSelected && (
-                      <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={24}
+                        color="#4CAF50"
+                      />
                     )}
                   </TouchableOpacity>
                 );
               })}
-              
+
               {availableYears.length === 0 && (
                 <View style={styles.emptyYearList}>
                   <Ionicons name="calendar-outline" size={40} color="#E0E0E0" />
                   <Text style={styles.emptyYearText}>
-                    {t('dashboard.noYearsAvailable', 'No years available')}
+                    {t("dashboard.noYearsAvailable", "No years available")}
                   </Text>
                 </View>
               )}
@@ -621,10 +726,15 @@ const DashboardTab = ({
 
             <View style={styles.modalFooter}>
               <Text style={styles.selectedCountText}>
-                {displayMode === 'month' 
-                  ? `${selectedYears.length} ${t('dashboard.yearSelected', 'year selected')}`
-                  : `${selectedYears.length} / 3 ${t('dashboard.yearsSelected', 'years selected')}`
-                }
+                {displayMode === "month"
+                  ? `${selectedYears.length} ${t(
+                      "dashboard.yearSelected",
+                      "year selected"
+                    )}`
+                  : `${selectedYears.length} / 3 ${t(
+                      "dashboard.yearsSelected",
+                      "years selected"
+                    )}`}
               </Text>
               <TouchableOpacity
                 style={styles.doneButton}
@@ -632,7 +742,7 @@ const DashboardTab = ({
                 activeOpacity={0.8}
               >
                 <Text style={styles.doneButtonText}>
-                  {t('dashboard.done', 'Done')}
+                  {t("dashboard.done", "Done")}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -651,22 +761,37 @@ const DashboardTab = ({
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
-                {t('dashboard.selectMonth', 'Select Month')}
+                {t("dashboard.selectMonth", "Select Month")}
               </Text>
               <TouchableOpacity onPress={() => setShowMonthModal(false)}>
                 <Ionicons name="close" size={24} color="#333" />
               </TouchableOpacity>
             </View>
-            
+
             <Text style={styles.modalSubtitle}>
-              {t('dashboard.chooseMonth', 'Choose a month to view weekly data')}
+              {t("dashboard.chooseMonth", "Choose a month to view weekly data")}
             </Text>
-            
-            <ScrollView style={styles.monthListContainer} showsVerticalScrollIndicator={true}>
-              {['January', 'February', 'March', 'April', 'May', 'June', 
-                'July', 'August', 'September', 'October', 'November', 'December'].map((month, index) => {
+
+            <ScrollView
+              style={styles.monthListContainer}
+              showsVerticalScrollIndicator={true}
+            >
+              {[
+                "January",
+                "February",
+                "March",
+                "April",
+                "May",
+                "June",
+                "July",
+                "August",
+                "September",
+                "October",
+                "November",
+                "December",
+              ].map((month, index) => {
                 const isSelected = selectedMonth === index;
-                
+
                 return (
                   <TouchableOpacity
                     key={index}
@@ -681,15 +806,21 @@ const DashboardTab = ({
                     activeOpacity={0.7}
                   >
                     <View style={styles.monthItemContent}>
-                      <Text style={[
-                        styles.monthItemText,
-                        isSelected && styles.monthItemTextSelected,
-                      ]}>
+                      <Text
+                        style={[
+                          styles.monthItemText,
+                          isSelected && styles.monthItemTextSelected,
+                        ]}
+                      >
                         {t(`dashboard.${month.toLowerCase()}`, month)}
                       </Text>
                     </View>
                     {isSelected && (
-                      <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={24}
+                        color="#4CAF50"
+                      />
                     )}
                   </TouchableOpacity>
                 );
@@ -710,29 +841,35 @@ const DashboardTab = ({
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
-                {t('dashboard.selectDisplayMode', 'Select Display Mode')}
+                {t("dashboard.selectDisplayMode", "Select Display Mode")}
               </Text>
               <TouchableOpacity onPress={() => setShowDisplayModeModal(false)}>
                 <Ionicons name="close" size={24} color="#333" />
               </TouchableOpacity>
             </View>
-            
+
             <Text style={styles.modalSubtitle}>
-              {t('dashboard.chooseTimeFrame', 'Choose how to view your revenue data')}
+              {t(
+                "dashboard.chooseTimeFrame",
+                "Choose how to view your revenue data"
+              )}
             </Text>
-            
+
             <View style={styles.displayModeList}>
               {/* Year Mode */}
               <TouchableOpacity
                 style={[
                   styles.displayModeItem,
-                  displayMode === 'year' && styles.displayModeItemSelected,
+                  displayMode === "year" && styles.displayModeItemSelected,
                 ]}
                 onPress={() => {
-                  setDisplayMode('year');
+                  setDisplayMode("year");
                   // Auto-select 3 latest years when switching to year mode
                   if (availableYears.length > 0) {
-                    const latestYears = availableYears.slice(0, Math.min(3, availableYears.length));
+                    const latestYears = availableYears.slice(
+                      0,
+                      Math.min(3, availableYears.length)
+                    );
                     setSelectedYears(latestYears);
                   }
                   setShowDisplayModeModal(false);
@@ -740,24 +877,30 @@ const DashboardTab = ({
                 activeOpacity={0.7}
               >
                 <View style={styles.displayModeItemContent}>
-                  <Ionicons 
-                    name="calendar-outline" 
-                    size={24} 
-                    color={displayMode === 'year' ? '#2E7D32' : '#333'} 
+                  <Ionicons
+                    name="calendar-outline"
+                    size={24}
+                    color={displayMode === "year" ? "#2E7D32" : "#333"}
                   />
                   <View style={styles.displayModeTextContainer}>
-                    <Text style={[
-                      styles.displayModeItemTitle,
-                      displayMode === 'year' && styles.displayModeItemTitleSelected,
-                    ]}>
-                      {t('dashboard.yearly', 'Yearly')}
+                    <Text
+                      style={[
+                        styles.displayModeItemTitle,
+                        displayMode === "year" &&
+                          styles.displayModeItemTitleSelected,
+                      ]}
+                    >
+                      {t("dashboard.yearly", "Yearly")}
                     </Text>
                     <Text style={styles.displayModeItemDescription}>
-                      {t('dashboard.yearlyDescription', 'View data by month across the year')}
+                      {t(
+                        "dashboard.yearlyDescription",
+                        "View data by month across the year"
+                      )}
                     </Text>
                   </View>
                 </View>
-                {displayMode === 'year' && (
+                {displayMode === "year" && (
                   <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
                 )}
               </TouchableOpacity>
@@ -766,10 +909,10 @@ const DashboardTab = ({
               <TouchableOpacity
                 style={[
                   styles.displayModeItem,
-                  displayMode === 'month' && styles.displayModeItemSelected,
+                  displayMode === "month" && styles.displayModeItemSelected,
                 ]}
                 onPress={() => {
-                  setDisplayMode('month');
+                  setDisplayMode("month");
                   // Auto-select 1 latest year when switching to month mode
                   if (availableYears.length > 0) {
                     setSelectedYears([availableYears[0]]);
@@ -779,24 +922,30 @@ const DashboardTab = ({
                 activeOpacity={0.7}
               >
                 <View style={styles.displayModeItemContent}>
-                  <Ionicons 
-                    name="apps-outline" 
-                    size={24} 
-                    color={displayMode === 'month' ? '#2E7D32' : '#333'} 
+                  <Ionicons
+                    name="apps-outline"
+                    size={24}
+                    color={displayMode === "month" ? "#2E7D32" : "#333"}
                   />
                   <View style={styles.displayModeTextContainer}>
-                    <Text style={[
-                      styles.displayModeItemTitle,
-                      displayMode === 'month' && styles.displayModeItemTitleSelected,
-                    ]}>
-                      {t('dashboard.monthly', 'Monthly')}
+                    <Text
+                      style={[
+                        styles.displayModeItemTitle,
+                        displayMode === "month" &&
+                          styles.displayModeItemTitleSelected,
+                      ]}
+                    >
+                      {t("dashboard.monthly", "Monthly")}
                     </Text>
                     <Text style={styles.displayModeItemDescription}>
-                      {t('dashboard.monthlyDescription', 'View data by week for the current month')}
+                      {t(
+                        "dashboard.monthlyDescription",
+                        "View data by week for the current month"
+                      )}
                     </Text>
                   </View>
                 </View>
-                {displayMode === 'month' && (
+                {displayMode === "month" && (
                   <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
                 )}
               </TouchableOpacity>
@@ -814,44 +963,44 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   financialRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
   },
   statsContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     margin: 16,
     marginBottom: 8,
     gap: 8,
   },
   statCard: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 16,
-    alignItems: 'center',
+    alignItems: "center",
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
   statNumber: {
     fontSize: 14,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
     marginTop: 8,
     marginBottom: 4,
-    textAlign: 'center',
+    textAlign: "center",
   },
   statLabel: {
     fontSize: 10,
-    color: '#666',
-    textAlign: 'center',
+    color: "#666",
+    textAlign: "center",
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
     marginBottom: 12,
   },
   quickActionsContainer: {
@@ -859,39 +1008,39 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   quickActionsGrid: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
   },
   quickActionCard: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 20,
-    alignItems: 'center',
+    alignItems: "center",
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
   quickActionText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
     marginTop: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
   toggleChartsButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#fff',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#fff",
     marginHorizontal: 16,
     marginBottom: 12,
     paddingVertical: 12,
     borderRadius: 12,
     elevation: 1,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
@@ -899,33 +1048,33 @@ const styles = StyleSheet.create({
   },
   toggleChartsText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#ED2A46',
+    fontWeight: "600",
+    color: "#ED2A46",
   },
   chartsContainer: {
     marginBottom: 16,
   },
   chartCard: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     marginHorizontal: 16,
     marginBottom: 16,
     borderRadius: 16,
     padding: 16,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
   chartTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
     marginBottom: 4,
   },
   chartSubtitle: {
     fontSize: 12,
-    color: '#666',
+    color: "#666",
     marginBottom: 12,
   },
   chart: {
@@ -939,68 +1088,68 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   selectorButtonsRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 8,
-    flexWrap: 'wrap',
+    flexWrap: "wrap",
   },
   displayModeButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFF5F6',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFF5F6",
     borderRadius: 8,
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderWidth: 1,
-    borderColor: '#ED2A46',
+    borderColor: "#ED2A46",
     gap: 6,
   },
   displayModeText: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#ED2A46',
+    fontWeight: "600",
+    color: "#ED2A46",
   },
   yearSelectorButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFF5F6',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFF5F6",
     borderRadius: 8,
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderWidth: 1,
-    borderColor: '#ED2A46',
+    borderColor: "#ED2A46",
     gap: 6,
   },
   yearSelectorText: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#ED2A46',
+    fontWeight: "600",
+    color: "#ED2A46",
   },
 
   monthSelectorButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFF5F6',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFF5F6",
     borderRadius: 8,
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderWidth: 1,
-    borderColor: '#ED2A46',
+    borderColor: "#ED2A46",
     gap: 6,
   },
   monthSelectorText: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#ED2A46',
+    fontWeight: "600",
+    color: "#ED2A46",
   },
   legendContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     marginBottom: 12,
     gap: 12,
   },
   legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
   },
   legendColor: {
@@ -1010,176 +1159,176 @@ const styles = StyleSheet.create({
   },
   legendText: {
     fontSize: 12,
-    color: '#666',
-    fontWeight: '500',
+    color: "#666",
+    fontWeight: "500",
   },
   emptyChartMessage: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 60,
   },
   emptyChartText: {
     fontSize: 14,
-    color: '#999',
+    color: "#999",
     marginTop: 12,
-    textAlign: 'center',
+    textAlign: "center",
   },
   // Progress Rings Styles
   progressRingsWrapper: {
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 8,
   },
   progressRingsLegend: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "100%",
     marginTop: 16,
     paddingHorizontal: 8,
   },
   progressRingLegendItem: {
-    alignItems: 'center',
+    alignItems: "center",
     flex: 1,
   },
   progressRingLegendHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
     marginBottom: 6,
   },
   progressRingLabel: {
     fontSize: 13,
-    fontWeight: '600',
-    textAlign: 'center',
+    fontWeight: "600",
+    textAlign: "center",
   },
   progressRingStats: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
   },
   progressRingCount: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
   },
   progressRingPercentage: {
     fontSize: 12,
-    color: '#666',
-    fontWeight: '500',
+    color: "#666",
+    fontWeight: "500",
   },
   // Modal Styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "flex-end",
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    maxHeight: '80%',
+    maxHeight: "80%",
     paddingBottom: 20,
   },
   modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    borderBottomColor: "#F0F0F0",
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
   },
   modalSubtitle: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 8,
   },
-  
+
   yearList: {
     maxHeight: 400,
     paddingHorizontal: 20,
   },
   yearItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 16,
     paddingHorizontal: 16,
     borderRadius: 12,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: "#F8F9FA",
     marginBottom: 8,
     borderWidth: 2,
-    borderColor: 'transparent',
+    borderColor: "transparent",
   },
   yearItemSelected: {
-    backgroundColor: '#E8F5E9',
-    borderColor: '#4CAF50',
+    backgroundColor: "#E8F5E9",
+    borderColor: "#4CAF50",
   },
   yearItemDisabled: {
     opacity: 0.4,
   },
   yearItemContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
   },
   yearItemText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
   },
   yearItemTextSelected: {
-    color: '#2E7D32',
+    color: "#2E7D32",
   },
   yearItemTextDisabled: {
-    color: '#999',
+    color: "#999",
   },
   yearColorIndicator: {
     width: 20,
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: '#fff',
+    borderColor: "#fff",
   },
   emptyYearList: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: 40,
   },
   emptyYearText: {
     fontSize: 14,
-    color: '#999',
+    color: "#999",
     marginTop: 12,
   },
   modalFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
+    borderTopColor: "#F0F0F0",
     marginTop: 12,
   },
   selectedCountText: {
     fontSize: 14,
-    color: '#666',
-    fontWeight: '500',
+    color: "#666",
+    fontWeight: "500",
   },
   doneButton: {
-    backgroundColor: '#ED2A46',
+    backgroundColor: "#ED2A46",
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 32,
   },
   doneButtonText: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#fff',
+    fontWeight: "bold",
+    color: "#fff",
   },
   // Display Mode Modal Styles
   displayModeList: {
@@ -1187,24 +1336,24 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   displayModeItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 16,
     paddingHorizontal: 16,
     borderRadius: 12,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: "#F8F9FA",
     marginBottom: 12,
     borderWidth: 2,
-    borderColor: 'transparent',
+    borderColor: "transparent",
   },
   displayModeItemSelected: {
-    backgroundColor: '#E8F5E9',
-    borderColor: '#4CAF50',
+    backgroundColor: "#E8F5E9",
+    borderColor: "#4CAF50",
   },
   displayModeItemContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
     flex: 1,
   },
@@ -1213,16 +1362,16 @@ const styles = StyleSheet.create({
   },
   displayModeItemTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
     marginBottom: 4,
   },
   displayModeItemTitleSelected: {
-    color: '#2E7D32',
+    color: "#2E7D32",
   },
   displayModeItemDescription: {
     fontSize: 12,
-    color: '#666',
+    color: "#666",
   },
   // Month Modal Styles
   monthListContainer: {
@@ -1231,31 +1380,31 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   monthItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 16,
     paddingHorizontal: 16,
     borderRadius: 12,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: "#F8F9FA",
     marginBottom: 8,
     borderWidth: 2,
-    borderColor: 'transparent',
+    borderColor: "transparent",
   },
   monthItemSelected: {
-    backgroundColor: '#E8F5E9',
-    borderColor: '#4CAF50',
+    backgroundColor: "#E8F5E9",
+    borderColor: "#4CAF50",
   },
   monthItemContent: {
     flex: 1,
   },
   monthItemText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
   },
   monthItemTextSelected: {
-    color: '#2E7D32',
+    color: "#2E7D32",
   },
 });
 
