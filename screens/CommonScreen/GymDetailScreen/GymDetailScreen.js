@@ -262,7 +262,8 @@ export default function GymDetailScreen({ route }) {
       gymName: gymDetail.gymName,
       gymAddress: gymDetail.gymAddress,
       gymImage:
-        gymDetail?.gymImages[0] ||
+        packageGym.image ||
+        gymDetail?.gymImages[0]?.url ||
         "https://levelfyc.com/wp-content/uploads/2024/08/khong-gian-4.jpg",
       id: packageGym.id,
       name: packageGym.name,

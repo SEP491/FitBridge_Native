@@ -260,22 +260,18 @@ export default function BookingDetailContent({
     }
   };
 
-  // Check if current time is within the allowed window (timeBeforeStart minutes before planned time)
   const canStartSession = () => {
-    if (!bookingDetail?.sessionStartTime) return false;
-
+    if (!Booking?.startTime || !Booking?.bookingDate) return false;
     try {
-      const plannedStartTime = new Date(bookingDetail.sessionStartTime);
+      const dateTimeString = `${Booking.bookingDate}T${Booking.startTime}`;
+      const plannedStartTime = new Date(dateTimeString);
+      console.log("plannedStartTime", plannedStartTime);
       const now = new Date();
 
-      // Calculate the earliest allowed start time (timeBeforeStart minutes before planned time)
       const earliestStartTime = new Date(plannedStartTime);
       earliestStartTime.setMinutes(
         earliestStartTime.getMinutes() - timeBeforeStart
       );
-
-      // Can start if current time is >= earliest allowed time and < planned start time
-      // (or if planned time has passed, allow starting)
       return now >= earliestStartTime;
     } catch (error) {
       console.error("Error checking if can start session:", error);
