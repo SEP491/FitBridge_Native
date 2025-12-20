@@ -82,16 +82,7 @@ const getStatusText = (status) => {
 const TransactionItem = ({ item, t, userRole }) => {
   const statusColor = getStatusColor(item.status);
   const statusText = getStatusText(item.status);
-  const [userRole, setUserRole] = useState(null);
 
-  const fetchUser = async () => {
-    const user = await fetchUserFromStorage();
-    setUserRole(user.role);
-  };
-
-  useEffect(() => {
-    fetchUser();
-  }, []);
 
   return (
     <View style={styles.transactionItem}>
