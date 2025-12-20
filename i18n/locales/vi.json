@@ -995,6 +995,7 @@
     "selectUpTo3Years": "Chọn tối đa 3 năm để so sánh",
     "selectOneYear": "Chọn một năm để xem doanh thu theo tháng",
     "selectYearsToView": "Chọn năm để xem xu hướng doanh thu",
+    "noTransactionsForChart": "Chưa có dữ liệu giao dịch để hiển thị biểu đồ",
     "noYearsAvailable": "Không có năm khả dụng",
     "yearsSelected": "năm đã chọn",
     "yearSelected": "năm đã chọn",
@@ -2598,5 +2599,20 @@
     "firstSessionStart": "Buổi tập đầu tiên",
     "latestSessionEnd": "Buổi tập mới nhất",
     "notAvailable": "Không có"
+  },
+
+  "userDetail": {
+    "updateDetails": "Cập nhật thông tin cá nhân",
+    "updateBodyMeasurements": "Cập nhật số đo cơ thể và tiểu sử",
+    "bodyMeasurements": "Số đo cơ thể",
+    "additionalInfo": "Thông tin bổ sung",
+    "experience": "Kinh nghiệm",
+    "years": "năm",
+    "enterExperience": "Nhập số năm kinh nghiệm",
+    "loading": "Đang tải...",
+    "failedToLoad": "Không thể tải thông tin cá nhân",
+    "fillAllFields": "Vui lòng điền đầy đủ các trường bắt buộc",
+    "updateSuccess": "Cập nhật thông tin cá nhân thành công",
+    "updateFailed": "Không thể cập nhật thông tin cá nhân"
   }
 }

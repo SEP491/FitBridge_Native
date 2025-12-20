@@ -25,6 +25,7 @@ import accountService from "../../../services/accountService";
 import { useTranslation } from "../../../hooks/useTranslation";
 import { useUser } from "../../../context/UserContext";
 import LoadingIndicator from "../../../components/LoadingIndicator";
+import UpdateUserDetailModal from "./UpdateUserDetailModal";
 
 const { width } = Dimensions.get("window");
 
@@ -35,6 +36,7 @@ const AccountScreen = () => {
   const [editMode, setEditMode] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [showUpdateUserDetailModal, setShowUpdateUserDetailModal] = useState(false);
   const { avatarUrl, updateAvatarUrl } = useUser();
   // Original profile from API
   const [userProfile, setUserProfile] = useState({});
@@ -474,6 +476,24 @@ const AccountScreen = () => {
           <View style={styles.actionCardsContainer}>
             <TouchableOpacity
               style={styles.actionCard}
+              onPress={() => setShowUpdateUserDetailModal(true)}
+            >
+              <View style={[styles.actionCardIcon, { backgroundColor: "#E3F2FD" }]}>
+                <Icon name="user" size={20} color="#2196F3" />
+              </View>
+              <View style={styles.actionCardContent}>
+                <Text style={styles.actionCardTitle}>
+                  {t("userDetail.updateDetails", "Update User Details")}
+                </Text>
+                <Text style={styles.actionCardSubtitle}>
+                  {t("userDetail.updateBodyMeasurements", "Update body measurements and bio")}
+                </Text>
+              </View>
+              <Icon name="chevron-right" size={16} color="#999" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.actionCard}
               onPress={() => navigation.navigate("UpdatePasswordScreen")}
             >
               <View style={styles.actionCardIcon}>
@@ -532,6 +552,16 @@ const AccountScreen = () => {
           </View>
         )}
       </ScrollView>
+
+      {/* Update User Detail Modal */}
+      <UpdateUserDetailModal
+        visible={showUpdateUserDetailModal}
+        onClose={() => setShowUpdateUserDetailModal(false)}
+        onSuccess={() => {
+          // Optionally refresh user data
+          fetchUserData();
+        }}
+      />
     </View>
   );
 };

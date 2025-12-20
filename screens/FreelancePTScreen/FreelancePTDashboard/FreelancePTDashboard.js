@@ -60,7 +60,7 @@ const FreelancePTDashboard = ({ navigation }) => {
   }, [transactions]);
 
   // Initialize years based on display mode
-  React.useMemo(() => {
+  useEffect(() => {
     if (selectedYears.length === 0 && availableYears.length > 0) {
       if (displayMode === "month") {
         setSelectedYears([availableYears[0]]);
@@ -72,7 +72,7 @@ const FreelancePTDashboard = ({ navigation }) => {
         setSelectedYears(latestYears);
       }
     }
-  }, [availableYears, displayMode]);
+  }, [availableYears, displayMode, selectedYears.length]);
 
   const toggleYearSelection = (year) => {
     if (displayMode === "month") {
@@ -171,109 +171,7 @@ const FreelancePTDashboard = ({ navigation }) => {
     return { labels, datasets };
   };
 
-  const prepareProgressRingsData = () => {
-    const totalCount =
-      transactions.filter(
-        (t) =>
-          t.status?.toUpperCase() === "COMPLETED" ||
-          t.status?.toUpperCase() === "SUCCESS"
-      ).length +
-      transactions.filter((t) => t.status?.toUpperCase() === "PENDING")
-        .length +
-      transactions.filter(
-        (t) =>
-          t.status?.toUpperCase() === "FAILED" ||
-          t.status?.toUpperCase() === "CANCELLED"
-      ).length;
 
-    const completedCount = transactions.filter(
-      (t) =>
-        t.status?.toUpperCase() === "COMPLETED" ||
-        t.status?.toUpperCase() === "SUCCESS"
-    ).length;
-    const pendingCount = transactions.filter(
-      (t) => t.status?.toUpperCase() === "PENDING"
-    ).length;
-    const failedCount = transactions.filter(
-      (t) =>
-        t.status?.toUpperCase() === "FAILED" ||
-        t.status?.toUpperCase() === "CANCELLED"
-    ).length;
-
-    return {
-      labels: [
-        t("transaction.failed", "Failed"),
-        t("transaction.pending", "Pending"),
-        t("transaction.completed", "Completed"),
-      ],
-      data: [
-        totalCount > 0 ? failedCount / totalCount : 0,
-        totalCount > 0 ? pendingCount / totalCount : 0,
-        totalCount > 0 ? completedCount / totalCount : 0,
-      ],
-      colors: ["#F44336", "#FF9800", "#4CAF50"],
-      counts: [failedCount, pendingCount, completedCount],
-      icons: ["close-circle", "time", "checkmark-circle"],
-    };
-  };
-
-  const prepareBarChartData = () => {
-    const monthlyData = {};
-    transactions.forEach((t) => {
-      const date = new Date(t.createdAt);
-      const monthKey = `${date.getMonth() + 1}`;
-      if (!monthlyData[monthKey]) {
-        monthlyData[monthKey] = { completed: 0, pending: 0, failed: 0 };
-      }
-      const status = t.status?.toUpperCase();
-      if (status === "COMPLETED" || status === "SUCCESS") {
-        monthlyData[monthKey].completed += t.amount || 0;
-      } else if (status === "PENDING") {
-        monthlyData[monthKey].pending += t.amount || 0;
-      } else {
-        monthlyData[monthKey].failed += t.amount || 0;
-      }
-    });
-
-    const months = Object.keys(monthlyData).sort((a, b) => Number(a) - Number(b));
-    const monthNames = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-
-    return {
-      labels: months.map((m) => monthNames[Number(m) - 1]),
-      datasets: [
-        {
-          data: months.map((m) => monthlyData[m].completed / 1000),
-          color: () => "#4CAF50",
-        },
-        {
-          data: months.map((m) => monthlyData[m].pending / 1000),
-          color: () => "#FF9800",
-        },
-        {
-          data: months.map((m) => monthlyData[m].failed / 1000),
-          color: () => "#F44336",
-        },
-      ],
-      legend: [
-        t("transaction.completed", "Completed"),
-        t("transaction.pending", "Pending"),
-        t("transaction.failed", "Failed"),
-      ],
-    };
-  };
 
   const chartConfig = {
     backgroundGradientFrom: "#fff",
@@ -312,29 +210,6 @@ const FreelancePTDashboard = ({ navigation }) => {
       t.status?.toUpperCase() === "CANCELLED"
   ).length;
 
-  const quickActions = [
-    {
-      icon: "wallet",
-      label: "Rút tiền",
-      subtitle: "Chuyển khoản ngay",
-      accent: "#FF914D",
-      onPress: () => navigation?.navigate?.("WithdrawScreen"),
-    },
-    {
-      icon: "calendar",
-      label: "Lịch tập",
-      subtitle: "Quản lý buổi tập",
-      accent: "#2196F3",
-      onPress: () => navigation?.navigate?.("ScheduleScreen"),
-    },
-    {
-      icon: "bar-chart",
-      label: "Báo cáo",
-      subtitle: "Theo dõi hiệu suất",
-      accent: "#8E54E9",
-      onPress: () => {},
-    },
-  ];
 
   useFocusEffect(
     useCallback(() => {
@@ -673,7 +548,7 @@ const FreelancePTDashboard = ({ navigation }) => {
         </TouchableOpacity>
 
         {/* Charts Section */}
-        {showCharts && transactions.length > 0 && (
+        {showCharts && (
           <View style={styles.chartsContainer}>
             {/* Revenue Trend Chart */}
             <View style={styles.chartCard}>
@@ -783,7 +658,17 @@ const FreelancePTDashboard = ({ navigation }) => {
                 </View>
               )}
 
-              {selectedYears.length > 0 ? (
+              {transactions.length === 0 ? (
+                <View style={styles.emptyChartMessage}>
+                  <Ionicons name="analytics-outline" size={40} color="#E0E0E0" />
+                  <Text style={styles.emptyChartText}>
+                    {t(
+                      "dashboard.noTransactionsForChart",
+                      "No transaction data available to display chart"
+                    )}
+                  </Text>
+                </View>
+              ) : selectedYears.length > 0 ? (
                 <LineChart
                   data={prepareLineChartData()}
                   width={CHART_WIDTH - 32}
