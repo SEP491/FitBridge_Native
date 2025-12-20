@@ -10,6 +10,7 @@ import {
   Modal,
   TextInput,
   Platform,
+  RefreshControl,
 } from "react-native";
 import React, { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "../../../hooks/useTranslation";
@@ -21,6 +22,7 @@ import WeekCalendar from "../../../components/WeekCalendar/WeekCalendar";
 import accountService from "../../../services/accountService";
 import { fetchUserFromStorage, formatDateForAPI } from "../../../lib";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 const { width, height } = Dimensions.get("window");
 
@@ -30,6 +32,7 @@ export default function CalendarScheduleScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Edit modal states
   const [showEditModal, setShowEditModal] = useState(false);
@@ -80,7 +83,13 @@ export default function CalendarScheduleScreen() {
       setBookings([]);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadBookingOfUser(selectedDate);
   };
 
   // Handle date selection
@@ -429,14 +438,15 @@ export default function CalendarScheduleScreen() {
             <ScrollView
               style={styles.scrollView}
               showsVerticalScrollIndicator={false}
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+              }
             >
               {loading ? (
-                <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="large" color={colors.red} />
-                  <Text style={styles.loadingText}>
-                    {t("calendar.loadingSessions")}
-                  </Text>
-                </View>
+                <LoadingIndicator
+                  variant="page"
+                  message={t("calendar.loadingSessions")}
+                />
               ) : (
                 <>
                   {bookings

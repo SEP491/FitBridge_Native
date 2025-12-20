@@ -10,6 +10,7 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useTranslation } from "../../../../hooks/useTranslation";
 import { useNavigation } from "@react-navigation/native";
 import addressService from "../../../../services/addressService";
+import LoadingIndicator from "../../../../components/LoadingIndicator";
 
 export default function AddressSection({
   onSelectAddress,
@@ -46,8 +47,7 @@ export default function AddressSection({
           <View style={styles.content}>
             {loading ? (
               <View style={styles.loadingContainer}>
-                <ActivityIndicator size="small" color="#ED2A46" />
-                <Text style={styles.loadingText}>{t("common.loading")}</Text>
+                <LoadingIndicator variant="inline" message={t("common.loading")} />
               </View>
             ) : selectedAddress ? (
               <View style={styles.addressCard}>

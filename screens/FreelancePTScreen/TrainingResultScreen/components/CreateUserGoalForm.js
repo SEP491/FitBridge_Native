@@ -16,6 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { uploadImage } from "../../../../lib/userGoalHelper";
 import { SafeAreaView } from "react-native-web";
+import LoadingIndicator from "../../../../components/LoadingIndicator";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -41,10 +42,7 @@ const InputField = ({ label, value = "", onChange, onBlur, unit }) => {
     <View style={styles.inputFieldContainer}>
       <Text style={styles.inputLabel}>{label}</Text>
       <View
-        style={[
-          styles.inputWithUnit,
-          isFocused && styles.inputWithUnitFocused,
-        ]}
+        style={[styles.inputWithUnit, isFocused && styles.inputWithUnitFocused]}
       >
         <TextInput
           style={styles.textInput}
@@ -391,11 +389,8 @@ export const CreateUserGoalForm = ({
     }
 
     // Validate numeric values
-    const numericFields = [
-      "startHeight",
-      "startWeight",
-    ];
-    
+    const numericFields = ["startHeight", "startWeight"];
+
     // Add target Height and Weight to validation if selected
     if (selectedTargetParts.includes("Height")) {
       numericFields.push("targetHeight");
@@ -420,8 +415,19 @@ export const CreateUserGoalForm = ({
 
     // Prepare data for submission - convert strings to numbers
     // For target parts: if not selected, default to 0
-    const musclePartKeys = ["Biceps", "ForeArm", "Chest", "Back", "Shoulder", "Waist", "Hip", "Thigh", "Calf", "Glutes"];
-    
+    const musclePartKeys = [
+      "Biceps",
+      "ForeArm",
+      "Chest",
+      "Back",
+      "Shoulder",
+      "Waist",
+      "Hip",
+      "Thigh",
+      "Calf",
+      "Glutes",
+    ];
+
     const submissionData = {
       ...formData,
       startHeight: parseFloat(formData.startHeight) || 0,
@@ -445,50 +451,59 @@ export const CreateUserGoalForm = ({
         ? parseFloat(formData.startGlutes)
         : null,
       // Target Height and Weight: if selected and has value, use it; if not selected, use 0
-      targetHeight: selectedTargetParts.includes("Height") && formData.targetHeight
-        ? parseFloat(formData.targetHeight)
-        : 0,
-      targetWeight: selectedTargetParts.includes("Weight") && formData.targetWeight
-        ? parseFloat(formData.targetWeight)
-        : 0,
+      targetHeight:
+        selectedTargetParts.includes("Height") && formData.targetHeight
+          ? parseFloat(formData.targetHeight)
+          : 0,
+      targetWeight:
+        selectedTargetParts.includes("Weight") && formData.targetWeight
+          ? parseFloat(formData.targetWeight)
+          : 0,
       // Set target muscle parts: if selected and has value, use it; if not selected, use 0
-      targetBiceps: selectedTargetParts.includes("Biceps") && formData.targetBiceps
-        ? parseFloat(formData.targetBiceps)
-        : 0,
-      targetForeArm: selectedTargetParts.includes("ForeArm") && formData.targetForeArm
-        ? parseFloat(formData.targetForeArm)
-        : 0,
-      targetChest: selectedTargetParts.includes("Chest") && formData.targetChest
-        ? parseFloat(formData.targetChest)
-        : 0,
-      targetBack: selectedTargetParts.includes("Back") && formData.targetBack
-        ? parseFloat(formData.targetBack)
-        : 0,
-      targetShoulder: selectedTargetParts.includes("Shoulder") && formData.targetShoulder
-        ? parseFloat(formData.targetShoulder)
-        : 0,
-      targetWaist: selectedTargetParts.includes("Waist") && formData.targetWaist
-        ? parseFloat(formData.targetWaist)
-        : 0,
-      targetHip: selectedTargetParts.includes("Hip") && formData.targetHip
-        ? parseFloat(formData.targetHip)
-        : 0,
-      targetThigh: selectedTargetParts.includes("Thigh") && formData.targetThigh
-        ? parseFloat(formData.targetThigh)
-        : 0,
-      targetCalf: selectedTargetParts.includes("Calf") && formData.targetCalf
-        ? parseFloat(formData.targetCalf)
-        : 0,
-      targetGlutes: selectedTargetParts.includes("Glutes") && formData.targetGlutes
-        ? parseFloat(formData.targetGlutes)
-        : 0,
+      targetBiceps:
+        selectedTargetParts.includes("Biceps") && formData.targetBiceps
+          ? parseFloat(formData.targetBiceps)
+          : 0,
+      targetForeArm:
+        selectedTargetParts.includes("ForeArm") && formData.targetForeArm
+          ? parseFloat(formData.targetForeArm)
+          : 0,
+      targetChest:
+        selectedTargetParts.includes("Chest") && formData.targetChest
+          ? parseFloat(formData.targetChest)
+          : 0,
+      targetBack:
+        selectedTargetParts.includes("Back") && formData.targetBack
+          ? parseFloat(formData.targetBack)
+          : 0,
+      targetShoulder:
+        selectedTargetParts.includes("Shoulder") && formData.targetShoulder
+          ? parseFloat(formData.targetShoulder)
+          : 0,
+      targetWaist:
+        selectedTargetParts.includes("Waist") && formData.targetWaist
+          ? parseFloat(formData.targetWaist)
+          : 0,
+      targetHip:
+        selectedTargetParts.includes("Hip") && formData.targetHip
+          ? parseFloat(formData.targetHip)
+          : 0,
+      targetThigh:
+        selectedTargetParts.includes("Thigh") && formData.targetThigh
+          ? parseFloat(formData.targetThigh)
+          : 0,
+      targetCalf:
+        selectedTargetParts.includes("Calf") && formData.targetCalf
+          ? parseFloat(formData.targetCalf)
+          : 0,
+      targetGlutes:
+        selectedTargetParts.includes("Glutes") && formData.targetGlutes
+          ? parseFloat(formData.targetGlutes)
+          : 0,
     };
 
     onSubmit(submissionData);
   };
-
-
-
 
   if (!visible) return null;
 
@@ -648,9 +663,10 @@ export const CreateUserGoalForm = ({
                   <Text style={styles.selectedPartsTitle}>
                     {t("userGoals.selectedParts", "Selected Parts")}
                   </Text>
-                  
+
                   {/* Height and Weight Row (if selected) */}
-                  {(selectedTargetParts.includes("Height") || selectedTargetParts.includes("Weight")) && (
+                  {(selectedTargetParts.includes("Height") ||
+                    selectedTargetParts.includes("Weight")) && (
                     <View style={styles.heightWeightRow}>
                       {selectedTargetParts.includes("Height") && (
                         <View style={styles.selectedPartWrapper}>
@@ -659,7 +675,10 @@ export const CreateUserGoalForm = ({
                             value={formData.targetHeight}
                             onChange={handleOnChangeText("targetHeight")}
                             onBlur={() =>
-                              handleInputBlur("targetHeight", formData.targetHeight)
+                              handleInputBlur(
+                                "targetHeight",
+                                formData.targetHeight
+                              )
                             }
                             unit={muscleGroups[0].unit}
                           />
@@ -667,7 +686,11 @@ export const CreateUserGoalForm = ({
                             style={styles.removePartButton}
                             onPress={() => toggleTargetPart("Height")}
                           >
-                            <Ionicons name="close-circle" size={24} color="#F44336" />
+                            <Ionicons
+                              name="close-circle"
+                              size={24}
+                              color="#F44336"
+                            />
                           </TouchableOpacity>
                         </View>
                       )}
@@ -678,7 +701,10 @@ export const CreateUserGoalForm = ({
                             value={formData.targetWeight}
                             onChange={handleOnChangeText("targetWeight")}
                             onBlur={() =>
-                              handleInputBlur("targetWeight", formData.targetWeight)
+                              handleInputBlur(
+                                "targetWeight",
+                                formData.targetWeight
+                              )
                             }
                             unit={muscleGroups[1].unit}
                           />
@@ -686,7 +712,11 @@ export const CreateUserGoalForm = ({
                             style={styles.removePartButton}
                             onPress={() => toggleTargetPart("Weight")}
                           >
-                            <Ionicons name="close-circle" size={24} color="#F44336" />
+                            <Ionicons
+                              name="close-circle"
+                              size={24}
+                              color="#F44336"
+                            />
                           </TouchableOpacity>
                         </View>
                       )}
@@ -695,10 +725,16 @@ export const CreateUserGoalForm = ({
 
                   {/* Muscle Groups with Images */}
                   <View style={styles.formGridWithImages}>
-                    {muscleGroups.slice(2)
-                      .filter((group) => selectedTargetParts.includes(group.key))
+                    {muscleGroups
+                      .slice(2)
+                      .filter((group) =>
+                        selectedTargetParts.includes(group.key)
+                      )
                       .map((group) => (
-                        <View key={`target${group.key}`} style={styles.selectedPartWrapper}>
+                        <View
+                          key={`target${group.key}`}
+                          style={styles.selectedPartWrapper}
+                        >
                           <InputFieldWithImage
                             muscleKey={group.key}
                             label={group.label}
@@ -716,7 +752,11 @@ export const CreateUserGoalForm = ({
                             style={styles.removePartButton}
                             onPress={() => toggleTargetPart(group.key)}
                           >
-                            <Ionicons name="close-circle" size={24} color="#F44336" />
+                            <Ionicons
+                              name="close-circle"
+                              size={24}
+                              color="#F44336"
+                            />
                           </TouchableOpacity>
                         </View>
                       ))}
@@ -837,10 +877,14 @@ export const CreateUserGoalForm = ({
                           />
                         ) : (
                           <View style={styles.partOptionIconPlaceholder}>
-                            <Ionicons 
-                              name={group.key === "Height" ? "resize-outline" : "barbell-outline"} 
-                              size={24} 
-                              color={isSelected ? "#4CAF50" : "#999"} 
+                            <Ionicons
+                              name={
+                                group.key === "Height"
+                                  ? "resize-outline"
+                                  : "barbell-outline"
+                              }
+                              size={24}
+                              color={isSelected ? "#4CAF50" : "#999"}
                             />
                           </View>
                         )}
@@ -854,7 +898,11 @@ export const CreateUserGoalForm = ({
                         </Text>
                       </View>
                       {isSelected && (
-                        <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
+                        <Ionicons
+                          name="checkmark-circle"
+                          size={24}
+                          color="#4CAF50"
+                        />
                       )}
                     </TouchableOpacity>
                   );
@@ -896,7 +944,7 @@ export const CreateUserGoalForm = ({
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator size="small" color="#fff" />
+              <LoadingIndicator variant="button" />
             ) : (
               <>
                 <Ionicons name="checkmark" size={20} color="#fff" />

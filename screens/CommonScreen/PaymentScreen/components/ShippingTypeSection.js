@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from "rea
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useTranslation } from "../../../../hooks/useTranslation";
 import { formatPrice } from "../../../../lib";
+import LoadingIndicator from "../../../../components/LoadingIndicator";
 
 export default function ShippingTypeSection({
   visible = true,
@@ -54,8 +55,10 @@ export default function ShippingTypeSection({
       <View style={styles.content}>
         {loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#ED2A46" />
-            <Text style={styles.loadingText}>{t("payment.loadingShippingOptions")}</Text>
+            <LoadingIndicator
+              variant="page"
+              message={t("payment.loadingShippingOptions")}
+            />
           </View>
         ) : shippingTypes.length === 0 ? (
           <View style={styles.emptyContainer}>

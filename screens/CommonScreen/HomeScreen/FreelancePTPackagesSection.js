@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from "rea
 import PairedSwiper from "../../../components/PairSwiper/PairSwiper";
 import FreelancePTPackagesCard from "../../../components/FreelancePTPackageCard/FreelancePTPackageCard";
 import { useTranslation } from "../../../hooks/useTranslation";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 export default function FreelancePTPackagesSection({ packages, loading, setShowFullScreenSearch, setSearchInitialTab }) {
   const { t } = useTranslation();
@@ -38,7 +39,7 @@ export default function FreelancePTPackagesSection({ packages, loading, setShowF
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#ED2A46" />
+          <LoadingIndicator variant="inline" />
         </View>
       ) : packages && packages.length > 0 ? (
         <PairedSwiper

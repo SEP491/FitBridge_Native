@@ -15,6 +15,7 @@ import {
   Dimensions,
   ActionSheetIOS,
   Platform,
+  RefreshControl,
 } from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
 import * as ImagePicker from "expo-image-picker";
@@ -23,6 +24,7 @@ import * as Device from "expo-device";
 import accountService from "../../../services/accountService";
 import { useTranslation } from "../../../hooks/useTranslation";
 import { useUser } from "../../../context/UserContext";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 const { width } = Dimensions.get("window");
 
@@ -32,6 +34,7 @@ const AccountScreen = () => {
   const [loading, setLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const { avatarUrl, updateAvatarUrl } = useUser();
   // Original profile from API
   const [userProfile, setUserProfile] = useState({});
@@ -67,6 +70,12 @@ const AccountScreen = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchUserData();
+    setRefreshing(false);
   };
 
   const handleInputChange = (field, value) => {
@@ -351,12 +360,7 @@ const AccountScreen = () => {
   };
 
   if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#ED2A46" />
-        <Text style={styles.loadingText}>{t("loading")}</Text>
-      </View>
-    );
+    return <LoadingIndicator variant="page" message={t("loading")} />;
   }
 
   return (
@@ -378,7 +382,7 @@ const AccountScreen = () => {
             />
             {uploadingAvatar && (
               <View style={styles.avatarLoadingOverlay}>
-                <ActivityIndicator size="large" color="#FFFFFF" />
+                <LoadingIndicator variant="button" color="#FFFFFF" />
               </View>
             )}
             <TouchableOpacity
@@ -401,6 +405,9 @@ const AccountScreen = () => {
         style={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
       >
         {/* Profile Form Card */}
         <View style={styles.formCard}>

@@ -13,6 +13,7 @@ import colors from "../../constants/color";
 import { useNavigation } from "@react-navigation/native";
 import signalR_webrtcService from "../../services/signalR/signalR-webrtcService";
 import meetingService from "../../services/meetingService";
+import LoadingIndicator from "../LoadingIndicator";
 
 const SessionBookingCard = ({
   booking,
@@ -359,7 +360,7 @@ const SessionBookingCard = ({
             }
           >
             {isJoiningMeeting ? (
-              <ActivityIndicator size="small" color={colors.white} />
+              <LoadingIndicator variant="button" />
             ) : (
               <Ionicons
                 name={

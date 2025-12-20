@@ -12,6 +12,7 @@ import GymCard from "../../../components/GymCard/GymCard";
 import { useTranslation } from "../../../hooks/useTranslation";
 import accountService from "../../../services/accountService";
 import gymService from "../../../services/gymService";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 export default function FeaturedGymsSection({ refreshTrigger }) {
   const navigation = useNavigation();
@@ -73,7 +74,7 @@ export default function FeaturedGymsSection({ refreshTrigger }) {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#ED2A46" />
+          <LoadingIndicator variant="inline" />
         </View>
       ) : hotResearchGym && hotResearchGym.length > 0 ? (
         <PairedSwiper

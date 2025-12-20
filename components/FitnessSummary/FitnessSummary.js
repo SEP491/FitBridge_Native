@@ -10,6 +10,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useFitnessContext } from "../../context/FitnessContext";
 import { useTranslation } from "../../hooks/useTranslation";
+import LoadingIndicator from "../LoadingIndicator";
 import { useNavigation } from "@react-navigation/native";
 
 const FitnessSummary = () => {
@@ -33,12 +34,10 @@ const FitnessSummary = () => {
             <View style={styles.titleUnderline} />
           </View>
         </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#ED2A46" />
-          <Text style={styles.loadingText}>
-            {t("fitness.loadingFitnessData")}
-          </Text>
-        </View>
+        <LoadingIndicator
+          variant="page"
+          message={t("fitness.loadingFitnessData")}
+        />
       </View>
     );
   }

@@ -15,6 +15,7 @@ import { useTranslation } from "../../../hooks/useTranslation";
 import { useRevenueCat } from "../../../context/RevenueCatContext";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 const colors = {
   red: "#ED2A46",
@@ -104,10 +105,7 @@ export default function SubscriptionScreen() {
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.red} />
-        <Text style={styles.loadingText}>{t("subscription.loading")}</Text>
-      </View>
+      <LoadingIndicator variant="page" message={t("subscription.loading")} />
     );
   }
 

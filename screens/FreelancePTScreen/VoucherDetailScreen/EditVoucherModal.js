@@ -15,6 +15,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from '../../../hooks/useTranslation';
 import couponService from '../../../services/couponService';
+import LoadingIndicator from '../../../components/LoadingIndicator';
 
 const EditVoucherModal = ({ visible, onClose, onSuccess, voucher }) => {
   const { t } = useTranslation();
@@ -248,7 +249,7 @@ const EditVoucherModal = ({ visible, onClose, onSuccess, voucher }) => {
                 disabled={loading}
               >
                 {loading ? (
-                  <ActivityIndicator size="small" color="#fff" />
+                  <LoadingIndicator variant="button" />
                 ) : (
                   <Text style={styles.submitButtonText}>Update Voucher</Text>
                 )}

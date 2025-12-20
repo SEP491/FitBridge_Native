@@ -17,6 +17,7 @@ import { useTranslation } from "../../../hooks/useTranslation";
 import { fetchUserFromStorage, formatDateForAPI } from "../../../lib";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import WeekCalendar from "../../../components/WeekCalendar/WeekCalendar";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 const { width, height } = Dimensions.get("window");
 
@@ -205,12 +206,10 @@ export default function SchedulePTScreen({ navigation }) {
           }
         >
           {loading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={colors.red} />
-              <Text style={styles.loadingText}>
-                {t("schedule.loadingSchedule")}
-              </Text>
-            </View>
+            <LoadingIndicator
+              variant="page"
+              message={t("schedule.loadingSchedule")}
+            />
           ) : slots.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Ionicons name="calendar-outline" size={64} color="#ccc" />

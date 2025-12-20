@@ -13,6 +13,7 @@ import { useTranslation } from "../../../hooks/useTranslation";
 import { useLocationContext } from "../../../context/LocationContext";
 import gymService from "../../../services/gymService";
 import { filterGymsByDistance } from "../../../lib";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 export default function NearbyGymsSection({ refreshTrigger }) {
   const navigation = useNavigation();
@@ -72,7 +73,7 @@ export default function NearbyGymsSection({ refreshTrigger }) {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#ED2A46" />
+          <LoadingIndicator variant="inline" />
         </View>
       ) : gyms && gyms.length > 0 ? (
         <PairedSwiper

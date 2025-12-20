@@ -7,13 +7,15 @@ import {
   TouchableOpacity,
   Linking,
   ActivityIndicator,
-  Image
+  Image,
+  RefreshControl,
 } from 'react-native';
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import trainingResultsService from '../../../services/training-resultsService';
 import { ProgressChart } from 'react-native-chart-kit';
 import customerPurchasedService from '../../../services/customerPurchased';
 import { useTranslation } from '../../../hooks/useTranslation';
+import LoadingIndicator from '../../../components/LoadingIndicator';
 
 // Muscle group images mapping
 const muscleGroupImages = {
@@ -40,6 +42,7 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
   const [packageStatistics, setPackageStatistics] = useState({});
   const [packageMuscleReports, setPackageMuscleReports] = useState({});
   const [loadingStats, setLoadingStats] = useState({});
+  const [refreshing, setRefreshing] = useState(false);
 
   const fetchPackageStatistics = async (pkgId, index) => {
     if (packageStatistics[pkgId]) {
@@ -81,7 +84,15 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
     } catch (error) {
       console.error('Failed to fetch package muscle report:', error);
     }
-  }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    // Clear cached data to force refetch
+    setPackageStatistics({});
+    setPackageMuscleReports({});
+    setRefreshing(false);
+  };
 
   const getPackageStatus = (pkg) => {
     const expDate = new Date(pkg.expirationDate);
@@ -154,7 +165,12 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
   return (
     <View style={styles.container}>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
+      >
         {/* Customer Detail Section */}
         <View style={styles.customerDetailCard}>
           <View style={styles.customerAvatarLarge}>
@@ -286,8 +302,10 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
                       {/* Statistics Section */}
                       {isLoadingStats ? (
                         <View style={styles.loadingContainer}>
-                          <ActivityIndicator size="large" color="#ED2A46" />
-                          <Text style={styles.loadingText}>{t("customerDetail.loadingStatistics")}</Text>
+                          <LoadingIndicator
+                            variant="page"
+                            message={t("customerDetail.loadingStatistics")}
+                          />
                         </View>
                       ) : stats ? (
                         <View style={styles.statisticsSection}>

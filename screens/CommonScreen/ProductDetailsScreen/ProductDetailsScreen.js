@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   Modal,
   FlatList,
+  RefreshControl,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -22,6 +23,7 @@ import addressService from "../../../services/addressService";
 import orderService from "../../../services/orderService";
 import reviewService from "../../../services/reviewService";
 import ReviewCard from "../../../components/ReviewCard/ReviewCard";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 export default function ProductDetailsScreen() {
   const navigation = useNavigation();
@@ -51,6 +53,7 @@ export default function ProductDetailsScreen() {
   const [reviewsPage, setReviewsPage] = useState(1);
   const [reviewsTotalPages, setReviewsTotalPages] = useState(1);
   const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   console.log(selectedVariant);
   useEffect(() => {
@@ -164,6 +167,13 @@ export default function ProductDetailsScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchProductDetails();
+    await fetchProductReviews(1);
+    setRefreshing(false);
   };
 
   const fetchProductReviews = async (pageNum = 1) => {
@@ -372,17 +382,20 @@ export default function ProductDetailsScreen() {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.red} />
-          <Text style={styles.loadingText}>{t("common.loading")}</Text>
-        </View>
+        <LoadingIndicator variant="page" message={t("common.loading")} />
       </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.content}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
+      >
         {/* Product Image */}
         <View style={styles.imageContainer}>
           <Image
@@ -488,7 +501,7 @@ export default function ProductDetailsScreen() {
                     {t("product.shippingPrice")}:
                   </Text>
                   {shippingLoading ? (
-                    <ActivityIndicator size="small" color={colors.red} />
+                    <LoadingIndicator variant="inline" />
                   ) : (
                     <Text style={styles.shippingPrice}>
                       {formatPrice(shippingInfo.price)}
@@ -756,7 +769,7 @@ export default function ProductDetailsScreen() {
                   disabled={reviewsLoading}
                 >
                   {reviewsLoading ? (
-                    <ActivityIndicator size="small" color={colors.red} />
+                    <LoadingIndicator variant="inline" />
                   ) : (
                     <>
                       <Text style={styles.loadMoreText}>
@@ -1150,7 +1163,7 @@ export default function ProductDetailsScreen() {
                       </View>
 
                       {shippingLoading ? (
-                        <ActivityIndicator size="small" color={colors.red} />
+                        <LoadingIndicator variant="inline" />
                       ) : (
                         <Text style={styles.shippingMethodPrice}>
                           {formatPrice(shippingInfo?.price || 0)}

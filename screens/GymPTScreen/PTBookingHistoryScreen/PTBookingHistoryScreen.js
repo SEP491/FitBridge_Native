@@ -18,6 +18,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useTranslation } from "../../../hooks/useTranslation";
 import { formatDate, formatTime } from "../../../lib";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 const { width } = Dimensions.get("window");
 
@@ -482,14 +483,11 @@ export default function PTBookingHistoryScreen() {
 
       {/* Booking History List */}
       {loading ? (
-        <View style={styles.loadingContainer}>
-          <View style={styles.loadingCard}>
-            <ActivityIndicator size="large" color="#E42D46" />
-            <Text style={styles.loadingText}>
-              {t("booking.loadingHistory")}
-            </Text>
-          </View>
-        </View>
+        <LoadingIndicator
+          variant="page"
+          color="#E42D46"
+          message={t("booking.loadingHistory")}
+        />
       ) : (
         <FlatList
           data={filteredBookings}
@@ -509,12 +507,11 @@ export default function PTBookingHistoryScreen() {
           ListEmptyComponent={renderEmptyState}
           ListFooterComponent={
             loadingMore ? (
-              <View style={styles.loadingMoreContainer}>
-                <ActivityIndicator size="small" color="#E42D46" />
-                <Text style={styles.loadingMoreText}>
-                  {t("booking.loadingMore")}
-                </Text>
-              </View>
+              <LoadingIndicator
+                variant="inline"
+                color="#E42D46"
+                message={t("booking.loadingMore")}
+              />
             ) : (
               <View style={styles.bottomSpacing} />
             )

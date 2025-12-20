@@ -20,6 +20,7 @@ import { showAlert, formatPrice, fetchUserFromStorage } from "../../../lib";
 import { useCart } from "../../../context/CartContext";
 import reviewService from "../../../services/reviewService";
 import ReviewCard from "../../../components/ReviewCard/ReviewCard";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 const { width } = Dimensions.get("window");
 
@@ -212,12 +213,10 @@ export default function FreelancePTPackageDetailScreen() {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#ED2A46" />
-          <Text style={styles.loadingText}>
-            {t("common.loading") || "Loading..."}
-          </Text>
-        </View>
+        <LoadingIndicator
+          variant="page"
+          message={t("common.loading") || "Loading..."}
+        />
       </SafeAreaView>
     );
   }
@@ -538,7 +537,7 @@ export default function FreelancePTPackageDetailScreen() {
                     disabled={reviewsLoading}
                   >
                     {reviewsLoading ? (
-                      <ActivityIndicator size="small" color="#ED2A46" />
+                      <LoadingIndicator variant="inline" />
                     ) : (
                       <>
                         <Text style={styles.loadMoreText}>

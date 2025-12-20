@@ -23,6 +23,7 @@ import {
   buildAutocompleteUrl,
   buildPlaceDetailsUrl,
 } from "../../../config/googleMaps";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 export default function AddressSelectionScreen({ navigation, route }) {
   const { t } = useTranslation();
@@ -742,7 +743,7 @@ export default function AddressSelectionScreen({ navigation, route }) {
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator color="#fff" />
+              <LoadingIndicator variant="button" />
             ) : (
               <Text style={styles.saveButtonText}>
                 {t("payment.saveAddress")}
@@ -754,7 +755,7 @@ export default function AddressSelectionScreen({ navigation, route }) {
         {/* Loading Overlay */}
         {loading && (
           <View style={styles.loadingOverlay}>
-            <ActivityIndicator size="large" color="#ED2A46" />
+            <LoadingIndicator variant="page" />
           </View>
         )}
       </View>

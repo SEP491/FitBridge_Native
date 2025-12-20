@@ -17,6 +17,7 @@ import WeekCalendar from "../../../components/WeekCalendar/WeekCalendar";
 import accountService from "../../../services/accountService";
 import bookingService from "../../../services/bookingService";
 import { fetchUserFromStorage, formatDateForAPI } from "../../../lib";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 const { width, height } = Dimensions.get("window");
 
@@ -245,12 +246,10 @@ export default function CalendarPTScreen() {
               showsVerticalScrollIndicator={false}
             >
               {loading ? (
-                <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="large" color={colors.red} />
-                  <Text style={styles.loadingText}>
-                    {t("calendar.loadingSessions")}
-                  </Text>
-                </View>
+                <LoadingIndicator
+                  variant="page"
+                  message={t("calendar.loadingSessions")}
+                />
               ) : (
                 <>
                   {bookings

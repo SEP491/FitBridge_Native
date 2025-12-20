@@ -21,6 +21,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { useMeetingState } from '../../../context/meetingStateContext';
 import { useTranslation } from '../../../hooks/useTranslation';
+import LoadingIndicator from '../../../components/LoadingIndicator';
 
 // Check if running in Expo Go
 const isExpoGo = Constants.appOwnership === 'expo';
@@ -236,8 +237,10 @@ export default function VideoCallPrepScreen({ navigation, route }) {
             <View style={styles.previewContainer}>
               {loadingPreview ? (
                 <View style={styles.previewLoading}>
-                  <ActivityIndicator size="large" color="#ED2A46" />
-                  <Text style={styles.previewLoadingText}>Starting camera...</Text>
+                  <LoadingIndicator
+                    variant="inline"
+                    message="Starting camera..."
+                  />
                 </View>
               ) : previewStream && !isVideoOff ? (
                 <RTCView
@@ -414,7 +417,7 @@ export default function VideoCallPrepScreen({ navigation, route }) {
           >
             {loading ? (
               <>
-                <ActivityIndicator color="#FFF" />
+                <LoadingIndicator variant="button" />
                 <Text style={styles.joinButtonText}>{t('videoCallPrep.joining')}</Text>
               </>
             ) : (

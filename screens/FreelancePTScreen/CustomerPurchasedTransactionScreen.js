@@ -13,6 +13,7 @@ import customerPurchasedService from "../../services/customerPurchased";
 import { useTranslation } from "../../hooks/useTranslation";
 import { t } from "../../i18n";
 import { fetchUserFromStorage } from "../../lib";
+import LoadingIndicator from "../../components/LoadingIndicator";
 
 const formatDateTime = (iso) => {
   if (!iso) return "-";
@@ -45,50 +46,49 @@ const getStatusColor = (status) => {
       return "#4CAF50";
     case "REJECTED":
       return "#F44336";
-      case "ADMINAPPROVED":
-        return "#4CAF50";
-      case "ADMINREJECTED":
-        return "#F44336";
+    case "ADMINAPPROVED":
+      return "#4CAF50";
+    case "ADMINREJECTED":
+      return "#F44336";
     default:
       return "#666";
   }
 };
-  const getStatusText = (status) => {
-    const statusUpper = status?.toUpperCase();
-    switch (statusUpper) {
-      case "COMPLETED":
-      case "SUCCESS":
-        return t("transaction.completed", "Completed");
-      case "PENDING":
-        return t("transaction.pending", "Pending");
-      case "FAILED":
-        return t("transaction.failed", "Failed");
-      case "CANCELLED":
-        return t("transaction.cancelled", "Cancelled");
-      case "RESOLVED":
-        return t("transaction.resolved", "Resolved");
-      case "REJECTED":
-        return t("transaction.rejected", "Rejected");
-      case "ADMINAPPROVED":
-        return t("transaction.adminApproved", "Admin Approved");
-      case "ADMINREJECTED":
-        return t("transaction.adminRejected", "Admin Rejected");
-      default:
-        return status;
-    }
-  };
+const getStatusText = (status) => {
+  const statusUpper = status?.toUpperCase();
+  switch (statusUpper) {
+    case "COMPLETED":
+    case "SUCCESS":
+      return t("transaction.completed", "Completed");
+    case "PENDING":
+      return t("transaction.pending", "Pending");
+    case "FAILED":
+      return t("transaction.failed", "Failed");
+    case "CANCELLED":
+      return t("transaction.cancelled", "Cancelled");
+    case "RESOLVED":
+      return t("transaction.resolved", "Resolved");
+    case "REJECTED":
+      return t("transaction.rejected", "Rejected");
+    case "ADMINAPPROVED":
+      return t("transaction.adminApproved", "Admin Approved");
+    case "ADMINREJECTED":
+      return t("transaction.adminRejected", "Admin Rejected");
+    default:
+      return status;
+  }
+};
 
 const TransactionItem = ({ item, t }) => {
   const statusColor = getStatusColor(item.status);
   const statusText = getStatusText(item.status);
   const [userRole, setUserRole] = useState(null);
 
-
   const fetchUser = async () => {
     const user = await fetchUserFromStorage();
     setUserRole(user.role);
-  }
-  
+  };
+
   useEffect(() => {
     fetchUser();
   }, []);
@@ -130,7 +130,7 @@ const TransactionItem = ({ item, t }) => {
 
       {/* Amount badges row */}
       <View style={styles.amountBadgesRow}>
-        <View style={[styles.amountBadge, styles.totalBadge,]}>
+        <View style={[styles.amountBadge, styles.totalBadge]}>
           <Text style={styles.amountBadgeLabel}>
             {t("customerPurchasedTransaction.total")}
           </Text>
@@ -139,14 +139,14 @@ const TransactionItem = ({ item, t }) => {
           </Text>
         </View>
         {userRole === "FreelancePT" && (
-        <View style={[styles.amountBadge, styles.profitBadge]}>
-          <Text style={styles.amountBadgeLabel}>
-            {t("customerPurchasedTransaction.merchantProfit")}
-          </Text>
-          <Text style={styles.amountBadgeValue}>
-            {formatCurrency(item.merchantProfit)}₫
-          </Text>
-        </View>
+          <View style={[styles.amountBadge, styles.profitBadge]}>
+            <Text style={styles.amountBadgeLabel}>
+              {t("customerPurchasedTransaction.merchantProfit")}
+            </Text>
+            <Text style={styles.amountBadgeValue}>
+              {formatCurrency(item.merchantProfit)}₫
+            </Text>
+          </View>
         )}
       </View>
     </View>
@@ -169,13 +169,16 @@ const CustomerPurchasedTransactionScreen = ({ route, navigation }) => {
       setLoading(true);
       setError(null);
       try {
-        const res = await customerPurchasedService.getCustomerPurchasedPackageTransaction(
-          customerPurchasedId
-        );
+        const res =
+          await customerPurchasedService.getCustomerPurchasedPackageTransaction(
+            customerPurchasedId
+          );
         if (res?.status === "200") {
           setData(res.data);
         } else {
-          setError(res?.message || t("customerPurchasedTransaction.failedToLoad"));
+          setError(
+            res?.message || t("customerPurchasedTransaction.failedToLoad")
+          );
         }
       } catch (err) {
         console.error("Failed to load transactions", err);
@@ -190,7 +193,8 @@ const CustomerPurchasedTransactionScreen = ({ route, navigation }) => {
 
   const headerInfo = useMemo(() => {
     if (!data) return null;
-    const { customerName, packageName, availableSessions, expirationDate } = data;
+    const { customerName, packageName, availableSessions, expirationDate } =
+      data;
     return {
       customerName: customerName || "-",
       packageName: packageName || "-",
@@ -199,16 +203,13 @@ const CustomerPurchasedTransactionScreen = ({ route, navigation }) => {
     };
   }, [data]);
 
-
   return (
     <SafeAreaView style={styles.container}>
-
-
       {loading ? (
-        <View style={styles.centerContent}>
-          <ActivityIndicator size="large" color="#ED2A46" />
-          <Text style={styles.hintText}>{t("customerPurchasedTransaction.loadingTransactions")}</Text>
-        </View>
+        <LoadingIndicator
+          variant="page"
+          message={t("customerPurchasedTransaction.loadingTransactions")}
+        />
       ) : error ? (
         <View style={styles.centerContent}>
           <Ionicons name="alert-circle-outline" size={32} color="#F57C00" />
@@ -216,12 +217,12 @@ const CustomerPurchasedTransactionScreen = ({ route, navigation }) => {
         </View>
       ) : !data ? (
         <View style={styles.centerContent}>
-          <Text style={styles.hintText}>{t("customerPurchasedTransaction.noData")}</Text>
+          <Text style={styles.hintText}>
+            {t("customerPurchasedTransaction.noData")}
+          </Text>
         </View>
       ) : (
         <View style={{ flex: 1 }}>
-
-
           <FlatList
             data={data.transactions || []}
             keyExtractor={(item) => item.transactionId}
@@ -229,7 +230,9 @@ const CustomerPurchasedTransactionScreen = ({ route, navigation }) => {
             contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
             ListEmptyComponent={
               <View style={styles.centerContent}>
-                <Text style={styles.hintText}>{t("customerPurchasedTransaction.noTransactions")}</Text>
+                <Text style={styles.hintText}>
+                  {t("customerPurchasedTransaction.noTransactions")}
+                </Text>
               </View>
             }
           />
@@ -453,8 +456,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 10,
     backgroundColor: "#f8f9fa",
-    justifyContent:'center',
-    alignItems:'flex-end'
+    justifyContent: "center",
+    alignItems: "flex-end",
   },
   totalBadge: {
     borderWidth: 1,
@@ -480,4 +483,3 @@ const styles = StyleSheet.create({
 });
 
 export default CustomerPurchasedTransactionScreen;
-

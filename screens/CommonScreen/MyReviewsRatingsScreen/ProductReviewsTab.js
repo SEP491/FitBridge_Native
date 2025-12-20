@@ -14,6 +14,7 @@ import orderService from "../../../services/orderService";
 import OrderManagementCard from "../../../components/OrderManagementCard/OrderManagementCard";
 import { ProductCardSkeletonList } from "../../../components/ProductCard/ProductCardSkeleton";
 import { fetchUserFromStorage } from "../../../lib";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 export default function ProductReviewsTab() {
   const { t } = useTranslation();
@@ -147,7 +148,7 @@ export default function ProductReviewsTab() {
         if (productLoading) {
           return (
             <View style={styles.loadMoreContainer}>
-              <ActivityIndicator size="small" color="#ED2A46" />
+              <LoadingIndicator variant="inline" />
             </View>
           );
         }

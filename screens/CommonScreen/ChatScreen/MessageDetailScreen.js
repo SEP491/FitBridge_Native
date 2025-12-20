@@ -27,6 +27,7 @@ import messageService from "../../../services/messageService";
 import uploadImageService from "../../../services/uploadImageService";
 import { useMessagingState } from "../../../context/messagingStateContext";
 import { useTranslation } from "../../../hooks/useTranslation";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 import {
   CLIENT_METHODS,
   HUB_METHODS,
@@ -1403,7 +1404,7 @@ export default function MessageDetailScreen({ route, navigation }) {
             disabled={sending}
           >
             {sending ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
+              <LoadingIndicator variant="button" />
             ) : (
               <Ionicons name="send" size={20} color="#FFFFFF" />
             )}
@@ -1801,7 +1802,7 @@ export default function MessageDetailScreen({ route, navigation }) {
               disabled={sending}
             >
               {sending ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
+                <LoadingIndicator variant="button" />
               ) : (
                 <Text style={styles.submitButtonText}>
                   {editingBookingRequest
@@ -1936,9 +1937,7 @@ export default function MessageDetailScreen({ route, navigation }) {
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
         {loading ? (
-          <View style={styles.initialLoadingContainer}>
-            <ActivityIndicator size="large" color={colors.red} />
-          </View>
+          <LoadingIndicator variant="page" />
         ) : (
           <FlatList
             ref={flatListRef}
@@ -1978,9 +1977,7 @@ export default function MessageDetailScreen({ route, navigation }) {
             }
             ListFooterComponent={
               isLoadingMore ? (
-                <View style={styles.loadingFooter}>
-                  <ActivityIndicator size="small" color={colors.red} />
-                </View>
+                <LoadingIndicator variant="inline" />
               ) : null
             }
           />

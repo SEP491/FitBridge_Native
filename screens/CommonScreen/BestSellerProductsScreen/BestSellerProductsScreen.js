@@ -15,6 +15,7 @@ import ProductCard from "../../../components/ProductCard/ProductCard";
 import productService from "../../../services/productService";
 import { useTranslation } from "../../../hooks/useTranslation";
 import colors from "../../../constants/color";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 export default function BestSellerProductsScreen() {
   const navigation = useNavigation();
@@ -93,10 +94,7 @@ export default function BestSellerProductsScreen() {
   const renderFooter = () => {
     if (loadingMore) {
       return (
-        <View style={styles.loadingMoreContainer}>
-          <ActivityIndicator size="small" color={colors.red} />
-          <Text style={styles.loadingMoreText}>{t("common.loading")}</Text>
-        </View>
+        <LoadingIndicator variant="inline" message={t("common.loading")} />
       );
     }
     if (hasMore) {
@@ -124,8 +122,7 @@ export default function BestSellerProductsScreen() {
 
       {loading && page === 1 ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.red} />
-          <Text style={styles.loadingText}>{t("common.loading")}</Text>
+          <LoadingIndicator variant="page" message={t("common.loading")} />
         </View>
       ) : (
         <FlatList

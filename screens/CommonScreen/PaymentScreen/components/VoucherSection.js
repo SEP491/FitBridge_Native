@@ -10,6 +10,7 @@ import {
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { formatPrice } from "../../../../lib";
 import { useTranslation } from "../../../../hooks/useTranslation";
+import LoadingIndicator from "../../../../components/LoadingIndicator";
 
 export default function VoucherSection({
   voucherCode,
@@ -65,7 +66,7 @@ export default function VoucherSection({
               disabled={isApplying || !voucherCode.trim()}
             >
               {isApplying ? (
-                <ActivityIndicator size="small" color="#fff" />
+                <LoadingIndicator variant="button" />
               ) : (
                 <Text style={styles.applyButtonText}>{t("payment.apply")}</Text>
               )}

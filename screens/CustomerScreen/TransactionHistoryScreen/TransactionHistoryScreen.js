@@ -19,6 +19,7 @@ import transactionService from "../../../services/transactionService";
 import paymentService from "../../../services/paymentService";
 import { useTranslation } from "../../../hooks/useTranslation";
 import { formatPrice } from "../../../lib";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 export default function TransactionHistoryScreen() {
   const navigation = useNavigation();
@@ -533,12 +534,11 @@ export default function TransactionHistoryScreen() {
 
   if (loading && orders.length === 0) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#FF914D" />
-        <Text style={styles.loadingText}>
-          {t("orderHistory.loadingOrders") || "Đang tải đơn hàng..."}
-        </Text>
-      </View>
+      <LoadingIndicator
+        variant="page"
+        color="#FF914D"
+        message={t("orderHistory.loadingOrders") || "Đang tải đơn hàng..."}
+      />
     );
   }
 
@@ -613,12 +613,11 @@ export default function TransactionHistoryScreen() {
         ListEmptyComponent={renderEmptyState}
         ListFooterComponent={
           loadingMore ? (
-            <View style={styles.loadingMoreContainer}>
-              <ActivityIndicator size="small" color="#FF914D" />
-              <Text style={styles.loadingMoreText}>
-                {t("orderHistory.loadingMore") || "Đang tải thêm..."}
-              </Text>
-            </View>
+            <LoadingIndicator
+              variant="inline"
+              color="#FF914D"
+              message={t("orderHistory.loadingMore") || "Đang tải thêm..."}
+            />
           ) : (
             <View style={styles.bottomSpacing} />
           )

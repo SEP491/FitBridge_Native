@@ -7,6 +7,7 @@ import { useTranslation } from "../../../hooks/useTranslation";
 import { formatPrice } from "../../../lib";
 import { useCart } from "../../../context/CartContext";
 import paymentService from "../../../services/paymentService";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 const THEME_COLORS = {
   primary: "#ED2A46",
@@ -117,8 +118,11 @@ export default function OrderSuccessScreen({ route, navigation }) {
     return (
       <View style={styles.container}>
         <View style={styles.processingContainer}>
-          <ActivityIndicator size="large" color={THEME_COLORS.primary} />
-          <Text style={styles.processingTitle}>{t("orderSuccess.processing")}</Text>
+          <LoadingIndicator
+            variant="page"
+            color={THEME_COLORS.primary}
+            message={t("orderSuccess.processing")}
+          />
           <Text style={styles.processingSubtitle}>{t("orderSuccess.pleaseWait")}</Text>
         </View>
       </View>

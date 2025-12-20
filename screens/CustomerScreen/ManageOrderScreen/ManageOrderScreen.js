@@ -18,6 +18,7 @@ import { fetchUserFromStorage } from "../../../lib";
 import OrderManagementCard from "../../../components/OrderManagementCard";
 import { useTranslation } from "../../../hooks/useTranslation";
 import { ProductCardSkeletonList } from "../../../components/ProductCard/ProductCardSkeleton";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 const ManageOrderScreen = ({ route }) => {
   const navigation = useNavigation();
@@ -441,10 +442,10 @@ const ManageOrderScreen = ({ route }) => {
   const renderFooter = () => {
     if (!loadingMore) return null;
     return (
-      <View style={styles.footerLoader}>
-        <ActivityIndicator size="small" color="#ED2A46" />
-        <Text style={styles.footerLoaderText}>{t("orders.loadingMore") || "Loading more..."}</Text>
-      </View>
+      <LoadingIndicator
+        variant="inline"
+        message={t("orders.loadingMore") || "Loading more..."}
+      />
     );
   };
 

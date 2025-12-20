@@ -19,6 +19,7 @@ import accountService from "../../../services/accountService";
 import SessionCard from "../../../components/SessionCard/SessionCard_New";
 import WeekCalendar from "../../../components/WeekCalendar/WeekCalendar";
 import { useNavigation } from "@react-navigation/native";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 const { width, height } = Dimensions.get("window");
 
@@ -194,12 +195,10 @@ export default function ScheduleScreen({ route }) {
           }
         >
           {loading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={colors.red} />
-              <Text style={styles.loadingText}>
-                {t("schedule.loadingSchedule")}
-              </Text>
-            </View>
+            <LoadingIndicator
+              variant="page"
+              message={t("schedule.loadingSchedule")}
+            />
           ) : slots.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Ionicons name="calendar-outline" size={64} color="#ccc" />

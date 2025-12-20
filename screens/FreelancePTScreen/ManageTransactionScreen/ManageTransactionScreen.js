@@ -16,6 +16,7 @@ import paymentService from "../../../services/paymentService";
 import DashboardTab from "./DashboardTab";
 import TransactionListTab from "./TransactionListTab";
 import WithdrawalTab from "./WithdrawalTab";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 const ManageTransactionScreen = ({ navigation }) => {
   const { t } = useTranslation();
@@ -277,12 +278,10 @@ const ManageTransactionScreen = ({ navigation }) => {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#ED2A46" />
-        <Text style={styles.loadingText}>
-          {t("transaction.loading", "Loading transactions...")}
-        </Text>
-      </View>
+      <LoadingIndicator
+        variant="page"
+        message={t("transaction.loading", "Loading transactions...")}
+      />
     );
   }
 

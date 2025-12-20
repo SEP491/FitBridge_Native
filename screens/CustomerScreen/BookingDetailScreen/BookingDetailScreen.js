@@ -20,6 +20,7 @@ import colors from "../../../constants/color";
 import { useTranslation } from "../../../hooks/useTranslation";
 import BookingDetailContent from "../../../components/BookingDetailContent";
 import BookingResultCard from "../../../components/BookingResultCard";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 // Body part images mapping
 const bodyPartImages = {
@@ -82,6 +83,7 @@ export default function BookingDetailScreen({ route, navigation }) {
   const [creating, setCreating] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [activeTab, setActiveTab] = useState("details"); // "details" or "results"
+  const [refreshing, setRefreshing] = useState(false);
 
   // Form states for PT - Add Activity Modal
   const [activityType, setActivityType] = useState("WarmUp");
@@ -95,6 +97,20 @@ export default function BookingDetailScreen({ route, navigation }) {
   const [selectedAsset, setSelectedAsset] = useState(null);
   const [loadingAssets, setLoadingAssets] = useState(false);
   const [showAssetDropdown, setShowAssetDropdown] = useState(false);
+
+  const [timeBeforeStart, setTimeBeforeStart] = useState(0);
+
+  const loadTimeBeforeStart = async () => {
+    const response = await bookingService.getTimeBeforeStart(
+      "EarlyStartSessionBeforeMinutes"
+    );
+    console.log("Time Before Start Response:", response.data);
+    setTimeBeforeStart(response.data);
+  };
+
+  useEffect(() => {
+    loadTimeBeforeStart();
+  }, []);
 
   const [activitySets, setActivitySets] = useState([
     {
@@ -154,6 +170,15 @@ export default function BookingDetailScreen({ route, navigation }) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchBookingDetail();
+    if (activeTab === "results") {
+      await fetchBookingResult();
+    }
+    setRefreshing(false);
   };
 
   const fetchAssets = async () => {
@@ -365,11 +390,7 @@ export default function BookingDetailScreen({ route, navigation }) {
   };
 
   if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.orange} />
-      </View>
-    );
+    return <LoadingIndicator variant="page" color={colors.orange} />;
   }
 
   // Customer view - Empty state
@@ -395,15 +416,14 @@ export default function BookingDetailScreen({ route, navigation }) {
           navigation={navigation}
           t={t}
           onAddExercise={() => setShowAddModal(true)}
+          onRefresh={handleRefresh}
+          refreshing={refreshing}
+          timeBeforeStart={timeBeforeStart}
         />
       );
     } else {
       if (loadingResult) {
-        return (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={colors.orange} />
-          </View>
-        );
+        return <LoadingIndicator variant="page" color={colors.orange} />;
       }
       return (
         <BookingResultCard
@@ -658,7 +678,7 @@ export default function BookingDetailScreen({ route, navigation }) {
               <View style={styles.formSection}>
                 <Text style={styles.formLabel}>{t("bookingDetail.asset")}</Text>
                 {loadingAssets ? (
-                  <ActivityIndicator size="small" color={colors.orange} />
+                  <LoadingIndicator variant="inline" color={colors.orange} />
                 ) : (
                   <>
                     <TouchableOpacity
@@ -906,7 +926,7 @@ export default function BookingDetailScreen({ route, navigation }) {
                 disabled={creating}
               >
                 {creating ? (
-                  <ActivityIndicator size="small" color={colors.white} />
+                  <LoadingIndicator variant="button" />
                 ) : (
                   <Text style={styles.submitButtonText}>
                     {t("bookingDetail.confirm")}

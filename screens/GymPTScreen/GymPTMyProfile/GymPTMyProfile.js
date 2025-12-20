@@ -835,7 +835,7 @@ const GymPTMyProfile = () => {
               disabled={isSaving}
             >
               {isSaving ? (
-                <ActivityIndicator size="small" color="#fff" />
+                <LoadingIndicator variant="button" />
               ) : (
                 <MaterialCommunityIcons
                   name="content-save"

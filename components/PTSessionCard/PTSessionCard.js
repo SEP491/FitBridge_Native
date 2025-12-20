@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import colors from "../../constants/color";
+import LoadingIndicator from "../LoadingIndicator";
 
 const PTSessionCard = ({
   booking,
@@ -202,7 +203,7 @@ const PTSessionCard = ({
                 disabled={isActionDisabled}
               >
                 {isFinishing ? (
-                  <ActivityIndicator size="small" color={colors.white} />
+                  <LoadingIndicator variant="button" />
                 ) : (
                   <>
                     <Ionicons
@@ -240,7 +241,7 @@ const PTSessionCard = ({
                 disabled={isActionDisabled}
               >
                 {isCancelling ? (
-                  <ActivityIndicator size="small" color={colors.white} />
+                  <LoadingIndicator variant="button" />
                 ) : (
                   <>
                     <Ionicons

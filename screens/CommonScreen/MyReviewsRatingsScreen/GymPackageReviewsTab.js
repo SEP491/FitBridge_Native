@@ -15,6 +15,7 @@ import orderService from "../../../services/orderService";
 import PackageCard from "../../../components/PackageCard/PackageCard";
 import { PackageCardSkeletonList } from "../../../components/PackageCard/PackageCardSkeleton";
 import PackageFeedbackModal from "../../../components/OrderManagementCard/PackageFeedbackModal";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 export default function GymPackageReviewsTab() {
   const navigation = useNavigation();
@@ -240,7 +241,7 @@ export default function GymPackageReviewsTab() {
           if (courseLoading) {
             return (
               <View style={styles.loadMoreContainer}>
-                <ActivityIndicator size="small" color="#ED2A46" />
+                <LoadingIndicator variant="inline" />
               </View>
             );
           }

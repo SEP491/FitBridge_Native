@@ -5,6 +5,7 @@ import PairedSwiper from "../../../components/PairSwiper/PairSwiper";
 import FreelancePTProfileCard from "../../../components/FreelancePTProfileCard/FreelancePTProfileCard";
 import { useTranslation } from "../../../hooks/useTranslation";
 import accountService from "../../../services/accountService";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 export default function FreelancePTTrainersSection({ refreshTrigger, setShowFullScreenSearch }) {
   const navigation = useNavigation();
@@ -60,7 +61,7 @@ export default function FreelancePTTrainersSection({ refreshTrigger, setShowFull
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#ED2A46" />
+          <LoadingIndicator variant="inline" />
         </View>
       ) : freelancePT && freelancePT.length > 0 ? (
         <PairedSwiper

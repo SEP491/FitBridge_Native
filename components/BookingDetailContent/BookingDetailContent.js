@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  RefreshControl,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import colors from "../../constants/color";
@@ -69,6 +70,9 @@ export default function BookingDetailContent({
   navigation,
   t,
   onAddExercise,
+  onRefresh,
+  refreshing = false,
+  timeBeforeStart = 30,
 }) {
   // Get unique activity types from sessionActivities
 
@@ -256,6 +260,29 @@ export default function BookingDetailContent({
     }
   };
 
+  // Check if current time is within the allowed window (timeBeforeStart minutes before planned time)
+  const canStartSession = () => {
+    if (!bookingDetail?.sessionStartTime) return false;
+
+    try {
+      const plannedStartTime = new Date(bookingDetail.sessionStartTime);
+      const now = new Date();
+
+      // Calculate the earliest allowed start time (timeBeforeStart minutes before planned time)
+      const earliestStartTime = new Date(plannedStartTime);
+      earliestStartTime.setMinutes(
+        earliestStartTime.getMinutes() - timeBeforeStart
+      );
+
+      // Can start if current time is >= earliest allowed time and < planned start time
+      // (or if planned time has passed, allow starting)
+      return now >= earliestStartTime;
+    } catch (error) {
+      console.error("Error checking if can start session:", error);
+      return false;
+    }
+  };
+
   const handleStartSession = async () => {
     try {
       const response = await bookingService.startSession({
@@ -299,6 +326,11 @@ export default function BookingDetailContent({
         ref={scrollViewRef}
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          onRefresh ? (
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          ) : undefined
+        }
       >
         {/* Booking Detail Card */}
         {bookingDetail?.bookingName && (
@@ -763,22 +795,24 @@ export default function BookingDetailContent({
         </View>
         {userRole === "Customer" && (
           <View style={styles.controlsContainer}>
-            {sessionState === "not-started" && isBookingDateToday() && (
-              <TouchableOpacity
-                style={styles.actionButton}
-                onPress={handleStartSession}
-              >
-                <Ionicons
-                  name="play-circle"
-                  size={24}
-                  color="#FFFFFF"
-                  style={styles.buttonIcon}
-                />
-                <Text style={styles.actionButtonText}>
-                  {t("bookingDetail.startSession", "Start Session")}
-                </Text>
-              </TouchableOpacity>
-            )}
+            {sessionState === "not-started" &&
+              isBookingDateToday() &&
+              canStartSession() && (
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={handleStartSession}
+                >
+                  <Ionicons
+                    name="play-circle"
+                    size={24}
+                    color="#FFFFFF"
+                    style={styles.buttonIcon}
+                  />
+                  <Text style={styles.actionButtonText}>
+                    {t("bookingDetail.startSession", "Start Session")}
+                  </Text>
+                </TouchableOpacity>
+              )}
 
             {sessionState === "in-progress" && (
               <TouchableOpacity

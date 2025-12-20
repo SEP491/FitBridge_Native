@@ -14,6 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import contractService from "../../../services/contractService";
 import { useTranslation } from "../../../hooks/useTranslation";
 import { fetchUserFromStorage } from "../../../lib";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 const ContractScreen = () => {
   const { t } = useTranslation();
@@ -181,10 +182,7 @@ const ContractScreen = () => {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
-        <Text style={styles.loadingText}>{t("loading")}</Text>
-      </View>
+      <LoadingIndicator variant="page" color="#007AFF" message={t("loading")} />
     );
   }
 

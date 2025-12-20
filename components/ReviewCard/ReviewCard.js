@@ -16,6 +16,7 @@ import * as ImagePicker from "expo-image-picker";
 import reviewService from "../../services/reviewService";
 import { fetchUserFromStorage } from "../../lib";
 import ImageViewerModal from "./ImageViewerModal";
+import LoadingIndicator from "../LoadingIndicator";
 
 const ReviewCard = ({
   review,
@@ -401,16 +402,16 @@ const ReviewCard = ({
               )}
             </View>
           </View>
-            <View style={styles.actionsContainer}>
-              {user?.id === review.userId && (
+          <View style={styles.actionsContainer}>
+            {user?.id === review.userId && (
               <TouchableOpacity
                 onPress={handleEditReview}
                 style={styles.editButton}
               >
                 <Ionicons name="create-outline" size={20} color="#666" />
               </TouchableOpacity>
-              )}
-            </View>
+            )}
+          </View>
         </View>
 
         {review.content && (
@@ -608,7 +609,7 @@ const ReviewCard = ({
                 disabled={isLoading}
               >
                 {isLoading ? (
-                  <ActivityIndicator color="#FFF" />
+                  <LoadingIndicator variant="button" />
                 ) : (
                   <Text style={styles.saveButtonText}>
                     {t ? t("common.save") || "Save" : "Save"}

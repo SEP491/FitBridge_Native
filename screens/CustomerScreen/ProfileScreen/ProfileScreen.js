@@ -12,6 +12,7 @@ import {
   Platform,
   Modal,
   KeyboardAvoidingView,
+  RefreshControl,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
@@ -20,6 +21,7 @@ import accountService from "../../../services/accountService";
 import { useTranslation } from "../../../hooks/useTranslation";
 import { formatNumber, formatDate, formatDateForAPI } from "../../../lib";
 import { useUser } from "../../../context/UserContext";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 const ProfileScreen = () => {
   const { t } = useTranslation();
@@ -41,6 +43,7 @@ const ProfileScreen = () => {
   const [showGenderPicker, setShowGenderPicker] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [displayDate, setDisplayDate] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
 
   const formatDisplayDate = (dateString) => {
     if (!dateString) return "";
@@ -217,6 +220,12 @@ const ProfileScreen = () => {
     }
   };
 
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchProfileData();
+    setRefreshing(false);
+  };
+
   const handleUpdateProfile = async () => {
     if (!isEditMode) {
       setIsEditMode(true);
@@ -284,6 +293,9 @@ const ProfileScreen = () => {
         style={styles.scrollContainer}
         contentContainerStyle={{ paddingBottom: 20 }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
       >
         {/* Header Section with Gradient */}
         <LinearGradient
@@ -631,7 +643,7 @@ const ProfileScreen = () => {
               disabled={isSaving}
             >
               {isSaving ? (
-                <ActivityIndicator size="small" color="#fff" />
+                <LoadingIndicator variant="button" />
               ) : (
                 <MaterialCommunityIcons
                   name="content-save"

@@ -21,6 +21,7 @@ import colors from "../../../constants/color";
 import { useTranslation } from "../../../hooks/useTranslation";
 import { fetchUserFromStorage, formatDateForAPI } from "../../../lib";
 import BookingRequestCard from "../../../components/BookingRequestCard";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 export default function ScheduleFreelanceScreen({ route }) {
   const { t } = useTranslation();
@@ -456,7 +457,7 @@ export default function ScheduleFreelanceScreen({ route }) {
                 style={styles.submitButtonGradient}
               >
                 {isSubmitting ? (
-                  <ActivityIndicator color="#fff" />
+                  <LoadingIndicator variant="button" />
                 ) : (
                   <>
                     <Ionicons
@@ -499,12 +500,10 @@ export default function ScheduleFreelanceScreen({ route }) {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.red} />
-        <Text style={styles.loadingText}>
-          {t("bookingRequest.loadingRequests")}
-        </Text>
-      </View>
+      <LoadingIndicator
+        variant="page"
+        message={t("bookingRequest.loadingRequests")}
+      />
     );
   }
 
