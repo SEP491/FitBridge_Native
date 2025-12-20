@@ -34,7 +34,7 @@ const PerformanceSummaryCard = ({ stat }) => {
             >
               <Icon
                 name={performanceStat.icon}
-                size={15}
+                size={20}
                 color={accent}
               />
             </View>

@@ -1030,7 +1030,13 @@
     "september": "September",
     "october": "October",
     "november": "November",
-    "december": "December"
+    "december": "December",
+    "totalPackagesSold": "Packages Sold",
+    "newCustomers": "New Customers",
+    "activeCustomers": "Active Customers",
+    "totalRevenue": "Revenue",
+    "thisMonth": "This Month",
+    "currentlyActive": "Currently Active"
   },
 
   "withdrawal": {

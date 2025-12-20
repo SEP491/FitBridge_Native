@@ -37,6 +37,7 @@ const FreelancePTDashboard = ({ navigation }) => {
   const [todaySessions, setTodaySessions] = useState([]);
   const [loadingSessions, setLoadingSessions] = useState(false);
   const [monthLyRevenue, setMonthLyRevenue] = useState(null);
+  const [dashboardStats, setDashboardStats] = useState(null);
   
   // Charts state
   const [showCharts, setShowCharts] = useState(true);
@@ -341,6 +342,7 @@ const FreelancePTDashboard = ({ navigation }) => {
       loadTodaySessions();
       fetchMonthLyRevenue();
       loadTransactions();
+      fetchDashboardStats();
     }, [])
   );
 
@@ -416,6 +418,17 @@ const FreelancePTDashboard = ({ navigation }) => {
     }
   };
 
+  const fetchDashboardStats = async () => {
+    try {
+      const response = await dashBoardService.getFreelancePTDashboard();
+      if (response && response.data) {
+        setDashboardStats(response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching dashboard stats:", error);
+    }
+  };
+
   const loadTodaySessions = async () => {
     try {
       setLoadingSessions(true);
@@ -463,41 +476,39 @@ const FreelancePTDashboard = ({ navigation }) => {
 
   const summaryPerformanceStats = [
     {
-      id: "todaySessions",
-      label: t("dashboard.todaySessions", "Buổi hôm nay"),
-      value: mockedDataDashboard[0]?.todaySessions || 0,
-      helper: t("dashboard.confirmed", "Đã xác nhận"),
-      icon: "calendar-outline",
+      id: "totalPackagesSold",
+      label: t("dashboard.totalPackagesSold", "Gói đã bán"),
+      value: dashboardStats?.currentMonth?.totalPackagesSold || 0,
+      helper: t("dashboard.thisMonth", "Tháng này"),
+      icon: "cube-outline",
       accent: "#2196F3",
       variant: "compact",
     },
     {
-      id: "pendingBookingRequests",
-      label: t("dashboard.pendingBookingRequests", "Yêu cầu chờ"),
-      value: mockedDataDashboard[0]?.pendingBookingRequests || 0,
-      helper: t("dashboard.needResponse", "Cần phản hồi"),
-      icon: "notifications-outline",
+      id: "newCustomers",
+      label: t("dashboard.newCustomers", "Khách hàng mới"),
+      value: dashboardStats?.currentMonth?.newCustomers || 0,
+      helper: t("dashboard.thisMonth", "Tháng này"),
+      icon: "people-outline",
       accent: "#FFB703",
       variant: "compact",
     },
     {
-      id: "completionRate",
-      label: t("dashboard.completionRate", "Hoàn thành"),
-      value: mockedDataDashboard[0]?.completionRate || 0,
-      suffix: "%",
-      helper: t("dashboard.target90", "Mục tiêu 90%"),
-      icon: "checkmark-circle-outline",
+      id: "activeCustomers",
+      label: t("dashboard.activeCustomers", "Khách hàng đang hoạt động"),
+      value: dashboardStats?.currentActiveCustomers || 0,
+      helper: t("dashboard.currentlyActive", "Đang hoạt động"),
+      icon: "person-circle-outline",
       accent: "#4CAF50",
       variant: "compact",
     },
     {
-      id: "rating",
-      label: t("dashboard.rating", "Đánh giá"),
-      value: (mockedDataDashboard[0]?.rating || 0).toFixed(1),
-      suffix: "/5",
-      helper: t("dashboard.fromStudent", "Từ học viên"),
-      icon: "star-outline",
-      accent: "#F7B801",
+      id: "totalRevenue",
+      label: t("dashboard.totalRevenue", "Doanh thu"),
+      value: formatCurrency(dashboardStats?.currentMonth?.totalRevenue || 0),
+      helper: t("dashboard.thisMonth", "Tháng này"),
+      icon: "cash-outline",
+      accent: "#ED2A46",
       variant: "compact",
     },
   ];
@@ -531,6 +542,7 @@ const FreelancePTDashboard = ({ navigation }) => {
       loadTodaySessions(),
       fetchMonthLyRevenue(),
       loadTransactions(),
+      fetchDashboardStats(),
     ]).finally(() => setRefreshing(false));
   };
 
@@ -633,6 +645,13 @@ const FreelancePTDashboard = ({ navigation }) => {
           monthLyRevenue={monthLyRevenue}
           renderRevenueComparison={renderRevenueComparison}
           onRefresh={onRefresh}
+        />
+
+        <BestsellerPackages
+          formatCurrency={formatCurrency}
+          renderRevenueComparison={renderRevenueComparison}
+          renderComparisonBadge={renderComparisonBadge}
+          mostPopularPackages={dashboardStats?.mostPopularPackages || []}
         />
 
         {/* Toggle Charts Button */}
@@ -819,12 +838,6 @@ const FreelancePTDashboard = ({ navigation }) => {
         )}
 
         <UpcomingSessions sessions={todaySessions} loading={loadingSessions} />
-
-        {/* <BestsellerPackages
-          formatCurrency={formatCurrency}
-          renderRevenueComparison={renderRevenueComparison}
-          renderComparisonBadge={renderComparisonBadge}
-        /> */}
         {/* </View> */}
       </ScrollView>
 

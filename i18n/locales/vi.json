@@ -980,7 +980,13 @@
     "september": "Tháng 9",
     "october": "Tháng 10",
     "november": "Tháng 11",
-    "december": "Tháng 12"
+    "december": "Tháng 12",
+    "totalPackagesSold": "Gói đã bán",
+    "newCustomers": "Khách hàng mới",
+    "activeCustomers": "Khách hàng",
+    "totalRevenue": "Doanh thu",
+    "thisMonth": "Tháng này",
+    "currentlyActive": "Đang hoạt động"
   },
 
   "withdrawal": {
