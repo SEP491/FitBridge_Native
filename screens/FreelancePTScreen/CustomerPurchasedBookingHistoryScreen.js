@@ -12,6 +12,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import bookingService from "../../services/bookingService";
 import BookingRequestCard from "../../components/BookingRequestCard/BookingRequestCard";
+import { BookingRequestCardSkeletonList } from "../../components/BookingRequestCard/BookingRequestCardSkeleton";
 import LoadingIndicator from "../../components/LoadingIndicator";
 
 // Format time for BookingRequestCard
@@ -51,7 +52,7 @@ const mapSessionStatusToRequestStatus = (sessionStatus) => {
 };
 
 const CustomerPurchasedBookingHistoryScreen = ({ route, navigation }) => {
-  const { customerId, customerPurchasedId, customer } = route.params || {};
+  const { customerPurchasedId, customer } = route.params || {};
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -72,7 +73,7 @@ const CustomerPurchasedBookingHistoryScreen = ({ route, navigation }) => {
       }
 
       const response = await bookingService.getBookingHistoryForCustomer({
-        customerId,
+        customerId: customer.id,
         customerPurchasedId,
         page,
         size: 10,
@@ -107,7 +108,7 @@ const CustomerPurchasedBookingHistoryScreen = ({ route, navigation }) => {
 
   useEffect(() => {
     fetchBookings(1);
-  }, [customerId, customerPurchasedId]);
+  }, [customerPurchasedId]);
 
   const handleRefresh = () => {
     fetchBookings(1, true);
@@ -155,8 +156,8 @@ const CustomerPurchasedBookingHistoryScreen = ({ route, navigation }) => {
     <SafeAreaView style={styles.container}>
 
       {loading && bookings.length === 0 ? (
-        <View style={styles.loadingContainer}>
-          <LoadingIndicator variant="page" message="Đang tải..." />
+        <View style={styles.skeletonContainer}>
+          <BookingRequestCardSkeletonList count={4} />
         </View>
       ) : (
         <FlatList
@@ -165,14 +166,14 @@ const CustomerPurchasedBookingHistoryScreen = ({ route, navigation }) => {
             // Map booking data to BookingRequestCard format
             const request = {
               requestStatus: mapSessionStatusToRequestStatus(item.sessionStatus),
-              requestType: "PtCreate", // Historical bookings treated as PT created
+              requestType: null, 
               bookingDate: item.bookingDate,
               startTime: item.startTime,
               endTime: item.endTime,
               bookingName: item.bookingName || "Buổi tập",
               note: item.note || item.nutritionTip || null,
               // Customer info (from route params or fallback)
-              customerName: customer?.name || customer?.customerName || "Customer",
+              customerName: customer?.fullName || customer?.name || "Customer",
               customerAvatarUrl: customer?.avatarUrl || customer?.customerAvatarUrl || null,
               // PT info
               ptName: item.ptName || null,
@@ -243,6 +244,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  skeletonContainer: {
+    padding: 16,
   },
   loadingText: {
     marginTop: 12,

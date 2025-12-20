@@ -84,17 +84,25 @@ export default function PackageCard({
   const isReviewMode = mode === "review";
 
   const handleViewDetail = () => {
-    if (!customer || !isFreelancePT) return;
-    
-    // Find the package index in customer.packages array
-    const packageIndex = customer.packages?.findIndex(
-      (pkg) => pkg.id === item.id
-    );
-    
-    navigation.navigate("CustomerDetailScreen", {
-      customer: customer,
-      expandPackageIndex: packageIndex >= 0 ? packageIndex : null,
-    });
+    if (isFreelancePT && customer) {
+      // For Freelance PT packages, navigate to CustomerDetailScreen
+      const packageIndex = customer.packages?.findIndex(
+        (pkg) => pkg.id === item.id
+      );
+      
+      navigation.navigate("CustomerDetailScreen", {
+        customer: customer,
+        expandPackageIndex: packageIndex >= 0 ? packageIndex : null,
+      });
+    } else if (isGymWithPT || isGymNormal) {
+      // For Gym Course packages, navigate to PackageHistoryScreen
+      navigation.navigate("PackageHistoryScreen", {
+        customerPurchasedId: item.id,
+        packageName: item.packageName,
+        packageType: item.type,
+        customer: customer,
+      });
+    }
   };
 
 
@@ -320,8 +328,8 @@ export default function PackageCard({
         </View>
       )}
 
-      {/* Third Row: View Detail Button (Only for Freelance PT Packages) */}
-      {isFreelancePT && customer && (
+      {/* Third Row: View Detail Button (For Freelance PT and Gym Course Packages) */}
+      {((isFreelancePT && customer) || isGymWithPT || isGymNormal) && (
         <View style={styles.viewDetailRow}>
           <TouchableOpacity
             style={styles.viewDetailButton}

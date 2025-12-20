@@ -106,6 +106,7 @@ import ManageCerScreen from "../screens/FreelancePTScreen/ManageCerScreen/Manage
 import FreelancePTBookingHistoryScreen from "../screens/FreelancePTScreen/FreelancePTBookingHistoryScreen/FreelancePTBookingHistoryScreen";
 import CustomerPurchasedTransactionScreen from "../screens/FreelancePTScreen/CustomerPurchasedTransactionScreen";
 import CustomerPurchasedBookingHistoryScreen from "../screens/FreelancePTScreen/CustomerPurchasedBookingHistoryScreen";
+import PackageHistoryScreen from "../screens/CustomerScreen/PackageHistoryScreen/PackageHistoryScreen";
 
 export default function Navigator({
   isAuthenticated: propIsAuthenticated,
@@ -1749,6 +1750,20 @@ export default function Navigator({
           options={{
             headerShown: true,
             title: t("screenTitles.myPackage"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="PackageHistoryScreen"
+          component={PackageHistoryScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.packageHistory"),
             headerTitleAlign: "center",
             headerTitleStyle: {
               fontWeight: "bold",

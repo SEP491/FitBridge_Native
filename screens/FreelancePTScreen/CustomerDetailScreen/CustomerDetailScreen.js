@@ -186,6 +186,7 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
   const handleViewTransactionHistory = (pkg) => {
     navigation.navigate('CustomerPurchasedTransactionScreen', {
       customerPurchasedId: pkg.id,
+      customer: customer,
     });
   };
 

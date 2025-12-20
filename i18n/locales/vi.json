@@ -48,6 +48,7 @@
   },
 
   "screenTitles": {
+    "packageHistory": "Lịch sử gói tập",
     "freelancePTBookingHistory": "Lịch sử đặt lịch Freelance PT",
     "bestSellerProducts": "Sản Phẩm Bán Chạy Nhất",
     "topRatedProducts": "Sản Phẩm Nổi Bật",
@@ -933,7 +934,6 @@
     "discount": "Giảm giá",
     "total": "Tổng cộng",
     "orderCode": "Mã giao dịch",
-    "success": "Thành công",
     "failed": "Thất bại",
     "pending": "Đang chờ",
     "noOrders": "Chưa có đơn hàng nào",
@@ -2574,6 +2574,12 @@
     "failedToLoad": "Không thể tải giao dịch",
     "availableSessions": "Buổi còn lại",
     "expires": "Hết hạn"
+  },
+
+  "packageHistory": {
+    "title": "Lịch Sử Gói Tập",
+    "transaction": "Giao Dịch",
+    "booking": "Đặt Lịch"
   },
 
   "customerDetail": {

@@ -27,6 +27,7 @@ import orderService from "../../../services/orderService";
 import PackageCard from "../../../components/PackageCard/PackageCard";
 import { PackageCardSkeletonList } from "../../../components/PackageCard/PackageCardSkeleton";
 import LoadingIndicator from "../../../components/LoadingIndicator";
+import { fetchUserFromStorage } from "../../../lib";
 export default function MyPackageScreen() {
   const { t } = useTranslation();
   const [packages, setPackages] = useState([]);
@@ -43,14 +44,19 @@ export default function MyPackageScreen() {
   const [reportDescription, setReportDescription] = useState("");
   const [reportImages, setReportImages] = useState([]);
   const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+  const [user, setUser] = useState(null);
 
   // Feedback Modal States
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
-  const [selectedPackageForFeedback, setSelectedPackageForFeedback] =
-    useState(null);
+  const [selectedPackageForFeedback, setSelectedPackageForFeedback] =useState(null);
 
+  const fetchUser = async () => {
+    const user = await fetchUserFromStorage();
+    setUser(user);
+  };
   useEffect(() => {
     fetchPackages();
+    fetchUser();
   }, []);
 
   const fetchPackages = async () => {
@@ -325,42 +331,61 @@ export default function MyPackageScreen() {
     }
   };
 
-  // Construct customer object for Freelance PT packages
-  const getCustomerForPackage = (packageItem) => {
-    if (packageItem.type !== "freelancePT") return null;
-    
-    // Get all Freelance PT packages for this customer
-    const freelancePTPackages = packages.filter(pkg => pkg.type === "freelancePT");
-    
-    // Construct a customer object from package data
-    // Note: This constructs a customer object for navigation to CustomerDetailScreen
-    const customer = {
-      id: packageItem.customerId || packageItem.id, // Use customerId if available, fallback to package id
-      name: packageItem.customerName || packageItem.ptName || "Customer", // Use customerName if available
-      email: packageItem.customerEmail || "",
-      phone: packageItem.customerPhone || "",
-      avatarUrl: packageItem.customerAvatarUrl || null,
-      status: "active",
-      joinDate: packageItem.purchaseDate || new Date().toISOString(),
-      totalPackages: freelancePTPackages.length,
-      activePackages: freelancePTPackages.filter(pkg => !isPackageExpired(pkg.expirationDate)).length,
-      totalSessions: freelancePTPackages.reduce((sum, pkg) => sum + (pkg.availableSessions || 0), 0),
-      packages: freelancePTPackages.map(pkg => ({
-        id: pkg.id,
-        packageName: pkg.packageName,
-        availableSessions: pkg.availableSessions || 0,
-        expirationDate: pkg.expirationDate,
-        purchaseDate: pkg.purchaseDate || pkg.expirationDate,
-        totalSessions: pkg.totalSessions || pkg.availableSessions || 0,
-      })),
-    };
-    
-    return customer;
+  // Construct customer object for packages (Freelance PT and Gym Course)
+  const getCustomerForPackage = (packageItem, user) => {
+    // For Freelance PT packages, construct customer object for CustomerDetailScreen
+    console.log(packageItem, user);
+    if (packageItem.type === "freelancePT") {
+      const freelancePTPackages = packages.filter(
+        (pkg) => pkg.type === "freelancePT"
+      );
+      return {
+        id: user?.id,
+        name: user?.fullName || "Customer",
+        email: user?.email || "",
+        phone: user?.phone || "",
+        avatarUrl: user?.avatarUrl || null,
+        status: "active",
+        joinDate: packageItem.purchaseDate || new Date().toISOString(),
+        totalPackages: freelancePTPackages.length,
+        activePackages: freelancePTPackages.filter(
+          (pkg) => !isPackageExpired(pkg.expirationDate)
+        ).length,
+        totalSessions: freelancePTPackages.reduce(
+          (sum, pkg) => sum + (pkg.availableSessions || 0),
+          0
+        ),
+        packages: freelancePTPackages.map((pkg) => ({
+          id: pkg.id,
+          packageName: pkg.packageName,
+          availableSessions: pkg.availableSessions || 0,
+          expirationDate: pkg.expirationDate,
+          purchaseDate: pkg.purchaseDate || pkg.expirationDate,
+          totalSessions: pkg.totalSessions || pkg.availableSessions || 0,
+        })),
+      };
+    }
+
+    // For Gym Course packages, return a basic customer object for PackageHistoryScreen
+    if (
+      packageItem.type === "gymCourseWithPT" ||
+      packageItem.type === "gymCourseNormal"
+    ) {
+      return {
+        id: user?.id,
+        name: user?.fullName || "Customer",
+        email: user?.email || "",
+        phone: user?.phone || "",
+        avatarUrl: user?.avatarUrl || null,
+      };
+    }
+
+    return null;
   };
 
-  const renderPackageItem = ({ item }) => {
-    const customer = getCustomerForPackage(item);
-    
+  const renderPackageItem = ({ item, user }) => {
+    const customer = getCustomerForPackage(item, user);
+
     return (
       <PackageCard
         item={item}
@@ -591,7 +616,7 @@ export default function MyPackageScreen() {
       ) : (
         <FlatList
           data={filteredPackages}
-          renderItem={renderPackageItem}
+          renderItem={({ item }) => renderPackageItem({ item, user: user })}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}
