@@ -110,13 +110,15 @@ class SignalRService {
       // Use a factory function that retrieves fresh token each time
       const token = await AsyncStorage.getItem("token");
       console.log("token", token);
-      
+
       // Skip connection for guests (no token)
       if (!token) {
-        console.log("SignalR Message: No access token found, skipping connection (guest mode)");
+        console.log(
+          "SignalR Message: No access token found, skipping connection (guest mode)"
+        );
         return;
       }
-      
+
       this.#connection = new HubConnectionBuilder()
         .withUrl(this.#url, {
           accessTokenFactory: () => token,

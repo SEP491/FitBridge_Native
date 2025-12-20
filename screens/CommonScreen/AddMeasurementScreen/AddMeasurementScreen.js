@@ -21,9 +21,15 @@ export default function AddMeasurementScreen({ route }) {
       const deviceLanguage = getCurrentLanguage();
       console.log("Device Language:", deviceLanguage);
       const userInfo = await fetchUserFromStorage();
-      
+
       // Check if user is logged in and has required fields
-      if (!userInfo || !userInfo.dob || !userInfo.gender || !userInfo.height || !userInfo.weight) {
+      if (
+        !userInfo ||
+        !userInfo.dob ||
+        !userInfo.gender ||
+        !userInfo.height ||
+        !userInfo.weight
+      ) {
         Alert.alert(
           "Login Required",
           "Please login and complete your profile to use body measurement."
@@ -31,7 +37,7 @@ export default function AddMeasurementScreen({ route }) {
         navigation.goBack();
         return;
       }
-      
+
       const userAge =
         new Date().getFullYear() - new Date(userInfo.dob).getFullYear();
       const gender = userInfo.gender.toLowerCase();

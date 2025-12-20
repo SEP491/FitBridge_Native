@@ -13,7 +13,12 @@ import CartCard from "../../../components/CartCard/CartCard";
 import Cart_FreelancePTCard from "../../../components/CartCard/Cart_FreelancePTCard";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import cartService from "../../../services/cartService";
-import { formatPrice, showErrorAlert, showSuccessAlert, fetchUserFromStorage } from "../../../lib";
+import {
+  formatPrice,
+  showErrorAlert,
+  showSuccessAlert,
+  fetchUserFromStorage,
+} from "../../../lib";
 import { useTranslation } from "../../../hooks/useTranslation";
 import CartCard_Extend from "../../../components/CartCard_Extend/CartCard_Extend";
 import {
@@ -91,7 +96,7 @@ export default function PaymentScreen({ navigation, route }) {
   const [loading, setLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [userLoading, setUserLoading] = useState(true);
-  
+
   // Check if cart contains any products
   const hasProducts = displayItems.some(
     (item) => item.selectedVariant && !item.gymId
@@ -103,24 +108,20 @@ export default function PaymentScreen({ navigation, route }) {
       setUserLoading(true);
       const userData = await fetchUserFromStorage();
       if (!userData) {
-        Alert.alert(
-          t("auth.loginRequired"),
-          t("auth.pleaseLoginToCheckout"),
-          [
-            { 
-              text: t("common.cancel"), 
-              style: "cancel",
-              onPress: () => navigation.goBack()
+        Alert.alert(t("auth.loginRequired"), t("auth.pleaseLoginToCheckout"), [
+          {
+            text: t("common.cancel"),
+            style: "cancel",
+            onPress: () => navigation.goBack(),
+          },
+          {
+            text: t("navigation.login"),
+            onPress: () => {
+              navigation.goBack();
+              navigation.navigate(t("navigation.login"), { screen: "Login" });
             },
-            { 
-              text: t("navigation.login"), 
-              onPress: () => {
-                navigation.goBack();
-                navigation.navigate(t("navigation.login"), { screen: "Login" });
-              }
-            },
-          ]
-        );
+          },
+        ]);
       } else {
         setCurrentUser(userData);
         fetchAddresses();

@@ -152,17 +152,14 @@ export default function GymDetailScreen({ route }) {
     // Check if user is logged in
     const userData = await fetchUserFromStorage();
     if (!userData) {
-      Alert.alert(
-        t("auth.loginRequired"),
-        t("auth.pleaseLoginToContinue"),
-        [
-          { text: t("common.cancel"), style: "cancel" },
-          { 
-            text: t("navigation.login"), 
-            onPress: () => navigation.navigate(t("navigation.login"), { screen: "Login" })
-          },
-        ]
-      );
+      Alert.alert(t("auth.loginRequired"), t("auth.pleaseLoginToContinue"), [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("navigation.login"),
+          onPress: () =>
+            navigation.navigate(t("navigation.login"), { screen: "Login" }),
+        },
+      ]);
       return;
     }
 
@@ -198,9 +195,7 @@ export default function GymDetailScreen({ route }) {
   };
 
   if (loading) {
-    return (
-      <LoadingIndicator variant="page" message={t("gymDetail.loading")} />
-    );
+    return <LoadingIndicator variant="page" message={t("gymDetail.loading")} />;
   }
   if (!gymId) {
     return (

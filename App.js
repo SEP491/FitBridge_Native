@@ -27,7 +27,7 @@ export default function App() {
   const [isGuest, setIsGuest] = useState(true); // Default to guest mode
   const [user, setUser] = useState(null);
   const [authCheckComplete, setAuthCheckComplete] = useState(false);
-  
+
   // Expose setters globally for Navigator to update auth state after login
   useEffect(() => {
     global.setAppAuthState = (authState) => {
@@ -39,7 +39,7 @@ export default function App() {
       delete global.setAppAuthState;
     };
   }, []);
-  
+
   useEffect(() => {
     async function prepare() {
       try {

@@ -168,7 +168,7 @@ export default function Navigator({
             setIsGuest(false);
             setUser(authResult.user);
             await AsyncStorage.setItem("user", JSON.stringify(authResult.user));
-            
+
             // Update App.js state as well
             if (global.setAppAuthState) {
               global.setAppAuthState({
@@ -185,7 +185,7 @@ export default function Navigator({
             setUser(null);
             console.log("User cleared - reverting to guest mode");
             await AsyncStorage.multiRemove(["token", "user"]);
-            
+
             // Update App.js state as well
             if (global.setAppAuthState) {
               global.setAppAuthState({
@@ -201,7 +201,7 @@ export default function Navigator({
           setIsGuest(true);
           setUser(null);
           await AsyncStorage.multiRemove(["token", "user"]);
-          
+
           // Update App.js state as well
           if (global.setAppAuthState) {
             global.setAppAuthState({

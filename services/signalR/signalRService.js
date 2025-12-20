@@ -30,10 +30,12 @@ export const startConnection = async () => {
     }
 
     const accessToken = await AsyncStorage.getItem("token");
-    
+
     // Skip connection for guests (no token)
     if (!accessToken) {
-      console.log("SignalR: No access token found, skipping connection (guest mode)");
+      console.log(
+        "SignalR: No access token found, skipping connection (guest mode)"
+      );
       return;
     }
 

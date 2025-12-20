@@ -374,17 +374,14 @@ export default function ProductDetailsScreen() {
   const handleAddToCart = () => {
     // Check if user is logged in
     if (!currentUser) {
-      Alert.alert(
-        t("auth.loginRequired"),
-        t("auth.pleaseLoginToAddToCart"),
-        [
-          { text: t("common.cancel"), style: "cancel" },
-          { 
-            text: t("navigation.login"), 
-            onPress: () => navigation.navigate(t("navigation.login"), { screen: "Login" })
-          },
-        ]
-      );
+      Alert.alert(t("auth.loginRequired"), t("auth.pleaseLoginToAddToCart"), [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("navigation.login"),
+          onPress: () =>
+            navigation.navigate(t("navigation.login"), { screen: "Login" }),
+        },
+      ]);
       return;
     }
     setPendingAction("addToCart");
@@ -395,17 +392,14 @@ export default function ProductDetailsScreen() {
   const handleBuyNow = () => {
     // Check if user is logged in
     if (!currentUser) {
-      Alert.alert(
-        t("auth.loginRequired"),
-        t("auth.pleaseLoginToBuy"),
-        [
-          { text: t("common.cancel"), style: "cancel" },
-          { 
-            text: t("navigation.login"), 
-            onPress: () => navigation.navigate(t("navigation.login"), { screen: "Login" })
-          },
-        ]
-      );
+      Alert.alert(t("auth.loginRequired"), t("auth.pleaseLoginToBuy"), [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("navigation.login"),
+          onPress: () =>
+            navigation.navigate(t("navigation.login"), { screen: "Login" }),
+        },
+      ]);
       return;
     }
     setPendingAction("buyNow");

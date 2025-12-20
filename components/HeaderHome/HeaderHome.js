@@ -18,7 +18,12 @@ import axios from "axios";
 import FullScreenSearch from "../FullScreenSearch/FullScreenSearch";
 import { useUser } from "../../context/UserContext";
 
-export default function HeaderHome({ user, showFullScreenSearch, setShowFullScreenSearch, initialTab = "gyms" }) {
+export default function HeaderHome({
+  user,
+  showFullScreenSearch,
+  setShowFullScreenSearch,
+  initialTab = "gyms",
+}) {
   const [searchText, setSearchText] = useState("");
   const [loading, setLoading] = useState(true);
   const { avatarUrl } = useUser();

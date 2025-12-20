@@ -1978,9 +1978,7 @@ export default function MessageDetailScreen({ route, navigation }) {
               ) : null
             }
             ListFooterComponent={
-              isLoadingMore ? (
-                <LoadingIndicator variant="inline" />
-              ) : null
+              isLoadingMore ? <LoadingIndicator variant="inline" /> : null
             }
           />
         )}

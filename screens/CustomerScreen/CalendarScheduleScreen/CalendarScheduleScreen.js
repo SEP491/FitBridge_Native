@@ -441,7 +441,10 @@ export default function CalendarScheduleScreen() {
               style={styles.scrollView}
               showsVerticalScrollIndicator={false}
               refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={handleRefresh}
+                />
               }
             >
               {loading ? (
