@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -14,15 +14,6 @@ import VoucherShareModal from './VoucherShareModal';
 
 const VoucherCardVertical = ({ voucher, userName }) => {
   const [showShareModal, setShowShareModal] = useState(false);
-  const [isReady, setIsReady] = useState(false);
-
-  useEffect(() => {
-    // Delay QRCode rendering to avoid SVG layout issues
-    const timer = setTimeout(() => {
-      setIsReady(true);
-    }, 100);
-    return () => clearTimeout(timer);
-  }, []);
 
   if (!voucher) {
     return null;
@@ -99,19 +90,12 @@ const VoucherCardVertical = ({ voucher, userName }) => {
 
         {/* QR Code */}
         <View style={styles.qrSection}>
-          {isReady && voucher?.couponCode ? (
-            <View style={styles.qrWrapper}>
-              <QRCode
-                value={voucher.couponCode}
-                size={100}
-                backgroundColor="white"
-                color="black"
-                quietZone={10}
-              />
-            </View>
-          ) : (
-            <View style={styles.qrWrapper} />
-          )}
+          <QRCode
+            value={voucher.couponCode}
+            size={100}
+            backgroundColor="white"
+            color="black"
+          />
         </View>
 
         {/* Status Badge */}
@@ -272,12 +256,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 16,
-  },
-  qrWrapper: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 120,
-    height: 120,
   },
   statusContainer: {
     alignItems: 'center',
