@@ -90,7 +90,7 @@ export default function TransactionHistoryScreen() {
       };
 
       if (selectedStatus) {
-        params.status = selectedStatus;
+        params.orderStatus = selectedStatus;
       }
 
       const response = await transactionService.getTransactions(params);
