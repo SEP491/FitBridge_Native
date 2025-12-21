@@ -22,6 +22,7 @@ import { useTranslation } from "../../../hooks/useTranslation";
 import { formatNumber, formatDate, formatDateForAPI } from "../../../lib";
 import { useUser } from "../../../context/UserContext";
 import LoadingIndicator from "../../../components/LoadingIndicator";
+import UpdateUserDetailModal from "../AccountScreen/UpdateUserDetailModal";
 
 const ProfileScreen = () => {
   const { t } = useTranslation();
@@ -44,6 +45,8 @@ const ProfileScreen = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [displayDate, setDisplayDate] = useState("");
   const [refreshing, setRefreshing] = useState(false);
+  const [showUpdateUserDetailModal, setShowUpdateUserDetailModal] =
+    useState(false);
 
   const formatDisplayDate = (dateString) => {
     if (!dateString) return "";
@@ -384,7 +387,40 @@ const ProfileScreen = () => {
             </View>
           )}
         </View>
+        {/* Update User Details Button */}
 
+        <View style={styles.actionCardsContainer}>
+          <TouchableOpacity
+            style={styles.actionCard}
+            onPress={() => setShowUpdateUserDetailModal(true)}
+          >
+            <View
+              style={[styles.actionCardIcon, { backgroundColor: "#E3F2FD" }]}
+            >
+              <MaterialCommunityIcons
+                name="account"
+                size={20}
+                color="#2196F3"
+              />
+            </View>
+            <View style={styles.actionCardContent}>
+              <Text style={styles.actionCardTitle}>
+                {t("userDetail.updateDetails", "Update User Details")}
+              </Text>
+              <Text style={styles.actionCardSubtitle}>
+                {t(
+                  "userDetail.updateBodyMeasurements",
+                  "Update body measurements and bio"
+                )}
+              </Text>
+            </View>
+            <MaterialCommunityIcons
+              name="chevron-right"
+              size={16}
+              color="#999"
+            />
+          </TouchableOpacity>
+        </View>
         {/* Health Metrics Section */}
         {bmi && (
           <View style={styles.sectionContainer}>
@@ -483,10 +519,7 @@ const ProfileScreen = () => {
                 {t("email")}
               </Text>
               <TextInput
-                style={[
-                  styles.textInput,
-                  !isEditMode && styles.disabledInput,
-                ]}
+                style={[styles.textInput, !isEditMode && styles.disabledInput]}
                 value={userProfile.email}
                 editable={isEditMode}
                 placeholder={t("email")}
@@ -635,10 +668,7 @@ const ProfileScreen = () => {
         {isEditMode && (
           <View style={styles.actionContainer}>
             <TouchableOpacity
-              style={[
-                styles.saveButton,
-                isSaving && styles.saveButtonDisabled,
-              ]}
+              style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
               onPress={handleUpdateProfile}
               disabled={isSaving}
             >
@@ -739,6 +769,16 @@ const ProfileScreen = () => {
         isDarkModeEnabled={false}
         buttonTextColorIOS="#FF914D"
         textColor="#1A191A"
+      />
+
+      {/* Update User Detail Modal */}
+      <UpdateUserDetailModal
+        visible={showUpdateUserDetailModal}
+        onClose={() => setShowUpdateUserDetailModal(false)}
+        onSuccess={() => {
+          // Optionally refresh user data
+          fetchProfileData();
+        }}
       />
     </KeyboardAvoidingView>
   );
@@ -1064,6 +1104,43 @@ const styles = StyleSheet.create({
   selectedOptionText: {
     color: "#FF914D",
     fontWeight: "600",
+  },
+  actionCardsContainer: {
+    gap: 12,
+    marginHorizontal: 16,
+  },
+  actionCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  actionCardIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#FFE8E8",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 16,
+  },
+  actionCardContent: {
+    flex: 1,
+  },
+  actionCardTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#000",
+    marginBottom: 2,
+  },
+  actionCardSubtitle: {
+    fontSize: 14,
+    color: "#666",
   },
 });
 
