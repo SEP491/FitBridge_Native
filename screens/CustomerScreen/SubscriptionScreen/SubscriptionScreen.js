@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Platform,
   Linking,
+  RefreshControl,
 } from "react-native";
 import { useEffect, useState } from "react";
 import { useTranslation } from "../../../hooks/useTranslation";
@@ -44,6 +45,7 @@ export default function SubscriptionScreen() {
   } = useRevenueCat();
 
   const [subscriptionDetails, setSubscriptionDetails] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     if (customerInfo && checkUserPremiumStatus()) {
@@ -51,6 +53,21 @@ export default function SubscriptionScreen() {
       setSubscriptionDetails(details);
     }
   }, [customerInfo]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      const response = await Promise.all([
+        fetchOfferings(),
+        fetchCustomerInfo(),
+      ]);
+      console.log("Response:", response);
+    } catch (error) {
+      console.error("Error refreshing subscription data:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const getSubscriptionDetails = () => {
     if (!customerInfo || !checkUserPremiumStatus()) return null;
@@ -111,7 +128,18 @@ export default function SubscriptionScreen() {
 
   return (
     <View style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[colors.red]}
+            tintColor={colors.red}
+            progressBackgroundColor="#fff"
+          />
+        }
+      >
         {/* Hero Section */}
         <LinearGradient
           colors={[colors.orange, colors.red, "#C41E3A"]}

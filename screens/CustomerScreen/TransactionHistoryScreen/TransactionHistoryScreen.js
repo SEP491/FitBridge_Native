@@ -93,7 +93,9 @@ export default function TransactionHistoryScreen() {
         params.orderStatus = selectedStatus;
       }
 
-      const response = await transactionService.getTransactions(params);
+      const response = await transactionService.getOrdersHistoryCustomer(
+        params
+      );
       console.log("Orders Response:", response.data);
 
       if (response.data && response.data.items) {

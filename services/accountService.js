@@ -20,7 +20,8 @@ const accountService = {
   bookingSlot: (data) =>
     request("POST", "v1/gym-slots/customer-register-slot", data),
   cancelBooking: (data) => request("POST", "v1/bookings/cancel-booking", data),
-  finishBooking: (data) => request("POST", "v1/bookings/finish-booking", data),
+  endBookingSession: (data) =>
+    request("POST", "v1/bookings/end-booking-session", data),
   getBookingForUser: (params) =>
     request("GET", "v1/bookings/get-customer-bookings", null, {}, params),
 

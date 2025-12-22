@@ -116,7 +116,7 @@ export default function CalendarPTScreen() {
           onPress: async () => {
             try {
               setFinishingId(bookingId);
-              const response = await accountService.finishBooking({
+              const response = await accountService.endBookingSession({
                 bookingId,
               });
               console.log("Finish booking response:", response.data);
@@ -124,7 +124,10 @@ export default function CalendarPTScreen() {
               loadBookingOfGymPT(selectedDate);
             } catch (error) {
               console.error("Error finishing booking:", error.response?.data);
-              Alert.alert(t("calendar.error"), t("calendar.finishError"));
+              Alert.alert(
+                t("calendar.error"),
+                error.response?.data?.message || t("calendar.finishError")
+              );
             } finally {
               setFinishingId(null);
             }
