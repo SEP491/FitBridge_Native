@@ -180,7 +180,7 @@ const ManageOrderScreen = ({ route }) => {
       }
       const response = await orderService.getProductOrder({
         sortOrder: "dsc",
-        pageNumber: pageNum,
+        page: pageNum,
         customerId: user?.id,
       });
       const newItems = response.data.productOrders.items || [];
