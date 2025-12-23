@@ -36,15 +36,16 @@ const TopPackageCard = ({ packageData, formatCurrency, renderRevenueComparison }
 
           {/* Package Info */}
           <View style={styles.topPackageInfo}>
-            <Text style={styles.packageName}>
-              {packageData.packageName || "Gói tập 1"}
-            </Text>
-            <View style={styles.purchaseInfo}>
+          <View style={styles.purchaseInfo}>
               <Icon name="people" size={14} color="#FF6B35" />
               <Text style={styles.purchaseCount}>
                 {packageData.totalPurchase || 0} người đã mua
               </Text>
             </View>
+            <Text style={styles.packageName}>
+              {packageData.packageName || "Gói tập 1"}
+            </Text>
+            
           </View>
 
           {/* Revenue Display */}
