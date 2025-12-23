@@ -292,6 +292,18 @@ export default function ChatbotScreen({ navigation }) {
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
+  // One thread ID per chat session for conversation persistence
+  const generateThreadId = () => {
+    if (typeof crypto !== "undefined" && crypto.randomUUID) {
+      return crypto.randomUUID();
+    }
+    // Fallback: pseudo-UUID using timestamp and random numbers
+    const timestamp = Date.now().toString(16);
+    const random = Math.random().toString(16).substring(2, 10);
+    const random2 = Math.random().toString(16).substring(2, 10);
+    return `${timestamp}-${random}-${random2}`;
+  };
+  const threadIdRef = useRef(generateThreadId());
   const flatListRef = useRef(null);
   const textInputRef = useRef(null);
   const { isPremiumUser, presentPaywall } = useRevenueCat();
@@ -369,11 +381,20 @@ export default function ChatbotScreen({ navigation }) {
     // Format current conversation history for the request
     const conversationHistory = formatConversationHistory(messages);
 
+    // Map to backend /invoke contract
     const requestData = {
-      prompt: prompt,
-      longitude: coords.longitude,
-      latitude: coords.latitude,
-      conversation_history: conversationHistory, // Include conversation history
+      message: prompt,
+      search_criteria: {
+        // Extend this object with real filters if needed
+      },
+      // Match backend contract exactly:
+      // "user_location": { "latitude": 10.8752, "longitude": 106.8007 }
+      user_location: {
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+      },
+      // Optional: keep sending history if your backend supports it
+      conversation_history: conversationHistory,
     };
 
     console.log("📡 Sending request to API:", requestData);
@@ -381,8 +402,21 @@ export default function ChatbotScreen({ navigation }) {
     // Log detailed conversation history for debugging
 
     try {
-      const response = await chatbotService.sendMessage(requestData);
-      return response.data || response; // Handle both data and direct response
+      const response = await chatbotService.sendMessage(requestData, {
+        thread_id: threadIdRef.current,
+      });
+
+      // The /invoke API returns `{ messages: [...], final_report: "" }`
+      // Extract the latest AI message and normalize to the shape used below.
+      const messagesFromApi = response.messages || [];
+      const lastAiMessage = [...messagesFromApi]
+        .reverse()
+        .find((m) => m.type === "ai");
+
+      return {
+        message: lastAiMessage?.content,
+        raw: response,
+      };
     } catch (error) {
       console.error("API call failed:", error);
       throw error;
@@ -415,6 +449,7 @@ export default function ChatbotScreen({ navigation }) {
         text: t("chat.delete"),
         style: "destructive",
         onPress: () => {
+          // Reset conversation messages
           setMessages([
             {
               id: 1,
@@ -423,6 +458,8 @@ export default function ChatbotScreen({ navigation }) {
               timestamp: new Date(),
             },
           ]);
+          // Generate a new thread ID so subsequent messages start a fresh conversation
+          threadIdRef.current = generateThreadId();
         },
       },
     ]);
