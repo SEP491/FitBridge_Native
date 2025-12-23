@@ -55,6 +55,7 @@ import SubscriptionScreen from "../screens/CustomerScreen/SubscriptionScreen/Sub
 import TransactionHistoryScreen from "../screens/CustomerScreen/TransactionHistoryScreen/TransactionHistoryScreen";
 import MyPackageScreen from "../screens/CustomerScreen/MyPackageScreen/MyPackageScreen";
 import MyReportsScreen from "../screens/CustomerScreen/MyReportsScreen/MyReportsScreen";
+import ReportDetailScreen from "../screens/CustomerScreen/ReportDetailScreen/ReportDetailScreen";
 import VoucherScreen from "../screens/CustomerScreen/VoucherScreen/VoucherScreen";
 import ManageOrderScreen from "../screens/CustomerScreen/ManageOrderScreen/ManageOrderScreen";
 import OrderDetailScreen from "../screens/CustomerScreen/OrderDetailScreen/OrderDetailScreen";
@@ -1778,6 +1779,20 @@ export default function Navigator({
           options={{
             headerShown: true,
             title: t("screenTitles.myReports") || "My Reports",
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="ReportDetailScreen"
+          component={ReportDetailScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.reportDetail") || "Report Detail",
             headerTitleAlign: "center",
             headerTitleStyle: {
               fontWeight: "bold",

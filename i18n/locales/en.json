@@ -106,7 +106,9 @@
     "productDetail": "Product Detail",
     "myReviewsRatings": "My Reviews & Ratings",
     "customerPurchasedBookingHistory": "Customer Booking History",
-    "customerPurchasedTransaction": "Customer Transaction History"
+    "customerPurchasedTransaction": "Customer Transaction History",
+    "myReports": "My Reports",
+    "reportDetail": "Report Detail"
   },
 
   "myPackage": {
@@ -2554,5 +2556,47 @@
     "fillAllFields": "Please fill all required fields",
     "updateSuccess": "User details updated successfully",
     "updateFailed": "Failed to update user details"
+  },
+
+  "myReports": {
+    "loadingReports": "Loading reports...",
+    "loadingDetail": "Loading report detail...",
+    "noReportsFound": "No Reports Found",
+    "noReportsYet": "You haven't submitted any reports yet",
+    "noReportsInTab": "No {{tab}} reports found",
+    "reportNotFound": "Report Not Found",
+    "reportNotFoundDesc": "The report you're looking for doesn't exist or has been removed.",
+    "reportedUser": "Reported User",
+    "reportedUserLabel": "Reported User",
+    "reporter": "Reporter",
+    "reporterLabel": "You submitted this report",
+    "resolved": "Resolved",
+    "createdAt": "Created",
+    "resolvedAt": "Resolved",
+    "description": "Description",
+    "evidenceImages": "Evidence Images",
+    "resolvedEvidenceImages": "Resolution Evidence",
+    "orderInfo": "Order Information",
+    "orderItemId": "Order Item ID",
+    "tabs": {
+      "all": "All",
+      "pending": "Pending",
+      "processing": "Processing",
+      "resolved": "Resolved",
+      "fraudConfirmed": "Fraud Confirmed"
+    },
+    "status": {
+      "pending": "Pending",
+      "processing": "Processing",
+      "resolved": "Resolved",
+      "fraudConfirmed": "Fraud Confirmed",
+      "unknown": "Unknown"
+    },
+    "reportType": {
+      "freelancePT": "Freelance PT",
+      "gymCourse": "Gym Course",
+      "product": "Product",
+      "default": "Report"
+    }
   }
 }

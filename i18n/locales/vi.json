@@ -108,7 +108,8 @@
     "contracts": "Hợp Đồng",
     "contractDetail": "Chi Tiết Hợp Đồng",
     "productDetail": "Chi Tiết Sản Phẩm",
-    "myReviewsRatings": "Đánh Giá Của Tôi"
+    "myReviewsRatings": "Đánh Giá Của Tôi",
+    "reportDetail": "Chi Tiết Báo Cáo"
   },
 
   "myPackage": {
@@ -2632,5 +2633,47 @@
     "fillAllFields": "Vui lòng điền đầy đủ các trường bắt buộc",
     "updateSuccess": "Cập nhật thông tin cá nhân thành công",
     "updateFailed": "Không thể cập nhật thông tin cá nhân"
+  },
+
+  "myReports": {
+    "loadingReports": "Đang tải báo cáo...",
+    "loadingDetail": "Đang tải chi tiết báo cáo...",
+    "noReportsFound": "Không Tìm Thấy Báo Cáo",
+    "noReportsYet": "Bạn chưa gửi báo cáo nào",
+    "noReportsInTab": "Không có báo cáo {{tab}} nào",
+    "reportNotFound": "Không Tìm Thấy Báo Cáo",
+    "reportNotFoundDesc": "Báo cáo bạn đang tìm không tồn tại hoặc đã bị xóa.",
+    "reportedUser": "Người Bị Báo Cáo",
+    "reportedUserLabel": "Người bị báo cáo",
+    "reporter": "Người Báo Cáo",
+    "reporterLabel": "Bạn đã gửi báo cáo này",
+    "resolved": "Đã Giải Quyết",
+    "createdAt": "Ngày tạo",
+    "resolvedAt": "Ngày giải quyết",
+    "description": "Mô Tả",
+    "evidenceImages": "Hình Ảnh Bằng Chứng",
+    "resolvedEvidenceImages": "Bằng Chứng Giải Quyết",
+    "orderInfo": "Thông Tin Đơn Hàng",
+    "orderItemId": "Mã Sản Phẩm Đơn Hàng",
+    "tabs": {
+      "all": "Tất Cả",
+      "pending": "Đang Chờ",
+      "processing": "Đang Xử Lý",
+      "resolved": "Đã Giải Quyết",
+      "fraudConfirmed": "Xác Nhận Gian Lận"
+    },
+    "status": {
+      "pending": "Đang Chờ",
+      "processing": "Đang Xử Lý",
+      "resolved": "Đã Giải Quyết",
+      "fraudConfirmed": "Xác Nhận Gian Lận",
+      "unknown": "Không Xác Định"
+    },
+    "reportType": {
+      "freelancePT": "PT Tự Do",
+      "gymCourse": "Khóa Học Gym",
+      "product": "Sản Phẩm",
+      "default": "Báo Cáo"
+    }
   }
 }

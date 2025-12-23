@@ -8,6 +8,7 @@ import {
   Image,
   RefreshControl,
   ActivityIndicator,
+  ScrollView,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "../../../hooks/useTranslation";
@@ -40,12 +41,27 @@ export default function MyReportsScreen() {
       const response = await ReportService.getMyReports();
       console.log("Reports Response:", response);
 
-      if (response.status === "200") {
-        // Ensure we're setting an array
-        const reportsData = Array.isArray(response.data) 
-          ? response.data 
-          : (response.data?.items || []);
-        setReports(reportsData);
+      if (response.status === "200" && response.data) {
+        // API returns paginated data with items array
+        const reportsData = response.data.items || [];
+        // Map the response to ensure consistent data structure
+        const mappedReports = reportsData.map((report) => ({
+          id: report.id,
+          reporterName: report.reporterName,
+          reporterAvatarUrl: report.reporterAvatarUrl,
+          reportedUserName: report.reportedUserName,
+          reportedUserAvatarUrl: report.reportedUserAvatarUrl,
+          orderItemId: report.orderItemId,
+          title: report.title,
+          description: report.description,
+          status: report.status,
+          resolvedAt: report.resolvedAt,
+          reportType: report.reportType,
+          evidenceImageUrls: report.evidenceImageUrls || [],
+          resolvedEvidenceImageUrls: report.resolvedEvidenceImageUrls,
+          createdAt: report.createdAt,
+        }));
+        setReports(mappedReports);
       } else {
         setReports([]);
       }
@@ -102,28 +118,35 @@ export default function MyReportsScreen() {
           color: "#f57c00",
           backgroundColor: "#fff3e0",
           icon: "hourglass-empty",
-          label: "Pending",
+          label: t("myReports.status.pending"),
+        };
+      case "processing":
+        return {
+          color: "#1976d2",
+          backgroundColor: "#e3f2fd",
+          icon: "autorenew",
+          label: t("myReports.status.processing"),
         };
       case "resolved":
         return {
           color: "#2e7d32",
-          backgroundColor: "#e8f5e8",
+          backgroundColor: "#e8f5e9",
           icon: "check-circle",
-          label: "Resolved",
+          label: t("myReports.status.resolved"),
         };
-      case "rejected":
+      case "fraudconfirmed":
         return {
           color: "#d32f2f",
           backgroundColor: "#ffebee",
-          icon: "cancel",
-          label: "Rejected",
+          icon: "gavel",
+          label: t("myReports.status.fraudConfirmed"),
         };
       default:
         return {
           color: "#666",
           backgroundColor: "#f5f5f5",
           icon: "info",
-          label: status || "Unknown",
+          label: status || t("myReports.status.unknown"),
         };
     }
   };
@@ -134,25 +157,25 @@ export default function MyReportsScreen() {
         return {
           color: "#1976d2",
           icon: "person",
-          label: "Freelance PT",
+          label: t("myReports.reportType.freelancePT"),
         };
       case "GymCourseReport":
         return {
           color: colors.red,
           icon: "fitness-center",
-          label: "Gym Course",
+          label: t("myReports.reportType.gymCourse"),
         };
       case "ProductReport":
         return {
           color: "#7b1fa2",
           icon: "shopping-cart",
-          label: "Product",
+          label: t("myReports.reportType.product"),
         };
       default:
         return {
           color: "#666",
           icon: "flag",
-          label: type || "Report",
+          label: type || t("myReports.reportType.default"),
         };
     }
   };
@@ -180,11 +203,7 @@ export default function MyReportsScreen() {
                 { backgroundColor: typeConfig.color },
               ]}
             >
-              <MaterialIcons
-                name={typeConfig.icon}
-                size={16}
-                color="#fff"
-              />
+              <MaterialIcons name={typeConfig.icon} size={16} color="#fff" />
             </View>
             <View style={styles.headerInfo}>
               <Text style={styles.reportTitle} numberOfLines={1}>
@@ -228,7 +247,9 @@ export default function MyReportsScreen() {
               style={styles.reportedUserAvatar}
             />
             <View style={styles.reportedUserInfo}>
-              <Text style={styles.reportedUserLabel}>Reported User</Text>
+              <Text style={styles.reportedUserLabel}>
+                {t("myReports.reportedUser")}
+              </Text>
               <Text style={styles.reportedUserName}>
                 {item.reportedUserName}
               </Text>
@@ -247,9 +268,13 @@ export default function MyReportsScreen() {
 
           {item.resolvedAt && (
             <View style={styles.dateContainer}>
-              <Ionicons name="checkmark-circle-outline" size={14} color="#2e7d32" />
+              <Ionicons
+                name="checkmark-circle-outline"
+                size={14}
+                color="#2e7d32"
+              />
               <Text style={[styles.dateText, { color: "#2e7d32" }]}>
-                Resolved: {formatDate(item.resolvedAt)}
+                {t("myReports.resolved")}: {formatDate(item.resolvedAt)}
               </Text>
             </View>
           )}
@@ -263,11 +288,11 @@ export default function MyReportsScreen() {
       <View style={styles.emptyIconContainer}>
         <MaterialIcons name="flag" size={48} color="#e0e0e0" />
       </View>
-      <Text style={styles.emptyTitle}>No Reports Found</Text>
+      <Text style={styles.emptyTitle}>{t("myReports.noReportsFound")}</Text>
       <Text style={styles.emptySubtitle}>
         {activeTab === "all"
-          ? "You haven't submitted any reports yet"
-          : `No ${activeTab} reports found`}
+          ? t("myReports.noReportsYet")
+          : t("myReports.noReportsInTab", { tab: activeTab })}
       </Text>
     </View>
   );
@@ -276,7 +301,10 @@ export default function MyReportsScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <LoadingIndicator variant="page" message="Loading reports..." />
+          <LoadingIndicator
+            variant="page"
+            message={t("myReports.loadingReports")}
+          />
         </View>
       </SafeAreaView>
     );
@@ -285,74 +313,103 @@ export default function MyReportsScreen() {
   return (
     <SafeAreaView style={styles.container}>
       {/* Tab Bar */}
-      <View style={styles.tabContainer}>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === "all" && styles.activeTab]}
-          onPress={() => setActiveTab("all")}
-          activeOpacity={0.7}
+      <View style={styles.tabWrapper}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.tabContainer}
         >
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "all" && styles.activeTabText,
-            ]}
+          <TouchableOpacity
+            style={[styles.tab, activeTab === "all" && styles.activeTab]}
+            onPress={() => setActiveTab("all")}
+            activeOpacity={0.7}
           >
-            All
-          </Text>
-          {activeTab === "all" && <View style={styles.activeTabIndicator} />}
-        </TouchableOpacity>
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === "all" && styles.activeTabText,
+              ]}
+            >
+              {t("myReports.tabs.all")}
+            </Text>
+            {activeTab === "all" && <View style={styles.activeTabIndicator} />}
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.tab, activeTab === "pending" && styles.activeTab]}
-          onPress={() => setActiveTab("pending")}
-          activeOpacity={0.7}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "pending" && styles.activeTabText,
-            ]}
+          <TouchableOpacity
+            style={[styles.tab, activeTab === "pending" && styles.activeTab]}
+            onPress={() => setActiveTab("pending")}
+            activeOpacity={0.7}
           >
-            Pending
-          </Text>
-          {activeTab === "pending" && <View style={styles.activeTabIndicator} />}
-        </TouchableOpacity>
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === "pending" && styles.activeTabText,
+              ]}
+            >
+              {t("myReports.tabs.pending")}
+            </Text>
+            {activeTab === "pending" && (
+              <View style={styles.activeTabIndicator} />
+            )}
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.tab, activeTab === "resolved" && styles.activeTab]}
-          onPress={() => setActiveTab("resolved")}
-          activeOpacity={0.7}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "resolved" && styles.activeTabText,
-            ]}
+          <TouchableOpacity
+            style={[styles.tab, activeTab === "processing" && styles.activeTab]}
+            onPress={() => setActiveTab("processing")}
+            activeOpacity={0.7}
           >
-            Resolved
-          </Text>
-          {activeTab === "resolved" && (
-            <View style={styles.activeTabIndicator} />
-          )}
-        </TouchableOpacity>
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === "processing" && styles.activeTabText,
+              ]}
+            >
+              {t("myReports.tabs.processing")}
+            </Text>
+            {activeTab === "processing" && (
+              <View style={styles.activeTabIndicator} />
+            )}
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.tab, activeTab === "rejected" && styles.activeTab]}
-          onPress={() => setActiveTab("rejected")}
-          activeOpacity={0.7}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "rejected" && styles.activeTabText,
-            ]}
+          <TouchableOpacity
+            style={[styles.tab, activeTab === "resolved" && styles.activeTab]}
+            onPress={() => setActiveTab("resolved")}
+            activeOpacity={0.7}
           >
-            Rejected
-          </Text>
-          {activeTab === "rejected" && (
-            <View style={styles.activeTabIndicator} />
-          )}
-        </TouchableOpacity>
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === "resolved" && styles.activeTabText,
+              ]}
+            >
+              {t("myReports.tabs.resolved")}
+            </Text>
+            {activeTab === "resolved" && (
+              <View style={styles.activeTabIndicator} />
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.tab,
+              activeTab === "fraudconfirmed" && styles.activeTab,
+            ]}
+            onPress={() => setActiveTab("fraudconfirmed")}
+            activeOpacity={0.7}
+          >
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === "fraudconfirmed" && styles.activeTabText,
+              ]}
+            >
+              {t("myReports.tabs.fraudConfirmed")}
+            </Text>
+            {activeTab === "fraudconfirmed" && (
+              <View style={styles.activeTabIndicator} />
+            )}
+          </TouchableOpacity>
+        </ScrollView>
       </View>
 
       {/* Reports List */}
@@ -395,24 +452,27 @@ const styles = StyleSheet.create({
     color: "#666",
     fontWeight: "600",
   },
+  tabWrapper: {
+    backgroundColor: colors.white,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
   tabContainer: {
     flexDirection: "row",
-    backgroundColor: colors.white,
     paddingHorizontal: 16,
     paddingTop: 20,
     paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
     gap: 8,
   },
   tab: {
-    flex: 1,
     paddingVertical: 10,
+    paddingHorizontal: 16,
     borderRadius: 10,
     backgroundColor: "#f5f5f5",
     alignItems: "center",
     position: "relative",
     overflow: "hidden",
+    minWidth: 80,
   },
   activeTab: {
     backgroundColor: colors.red,
