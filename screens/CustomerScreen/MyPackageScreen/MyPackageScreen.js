@@ -355,7 +355,7 @@ export default function MyPackageScreen() {
 
       // Create report
       const reportData = {
-        reportedItemId: selectedPackageForReport.id,
+        reportedItemId: selectedPackageForReport.orderItems[0],
         title: reportTitle,
         description: reportDescription,
         reportType: reportType,
