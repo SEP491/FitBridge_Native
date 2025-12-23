@@ -46,11 +46,13 @@ export default function ProductReviewsTab() {
         doApplyPaging: false,
         sortOrder: "dsc",
         customerId: userId,
+        status: "Finished",
       });
 
       const allOrders = summaryResponse.data?.productOrders?.items || [];
+      
       let filtered = allOrders.filter(
-        (order) => order.currentStatus === "Finished" && order.customerId === userId
+        (order) => order.currentStatus === "Finished"
       );
       filtered = filtered.filter((order) =>
         order.orderItems.some((item) => !item.isFeedback)

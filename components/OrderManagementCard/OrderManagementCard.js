@@ -93,6 +93,37 @@ const OrderManagementCard = ({ order, onRefresh }) => {
     }
   };
 
+  const getStatusText = (status) => {
+    switch (status) {
+      case "Created":
+        return t("orders.created");
+      case "Pending":
+        return t("orders.pending");
+      case "Processing":
+        return t("orders.processing");
+      case "Assigning":
+        return t("orders.assigning");
+      case "Accepted":
+        return t("orders.accepted");
+      case "Shipping":
+        return t("orders.shipping");
+      case "Arrived":
+        return t("orders.arrived");
+      case "InReturn":
+        return t("orders.inReturn");
+      case "Returned":
+        return t("orders.returned");
+      case "CustomerNotReceived":
+        return t("orders.customerNotReceived");
+      case "Finished":
+        return t("orders.finished");
+      case "Cancelled":
+        return t("orders.cancelled");
+      default:
+        return t("orders.unknown");
+    }
+  };
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("vi-VN", {
@@ -304,7 +335,7 @@ const OrderManagementCard = ({ order, onRefresh }) => {
             size={20}
             color="#fff"
           />
-          <Text style={styles.statusText}>{order.currentStatus}</Text>
+          <Text style={styles.statusText}>{getStatusText(order.currentStatus)}</Text>
         </View>
         <Text style={styles.dateText}>{formatDate(order.createdAt)}</Text>
       </View>
