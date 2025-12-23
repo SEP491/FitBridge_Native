@@ -21,6 +21,7 @@ import LoadingIndicator from "../LoadingIndicator";
 
 const ReviewCard = ({
   review,
+  isReviewMode = false,
   t,
   showProductType = false,
   productTypeText = null,

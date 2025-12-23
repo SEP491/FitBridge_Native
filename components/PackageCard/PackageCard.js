@@ -15,7 +15,6 @@ export default function PackageCard({
   canRenew = true, // Whether the package can be renewed
 }) {
   const navigation = useNavigation();
-  console.log("item", item);
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return `${date.getDate().toString().padStart(2, "0")}/${(
@@ -83,7 +82,6 @@ export default function PackageCard({
   const isGymWithPT = item.type === "gymCourseWithPT";
   const isGymNormal = item.type === "gymCourseNormal";
   const isReviewMode = mode === "review";
-
   const handleViewDetail = () => {
     if (isFreelancePT && customer) {
       // For Freelance PT packages, navigate to CustomerDetailScreen
@@ -285,38 +283,14 @@ export default function PackageCard({
       {/* Second Row: Action Buttons */}
       {!isReviewMode ? ( // Review mode: no action buttons
         <View style={styles.actionButtonsRow}>
-          {expired
-            ? // For expired packages: Show View Detail button if applicable
-              ((isFreelancePT && customer) || isGymWithPT || isGymNormal) && (
-                <TouchableOpacity
-                  style={styles.viewDetailButton}
-                  onPress={handleViewDetail}
-                  activeOpacity={0.8}
-                >
-                  <Ionicons name="eye-outline" size={18} color="#fff" />
-                  <Text style={styles.viewDetailButtonText}>
-                    {t("myPackage.viewDetail") || "View Detail"}
-                  </Text>
-                </TouchableOpacity>
-              )
-            : // For current packages: Show Renew button if can renew
-              canRenew &&
-              onRenew && (
-                <TouchableOpacity
-                  style={[
-                    styles.renewButton,
-                    { backgroundColor: typeConfig.color },
-                  ]}
-                  onPress={() => onRenew(item)}
-                  activeOpacity={0.8}
-                >
-                  <Ionicons name="refresh" size={18} color="#fff" />
-                  <Text style={styles.renewButtonText}>
-                    {t("myPackage.renew")}
-                  </Text>
-                </TouchableOpacity>
-              )}
-
+          <TouchableOpacity
+            style={[styles.renewButton, { backgroundColor: typeConfig.color }]}
+            onPress={() => onRenew && onRenew(item)}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="refresh" size={18} color="#fff" />
+            <Text style={styles.renewButtonText}>{t("myPackage.renew")}</Text>
+          </TouchableOpacity>
           <TouchableOpacity
             style={styles.reportButton}
             onPress={() => onReport && onReport(item)}
@@ -326,6 +300,7 @@ export default function PackageCard({
             <Text style={styles.reportButtonText}>{t("myPackage.report")}</Text>
           </TouchableOpacity>
         </View>
+       
       ) : (
         <View style={styles.actionButtonsRow}>
           {onFeedback && !item.hasReviewed && (
@@ -340,17 +315,6 @@ export default function PackageCard({
               </Text>
             </TouchableOpacity>
           )}
-          <TouchableOpacity
-            style={[
-              styles.reportButton,
-              { flex: onFeedback && !item.hasReviewed ? 1 : 1 },
-            ]}
-            onPress={() => onReport && onReport(item)}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="flag-outline" size={18} color={colors.red} />
-            <Text style={styles.reportButtonText}>{t("myPackage.report")}</Text>
-          </TouchableOpacity>
         </View>
       )}
 

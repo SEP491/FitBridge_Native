@@ -3,7 +3,6 @@ import {
   View,
   Text,
   FlatList,
-  ActivityIndicator,
   RefreshControl,
   StyleSheet,
 } from "react-native";
@@ -24,23 +23,27 @@ export default function ProductReviewsTab() {
   const [productLoading, setProductLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [allFilteredOrders, setAllFilteredOrders] = useState([]);
 
   const [user, setUser] = useState(null);
   useEffect(() => {
     const fetchUser = async () => {
       const userData = await fetchUserFromStorage();
-      setUser(userData);
+      console.log("Fetched user data:", userData);
+      if (userData) {
+        setUser(userData);
+      }
     };
     fetchUser();
   }, []);
 
-  const fetchProductReviews = async (
-    pageNum = 1,
-    append = false,
-    userId = null
-  ) => {
+  const fetchProductReviews = async (pageNum = 1, isLoadMore = false, userId = null) => {
+    if (!userId) return;
     try {
-      if (!append) {
+      if (isLoadMore) {
+        setLoadingMore(true);
+      } else {
         setLoading(true);
       }
       setProductLoading(true);
@@ -49,16 +52,22 @@ export default function ProductReviewsTab() {
         doApplyPaging: false,
         sortOrder: "dsc",
         customerId: userId,
+        status: "Finished",
       });
 
       const allOrders = summaryResponse.data?.productOrders?.items || [];
+      
       let filtered = allOrders.filter(
-        (order) =>
-          order.currentStatus === "Finished" && order.customerId === userId
+        (order) => order.currentStatus === "Finished"
       );
       filtered = filtered.filter((order) =>
         order.orderItems.some((item) => !item.isFeedback)
       );
+
+      // Store all filtered orders for pagination
+      if (!isLoadMore) {
+        setAllFilteredOrders(filtered);
+      }
 
       const pageSize = 10;
       const startIndex = (pageNum - 1) * pageSize;
@@ -66,8 +75,13 @@ export default function ProductReviewsTab() {
       const paginatedOrders = filtered.slice(startIndex, endIndex);
       const totalPages = Math.ceil(filtered.length / pageSize);
 
-      if (append) {
-        setProductReviews((prev) => [...prev, ...paginatedOrders]);
+      if (isLoadMore) {
+        // Append new items, filtering out duplicates by ID
+        setProductReviews((prev) => {
+          const existingIds = new Set(prev.map(item => item.id));
+          const newItems = paginatedOrders.filter(item => !existingIds.has(item.id));
+          return [...prev, ...newItems];
+        });
       } else {
         setProductReviews(paginatedOrders);
       }
@@ -78,22 +92,29 @@ export default function ProductReviewsTab() {
     } finally {
       setLoading(false);
       setProductLoading(false);
+      setLoadingMore(false);
     }
   };
 
-  useEffect(() => {
-    fetchProductReviews(1, false, user?.id);
-  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!user?.id) return;
+      fetchProductReviews(1, false, user.id);
+    }, [user])
+  );
 
   const onRefresh = async () => {
+    if (!user?.id) return;
     setRefreshing(true);
-    await fetchProductReviews(1, false, user?.id);
+    await fetchProductReviews(1, false, user.id);
     setRefreshing(false);
   };
 
   const loadMore = () => {
-    if (productPage < productTotalPages && !productLoading) {
-      fetchProductReviews(productPage + 1, true, user?.id);
+    if (!user?.id) return;
+    if (!loadingMore && !loading && productPage < productTotalPages && !productLoading) {
+      fetchProductReviews(productPage + 1, true, user.id);
     }
   };
 
@@ -111,7 +132,8 @@ export default function ProductReviewsTab() {
   );
 
   const handleProductRefresh = () => {
-    fetchProductReviews(1, false);
+    if (!user?.id) return;
+    fetchProductReviews(1, false, user.id);
   };
 
   if (loading && productReviews.length === 0) {
@@ -146,7 +168,7 @@ export default function ProductReviewsTab() {
       onEndReached={loadMore}
       onEndReachedThreshold={0.5}
       ListFooterComponent={() => {
-        if (productLoading) {
+        if (loadingMore) {
           return (
             <View style={styles.loadMoreContainer}>
               <LoadingIndicator variant="inline" />

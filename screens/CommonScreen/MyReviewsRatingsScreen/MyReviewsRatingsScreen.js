@@ -153,6 +153,7 @@ export default function MyReviewsRatingsScreen() {
               key={review.id}
               review={review}
               t={t}
+              isReviewMode={true}
               showProductType={!!productTypeText}
               productTypeText={productTypeText}
               onReviewDeleted={onReviewDeleted}

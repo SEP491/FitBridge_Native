@@ -354,8 +354,13 @@ export default function MyPackageScreen() {
       }
 
       // Create report
+      // Get the latest order item ID (get the last element in the array)
+      const latestOrderItemId = Array.isArray(selectedPackageForReport.orderItems) 
+        ? selectedPackageForReport.orderItems[selectedPackageForReport.orderItems.length - 1]
+        : selectedPackageForReport.orderItems;
+
       const reportData = {
-        reportedItemId: selectedPackageForReport.orderItems[0],
+        reportedItemId: latestOrderItemId,
         title: reportTitle,
         description: reportDescription,
         reportType: reportType,
@@ -377,17 +382,18 @@ export default function MyPackageScreen() {
       } else {
         Alert.alert(
           t("errors.error"),
-          response.message || t("myPackage.reportModal.submitFailed")
+          response?.message || t("myPackage.reportModal.submitFailed")
         );
       }
     } catch (error) {
       console.error("Error submitting report:", error);
       Alert.alert(
         t("errors.error"),
-        t("myPackage.reportModal.submitFailedRetry")
+        error?.response?.data?.message || t("myPackage.reportModal.submitFailedRetry")
       );
     } finally {
       setIsSubmittingReport(false);
+      setReportModalVisible(false);
     }
   };
 
