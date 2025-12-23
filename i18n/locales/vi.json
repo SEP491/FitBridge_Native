@@ -248,6 +248,8 @@
   },
 
   "gymDetail": {
+    "reviews": "Đánh giá của Phòng Gym",
+    "noReviews": "Phòng Gym chưa có đánh giá nào.",
     "loading": "Đang tải...",
     "notFound": "Không tìm thấy phòng gym.",
     "from": "Từ ",

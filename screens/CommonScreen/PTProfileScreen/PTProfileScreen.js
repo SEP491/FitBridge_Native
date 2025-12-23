@@ -17,6 +17,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "../../../hooks/useTranslation";
 import { SafeAreaView } from "react-native-safe-area-context";
 import accountService from "../../../services/accountService";
+import reviewService from "../../../services/reviewService";
+import ReviewCard from "../../../components/ReviewCard/ReviewCard";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 import LogoColor from "../../../assets/images/LogoColor.png";
 import PTProfileScreenSkeleton from "./PTProfileScreenSkeleton";
 import { fetchUserFromStorage } from "../../../lib/async/asyncUtils";
@@ -44,6 +47,20 @@ const PTProfileScreen = ({ route, navigation }) => {
   const [selectedCertificateUrl, setSelectedCertificateUrl] = useState(null);
   const [expandedCertificates, setExpandedCertificates] = useState(new Set());
   const [currentUser, setCurrentUser] = useState(null);
+  const [reviews, setReviews] = useState([]);
+  const [reviewsPage, setReviewsPage] = useState(1);
+  const [reviewsTotalPages, setReviewsTotalPages] = useState(1);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [avgRating, setAvgRating] = useState(null);
+
+  useEffect(() => {
+    if (reviews.length > 0) {
+      const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+      setAvgRating((totalRating / reviews.length).toFixed(1));
+    } else {
+      setAvgRating(null);
+    }
+  }, [reviews]);
 
   console.log("PT Data:", pt);
 
@@ -61,6 +78,7 @@ const PTProfileScreen = ({ route, navigation }) => {
   useEffect(() => {
     if (ptId) {
       fetchPTDetail();
+      fetchPTReview();
     }
   }, [ptId]);
 
@@ -98,6 +116,31 @@ const PTProfileScreen = ({ route, navigation }) => {
       style: "currency",
       currency: "VND",
     }).format(price);
+  };
+
+  const fetchPTReview = async (pageNum = 1) => {
+    try {
+      setReviewsLoading(true);
+      const response = await reviewService.getItemReviewsById({
+        freelancePtId: ptId,
+        page: pageNum,
+        size: 100,
+      });
+
+      if (response.data) {
+        if (pageNum === 1) {
+          setReviews(response.data.items || []);
+        } else {
+          setReviews((prev) => [...prev, ...(response.data.items || [])]);
+        }
+        setReviewsPage(pageNum);
+        setReviewsTotalPages(response.data.totalPages || 1);
+      }
+    } catch (error) {
+      console.error("Error fetching PT reviews:", error);
+    } finally {
+      setReviewsLoading(false);
+    }
   };
 
   // Extract all specializations from certificates
@@ -404,6 +447,20 @@ const PTProfileScreen = ({ route, navigation }) => {
                 (pkg) => pkg.isDisplayed === true || pkg.isDisplayed === "true"
               ).length || 0}
               )
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === "reviews" && styles.activeTab]}
+            onPress={() => setActiveTab("reviews")}
+          >
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === "reviews" && styles.activeTabText,
+              ]}
+            >
+              {t("freelancePT.reviews") || "Reviews"}
+              {reviews.length > 0 && ` (${reviews.length})`}
             </Text>
           </TouchableOpacity>
         </View>
@@ -911,6 +968,75 @@ const PTProfileScreen = ({ route, navigation }) => {
             )}
           </View>
         )}
+
+        {/* Reviews Tab */}
+        {activeTab === "reviews" && (
+          <View style={styles.packagesContainer}>
+            <View style={styles.reviewsSection}>
+              <View style={styles.sectionHeaderRow}>
+                <Text style={styles.sectionTitle}>
+                  {avgRating}
+                </Text>
+                <Ionicons name="star" size={24} color="#FFD700" />
+                <Text style={styles.sectionTitle}>
+                  {t("freelancePT.reviews") || "Reviews"}
+                  {reviews.length > 0 && ` (${reviews.length})`}
+                </Text>
+              </View>
+
+              {reviews.length > 0 ? (
+                <View>
+                  {reviews.map((review, index) => (
+                    <ReviewCard
+                      key={review.id || index}
+                      review={review}
+                      t={t}
+                      showProductType={false}
+                    />
+                  ))}
+
+                  {reviewsPage < reviewsTotalPages && (
+                    <TouchableOpacity
+                      style={styles.loadMoreButton}
+                      onPress={() => fetchPTReview(reviewsPage + 1)}
+                      disabled={reviewsLoading}
+                    >
+                      {reviewsLoading ? (
+                        <LoadingIndicator variant="inline" />
+                      ) : (
+                        <>
+                          <Text style={styles.loadMoreText}>
+                            {t("common.loadMore") || "Load More"}
+                          </Text>
+                          <Ionicons
+                            name="chevron-down"
+                            size={20}
+                            color="#ED2A46"
+                          />
+                        </>
+                      )}
+                    </TouchableOpacity>
+                  )}
+                </View>
+              ) : (
+                <View style={styles.reviewsEmpty}>
+                  <Ionicons
+                    name="chatbox-ellipses-outline"
+                    size={48}
+                    color="#E0E0E0"
+                  />
+                  <Text style={styles.reviewsEmptyText}>
+                    {t("freelancePT.noReviews") || "No reviews yet"}
+                  </Text>
+                  <Text style={styles.reviewsEmptySubtext}>
+                    {t("freelancePT.beFirstToReview") ||
+                      "Be the first to share your experience with this trainer"}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </View>
+        )}
       </ScrollView>
 
       {/* Certificate Modal */}
@@ -1150,7 +1276,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "700",
     color: "#333",
-    marginBottom: 10,
   },
   healthCard: {
     backgroundColor: "#f8f9fa",
@@ -1788,6 +1913,60 @@ const styles = StyleSheet.create({
     width: Dimensions.get("window").width * 0.9,
     height: Dimensions.get("window").height * 0.7,
     minHeight: 400,
+  },
+  /* Reviews Section Styles */
+  reviewsSection: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: "#F0F0F0",
+  },
+  sectionHeaderRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    display: "flex",
+    marginBottom: 12,
+    gap: 8,
+  },
+  reviewsEmpty: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 40,
+  },
+  reviewsEmptyText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#666",
+    marginTop: 12,
+    textAlign: "center",
+  },
+  reviewsEmptySubtext: {
+    fontSize: 13,
+    color: "#999",
+    marginTop: 8,
+    textAlign: "center",
+    paddingHorizontal: 20,
+    lineHeight: 20,
+  },
+  loadMoreButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: "#ED2A46",
+    backgroundColor: "#FFFFFF",
+    gap: 8,
+    marginTop: 8,
+  },
+  loadMoreText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#ED2A46",
   },
 });
 

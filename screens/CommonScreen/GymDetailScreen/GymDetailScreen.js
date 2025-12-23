@@ -28,6 +28,8 @@ import { useTranslation } from "../../../hooks/useTranslation";
 import { formatPrice, formatNumber } from "../../../lib";
 import LoadingIndicator from "../../../components/LoadingIndicator";
 import { fetchUserFromStorage } from "../../../lib/async/asyncUtils";
+import reviewService from "../../../services/reviewService";
+import ReviewCard from "../../../components/ReviewCard/ReviewCard";
 
 export default function GymDetailScreen({ route }) {
   const { t } = useTranslation();
@@ -40,6 +42,12 @@ export default function GymDetailScreen({ route }) {
   const [lowestPackage, setLowestPackage] = useState(null);
   const { cart, addToCart, getCartCount } = useCart();
   const navigation = useNavigation();
+
+  // Review-related states
+  const [reviews, setReviews] = useState([]);
+  const [reviewsPage, setReviewsPage] = useState(1);
+  const [reviewsTotalPages, setReviewsTotalPages] = useState(1);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
 
   // Comment-related states
   const [comments, setComments] = useState([]);
@@ -90,8 +98,35 @@ export default function GymDetailScreen({ route }) {
 
     fetchGymDetail();
     fetchCourseGym();
+    fetchGymReviews();
     // fetchComments();
   }, [gymId]);
+
+  const fetchGymReviews = async (pageNum = 1) => {
+    try {
+      setReviewsLoading(true);
+
+      const response = await reviewService.getItemReviewsById({
+        gymOwnerId: gymId,
+        page: pageNum,
+        size: 100,
+      });
+
+      if (response.data) {
+        if (pageNum === 1) {
+          setReviews(response.data.items || []);
+        } else {
+          setReviews((prev) => [...prev, ...(response.data.items || [])]);
+        }
+        setReviewsPage(pageNum);
+        setReviewsTotalPages(response.data.totalPages || 1);
+      }
+    } catch (error) {
+      console.error("Error fetching gym reviews:", error);
+    } finally {
+      setReviewsLoading(false);
+    }
+  };
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -642,93 +677,64 @@ export default function GymDetailScreen({ route }) {
           {/* Enhanced Reviews Section */}
           <View style={styles.reviewsSection}>
             <View style={styles.sectionHeader}>
-              <Ionicons name="chatbubbles-outline" size={20} color="#ED2A46" />
               <Text style={styles.sectionTitle}>
-                {t("gymDetail.commentsReviews")}
+                {averageRating.toFixed(1)}
+              </Text>
+              <Ionicons name="star" size={25} color="#FFD700" />
+              <Text style={styles.sectionTitle}>
+                {t("gymDetail.reviews") || "Reviews"}
+                {reviews.length > 0 && ` (${reviews.length})`}
               </Text>
             </View>
 
-            {/* Comment Input Section */}
-            <View style={styles.commentInputContainer}>
-              <TextInput
-                style={styles.commentInput}
-                placeholder={t("gymDetail.writeComment")}
-                value={newComment}
-                onChangeText={setNewComment}
-                multiline
-                numberOfLines={3}
-                maxLength={500}
-              />
-              <TouchableOpacity
-                style={[
-                  styles.postCommentButton,
-                  !newComment.trim() && styles.postCommentButtonDisabled,
-                ]}
-                onPress={handlePostComment}
-                disabled={isPostingComment || !newComment.trim()}
-              >
-                {isPostingComment ? (
-                  <LoadingIndicator variant="button" />
-                ) : (
-                  <Ionicons name="send" size={20} color="#FFF" />
-                )}
-              </TouchableOpacity>
-            </View>
-
             <View style={styles.reviewsContainer}>
-              {comments.map((comment) => (
-                <View key={comment.id} style={styles.reviewCard}>
-                  <View style={styles.reviewHeader}>
-                    <View style={styles.userInfo}>
-                      <View style={styles.avatarPlaceholder}>
-                        <Image
-                          source={{
-                            uri:
-                              comment.avatar ||
-                              "https://static.vecteezy.com/system/resources/thumbnails/027/951/137/small_2x/stylish-spectacles-guy-3d-avatar-character-illustrations-png.png",
-                          }}
-                          style={styles.avatarImage}
-                        />
-                      </View>
-                      <View style={styles.userDetails}>
-                        <Text style={styles.userName}>{comment.fullName}</Text>
-                        <Text style={styles.reviewDate}>
-                          {new Date(comment.createAt).toLocaleDateString(
-                            "vi-VN"
-                          )}
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-                  <Text style={styles.reviewText}>{comment.content}</Text>
-                </View>
-              ))}
+              {reviews.length > 0 ? (
+                <View>
+                  {reviews.map((review, index) => (
+                    <ReviewCard
+                      key={review.id || index}
+                      review={review}
+                      t={t}
+                      showProductType={false}
+                    />
+                  ))}
 
-              {/* Load More Button */}
-              {hasMoreComments && (
-                <TouchableOpacity
-                  style={styles.loadMoreButton}
-                  onPress={handleLoadMoreComments}
-                  disabled={commentsLoading}
-                >
-                  {commentsLoading ? (
-                    <LoadingIndicator variant="inline" />
-                  ) : (
-                    <>
-                      <Text style={styles.loadMoreText}>
-                        {t("gymDetail.loadMoreComments")}
-                      </Text>
-                      <Ionicons name="chevron-down" size={16} color="#ED2A46" />
-                    </>
+                  {reviewsPage < reviewsTotalPages && (
+                    <TouchableOpacity
+                      style={styles.loadMoreButton}
+                      onPress={() => fetchGymReviews(reviewsPage + 1)}
+                      disabled={reviewsLoading}
+                    >
+                      {reviewsLoading ? (
+                        <LoadingIndicator variant="inline" />
+                      ) : (
+                        <>
+                          <Text style={styles.loadMoreText}>
+                            {t("common.loadMore") || "Load More"}
+                          </Text>
+                          <Ionicons
+                            name="chevron-down"
+                            size={20}
+                            color="#ED2A46"
+                          />
+                        </>
+                      )}
+                    </TouchableOpacity>
                   )}
-                </TouchableOpacity>
-              )}
-
-              {comments.length === 0 && !commentsLoading && (
+                </View>
+              ) : (
                 <View style={styles.emptyCommentsContainer}>
-                  <Ionicons name="chatbubbles-outline" size={48} color="#CCC" />
+                  <Ionicons
+                    name="chatbox-ellipses-outline"
+                    size={48}
+                    color="#E0E0E0"
+                  />
                   <Text style={styles.emptyCommentsText}>
-                    {t("gymDetail.noComments")}
+                    {t("gymDetail.noReviews") || "No reviews yet"}
+                  </Text>
+                  <Text style={styles.reviewsEmptySubtext}>
+                    {t("gymDetail.beFirstToReview") ||
+                      "Be the first to share your experience with this gym"}
                   </Text>
                 </View>
               )}
@@ -988,7 +994,8 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     color: "#1a1a1a",
-    marginLeft: 8,
+    marginRight: 6,
+    marginLeft: 6,
   },
 
   descriptionText: {
@@ -1320,9 +1327,19 @@ const styles = StyleSheet.create({
   },
 
   emptyCommentsText: {
-    fontSize: 14,
-    color: "#999",
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#666",
     textAlign: "center",
     marginTop: 12,
+  },
+
+  reviewsEmptySubtext: {
+    fontSize: 13,
+    color: "#999",
+    marginTop: 8,
+    textAlign: "center",
+    paddingHorizontal: 20,
+    lineHeight: 20,
   },
 });

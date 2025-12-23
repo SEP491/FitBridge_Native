@@ -71,24 +71,13 @@ export default function FreelancePTPackageDetailScreen() {
       setPtMaxCourse(route.params.ptMaxCourse);
     }
 
-    // Debug logging
-    console.log("=== Route Params Debug ===");
-    console.log("All route params:", route.params);
-    console.log(
-      "PT Current Course (from params):",
-      route.params?.ptCurrentCourse
-    );
-    console.log("PT Max Course (from params):", route.params?.ptMaxCourse);
-    console.log("Package ID:", packageId);
-    console.log("State ptCurrentCourse:", ptCurrentCourse);
-    console.log("State ptMaxCourse:", ptMaxCourse);
   }, [route.params]);
 
   useEffect(() => {
     // Fetch package details for all users (including guests)
     if (packageId) {
       fetchPackageDetail();
-      fetchPackageReview();
+      // fetchPackageReview();
     } else {
       showAlert(
         t("error.title") || "Error",
@@ -530,7 +519,7 @@ export default function FreelancePTPackageDetailScreen() {
             </View>
           </View>
 
-          {/* Reviews Section */}
+          {/* Reviews Section
           <View style={styles.reviewsSection}>
             <View style={styles.sectionHeaderRow}>
               <Ionicons name="star" size={24} color="#FFD700" />
@@ -590,7 +579,7 @@ export default function FreelancePTPackageDetailScreen() {
                 </Text>
               </View>
             )}
-          </View>
+          </View> */}
 
           {/* Trust Signals */}
           <View style={styles.trustSection}>
