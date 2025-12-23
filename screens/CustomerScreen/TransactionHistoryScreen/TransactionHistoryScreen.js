@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   View,
   Text,
@@ -33,6 +33,9 @@ export default function TransactionHistoryScreen() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalOrders, setTotalOrders] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
+
+  // Use ref to track if we're currently loading to prevent duplicate calls
+  const isLoadingRef = useRef(false);
 
   // Filter orders based on search query
   const filteredOrders = useMemo(() => {
@@ -77,7 +80,14 @@ export default function TransactionHistoryScreen() {
   }, [orders, selectedStatus, searchQuery]);
 
   const loadOrders = async (page = 1, append = false) => {
+    // Prevent duplicate calls
+    if (isLoadingRef.current) {
+      return;
+    }
+
     try {
+      isLoadingRef.current = true;
+
       if (!append) {
         setLoading(true);
       } else {
@@ -113,6 +123,7 @@ export default function TransactionHistoryScreen() {
     } finally {
       setLoading(false);
       setLoadingMore(false);
+      isLoadingRef.current = false;
     }
   };
 
@@ -120,11 +131,15 @@ export default function TransactionHistoryScreen() {
     loadOrders(1, false);
   }, [selectedStatus]);
 
-  const loadMoreOrders = useCallback(() => {
-    if (!loadingMore && currentPage < totalPages) {
+  const handleLoadMore = () => {
+    // Only load more if:
+    // 1. Not currently loading
+    // 2. Not already loading more
+    // 3. There are more pages to load
+    if (!isLoadingRef.current && !loadingMore && currentPage < totalPages) {
       loadOrders(currentPage + 1, true);
     }
-  }, [loadingMore, currentPage, totalPages]);
+  };
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -624,7 +639,7 @@ export default function TransactionHistoryScreen() {
             <View style={styles.bottomSpacing} />
           )
         }
-        onEndReached={loadMoreOrders}
+        onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
       />
     </View>
