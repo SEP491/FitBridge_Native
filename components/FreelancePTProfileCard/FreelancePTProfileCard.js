@@ -97,13 +97,21 @@ export default function FreelancePTProfileCard({
           {pt?.fullName}
         </Text>
 
-        {pt?.description && (
+        {pt?.description ? (
           <Text
             style={styles.description}
             numberOfLines={1}
             ellipsizeMode="tail"
           >
             {pt.description}
+          </Text>
+        ): (
+          <Text
+            style={styles.description}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {t("freelancePT.noDescription") || "No description available."}
           </Text>
         )}
 
