@@ -14,7 +14,7 @@ export default function PackageCard({
   customer = null, // Customer object for Freelance PT context
 }) {
   const navigation = useNavigation();
-  console.log("item", item);  
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return `${date.getDate().toString().padStart(2, "0")}/${(
@@ -82,7 +82,6 @@ export default function PackageCard({
   const isGymWithPT = item.type === "gymCourseWithPT";
   const isGymNormal = item.type === "gymCourseNormal";
   const isReviewMode = mode === "review";
-
   const handleViewDetail = () => {
     if (isFreelancePT && customer) {
       // For Freelance PT packages, navigate to CustomerDetailScreen
@@ -293,7 +292,6 @@ export default function PackageCard({
             <Ionicons name="refresh" size={18} color="#fff" />
             <Text style={styles.renewButtonText}>{t("myPackage.renew")}</Text>
           </TouchableOpacity>
-
           <TouchableOpacity
             style={styles.reportButton}
             onPress={() => onReport && onReport(item)}
@@ -303,6 +301,7 @@ export default function PackageCard({
             <Text style={styles.reportButtonText}>{t("myPackage.report")}</Text>
           </TouchableOpacity>
         </View>
+       
       ) : (
         <View style={styles.actionButtonsRow}>
           {onFeedback && !item.hasReviewed && (
@@ -317,14 +316,6 @@ export default function PackageCard({
               </Text>
             </TouchableOpacity>
           )}
-          <TouchableOpacity
-            style={[styles.reportButton, { flex: onFeedback && !item.hasReviewed ? 1 : 1 }]}
-            onPress={() => onReport && onReport(item)}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="flag-outline" size={18} color={colors.red} />
-            <Text style={styles.reportButtonText}>{t("myPackage.report")}</Text>
-          </TouchableOpacity>
         </View>
       )}
 
