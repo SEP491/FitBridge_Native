@@ -487,7 +487,8 @@ const OrderManagementCard = ({ order, onRefresh }) => {
 
         {/* Action Buttons */}
         {order.currentStatus !== "Cancelled" &&
-          order.orderItems.some((item) => !item.isFeedback) &&
+          (order.currentStatus === "Finished" || 
+           order.orderItems.some((item) => !item.isFeedback)) &&
           order.currentStatus !== "Processing" &&
           order.currentStatus !== "Shipping" &&
           order.currentStatus !== "InReturn" &&
