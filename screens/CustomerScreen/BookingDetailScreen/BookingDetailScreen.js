@@ -21,6 +21,9 @@ import { useTranslation } from "../../../hooks/useTranslation";
 import BookingDetailContent from "../../../components/BookingDetailContent";
 import BookingResultCard from "../../../components/BookingResultCard";
 import LoadingIndicator from "../../../components/LoadingIndicator";
+import UserGoalService from "../../../services/user-goalService";
+import { createUserGoalWithImage } from "../../../lib/userGoalHelper";
+import { CreateUserGoalForm } from "../../FreelancePTScreen/TrainingResultScreen/components/CreateUserGoalForm";
 
 // Body part images mapping
 const bodyPartImages = {
@@ -100,6 +103,11 @@ export default function BookingDetailScreen({ route, navigation }) {
 
   const [timeBeforeStart, setTimeBeforeStart] = useState(0);
 
+  // User Goal states
+  const [userGoalExists, setUserGoalExists] = useState(null);
+  const [showCreateGoalForm, setShowCreateGoalForm] = useState(false);
+  const [creatingGoal, setCreatingGoal] = useState(false);
+
   const loadTimeBeforeStart = async () => {
     const response = await bookingService.getTimeBeforeStart(
       "EarlyStartSessionBeforeMinutes"
@@ -125,6 +133,13 @@ export default function BookingDetailScreen({ route, navigation }) {
     fetchUser();
     fetchBookingDetail();
   }, [Booking]);
+
+  // Check if user goal exists
+  useEffect(() => {
+    if (Booking?.customerPurchasedId) {
+      checkUserGoalExists();
+    }
+  }, [Booking?.customerPurchasedId]);
 
   // Load assets when the add-activity modal is opened or filters change
   useEffect(() => {
@@ -171,6 +186,62 @@ export default function BookingDetailScreen({ route, navigation }) {
       console.error("Error fetching booking detail:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Check if user goal exists
+  const checkUserGoalExists = async () => {
+    try {
+      if (!Booking?.customerPurchasedId) {
+        setUserGoalExists(false);
+        return;
+      }
+
+      const response = await UserGoalService.checkExistUserGoals(
+        Booking.customerPurchasedId
+      );
+      console.log("User Goal Check Response:", response);
+
+      if (response?.status === "200" || response?.status === 200) {
+        const exists = response?.data;
+        setUserGoalExists(exists);
+      } else {
+        setUserGoalExists(false);
+      }
+    } catch (err) {
+      console.error("Error checking user goals:", err);
+      setUserGoalExists(false);
+    }
+  };
+
+  // Handle create user goal submission
+  const handleCreateUserGoal = async (goalData) => {
+    try {
+      setCreatingGoal(true);
+
+      const createdGoal = await createUserGoalWithImage(goalData);
+
+      Alert.alert(
+        t("common.success", "Success"),
+        t(
+          "userGoals.goalCreatedSuccessfully",
+          "User goal created successfully!"
+        )
+      );
+
+      setShowCreateGoalForm(false);
+      setUserGoalExists(true);
+    } catch (err) {
+      console.error("Error creating user goal:", err);
+      Alert.alert(
+        t("common.error", "Error"),
+        t(
+          "userGoals.failedToCreateGoal",
+          "Failed to create user goal. Please try again."
+        )
+      );
+    } finally {
+      setCreatingGoal(false);
     }
   };
 
@@ -299,6 +370,19 @@ export default function BookingDetailScreen({ route, navigation }) {
   };
 
   const handleCreateActivity = async () => {
+    // Check if user goal exists before allowing exercise creation
+    if (!userGoalExists) {
+      Alert.alert(
+        t("bookingDetail.error"),
+        t(
+          "bookingDetail.setUserGoalFirst",
+          "You must set a user goal before adding exercises."
+        )
+      );
+      setShowCreateGoalForm(true);
+      return;
+    }
+
     // Validation
     if (!activityName.trim()) {
       Alert.alert(
@@ -417,10 +501,18 @@ export default function BookingDetailScreen({ route, navigation }) {
           userRole={userRole}
           navigation={navigation}
           t={t}
-          onAddExercise={() => setShowAddModal(true)}
+          onAddExercise={() => {
+            if (!userGoalExists) {
+              setShowCreateGoalForm(true);
+            } else {
+              setShowAddModal(true);
+            }
+          }}
           onRefresh={handleRefresh}
           refreshing={refreshing}
           timeBeforeStart={timeBeforeStart}
+          userGoalExists={userGoalExists}
+          onCreateGoal={() => setShowCreateGoalForm(true)}
         />
       );
     } else {
@@ -939,6 +1031,18 @@ export default function BookingDetailScreen({ route, navigation }) {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      {/* Create User Goal Form */}
+      {showCreateGoalForm && Booking?.customerPurchasedId && (
+        <CreateUserGoalForm
+          visible={showCreateGoalForm}
+          onClose={() => setShowCreateGoalForm(false)}
+          onSubmit={handleCreateUserGoal}
+          customerPurchasedId={Booking.customerPurchasedId}
+          t={t}
+          loading={creatingGoal}
+        />
+      )}
     </View>
   );
 }

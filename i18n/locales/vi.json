@@ -310,6 +310,9 @@
   },
 
   "bookingDetail": {
+    "setGoalBeforeExercise": "Vui lòng đặt mục tiêu tập luyện trước khi thêm bài tập",
+    "addUserGoal": "Thêm mục tiêu tập luyện",
+    "addUserGoalHint": "Nhấn nút bên dưới để thêm mục tiêu tập luyện",
     "selectExercise": "Chọn Bài Tập",
     "noContent": "Chưa Có Nội Dung",
     "ptHasNotCreatedContent": "PT chưa tạo nội dung cho buổi tập này",

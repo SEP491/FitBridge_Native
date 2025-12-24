@@ -659,7 +659,7 @@ export const CreateUserGoalForm = ({
                     selectedCurrentParts.includes("Weight")) && (
                     <View style={styles.heightWeightRow}>
                       {selectedCurrentParts.includes("Height") && (
-                        <View style={styles.selectedPartWrapper}>
+                        <View style={[styles.selectedPartWrapper, styles.heightWeightInputWrapper]}>
                           <InputField
                             label={muscleGroups[0].label}
                             value={formData.startHeight}
@@ -682,7 +682,7 @@ export const CreateUserGoalForm = ({
                         </View>
                       )}
                       {selectedCurrentParts.includes("Weight") && (
-                        <View style={styles.selectedPartWrapper}>
+                        <View style={[styles.selectedPartWrapper, styles.heightWeightInputWrapper]}>
                           <InputField
                             label={muscleGroups[1].label}
                             value={formData.startWeight}
@@ -787,7 +787,7 @@ export const CreateUserGoalForm = ({
                     selectedTargetParts.includes("Weight")) && (
                     <View style={styles.heightWeightRow}>
                       {selectedTargetParts.includes("Height") && (
-                        <View style={styles.selectedPartWrapper}>
+                        <View style={[styles.selectedPartWrapper, styles.heightWeightInputWrapper]}>
                           <InputField
                             label={muscleGroups[0].label}
                             value={formData.targetHeight}
@@ -813,7 +813,7 @@ export const CreateUserGoalForm = ({
                         </View>
                       )}
                       {selectedTargetParts.includes("Weight") && (
-                        <View style={styles.selectedPartWrapper}>
+                        <View style={[styles.selectedPartWrapper, styles.heightWeightInputWrapper]}>
                           <InputField
                             label={muscleGroups[1].label}
                             value={formData.targetWeight}
@@ -1481,9 +1481,13 @@ const styles = StyleSheet.create({
   selectedPartWrapper: {
     position: "relative",
   },
+  heightWeightInputWrapper: {
+    flex: 1,
+    minWidth: 0,
+  },
   removePartButton: {
     position: "absolute",
-    top: 8,
+    top: 5,
     right: 8,
     zIndex: 10,
     backgroundColor: "#fff",

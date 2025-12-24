@@ -73,6 +73,8 @@ export default function BookingDetailContent({
   onRefresh,
   refreshing = false,
   timeBeforeStart = 30,
+  userGoalExists = null,
+  onCreateGoal,
 }) {
   // Get unique activity types from sessionActivities
 
@@ -758,11 +760,33 @@ export default function BookingDetailContent({
 
           {/* Add Button - Only for PT */}
           {userRole === "FreelancePT" && (
-            <TouchableOpacity style={styles.addButton} onPress={onAddExercise}>
-              <Ionicons name="add-circle" size={24} color={colors.white} />
-              <Text style={styles.addButtonText}>
-                {t("bookingDetail.addExercise")}
-              </Text>
+            <TouchableOpacity
+              style={[
+                styles.addButton,
+                userGoalExists === false && styles.addGoalButton,
+              ]}
+              onPress={userGoalExists === false ? onCreateGoal : onAddExercise}
+            >
+              <Ionicons
+                name={userGoalExists === false ? "flag" : "add-circle"}
+                size={24}
+                color={colors.white}
+              />
+              <View style={styles.addButtonContent}>
+                <Text style={styles.addButtonText}>
+                  {userGoalExists === false
+                    ? t("bookingDetail.addUserGoal", "Add User Goal")
+                    : t("bookingDetail.addExercise")}
+                </Text>
+                {userGoalExists === false && (
+                  <Text style={styles.addButtonSubtitle}>
+                    {t(
+                      "bookingDetail.setGoalBeforeExercise",
+                      "You must set a user goal before adding exercises"
+                    )}
+                  </Text>
+                )}
+              </View>
             </TouchableOpacity>
           )}
         </View>
@@ -1416,6 +1440,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 16,
+    paddingHorizontal: 16,
     borderRadius: 16,
     marginTop: 12,
     shadowColor: colors.orange,
@@ -1425,10 +1450,26 @@ const styles = StyleSheet.create({
     elevation: 6,
     gap: 8,
   },
+  addGoalButton: {
+    backgroundColor: "#ED2A46",
+    shadowColor: "#ED2A46",
+  },
+  addButtonContent: {
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 4,
+  },
   addButtonText: {
     color: colors.white,
     fontSize: 16,
     fontWeight: "700",
+  },
+  addButtonSubtitle: {
+    color: colors.white,
+    fontSize: 12,
+    fontWeight: "500",
+    opacity: 0.9,
+    textAlign: "center",
   },
   noteBox: {
     backgroundColor: "#FFFFFF",
