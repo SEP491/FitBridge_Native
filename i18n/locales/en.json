@@ -158,6 +158,8 @@
       "notAvailableMessage": "Feedback is only available for expired or completed packages."
     },
     "reportModal": {
+      "photoHint": "Evidence Images (Optional)",
+      "photos": "Photos",
       "modalTitle": "Report Package",
       "reporting": "Reporting:",
       "title": "Title *",

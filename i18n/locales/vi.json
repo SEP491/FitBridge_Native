@@ -164,6 +164,11 @@
       "notAvailableMessage": "Đánh giá chỉ có sẵn cho các gói đã hết hạn hoặc đã hoàn thành."
     },
     "reportModal": {
+      "submitReportSuccess": "Gửi báo cáo thành công",
+      "submitReportFailed": "Không thể gửi báo cáo",
+      "submitReportFailedRetry": "Không thể gửi báo cáo. Vui lòng thử lại.",
+      "photoHint": "Ảnh bằng chứng (Tùy chọn)",
+      "photos": "Ảnh bằng chứng",
       "modalTitle": "Báo Cáo Gói Tập",
       "reporting": "Đang báo cáo:",
       "title": "Tiêu đề *",
@@ -2479,6 +2484,12 @@
     "takePhoto": "Chụp ảnh",
     "choosePhoto": "Chọn ảnh từ thư viện",
     "selectPhotoSource": "Bạn muốn chọn ảnh từ đâu ?",
+    "maxImagesReached": "Đã đạt tối đa số ảnh cho phép",
+    "unsavedReports": "Bạn có báo cáo chưa lưu. Bạn có chắc chắn muốn đóng?",
+    "unsavedReport": "Bạn có thay đổi chưa lưu. Bạn có chắc chắn muốn tiếp tục?",
+    "skipReport": "Bạn có muốn bỏ qua báo cáo sản phẩm này?",
+    "selectProduct": "Chọn sản phẩm để báo cáo",
+    "orderItems": "Sản phẩm trong đơn",
     "voucherId": "Mã Voucher"
   },
   "contract": {

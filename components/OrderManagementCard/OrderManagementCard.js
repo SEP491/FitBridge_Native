@@ -15,6 +15,7 @@ import { Link, useNavigation } from "@react-navigation/native";
 import { useTranslation } from "../../hooks/useTranslation";
 import { useCart } from "../../context/CartContext";
 import FeedbackModal from "./FeedbackModal";
+import ReportModal from "./ReportModal";
 import paymentService from "../../services/paymentService";
 import orderService from "../../services/orderService";
 import { Button } from "react-native-web";
@@ -25,6 +26,8 @@ const OrderManagementCard = ({ order, onRefresh }) => {
   const { addToCart } = useCart();
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
   const [unreviewedItems, setUnreviewedItems] = useState([]);
+  const [reportModalVisible, setReportModalVisible] = useState(false);
+  const [unreportedItems, setUnreportedItems] = useState([]);
   const [cancelModalVisible, setCancelModalVisible] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
   const [notReceivedDescription, setNotReceivedDescription] = useState("");
@@ -165,6 +168,24 @@ const OrderManagementCard = ({ order, onRefresh }) => {
     if (itemsToReview.length > 0) {
       setUnreviewedItems(itemsToReview);
       setFeedbackModalVisible(true);
+    }
+  };
+
+  const handleOpenReportModal = () => {
+    // Use all order items so the modal can display the full list to select from
+    const itemsToReport = order.orderItems;
+    if (itemsToReport.length > 0) {
+      setUnreportedItems(itemsToReport);
+      setReportModalVisible(true);
+    }
+  };
+
+  const handleCloseReportModal = (success) => {
+    setReportModalVisible(false);
+    setUnreportedItems([]);
+    if (success && onRefresh) {
+      // Refresh the order list after successful report submission
+      onRefresh();
     }
   };
 
@@ -548,36 +569,70 @@ const OrderManagementCard = ({ order, onRefresh }) => {
                   </Text>
                 </TouchableOpacity>
               )}
-              {order.currentStatus === "Finished" &&
-                order.orderItems.some((item) => !item.isFeedback) && (
+              {order.currentStatus === "Finished" && (
+                <View style={{
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                  flex: 1,
+                  gap: 8,
+                }}>
+                  {order.orderItems.some((item) => !item.isFeedback) && (
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        gap: 8,
+                      }}
+                    >
+                      <TouchableOpacity
+                        style={[styles.actionButton, styles.feedbackButton]}
+                        onPress={handleOpenFeedbackModal}
+                      >
+                        <Ionicons name="star-outline" size={18} color="#FF9800" />
+                        <Text style={styles.feedbackButtonText}>
+                          {t("orders.leaveFeedback")}
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.actionButton, styles.rebuyButton]}
+                        onPress={handleRebuy}
+                      >
+                        <Ionicons name="cart-outline" size={18} color="#fff" />
+                        <Text style={styles.rebuyButtonText}>
+                          {t("orders.rebuy")}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
                   <View
                     style={{
                       flexDirection: "row",
-                      justifyContent: "space-between",
-                      flex: 1,
                       gap: 8,
                     }}
                   >
                     <TouchableOpacity
-                      style={[styles.actionButton, styles.feedbackButton]}
-                      onPress={handleOpenFeedbackModal}
+                      style={[styles.actionButton, styles.reportButton]}
+                      onPress={handleOpenReportModal}
                     >
-                      <Ionicons name="star-outline" size={18} color="#FF9800" />
-                      <Text style={styles.feedbackButtonText}>
-                        {t("orders.leaveFeedback")}
+                      <Ionicons name="flag-outline" size={18} color="#E74C3C" />
+                      <Text style={styles.reportButtonText}>
+                        {t("myPackage.report") || "Report Issue"}
                       </Text>
                     </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.actionButton, styles.rebuyButton]}
-                      onPress={handleRebuy}
-                    >
-                      <Ionicons name="cart-outline" size={18} color="#fff" />
-                      <Text style={styles.rebuyButtonText}>
-                        {t("orders.rebuy")}
-                      </Text>
-                    </TouchableOpacity>
+                    {!order.orderItems.some((item) => !item.isFeedback) && (
+                      <TouchableOpacity
+                        style={[styles.actionButton, styles.rebuyButton]}
+                        onPress={handleRebuy}
+                      >
+                        <Ionicons name="cart-outline" size={18} color="#fff" />
+                        <Text style={styles.rebuyButtonText}>
+                          {t("orders.rebuy")}
+                        </Text>
+                      </TouchableOpacity>
+                    )}
                   </View>
-                )}
+                </View>
+              )}
               {order.currentStatus === "Cancelled" && (
                 <TouchableOpacity
                   style={[styles.actionButton, styles.rebuyButton]}
@@ -599,6 +654,15 @@ const OrderManagementCard = ({ order, onRefresh }) => {
           visible={feedbackModalVisible}
           onClose={handleCloseFeedbackModal}
           orderItems={unreviewedItems}
+        />
+      )}
+
+      {/* Report Modal */}
+      {unreportedItems.length > 0 && (
+        <ReportModal
+          visible={reportModalVisible}
+          onClose={handleCloseReportModal}
+          orderItems={unreportedItems}
         />
       )}
 
@@ -990,6 +1054,16 @@ const styles = StyleSheet.create({
   detailsButtonText: {
     fontSize: 13,
     color: "#ED2A46",
+    fontWeight: "600",
+  },
+  reportButton: {
+    backgroundColor: "#FFF5F5",
+    borderWidth: 1,
+    borderColor: "#E74C3C",
+  },
+  reportButtonText: {
+    fontSize: 13,
+    color: "#E74C3C",
     fontWeight: "600",
   },
   modalOverlay: {
