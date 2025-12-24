@@ -650,7 +650,7 @@
     "duration": "Duration",
     "days": "days",
     "sessions": "Sessions",
-    "perSession": "Per Session",
+    "perSession": "Per Package",
     "minutesPerSession": "Minutes per Session",
     "focusOnYourGoals": "Focused sessions tailored to your goals",
     "minutes": "min",
