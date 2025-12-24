@@ -143,7 +143,9 @@ export default function HeaderHome({
                 <View style={styles.avatarContainer}>
                   <Image
                     source={{
-                      uri: avatarUrl,
+                      uri:
+                        avatarUrl ||
+                        "https://cellphones.com.vn/sforum/wp-content/uploads/2023/10/avatar-trang-4.jpg",
                     }}
                     style={[styles.avatar]}
                   />

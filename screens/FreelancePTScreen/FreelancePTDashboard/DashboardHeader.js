@@ -12,10 +12,12 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useTranslation } from "../../../hooks/useTranslation";
+import { useUser } from "../../../context/UserContext";
 
 const DashboardHeader = ({ user }) => {
   const { t } = useTranslation();
   const navigation = useNavigation();
+  const { avatarUrl } = useUser();
 
   return (
     <LinearGradient
@@ -28,7 +30,10 @@ const DashboardHeader = ({ user }) => {
         <View style={styles.avatarContainer}>
           <Image
             source={{
-              uri: user?.avatarUrl,
+              uri:
+                avatarUrl ||
+                user?.avatarUrl ||
+                "https://cellphones.com.vn/sforum/wp-content/uploads/2023/10/avatar-trang-4.jpg",
             }}
             style={styles.userAvatar}
           />

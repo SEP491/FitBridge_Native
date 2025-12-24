@@ -183,11 +183,15 @@ export default function BookingHistoryScreen() {
       <TouchableOpacity
         style={[styles.bookingItem, { transform: [{ scale: 1 }] }]}
         activeOpacity={0.95}
-        onPress={() =>
-          navigation.navigate("BookingDetailScreen", {
-            Booking: booking,
-          })
-        }
+        onPress={() => {
+          // Only navigate for freelance PT package bookings
+          // Freelance PT bookings have packageName set, gym PT bookings have packageName as null
+          if (booking.packageName) {
+            navigation.navigate("BookingDetailScreen", {
+              Booking: booking,
+            });
+          }
+        }}
       >
         {/* Header with date and status */}
         <View
