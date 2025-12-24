@@ -178,6 +178,8 @@ export const CreateUserGoalForm = ({
   const [activeSection, setActiveSection] = useState("measurements"); // 'measurements', 'targets', 'photo'
   const [selectedTargetParts, setSelectedTargetParts] = useState([]); // Array of selected part keys
   const [showTargetPartsModal, setShowTargetPartsModal] = useState(false);
+  const [selectedCurrentParts, setSelectedCurrentParts] = useState([]); // Array of selected current part keys
+  const [showCurrentPartsModal, setShowCurrentPartsModal] = useState(false);
 
   const resetForm = () => {
     setFormData({
@@ -211,6 +213,7 @@ export const CreateUserGoalForm = ({
     setImageUri(null);
     setActiveSection("measurements");
     setSelectedTargetParts([]);
+    setSelectedCurrentParts([]);
   };
 
   const toggleTargetPart = (partKey) => {
@@ -220,6 +223,22 @@ export const CreateUserGoalForm = ({
         setFormData((prevData) => ({
           ...prevData,
           [`target${partKey}`]: "",
+        }));
+        return prev.filter((key) => key !== partKey);
+      } else {
+        // Add part
+        return [...prev, partKey];
+      }
+    });
+  };
+
+  const toggleCurrentPart = (partKey) => {
+    setSelectedCurrentParts((prev) => {
+      if (prev.includes(partKey)) {
+        // Remove part and reset its value
+        setFormData((prevData) => ({
+          ...prevData,
+          [`start${partKey}`]: "",
         }));
         return prev.filter((key) => key !== partKey);
       } else {
@@ -353,60 +372,58 @@ export const CreateUserGoalForm = ({
   };
 
   const handleSubmit = () => {
-    // Validate required fields
-    if (!formData.startHeight || !formData.startWeight) {
-      Alert.alert(
-        t("common.validation", "Validation"),
-        t(
-          "userGoals.fillRequiredFields",
-          "Please fill in Height and Weight in Current Measurements"
-        )
-      );
-      return;
-    }
+    // Validate that selected current parts have values
+    for (const partKey of selectedCurrentParts) {
+      const fieldName = `start${partKey}`;
+      const value = formData[fieldName];
+      
+      if (!value || value.trim() === "") {
+        Alert.alert(
+          t("common.validation", "Validation"),
+          t(
+            "userGoals.fillSelectedField",
+            `Please fill in ${muscleGroups.find(g => g.key === partKey)?.label || partKey} in Current Measurements`
+          )
+        );
+        return;
+      }
 
-    // Validate target Height and Weight only if they are selected
-    if (selectedTargetParts.includes("Height") && !formData.targetHeight) {
-      Alert.alert(
-        t("common.validation", "Validation"),
-        t(
-          "userGoals.fillTargetHeight",
-          "Please fill in Height in Target Measurements"
-        )
-      );
-      return;
-    }
-
-    if (selectedTargetParts.includes("Weight") && !formData.targetWeight) {
-      Alert.alert(
-        t("common.validation", "Validation"),
-        t(
-          "userGoals.fillTargetWeight",
-          "Please fill in Weight in Target Measurements"
-        )
-      );
-      return;
-    }
-
-    // Validate numeric values
-    const numericFields = ["startHeight", "startWeight"];
-
-    // Add target Height and Weight to validation if selected
-    if (selectedTargetParts.includes("Height")) {
-      numericFields.push("targetHeight");
-    }
-    if (selectedTargetParts.includes("Weight")) {
-      numericFields.push("targetWeight");
-    }
-
-    for (const field of numericFields) {
-      const value = parseFloat(formData[field]);
-      if (isNaN(value) || value <= 0) {
+      const numericValue = parseFloat(value);
+      if (isNaN(numericValue) || numericValue <= 0) {
         Alert.alert(
           t("common.validation", "Validation"),
           t(
             "userGoals.invalidValue",
-            "Please enter valid positive numbers for all measurements"
+            `Please enter a valid positive number for ${muscleGroups.find(g => g.key === partKey)?.label || partKey}`
+          )
+        );
+        return;
+      }
+    }
+
+    // Validate that selected target parts have values
+    for (const partKey of selectedTargetParts) {
+      const fieldName = `target${partKey}`;
+      const value = formData[fieldName];
+      
+      if (!value || value.trim() === "") {
+        Alert.alert(
+          t("common.validation", "Validation"),
+          t(
+            "userGoals.fillSelectedField",
+            `Please fill in ${muscleGroups.find(g => g.key === partKey)?.label || partKey} in Target Measurements`
+          )
+        );
+        return;
+      }
+
+      const numericValue = parseFloat(value);
+      if (isNaN(numericValue) || numericValue <= 0) {
+        Alert.alert(
+          t("common.validation", "Validation"),
+          t(
+            "userGoals.invalidValue",
+            `Please enter a valid positive number for ${muscleGroups.find(g => g.key === partKey)?.label || partKey}`
           )
         );
         return;
@@ -430,26 +447,56 @@ export const CreateUserGoalForm = ({
 
     const submissionData = {
       ...formData,
-      startHeight: parseFloat(formData.startHeight) || 0,
-      startWeight: parseFloat(formData.startWeight) || 0,
-      startBiceps: formData.startBiceps
-        ? parseFloat(formData.startBiceps)
-        : null,
-      startForeArm: formData.startForeArm
-        ? parseFloat(formData.startForeArm)
-        : null,
-      startChest: formData.startChest ? parseFloat(formData.startChest) : null,
-      startBack: formData.startBack ? parseFloat(formData.startBack) : null,
-      startShoulder: formData.startShoulder
-        ? parseFloat(formData.startShoulder)
-        : null,
-      startWaist: formData.startWaist ? parseFloat(formData.startWaist) : null,
-      startHip: formData.startHip ? parseFloat(formData.startHip) : null,
-      startThigh: formData.startThigh ? parseFloat(formData.startThigh) : null,
-      startCalf: formData.startCalf ? parseFloat(formData.startCalf) : null,
-      startGlutes: formData.startGlutes
-        ? parseFloat(formData.startGlutes)
-        : null,
+      // Current Height and Weight: if selected and has value, use it; if not selected, use 0
+      startHeight:
+        selectedCurrentParts.includes("Height") && formData.startHeight
+          ? parseFloat(formData.startHeight)
+          : 0,
+      startWeight:
+        selectedCurrentParts.includes("Weight") && formData.startWeight
+          ? parseFloat(formData.startWeight)
+          : 0,
+      // Set current muscle parts: if selected and has value, use it; if not selected, use null
+      startBiceps:
+        selectedCurrentParts.includes("Biceps") && formData.startBiceps
+          ? parseFloat(formData.startBiceps)
+          : null,
+      startForeArm:
+        selectedCurrentParts.includes("ForeArm") && formData.startForeArm
+          ? parseFloat(formData.startForeArm)
+          : null,
+      startChest:
+        selectedCurrentParts.includes("Chest") && formData.startChest
+          ? parseFloat(formData.startChest)
+          : null,
+      startBack:
+        selectedCurrentParts.includes("Back") && formData.startBack
+          ? parseFloat(formData.startBack)
+          : null,
+      startShoulder:
+        selectedCurrentParts.includes("Shoulder") && formData.startShoulder
+          ? parseFloat(formData.startShoulder)
+          : null,
+      startWaist:
+        selectedCurrentParts.includes("Waist") && formData.startWaist
+          ? parseFloat(formData.startWaist)
+          : null,
+      startHip:
+        selectedCurrentParts.includes("Hip") && formData.startHip
+          ? parseFloat(formData.startHip)
+          : null,
+      startThigh:
+        selectedCurrentParts.includes("Thigh") && formData.startThigh
+          ? parseFloat(formData.startThigh)
+          : null,
+      startCalf:
+        selectedCurrentParts.includes("Calf") && formData.startCalf
+          ? parseFloat(formData.startCalf)
+          : null,
+      startGlutes:
+        selectedCurrentParts.includes("Glutes") && formData.startGlutes
+          ? parseFloat(formData.startGlutes)
+          : null,
       // Target Height and Weight: if selected and has value, use it; if not selected, use 0
       targetHeight:
         selectedTargetParts.includes("Height") && formData.targetHeight
@@ -588,47 +635,118 @@ export const CreateUserGoalForm = ({
                 )}
               </Text>
 
-              {/* Height and Weight Row */}
-              <View style={styles.heightWeightRow}>
-                <InputField
-                  label={muscleGroups[0].label}
-                  value={formData.startHeight}
-                  onChange={handleOnChangeText("startHeight")}
-                  onBlur={() =>
-                    handleInputBlur("startHeight", formData.startHeight)
-                  }
-                  unit={muscleGroups[0].unit}
-                />
-                <InputField
-                  label={muscleGroups[1].label}
-                  value={formData.startWeight}
-                  onChange={handleOnChangeText("startWeight")}
-                  onBlur={() =>
-                    handleInputBlur("startWeight", formData.startWeight)
-                  }
-                  unit={muscleGroups[1].unit}
-                />
-              </View>
+              {/* Choose Parts Button */}
+              <TouchableOpacity
+                style={styles.choosePartsButton}
+                onPress={() => setShowCurrentPartsModal(true)}
+              >
+                <Ionicons name="add-circle-outline" size={20} color="#ED2A46" />
+                <Text style={styles.choosePartsButtonText}>
+                  {t("userGoals.chooseParts", "Choose Parts to Fill")}
+                </Text>
+                <Ionicons name="chevron-forward" size={20} color="#666" />
+              </TouchableOpacity>
 
-              {/* Muscle Groups with Images */}
-              <View style={styles.formGridWithImages}>
-                {muscleGroups.slice(2).map((group) => (
-                  <InputFieldWithImage
-                    key={`start${group.key}`}
-                    muscleKey={group.key}
-                    label={group.label}
-                    value={formData[`start${group.key}`]}
-                    onChange={handleOnChangeText(`start${group.key}`)}
-                    onBlur={() =>
-                      handleInputBlur(
-                        `start${group.key}`,
-                        formData[`start${group.key}`]
+              {/* Selected Parts List */}
+              {selectedCurrentParts.length > 0 && (
+                <View style={styles.selectedPartsContainer}>
+                  <Text style={styles.selectedPartsTitle}>
+                    {t("userGoals.selectedParts", "Selected Parts")}
+                  </Text>
+
+                  {/* Height and Weight Row (if selected) */}
+                  {(selectedCurrentParts.includes("Height") ||
+                    selectedCurrentParts.includes("Weight")) && (
+                    <View style={styles.heightWeightRow}>
+                      {selectedCurrentParts.includes("Height") && (
+                        <View style={styles.selectedPartWrapper}>
+                          <InputField
+                            label={muscleGroups[0].label}
+                            value={formData.startHeight}
+                            onChange={handleOnChangeText("startHeight")}
+                            onBlur={() =>
+                              handleInputBlur("startHeight", formData.startHeight)
+                            }
+                            unit={muscleGroups[0].unit}
+                          />
+                          <TouchableOpacity
+                            style={styles.removePartButton}
+                            onPress={() => toggleCurrentPart("Height")}
+                          >
+                            <Ionicons
+                              name="close-circle"
+                              size={24}
+                              color="#F44336"
+                            />
+                          </TouchableOpacity>
+                        </View>
+                      )}
+                      {selectedCurrentParts.includes("Weight") && (
+                        <View style={styles.selectedPartWrapper}>
+                          <InputField
+                            label={muscleGroups[1].label}
+                            value={formData.startWeight}
+                            onChange={handleOnChangeText("startWeight")}
+                            onBlur={() =>
+                              handleInputBlur("startWeight", formData.startWeight)
+                            }
+                            unit={muscleGroups[1].unit}
+                          />
+                          <TouchableOpacity
+                            style={styles.removePartButton}
+                            onPress={() => toggleCurrentPart("Weight")}
+                          >
+                            <Ionicons
+                              name="close-circle"
+                              size={24}
+                              color="#F44336"
+                            />
+                          </TouchableOpacity>
+                        </View>
+                      )}
+                    </View>
+                  )}
+
+                  {/* Muscle Groups with Images */}
+                  <View style={styles.formGridWithImages}>
+                    {muscleGroups
+                      .slice(2)
+                      .filter((group) =>
+                        selectedCurrentParts.includes(group.key)
                       )
-                    }
-                    unit={group.unit}
-                  />
-                ))}
-              </View>
+                      .map((group) => (
+                        <View
+                          key={`start${group.key}`}
+                          style={styles.selectedPartWrapper}
+                        >
+                          <InputFieldWithImage
+                            muscleKey={group.key}
+                            label={group.label}
+                            value={formData[`start${group.key}`]}
+                            onChange={handleOnChangeText(`start${group.key}`)}
+                            onBlur={() =>
+                              handleInputBlur(
+                                `start${group.key}`,
+                                formData[`start${group.key}`]
+                              )
+                            }
+                            unit={group.unit}
+                          />
+                          <TouchableOpacity
+                            style={styles.removePartButton}
+                            onPress={() => toggleCurrentPart(group.key)}
+                          >
+                            <Ionicons
+                              name="close-circle"
+                              size={24}
+                              color="#F44336"
+                            />
+                          </TouchableOpacity>
+                        </View>
+                      ))}
+                  </View>
+                </View>
+              )}
             </View>
           )}
 
@@ -913,6 +1031,95 @@ export const CreateUserGoalForm = ({
                 <TouchableOpacity
                   style={styles.modalDoneButton}
                   onPress={() => setShowTargetPartsModal(false)}
+                >
+                  <Text style={styles.modalDoneButtonText}>
+                    {t("common.done", "Done")}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Current Parts Selection Modal */}
+        <Modal
+          visible={showCurrentPartsModal}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setShowCurrentPartsModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>
+                  {t("userGoals.chooseParts", "Select Parts to Fill")}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setShowCurrentPartsModal(false)}
+                  style={styles.modalCloseButton}
+                >
+                  <Ionicons name="close" size={24} color="#333" />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView style={styles.modalBody}>
+                {muscleGroups.map((group) => {
+                  const isSelected = selectedCurrentParts.includes(group.key);
+                  const hasImage = muscleGroupImages[group.key];
+                  return (
+                    <TouchableOpacity
+                      key={group.key}
+                      style={[
+                        styles.partOption,
+                        isSelected && styles.partOptionSelected,
+                      ]}
+                      onPress={() => toggleCurrentPart(group.key)}
+                    >
+                      <View style={styles.partOptionContent}>
+                        {hasImage ? (
+                          <Image
+                            source={muscleGroupImages[group.key]}
+                            style={styles.partOptionImage}
+                            resizeMode="contain"
+                          />
+                        ) : (
+                          <View style={styles.partOptionIconPlaceholder}>
+                            <Ionicons
+                              name={
+                                group.key === "Height"
+                                  ? "resize-outline"
+                                  : "barbell-outline"
+                              }
+                              size={24}
+                              color={isSelected ? "#4CAF50" : "#999"}
+                            />
+                          </View>
+                        )}
+                        <Text
+                          style={[
+                            styles.partOptionText,
+                            isSelected && styles.partOptionTextSelected,
+                          ]}
+                        >
+                          {group.label}
+                        </Text>
+                      </View>
+                      {isSelected && (
+                        <Ionicons
+                          name="checkmark-circle"
+                          size={24}
+                          color="#4CAF50"
+                        />
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+
+              <View style={styles.modalFooter}>
+                <TouchableOpacity
+                  style={styles.modalDoneButton}
+                  onPress={() => setShowCurrentPartsModal(false)}
                 >
                   <Text style={styles.modalDoneButtonText}>
                     {t("common.done", "Done")}
