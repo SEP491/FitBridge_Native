@@ -79,7 +79,7 @@ export default function HomeScreen() {
         /> */}
         <FeaturedGymsSection refreshTrigger={refreshTrigger} />
         <NearbyGymsSection refreshTrigger={refreshTrigger} />
-        <BlogSection />
+        <BlogSection refreshTrigger={refreshTrigger} />
       </ScrollView>
     </View>
   );

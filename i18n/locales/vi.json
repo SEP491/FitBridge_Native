@@ -217,13 +217,7 @@
     "freelancePT": "Gói Tập Freelance PT",
     "noFreelancePTPackages": "Hiện chưa có gói tập Freelance PT",
     "freelancePTTrainers": "Huấn luyện viên tự do",
-    "noFreelancePT": "Hiện chưa có huấn luyện viên freelance",
-    "blogPost1Title": "10 Bài Tập Tốt Nhất Để Giảm Cân",
-    "blogPost1Summary": "Khám phá những bài tập hiệu quả nhất giúp bạn giảm cân và có vóc dáng cân đối.",
-    "blogPost2Title": "Mẹo Dinh Dưỡng Để Tăng Cơ",
-    "blogPost2Summary": "Tìm hiểu cách ăn uống để xây dựng cơ bắp và đạt được mục tiêu thể hình của bạn.",
-    "blogPost3Title": "Lợi Ích Của Yoga",
-    "blogPost3Summary": "Khám phá cách yoga có thể cải thiện tính linh hoạt, sức mạnh và sức khỏe tinh thần của bạn."
+    "noFreelancePT": "Hiện chưa có huấn luyện viên freelance"
   },
 
   "gym": {
@@ -535,6 +529,7 @@
     "identityInformation": "Thông tin định danh",
     "citizenIdNumber": "Số CMND/CCCD",
     "enterCitizenIdNumber": "Nhập số CMND/CCCD",
+    "taxCode": "Mã số thuế",
     "identityCardPlace": "Nơi cấp",
     "enterIdentityCardPlace": "Nhập nơi cấp",
     "permanentAddress": "Địa chỉ thường trú",
@@ -557,7 +552,7 @@
     "ptMaxCourse": "Số học viên tối đa có thể đăng ký",
     "ptMaxCoursePlaceholder": "Nhập số học viên tối đa đồng thời có thể đăng ký",
     "ptCurrentCourse": "Số học viên hiện tại",
-    "currentImages": "Hình ảnh hiện tại- ",
+    "currentImages": "Hình ảnh trên hồ sơ",
     "invalidAddress": "Địa chỉ không hợp lệ",
     "pleaseSelectFromAutocomplete": "Vui lòng chọn địa chỉ hợp lệ từ danh sách gợi ý"
   },
@@ -1911,7 +1906,7 @@
     "duration": "Thời Gian",
     "days": "ngày",
     "sessions": "Buổi Tập",
-    "perSession": "Mỗi Buổi",
+    "perSession": "Mỗi Gói Tập",
     "minutes": "phút",
     "price": "Giá",
     "totalPrice": "Tổng Giá",
@@ -2646,6 +2641,54 @@
     "fillAllFields": "Vui lòng điền đầy đủ các trường bắt buộc",
     "updateSuccess": "Cập nhật thông tin cá nhân thành công",
     "updateFailed": "Không thể cập nhật thông tin cá nhân"
+  },
+
+  "myCustomers": {
+    "errorTitle": "Lỗi",
+    "errorLoadCustomers": "Không thể tải danh sách khách hàng. Vui lòng thử lại.",
+    "tabs": {
+      "all": "Tất cả khách hàng",
+      "active": "Đang hoạt động",
+      "inactive": "Không hoạt động"
+    },
+    "status": {
+      "active": "ĐANG HOẠT ĐỘNG",
+      "inactive": "KHÔNG HOẠT ĐỘNG",
+      "expired": "Đã hết hạn",
+      "completed": "Đã hoàn thành"
+    },
+    "stats": {
+      "totalCustomers": "Tổng khách hàng",
+      "active": "Đang hoạt động",
+      "totalPackages": "Tổng gói tập"
+    },
+    "cards": {
+      "totalPackages": "Tổng gói tập",
+      "active": "Đang hoạt động",
+      "sessionsLeft": "Buổi còn lại",
+      "joined": "Tham gia: {{date}}",
+      "packages": "Gói tập:",
+      "none": "Không có"
+    },
+    "searchPlaceholder": "Tìm kiếm khách hàng...",
+    "loadingCustomers": "Đang tải khách hàng...",
+    "noCustomers": "Không tìm thấy khách hàng",
+    "modal": {
+      "title": "Gói tập của {{name}}",
+      "totalPackages": "{{count}} gói tập",
+      "noPackages": "Không có gói tập nào",
+      "sessionsAvailable": "Buổi còn lại:",
+      "purchaseDate": "Ngày mua:",
+      "expirationDate": "Ngày hết hạn:",
+      "price": "Giá:",
+      "sessionProgress": "Tiến độ buổi tập",
+      "completedRemaining": "{{completed}} đã hoàn thành, còn {{remaining}}"
+    },
+    "packageStatus": {
+      "active": "Đang hoạt động",
+      "expired": "Đã hết hạn",
+      "completed": "Đã hoàn thành"
+    }
   },
 
   "myReports": {

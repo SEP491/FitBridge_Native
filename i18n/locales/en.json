@@ -204,13 +204,7 @@
     "freelancePT": "Freelance PT Packages",
     "noFreelancePTPackages": "No freelance PT packages available",
     "freelancePTTrainers": "Freelance PT",
-    "noFreelancePT": "No freelance trainers available",
-    "blogPost1Title": "10 Best Exercises for Weight Loss",
-    "blogPost1Summary": "Discover the most effective exercises to help you lose weight and get in shape.",
-    "blogPost2Title": "Nutrition Tips for Muscle Gain",
-    "blogPost2Summary": "Learn what to eat to build muscle and achieve your fitness goals.",
-    "blogPost3Title": "The Benefits of Yoga",
-    "blogPost3Summary": "Explore how yoga can improve your flexibility, strength, and mental health."
+    "noFreelancePT": "No freelance trainers available"
   },
 
   "gym": {
@@ -499,6 +493,7 @@
     "identityInformation": "Identity Information",
     "citizenIdNumber": "Citizen ID Number",
     "enterCitizenIdNumber": "Enter citizen ID number",
+    "taxCode": "Tax code",
     "identityCardPlace": "Place of Issue",
     "enterIdentityCardPlace": "Enter place of issue",
     "permanentAddress": "Permanent Address",
@@ -658,7 +653,7 @@
     "duration": "Duration",
     "days": "days",
     "sessions": "Sessions",
-    "perSession": "Per Session",
+    "perSession": "Per Package",
     "minutesPerSession": "Minutes per Session",
     "focusOnYourGoals": "Focused sessions tailored to your goals",
     "minutes": "min",
@@ -2558,6 +2553,54 @@
     "fillAllFields": "Please fill all required fields",
     "updateSuccess": "User details updated successfully",
     "updateFailed": "Failed to update user details"
+  },
+
+  "myCustomers": {
+    "errorTitle": "Error",
+    "errorLoadCustomers": "Failed to load customers. Please try again.",
+    "tabs": {
+      "all": "All Customers",
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "status": {
+      "active": "ACTIVE",
+      "inactive": "INACTIVE",
+      "expired": "Expired",
+      "completed": "Completed"
+    },
+    "stats": {
+      "totalCustomers": "Total Customers",
+      "active": "Active",
+      "totalPackages": "Total Packages"
+    },
+    "cards": {
+      "totalPackages": "Total Packages",
+      "active": "Active",
+      "sessionsLeft": "Sessions Left",
+      "joined": "Joined: {{date}}",
+      "packages": "Packages:",
+      "none": "None"
+    },
+    "searchPlaceholder": "Search customers...",
+    "loadingCustomers": "Loading customers...",
+    "noCustomers": "No customers found",
+    "modal": {
+      "title": "{{name}}'s Packages",
+      "totalPackages": "{{count}} Total Packages",
+      "noPackages": "No packages found",
+      "sessionsAvailable": "Sessions Available:",
+      "purchaseDate": "Purchase Date:",
+      "expirationDate": "Expiration Date:",
+      "price": "Price:",
+      "sessionProgress": "Session Progress",
+      "completedRemaining": "{{completed}} completed, {{remaining}} remaining"
+    },
+    "packageStatus": {
+      "active": "Active",
+      "expired": "Expired",
+      "completed": "Completed"
+    }
   },
 
   "myReports": {
