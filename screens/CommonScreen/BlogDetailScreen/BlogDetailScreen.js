@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -6,28 +6,65 @@ import {
   ScrollView,
   Image,
   Dimensions,
-  TouchableOpacity,
 } from "react-native";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useRoute } from "@react-navigation/native";
 import { useTranslation } from "../../../hooks/useTranslation";
+import blogService from "../../../services/blogService";
 
 const { width } = Dimensions.get("window");
 
 export default function BlogDetailScreen() {
   const route = useRoute();
-
-  const { blog } = route.params;
+  const initialBlog = route.params?.blog;
+  const [blog, setBlog] = useState(initialBlog);
+  const [loading, setLoading] = useState(!initialBlog?.content);
   const { t } = useTranslation();
+
+  useEffect(() => {
+    const fetchBlog = async () => {
+      if (!initialBlog?.id || initialBlog?.content) return;
+      try {
+        setLoading(true);
+        const response = await blogService.getBlogById(initialBlog.id);
+        setBlog(response?.data);
+      } catch (error) {
+        console.error("Failed to fetch blog detail:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBlog();
+  }, [initialBlog]);
+
+  if (loading && !blog?.content) {
+    return (
+      <View style={styles.container}>
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
+
+  if (!blog) {
+    return (
+      <View style={styles.container}>
+        <Text>{t("common.noData")}</Text>
+      </View>
+    );
+  }
+
+  const imageUrl = blog?.images?.[0] || blog?.imageUrl || "";
+  const content =
+    blog?.content || blog?.shortDescription || blog?.summary || "";
 
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.contentContainer}>
         <Text style={styles.title}>{blog.title}</Text>
-        <Image source={{ uri: blog.imageUrl }} style={styles.image} />
-        <Text style={styles.content}>
-          {blog.shortDescription || blog.summary}
-        </Text>
-        {/* Bạn có thể thêm nội dung chi tiết khác nếu muốn */}
+        {!!imageUrl && (
+          <Image source={{ uri: imageUrl }} style={styles.image} />
+        )}
+        <Text style={styles.content}>{content}</Text>
       </ScrollView>
     </View>
   );

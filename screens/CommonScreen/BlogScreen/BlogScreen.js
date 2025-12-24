@@ -5,14 +5,13 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  ActivityIndicator,
   TouchableOpacity,
-  Image,
   TextInput,
-  Platform,
+  Image,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import LoadingIndicator from "../../../components/LoadingIndicator";
+import blogService from "../../../services/blogService";
 
 export default function BlogScreen() {
   const [blogs, setBlogs] = useState([]);
@@ -21,70 +20,38 @@ export default function BlogScreen() {
   const navigation = useNavigation();
 
   useEffect(() => {
+    const fetchBlogs = async () => {
+      try {
+        const response = await blogService.getBlogs();
+        // API shape: { status, message, data: [...] }
+        setBlogs(response?.data || []);
+      } catch (error) {
+        console.error("Failed to fetch blogs:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchBlogs();
   }, []);
 
-  const fetchBlogs = async () => {
-    try {
-      // Fake data here
-      const data = [
-        {
-          id: 1,
-          title: "5 Bài Tập Đốt Mỡ Nhanh Nhất Cho Người Mới",
-          imageUrl:
-            "https://i.pinimg.com/736x/0f/f6/69/0ff6690ae16b9358fb62ed4934d8e598.jpg",
-          shortDescription:
-            "Khám phá 5 bài tập đơn giản giúp bạn đốt cháy mỡ và săn chắc cơ thể.",
-        },
-        {
-          id: 2,
-          title: "Thực Đơn Dinh Dưỡng Cho Gymer 7 Ngày",
-          imageUrl:
-            "https://i.pinimg.com/736x/0e/fc/b5/0efcb577e982d3b47739b3d10d47ce42.jpg",
-          shortDescription:
-            "Chế độ ăn chuẩn khoa học giúp tăng cơ, giảm mỡ hiệu quả.",
-        },
-        {
-          id: 3,
-          title: "Cách Phục Hồi Cơ Sau Tập Luyện",
-          imageUrl:
-            "https://i.pinimg.com/736x/63/69/ab/6369ab27dca3a6331a12c517441fabd2.jpg",
-          shortDescription:
-            "Các kỹ thuật thư giãn giúp phục hồi cơ bắp nhanh chóng.",
-        },
-      ];
-      setBlogs(data);
-    } catch (error) {
-      console.error("Failed to fetch blogs:", error);
-    } finally {
-      setLoading(false);
-    }
+  const renderBlogItem = ({ item }) => {
+    const imageUrl = item?.images?.[0] || item?.imageUrl || "";
+    return (
+      <TouchableOpacity
+        onPress={() => navigation.navigate("BlogDetailScreen", { blog: item })}
+        style={styles.card}
+      >
+        {!!imageUrl && (
+          <Image source={{ uri: imageUrl }} style={styles.image} />
+        )}
+        <Text style={styles.title}>{item.title}</Text>
+      </TouchableOpacity>
+    );
   };
 
-  const BlogCard = ({ title, imageUrl, shortDescription }) => (
-    <View style={styles.card}>
-      <Image source={{ uri: imageUrl }} style={styles.image} />
-      <View style={styles.content}>
-        <Text style={styles.title}>{title}</Text>
-        <Text style={styles.description}>{shortDescription}</Text>
-      </View>
-    </View>
-  );
-
-  const renderBlogItem = ({ item }) => (
-    <TouchableOpacity
-      onPress={() => navigation.navigate("BlogDetailScreen", { blog: item })}
-    >
-      <BlogCard
-        title={item.title}
-        imageUrl={item.imageUrl}
-        shortDescription={item.shortDescription}
-      />
-    </TouchableOpacity>
-  );
-
   const filteredBlogs = blogs.filter((blog) =>
-    blog.title.toLowerCase().includes(searchQuery.toLowerCase())
+    blog?.title?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -114,11 +81,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
   },
-  loader: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
   listContainer: {
     padding: 16,
   },
@@ -135,25 +97,18 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderRadius: 12,
     backgroundColor: "#fff",
-    overflow: Platform.OS === "android" ? "hidden" : "visible",
+    padding: 16,
+    overflow: "hidden",
   },
   image: {
     width: "100%",
     height: 180,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-  },
-  content: {
-    padding: 12,
+    borderRadius: 12,
+    marginBottom: 10,
   },
   title: {
     fontSize: 18,
     fontWeight: "bold",
     color: "#ED2A46",
-    marginBottom: 6,
-  },
-  description: {
-    fontSize: 14,
-    color: "#333",
   },
 });

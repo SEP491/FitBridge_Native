@@ -1,37 +1,28 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import PairedSwiper from "../../../components/PairSwiper/PairSwiper";
 import BlogCard from "../../../components/BlogCard/BlogCard";
 import { useTranslation } from "../../../hooks/useTranslation";
+import blogService from "../../../services/blogService";
 
-export default function BlogSection() {
+export default function BlogSection({ refreshTrigger }) {
   const navigation = useNavigation();
   const { t } = useTranslation();
+  const [blogPosts, setBlogPosts] = useState([]);
 
-  const blogPosts = [
-    {
-      id: 1,
-      title: "home.blogPost1Title",
-      imageUrl:
-        "https://i.pinimg.com/736x/0f/f6/69/0ff6690ae16b9358fb62ed4934d8e598.jpg",
-      summary: "home.blogPost1Summary",
-    },
-    {
-      id: 2,
-      title: "home.blogPost2Title",
-      imageUrl:
-        "https://i.pinimg.com/736x/0e/fc/b5/0efcb577e982d3b47739b3d10d47ce42.jpg",
-      summary: "home.blogPost2Summary",
-    },
-    {
-      id: 3,
-      title: "home.blogPost3Title",
-      imageUrl:
-        "https://i.pinimg.com/736x/63/69/ab/6369ab27dca3a6331a12c517441fabd2.jpg",
-      summary: "home.blogPost3Summary",
-    },
-  ];
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      try {
+        const response = await blogService.getBlogs();
+        setBlogPosts(response?.data || []);
+      } catch (error) {
+        console.error("Error fetching blogs:", error);
+      }
+    };
+
+    fetchBlogs();
+  }, [refreshTrigger]);
 
   const renderBlogCard = (item) => {
     return <BlogCard blog={item} />;
