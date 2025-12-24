@@ -2112,6 +2112,10 @@ export default function Navigator({
           const { status } = await Notifications.requestPermissionsAsync();
           finalStatus = status;
           // Get device push token
+        }
+
+        if (finalStatus === "granted") {
+          console.log("✅ Notification permissions granted");
           const pushSubscription =
             await Notifications.getDevicePushTokenAsync();
           console.log("pushSubscription", pushSubscription);
@@ -2122,10 +2126,6 @@ export default function Navigator({
             platform,
           });
           console.log("✅ Device token registered successfully");
-        }
-
-        if (finalStatus === "granted") {
-          console.log("✅ Notification permissions granted");
         }
       } catch (error) {
         console.error("❌ Error registering push token:", error);

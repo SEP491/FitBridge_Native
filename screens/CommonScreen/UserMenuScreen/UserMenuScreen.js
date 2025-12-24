@@ -1,3 +1,4 @@
+import * as Notifications from "expo-notifications";
 import {
   View,
   Text,
@@ -31,6 +32,7 @@ import { useUser } from "../../../context/UserContext";
 import orderService from "../../../services/orderService";
 import { fetchUserFromStorage } from "../../../lib";
 import { useMeetingState } from "../../../context/meetingStateContext";
+import notificationService from "../../../services/notificationService";
 
 export default function UserMenuScreen() {
   const [user, setUser] = useState(null);
@@ -247,6 +249,15 @@ export default function UserMenuScreen() {
                   const logoutSuccess = await authService.logout();
 
                   if (logoutSuccess) {
+                    const pushSubscription =
+                      await Notifications.getDevicePushTokenAsync();
+                    console.log("pushSubscription", pushSubscription);
+                    const token = pushSubscription.data;
+                    await notificationService.unregisterDeviceToken({
+                      deviceToken: token,
+                    }).catch((error) => {
+                      console.error("Error unregistering device token:", error);
+                    });
                     clearCart(); // Clear cart data
                     await clearAvatarUrl(); // Clear avatar data
                     if (global.updateNavigationUser) {

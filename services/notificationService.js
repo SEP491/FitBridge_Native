@@ -9,6 +9,8 @@ const notificationService = {
     request("DELETE", "v1/notifications/delete-all"),
   registerDeviceToken: (data) =>
     request("POST", "v1/notifications/device-token", data),
+  unregisterDeviceToken: (data) =>
+    request("DELETE", "v1/notifications/device-token", data),
 };
 
 export default notificationService;

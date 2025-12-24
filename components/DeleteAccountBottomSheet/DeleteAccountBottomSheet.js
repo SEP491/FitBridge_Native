@@ -10,8 +10,10 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import * as Notifications from "expo-notifications";
 import authService from "../../services/authService";
 import { useTranslation } from "../../hooks/useTranslation";
+import notificationService from "../../services/notificationService";
 
 const DeleteAccountBottomSheet = ({
   visible,
@@ -84,6 +86,16 @@ const DeleteAccountBottomSheet = ({
               const logoutSuccess = await authService.logout();
 
               if (logoutSuccess) {
+                const pushSubscription =
+                  await Notifications.getDevicePushTokenAsync();
+                console.log("pushSubscription", pushSubscription);
+                const token = pushSubscription.data;
+                await notificationService.unregisterDeviceToken({
+                    deviceToken: token,
+                  })
+                  .catch((error) => {
+                    console.error("Error unregistering device token:", error);
+                  });
                 clearCart(); // Clear cart data
                 if (global.updateNavigationUser) {
                   global.updateNavigationUser();
