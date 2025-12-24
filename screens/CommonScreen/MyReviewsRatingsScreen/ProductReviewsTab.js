@@ -1,11 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  RefreshControl,
-  StyleSheet,
-} from "react-native";
+import { View, Text, FlatList, RefreshControl, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "../../../hooks/useTranslation";
 import orderService from "../../../services/orderService";
@@ -38,7 +32,11 @@ export default function ProductReviewsTab() {
     fetchUser();
   }, []);
 
-  const fetchProductReviews = async (pageNum = 1, isLoadMore = false, userId = null) => {
+  const fetchProductReviews = async (
+    pageNum = 1,
+    isLoadMore = false,
+    userId = null
+  ) => {
     if (!userId) return;
     try {
       if (isLoadMore) {
@@ -56,7 +54,7 @@ export default function ProductReviewsTab() {
       });
 
       const allOrders = summaryResponse.data?.productOrders?.items || [];
-      
+
       let filtered = allOrders.filter(
         (order) => order.currentStatus === "Finished"
       );
@@ -78,8 +76,10 @@ export default function ProductReviewsTab() {
       if (isLoadMore) {
         // Append new items, filtering out duplicates by ID
         setProductReviews((prev) => {
-          const existingIds = new Set(prev.map(item => item.id));
-          const newItems = paginatedOrders.filter(item => !existingIds.has(item.id));
+          const existingIds = new Set(prev.map((item) => item.id));
+          const newItems = paginatedOrders.filter(
+            (item) => !existingIds.has(item.id)
+          );
           return [...prev, ...newItems];
         });
       } else {
@@ -96,13 +96,10 @@ export default function ProductReviewsTab() {
     }
   };
 
-
-  useFocusEffect(
-    useCallback(() => {
-      if (!user?.id) return;
-      fetchProductReviews(1, false, user.id);
-    }, [user])
-  );
+  useEffect(() => {
+    if (!user?.id) return;
+    fetchProductReviews(1, false, user.id);
+  }, [user]);
 
   const onRefresh = async () => {
     if (!user?.id) return;
@@ -113,7 +110,12 @@ export default function ProductReviewsTab() {
 
   const loadMore = () => {
     if (!user?.id) return;
-    if (!loadingMore && !loading && productPage < productTotalPages && !productLoading) {
+    if (
+      !loadingMore &&
+      !loading &&
+      productPage < productTotalPages &&
+      !productLoading
+    ) {
       fetchProductReviews(productPage + 1, true, user.id);
     }
   };
