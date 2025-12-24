@@ -491,6 +491,7 @@
     "identityInformation": "Identity Information",
     "citizenIdNumber": "Citizen ID Number",
     "enterCitizenIdNumber": "Enter citizen ID number",
+    "taxCode": "Tax code",
     "identityCardPlace": "Place of Issue",
     "enterIdentityCardPlace": "Enter place of issue",
     "permanentAddress": "Permanent Address",

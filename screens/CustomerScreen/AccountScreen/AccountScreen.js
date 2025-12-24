@@ -36,7 +36,8 @@ const AccountScreen = () => {
   const [editMode, setEditMode] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [showUpdateUserDetailModal, setShowUpdateUserDetailModal] = useState(false);
+  const [showUpdateUserDetailModal, setShowUpdateUserDetailModal] =
+    useState(false);
   const { avatarUrl, updateAvatarUrl } = useUser();
   // Original profile from API
   const [userProfile, setUserProfile] = useState({});
@@ -474,7 +475,7 @@ const AccountScreen = () => {
         {/* Action Cards */}
         {!editMode && (
           <View style={styles.actionCardsContainer}>
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={styles.actionCard}
               onPress={() => setShowUpdateUserDetailModal(true)}
             >
@@ -490,7 +491,7 @@ const AccountScreen = () => {
                 </Text>
               </View>
               <Icon name="chevron-right" size={16} color="#999" />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
 
             <TouchableOpacity
               style={styles.actionCard}
