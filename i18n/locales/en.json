@@ -2553,6 +2553,54 @@
     "updateFailed": "Failed to update user details"
   },
 
+  "myCustomers": {
+    "errorTitle": "Error",
+    "errorLoadCustomers": "Failed to load customers. Please try again.",
+    "tabs": {
+      "all": "All Customers",
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "status": {
+      "active": "ACTIVE",
+      "inactive": "INACTIVE",
+      "expired": "Expired",
+      "completed": "Completed"
+    },
+    "stats": {
+      "totalCustomers": "Total Customers",
+      "active": "Active",
+      "totalPackages": "Total Packages"
+    },
+    "cards": {
+      "totalPackages": "Total Packages",
+      "active": "Active",
+      "sessionsLeft": "Sessions Left",
+      "joined": "Joined: {{date}}",
+      "packages": "Packages:",
+      "none": "None"
+    },
+    "searchPlaceholder": "Search customers...",
+    "loadingCustomers": "Loading customers...",
+    "noCustomers": "No customers found",
+    "modal": {
+      "title": "{{name}}'s Packages",
+      "totalPackages": "{{count}} Total Packages",
+      "noPackages": "No packages found",
+      "sessionsAvailable": "Sessions Available:",
+      "purchaseDate": "Purchase Date:",
+      "expirationDate": "Expiration Date:",
+      "price": "Price:",
+      "sessionProgress": "Session Progress",
+      "completedRemaining": "{{completed}} completed, {{remaining}} remaining"
+    },
+    "packageStatus": {
+      "active": "Active",
+      "expired": "Expired",
+      "completed": "Completed"
+    }
+  },
+
   "myReports": {
     "loadingReports": "Loading reports...",
     "loadingDetail": "Loading report detail...",

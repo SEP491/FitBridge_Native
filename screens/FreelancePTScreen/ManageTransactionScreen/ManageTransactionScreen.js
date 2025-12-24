@@ -199,10 +199,10 @@ const ManageTransactionScreen = ({ navigation }) => {
         return "#4CAF50";
       case "REJECTED":
         return "#F44336";
-        case "ADMINAPPROVED":
-          return "#4CAF50";
-        case "ADMINREJECTED":
-          return "#F44336";
+      case "ADMINAPPROVED":
+        return "#4CAF50";
+      case "ADMINREJECTED":
+        return "#F44336";
       default:
         return "#666";
     }
