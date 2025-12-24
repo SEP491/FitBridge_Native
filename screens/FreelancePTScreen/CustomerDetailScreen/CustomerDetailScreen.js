@@ -560,8 +560,8 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
                             styles.packageDetailValue,
                             packageStatus.status === t("myPackage.expired") && styles.expiredText
                           ]}>
-                            {stats?.latestSessionEndTime ? 
-                              `${new Date(stats.latestSessionEndTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false })} - ${new Date(stats.latestSessionEndTime).toLocaleDateString('en-GB')}` 
+                            {stats?.LatestSessionStartTime ? 
+                              `${new Date(stats.LatestSessionStartTime ).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false })} - ${new Date(stats.LatestSessionStartTime).toLocaleDateString('en-GB')}` 
                               : t("customerDetail.notAvailable")
                             }
                           </Text>

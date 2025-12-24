@@ -44,7 +44,7 @@ export const SessionStatistics = ({ stats, t, StatCard, StatRow }) => {
 
       <StatRow 
         label={t('trainingResults.latestSessionEndTime')} 
-        value={stats.latestSessionEndTime ? `${new Date(stats.latestSessionEndTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false })} - ${new Date(stats.latestSessionEndTime).toLocaleDateString('en-GB')}` : t("customerDetail.notAvailable")} 
+        value={stats.LatestSessionStartTime ? `${new Date(stats.LatestSessionStartTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false })} - ${new Date(stats.LatestSessionStartTime).toLocaleDateString('en-GB')}` : t("customerDetail.notAvailable")} 
         icon="time-outline"
       />
     </StatCard>
