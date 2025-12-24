@@ -13,6 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import orderService from "../../../services/orderService";
+import paymentService from "../../../services/paymentService";
 import { useTranslation } from "../../../hooks/useTranslation";
 import { formatPrice } from "../../../lib";
 
@@ -92,9 +93,14 @@ const OrderDetailScreen = () => {
     return t(`orders.status.${statusKey}`) || status;
   };
 
-  const handleCompletePayment = () => {
-    if (order?.checkoutUrl) {
-      Linking.openURL(order.checkoutUrl);
+  const handleCompletePayment = async () => {
+    try {
+      const response = await paymentService.repaidOrder({ orderId: order.id });
+      if (response && response.data) {
+        Linking.openURL(response.data);
+      }
+    } catch (error) {
+      console.error("Error during payment completion:", error);
     }
   };
 
