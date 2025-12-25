@@ -174,14 +174,15 @@ export const OverviewStatistics = ({ stats, t, StatCard }) => {
       <View style={styles.progressBarsSection}>
         <ProgressBar
           current={stats.completedSessions}
-          total={stats.totalSessions}
+          total={stats.totalSessions + stats.availableSessions}
           label={t("trainingResults.completedSessions", "Sessions Completed")}
-          useAutoColor={true}
+          useAutoColor={false}
+          color="#4CAF50"
           ringType="session"
           icon="calendar"
         />
 
-        <ProgressBar
+        {/* <ProgressBar
           current={stats.completedActivitySets}
           total={stats.totalActivitySets}
           label={t(
@@ -191,12 +192,12 @@ export const OverviewStatistics = ({ stats, t, StatCard }) => {
           useAutoColor={true}
           ringType="activity"
           icon="checkmark-circle"
-        />
+        /> */}
 
-        {stats.upcomingSessions > 0 && (
+        {stats.upcomingSessions >= 0 && (
           <ProgressBar
             current={stats.upcomingSessions}
-            total={stats.totalSessions}
+            total={stats.totalSessions + stats.availableSessions}
             label={t("trainingResults.upcomingSessions", "Upcoming Sessions")}
             useAutoColor={false}
             color="#2196F3"
@@ -204,10 +205,10 @@ export const OverviewStatistics = ({ stats, t, StatCard }) => {
           />
         )}
 
-        {stats.cancelledSessions > 0 && (
+        {stats.cancelledSessions >= 0 && (
           <ProgressBar
             current={stats.cancelledSessions}
-            total={stats.totalSessions}
+            total={stats.totalSessions + stats.availableSessions}
             label={t("trainingResults.cancelledSessions", "Cancelled Sessions")}
             useAutoColor={false}
             color="#F44336"

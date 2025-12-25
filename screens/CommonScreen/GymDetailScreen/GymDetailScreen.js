@@ -30,6 +30,7 @@ import LoadingIndicator from "../../../components/LoadingIndicator";
 import { fetchUserFromStorage } from "../../../lib/async/asyncUtils";
 import reviewService from "../../../services/reviewService";
 import ReviewCard from "../../../components/ReviewCard/ReviewCard";
+import GymDetailScreenSkeleton from "./GymDetailScreenSkeleton";
 
 export default function GymDetailScreen({ route }) {
   const { t } = useTranslation();
@@ -229,9 +230,6 @@ export default function GymDetailScreen({ route }) {
     }
   };
 
-  if (loading) {
-    return <LoadingIndicator variant="page" message={t("gymDetail.loading")} />;
-  }
   if (!gymId) {
     return (
       <View style={styles.loadingContainer}>
@@ -317,26 +315,30 @@ export default function GymDetailScreen({ route }) {
 
   return (
     <View style={styles.container}>
-      {/* Cart Icon */}
-      <View style={styles.cartIconContainer}>
-        <TouchableOpacity
-          style={styles.cartButton}
-          onPress={() => navigation.navigate("CartScreen")}
-        >
-          <Ionicons name="bag-outline" size={24} color="#ED2A46" />
-          {getCartCount() > 0 && (
-            <View style={styles.cartBadge}>
-              <Text style={styles.cartBadgeText}>{getCartCount()}</Text>
-            </View>
-          )}
-        </TouchableOpacity>
-      </View>
+      {loading ? (
+        <GymDetailScreenSkeleton />
+      ) : (
+        <>
+          {/* Cart Icon */}
+          <View style={styles.cartIconContainer}>
+            <TouchableOpacity
+              style={styles.cartButton}
+              onPress={() => navigation.navigate("CartScreen")}
+            >
+              <Ionicons name="bag-outline" size={24} color="#ED2A46" />
+              {getCartCount() > 0 && (
+                <View style={styles.cartBadge}>
+                  <Text style={styles.cartBadgeText}>{getCartCount()}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{ flex: 1 }}
-      >
-        <ScrollView
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={{ flex: 1 }}
+          >
+            <ScrollView
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
@@ -752,6 +754,8 @@ export default function GymDetailScreen({ route }) {
         handleAddToCart={handleAddToCart}
         handleAddToCartWithPT={handleAddToCartWithPT}
       />
+        </>
+      )}
     </View>
   );
 }

@@ -25,6 +25,7 @@ import reviewService from "../../../services/reviewService";
 import ReviewCard from "../../../components/ReviewCard/ReviewCard";
 import LoadingIndicator from "../../../components/LoadingIndicator";
 import { fetchUserFromStorage } from "../../../lib/async/asyncUtils";
+import ProductDetailsScreenSkeleton from "./ProductDetailsScreenSkeleton";
 
 export default function ProductDetailsScreen() {
   const navigation = useNavigation();
@@ -417,17 +418,12 @@ export default function ProductDetailsScreen() {
       .toUpperCase();
   };
 
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <LoadingIndicator variant="page" message={t("common.loading")} />
-      </SafeAreaView>
-    );
-  }
-
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView
+      {loading ? (
+        <ProductDetailsScreenSkeleton />
+      ) : (
+        <ScrollView
         style={styles.content}
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -833,20 +829,23 @@ export default function ProductDetailsScreen() {
           )}
         </View>
       </ScrollView>
+      )}
 
       {/* Bottom Actions */}
-      <View style={styles.bottomActions}>
-        <TouchableOpacity
-          style={styles.addToCartButton}
-          onPress={handleAddToCart}
-        >
-          <Ionicons name="cart-outline" size={20} color={colors.red} />
-          <Text style={styles.addToCartText}>{t("cart.addToCart")}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.buyNowButton} onPress={handleBuyNow}>
-          <Text style={styles.buyNowText}>{t("product.buyNow")}</Text>
-        </TouchableOpacity>
-      </View>
+      {!loading && (
+        <View style={styles.bottomActions}>
+          <TouchableOpacity
+            style={styles.addToCartButton}
+            onPress={handleAddToCart}
+          >
+            <Ionicons name="cart-outline" size={20} color={colors.red} />
+            <Text style={styles.addToCartText}>{t("cart.addToCart")}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.buyNowButton} onPress={handleBuyNow}>
+            <Text style={styles.buyNowText}>{t("product.buyNow")}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* Variant Selection Modal */}
       <Modal
