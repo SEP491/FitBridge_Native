@@ -1587,6 +1587,7 @@
     "selectDate": "Select Date",
     "selectStartTime": "Select Start Time",
     "selectEndTime": "Select End Time",
+    "sending": "Sending...",
     "createConversation": {
       "title": "New Conversation",
       "searchPlaceholder": "Search users...",
@@ -2083,6 +2084,7 @@
     "endTime": "End Time",
     "selectStartTime": "Select start time",
     "selectEndTime": "Select end time",
+    "sending": "Sending...",
     "startTimeRequired": "Please select start time",
     "endTimeRequired": "Please select end time",
     "note": "Note",

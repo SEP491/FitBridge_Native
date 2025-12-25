@@ -11,6 +11,7 @@ import {
 import Ionicons from "@expo/vector-icons/Ionicons";
 import LoadingIndicator from "../LoadingIndicator";
 import { formatDistanceToNow } from "date-fns";
+import { useTranslation } from "../../hooks/useTranslation";
 
 const { width } = Dimensions.get("window");
 
@@ -21,6 +22,7 @@ const MessageBubble = ({
   onReply,
   onLongPress,
 }) => {
+  const { t } = useTranslation();
   const messageRef = useRef(null);
 
   const {
@@ -213,9 +215,16 @@ const MessageBubble = ({
                   {content}
                 </Text>
                 {isSending && (
-                  <View style={styles.sendingIndicator}>
-                    <ActivityIndicator size="small" color={isCurrentUser ? "#FFFFFF" : "#6B7280"} />
-                  </View>
+                  <Text
+                    style={[
+                      styles.sendingTextLabel,
+                      isCurrentUser
+                        ? styles.sendingTextLabelCurrentUser
+                        : styles.sendingTextLabelOtherUser,
+                    ]}
+                  >
+                    {t("messageScreen.sending") || "Sending..."}
+                  </Text>
                 )}
               </View>
             )}
@@ -507,8 +516,17 @@ const styles = StyleSheet.create({
   sendingText: {
     opacity: 0.7,
   },
-  sendingIndicator: {
-    marginLeft: 4,
+  sendingTextLabel: {
+    fontSize: 11,
+    fontStyle: "italic",
+    marginLeft: 6,
+    opacity: 0.7,
+  },
+  sendingTextLabelCurrentUser: {
+    color: "#FFFFFF",
+  },
+  sendingTextLabelOtherUser: {
+    color: "#6B7280",
   },
 });
 

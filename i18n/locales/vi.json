@@ -1475,6 +1475,7 @@
     "selectDate": "Chọn ngày",
     "selectStartTime": "Chọn giờ bắt đầu",
     "selectEndTime": "Chọn giờ kết thúc",
+    "sending": "Đang gửi...",
     "createConversation": {
       "title": "Cuộc trò chuyện mới",
       "searchPlaceholder": "Tìm kiếm người dùng...",
