@@ -540,7 +540,7 @@ const OrderManagementCard = ({ order, onRefresh }) => {
                       {t("orders.confirmReceived")}
                     </Text>
                   </TouchableOpacity>
-                  <TouchableOpacity
+                  {/* <TouchableOpacity
                     style={[styles.actionButton, styles.notReceivedButton]}
                     onPress={() => setNotReceivedModalVisible(true)}
                   >
@@ -552,7 +552,7 @@ const OrderManagementCard = ({ order, onRefresh }) => {
                     <Text style={styles.notReceivedButtonText}>
                       {t("orders.notReceivedOrder")}
                     </Text>
-                  </TouchableOpacity>
+                  </TouchableOpacity> */}
                 </View>
               )}
               {order.currentStatus === "CustomerNotReceived" && (

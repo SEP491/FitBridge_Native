@@ -16,7 +16,7 @@ import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import ReportService from "../../../services/reportService";
 import colors from "../../../constants/color";
 import LoadingIndicator from "../../../components/LoadingIndicator";
-
+import LogoColor from "../../../assets/images/LogoColor.png";
 const { width: screenWidth } = Dimensions.get("window");
 
 export default function ReportDetailScreen({ route }) {
@@ -39,22 +39,7 @@ export default function ReportDetailScreen({ route }) {
       console.log("Report Detail Response:", response);
 
       if (response.status === "200" && response.data) {
-        setReport({
-          id: response.data.id,
-          reporterName: response.data.reporterName,
-          reporterAvatarUrl: response.data.reporterAvatarUrl,
-          reportedUserName: response.data.reportedUserName,
-          reportedUserAvatarUrl: response.data.reportedUserAvatarUrl,
-          orderItemId: response.data.orderItemId,
-          title: response.data.title,
-          description: response.data.description,
-          status: response.data.status,
-          resolvedAt: response.data.resolvedAt,
-          reportType: response.data.reportType,
-          evidenceImageUrls: response.data.evidenceImageUrls || [],
-          resolvedEvidenceImageUrls: response.data.resolvedEvidenceImageUrls,
-          createdAt: response.data.createdAt,
-        });
+        setReport(response.data);
       }
     } catch (error) {
       console.error("Error fetching report detail:", error);
@@ -189,7 +174,7 @@ export default function ReportDetailScreen({ route }) {
               activeOpacity={0.8}
             >
               <Image
-                source={{ uri: imageUrl }}
+                source={imageUrl !== null ? { uri: imageUrl } : LogoColor}
                 style={styles.evidenceImage}
                 resizeMode="cover"
               />
@@ -268,7 +253,21 @@ export default function ReportDetailScreen({ route }) {
             <Text style={styles.typeBadgeText}>{typeConfig.label}</Text>
           </View>
         </View>
-
+        {/* Order Info */}
+        {report.orderItemId && (
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>{t("myReports.orderInfo")}</Text>
+            <View style={styles.orderIdContainer}>
+              <MaterialIcons name="receipt" size={16} color="#666" />
+              <Text style={styles.orderIdLabel}>
+                {t("myReports.orderItemId")}:
+              </Text>
+              <Text style={styles.orderIdValue} numberOfLines={1}>
+                {report.orderItemId}
+              </Text>
+            </View>
+          </View>
+        )}
         {/* Report Info Card */}
         <View style={styles.card}>
           <Text style={styles.reportTitle}>{report.title}</Text>
@@ -307,20 +306,36 @@ export default function ReportDetailScreen({ route }) {
 
         {/* Reported User Card */}
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>{t("myReports.reportedUser")}</Text>
+          <Text style={styles.sectionTitle}>
+            {report.isProductReport
+              ? t("myReports.reportedProduct")
+              : t("myReports.reportedUser")}
+          </Text>
           <View style={styles.userContainer}>
             <Image
-              source={{
-                uri:
-                  report.reportedUserAvatarUrl ||
-                  "https://res.cloudinary.com/dfdq4xhtm/image/upload/v1764829999/default-avatar-icon-of-social-media-user-vector_knpkg5.jpg",
-              }}
+              source={
+                (report.isProductReport
+                  ? report.reportedProductImageUrl
+                  : report.reportedUserAvatarUrl) !== null
+                  ? {
+                      uri: report.isProductReport
+                        ? report.reportedProductImageUrl
+                        : report.reportedUserAvatarUrl,
+                    }
+                  : LogoColor
+              }
               style={styles.userAvatar}
             />
             <View style={styles.userInfo}>
-              <Text style={styles.userName}>{report.reportedUserName}</Text>
+              <Text style={styles.userName}>
+                {report.isProductReport
+                  ? report.reportedProduct
+                  : report.reportedUserName}
+              </Text>
               <Text style={styles.userLabel}>
-                {t("myReports.reportedUserLabel")}
+                {report.isProductReport
+                  ? t("myReports.reportedProductLabel")
+                  : t("myReports.reportedUserLabel")}
               </Text>
             </View>
           </View>
@@ -333,15 +348,18 @@ export default function ReportDetailScreen({ route }) {
             <Image
               source={{
                 uri:
-                  report.reporterAvatarUrl ||
-                  "https://res.cloudinary.com/dfdq4xhtm/image/upload/v1764829999/default-avatar-icon-of-social-media-user-vector_knpkg5.jpg",
+                  report.reporterAvatarUrl !== null
+                    ? report.reporterAvatarUrl
+                    : LogoColor,
               }}
               style={styles.userAvatar}
             />
             <View style={styles.userInfo}>
-              <Text style={styles.userName}>{report.reporterName}</Text>
+              <Text style={styles.userName}>
+                {report.reporterName || "Unknown"}
+              </Text>
               <Text style={styles.userLabel}>
-                {t("myReports.reporterLabel")}
+                {t("myReports.reporterLabel") || "Unknown"}
               </Text>
             </View>
           </View>
@@ -357,22 +375,6 @@ export default function ReportDetailScreen({ route }) {
         {renderEvidenceImages(
           report.resolvedEvidenceImageUrls,
           t("myReports.resolvedEvidenceImages")
-        )}
-
-        {/* Order Info */}
-        {report.orderItemId && (
-          <View style={styles.card}>
-            <Text style={styles.sectionTitle}>{t("myReports.orderInfo")}</Text>
-            <View style={styles.orderIdContainer}>
-              <MaterialIcons name="receipt" size={16} color="#666" />
-              <Text style={styles.orderIdLabel}>
-                {t("myReports.orderItemId")}:
-              </Text>
-              <Text style={styles.orderIdValue} numberOfLines={1}>
-                {report.orderItemId}
-              </Text>
-            </View>
-          </View>
         )}
       </ScrollView>
 
