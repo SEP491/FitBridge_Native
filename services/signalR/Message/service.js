@@ -34,20 +34,16 @@ class SignalRService {
 
   // === Public getters,setters ===
   get areHandlersRegistered() {
-    console.log("SignalR: areHandlersRegistered getter called");
     return this.#areHandlersRegistered;
   }
   set areHandlersRegistered(value) {
-    console.log("SignalR: areHandlersRegistered setter called");
     this.#areHandlersRegistered = value;
   }
   get connection() {
-    console.log("SignalR: connection getter called");
     this.#checkDisposed();
     return this.#connection;
   }
   get connectionStatus() {
-    console.log("SignalR: connectionStatus getter called");
     this.#checkDisposed();
     const state =
       this.#connection?.state ?? signalR.HubConnectionState.Disconnected;
@@ -57,19 +53,16 @@ class SignalRService {
     };
   }
   get url() {
-    console.log("SignalR: url getter called");
     this.#checkDisposed();
     return this.#url;
   }
 
   get hubName() {
-    console.log("SignalR: hubName getter called");
     this.#checkDisposed();
     return this.#hubName;
   }
 
   get isDisposed() {
-    console.log("SignalR: isDisposed getter called");
     return this.#isDisposed;
   }
 

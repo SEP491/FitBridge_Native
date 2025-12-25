@@ -10,7 +10,6 @@ import {
   Platform,
   Image,
   Modal,
-  ActivityIndicator,
   Alert,
   Linking,
 } from "react-native";
@@ -56,7 +55,6 @@ export default function MessageDetailScreen({ route, navigation }) {
   const [typingStatus, setTypingStatus] = useState(null);
   const [processingBookingRequestId, setProcessingBookingRequestId] =
     useState(null);
-  const [processingMessageId, setProcessingMessageId] = useState(null);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [showMessageActions, setShowMessageActions] = useState(false);
@@ -123,7 +121,6 @@ export default function MessageDetailScreen({ route, navigation }) {
     const fetchCurrentUser = async () => {
       try {
         const userData = await fetchUserFromStorage();
-        console.log("MessageDetailScreen: Fetched user data:", userData);
         if (userData) {
           setCurrentUserId(userData.id);
           setCurrentUserRole(userData.role);
@@ -135,17 +132,6 @@ export default function MessageDetailScreen({ route, navigation }) {
     };
     fetchCurrentUser();
   }, []);
-  // Debug connection status
-  useEffect(() => {
-    console.log(
-      "MessageDetailScreen: Connection status changed to:",
-      connectionStatus
-    );
-    console.log(
-      "MessageDetailScreen: messagingService exists:",
-      !!messagingService
-    );
-  }, [connectionStatus, messagingService]);
 
   // Join conversation on mount and when conversationId changes
   useEffect(() => {
@@ -153,7 +139,6 @@ export default function MessageDetailScreen({ route, navigation }) {
     if (currentConvId && isConnected && messagingService) {
       const normalizedConvId = currentConvId.toString();
       messagingService.addToGroup(normalizedConvId);
-      console.log("MessageDetailScreen: Joined conversation", normalizedConvId);
     }
 
     // Leave conversation on unmount or when conversationId changes
@@ -179,7 +164,6 @@ export default function MessageDetailScreen({ route, navigation }) {
             );
           });
         messagingService.removeFromGroup(normalizedConvId);
-        console.log("MessageDetailScreen: Left conversation", normalizedConvId);
       }
     };
   }, [conversationId, isConnected, messagingService]);
@@ -193,19 +177,8 @@ export default function MessageDetailScreen({ route, navigation }) {
       return;
     }
 
-    console.log("MessageDetailScreen: Setting up event listeners", {
-      conversationId,
-      connectionStatus,
-    });
-
     // Handle new message received
     const handleMessageReceived = (message) => {
-      console.log("MessageDetailScreen: New message received", message, {
-        messageConvId: message.conversationId,
-        currentConvId: conversationIdRef.current,
-        currentUserId: currentUserIdRef.current,
-      });
-
       // Normalize conversationId for comparison (handle both string and number)
       const messageConvId = message.conversationId?.toString();
       const currentConvId = conversationIdRef.current?.toString();
@@ -221,13 +194,6 @@ export default function MessageDetailScreen({ route, navigation }) {
           });
 
           if (exists) {
-            console.log(
-              "MessageDetailScreen: Message already exists, skipping duplicate",
-              {
-                messageId: message.id,
-                conversationId: message.conversationId,
-              }
-            );
             return prev;
           }
 
@@ -243,13 +209,6 @@ export default function MessageDetailScreen({ route, navigation }) {
           );
 
           if (tempMessageIndex !== -1) {
-            console.log(
-              "MessageDetailScreen: Replacing temp message with real message",
-              {
-                tempId: prev[tempMessageIndex].id,
-                realId: message.id,
-              }
-            );
             // Clear timeout since we got the real message
             if (tempMessageTimeoutRef.current) {
               clearTimeout(tempMessageTimeoutRef.current);
@@ -265,11 +224,6 @@ export default function MessageDetailScreen({ route, navigation }) {
           }
 
           // Add new message at the beginning (since list is inverted)
-          console.log("MessageDetailScreen: Adding new message", {
-            messageId: message.id,
-            senderId: message.senderId,
-            currentUserId: currentUserId,
-          });
           return [{ ...message, isSending: false }, ...prev];
         });
 
@@ -294,8 +248,6 @@ export default function MessageDetailScreen({ route, navigation }) {
 
     // Handle message updated
     const handleMessageUpdated = (updatedMessage) => {
-      console.log("MessageDetailScreen: Message updated", updatedMessage);
-
       // Normalize conversationId for comparison
       const messageConvId = updatedMessage.conversationId?.toString();
       const currentConvId = conversationIdRef.current?.toString();
@@ -335,8 +287,6 @@ export default function MessageDetailScreen({ route, navigation }) {
 
     // Handle typing indicator
     const handleTyping = (typingData) => {
-      console.log("MessageDetailScreen: User typing", typingData);
-
       // Normalize conversationId for comparison
       const typingConvId = typingData.conversationId?.toString();
       const currentConvId = conversationIdRef.current?.toString();
@@ -365,8 +315,6 @@ export default function MessageDetailScreen({ route, navigation }) {
 
     // Handle message status update
     const handleStatusUpdate = (statusUpdate) => {
-      console.log("MessageDetailScreen: Message status updated", statusUpdate);
-
       // Normalize conversationId for comparison
       const statusConvId = statusUpdate.conversationId?.toString();
       const currentConvId = conversationIdRef.current?.toString();
@@ -389,7 +337,6 @@ export default function MessageDetailScreen({ route, navigation }) {
 
     // Handle reaction received
     const handleReactionReceived = (reactionData) => {
-      console.log("MessageDetailScreen: Reaction received", reactionData);
       // Only process reactions for messages in current conversation
       setMessages((prev) =>
         prev.map((msg) =>
@@ -402,7 +349,6 @@ export default function MessageDetailScreen({ route, navigation }) {
 
     // Handle reaction removed
     const handleReactionRemoved = (reactionData) => {
-      console.log("MessageDetailScreen: Reaction removed", reactionData);
       // Only process reactions for messages in current conversation
       setMessages((prev) =>
         prev.map((msg) =>
@@ -413,14 +359,11 @@ export default function MessageDetailScreen({ route, navigation }) {
 
     // Handle reconnecting
     const handleReconnecting = () => {
-      console.log("MessageDetailScreen: Reconnecting, refetching messages");
       fetchMessages(1, true);
     };
 
     // Handle user presence update
     const handleUserPresenceUpdate = (presenceData) => {
-      console.log("MessageDetailScreen: User presence update", presenceData);
-
       // Validate presence data
       if (!presenceData || !presenceData.userId) {
         console.warn(
@@ -552,7 +495,6 @@ export default function MessageDetailScreen({ route, navigation }) {
           }
           return msg;
         });
-        console.log("Fetched", newMessages.length, "messages for page", page);
 
         if (isInitial) {
           setMessages(newMessages);
@@ -818,7 +760,6 @@ export default function MessageDetailScreen({ route, navigation }) {
       });
 
       // Upload image
-      console.log("Uploading image...");
       const uploadResponse = await uploadImageService.uploadImage(formData);
       console.log("Upload response:", uploadResponse);
 
@@ -829,7 +770,6 @@ export default function MessageDetailScreen({ route, navigation }) {
       const uploadedUrl = uploadResponse.data;
 
       // Send message with uploaded URL
-      console.log("Sending image message with URL:", uploadedUrl);
       const messageData = {
         conversationId,
         content: uploadedUrl, // Use uploaded URL as content
@@ -990,9 +930,7 @@ export default function MessageDetailScreen({ route, navigation }) {
         ...replyData,
       };
 
-      console.log("Sending message:", messageData);
       const sentMessage = await messageService.sendMessage(messageData);
-      console.log("Message sent, response:", sentMessage);
 
       // Extract the actual message from response (handle different response structures)
       let actualMessage = null;
@@ -1124,14 +1062,6 @@ export default function MessageDetailScreen({ route, navigation }) {
       }
     },
     [processingBookingRequestId]
-  );
-
-  // Check if booking request is being processed
-  const isProcessingBookingRequest = useCallback(
-    (messageId) => {
-      return processingMessageId === messageId;
-    },
-    [processingMessageId]
   );
 
   // Handle image press
@@ -1364,7 +1294,6 @@ export default function MessageDetailScreen({ route, navigation }) {
           ptFreelanceEndTime: bookingFormData.endTime,
         },
       };
-      console.log("Sending booking request:", messageData);
       const response = await messageService.sendMessage(messageData);
       console.log("Booking request sent:", response);
 

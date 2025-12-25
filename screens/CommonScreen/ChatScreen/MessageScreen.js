@@ -44,7 +44,6 @@ export default function MessageScreen({ navigation }) {
     const fetchCurrentUser = async () => {
       try {
         const userData = await fetchUserFromStorage();
-        console.log("Fetched user data:", userData);
         if (userData) {
           setCurrentUserId(userData.id);
           setCurrentUserRole(userData.role);
@@ -60,14 +59,6 @@ export default function MessageScreen({ navigation }) {
 
   const isConnected = connectionStatus === "connected";
 
-  // Debug connection status
-  useEffect(() => {
-    console.log(
-      "MessageScreen: Connection status changed to:",
-      connectionStatus
-    );
-    console.log("MessageScreen: messagingService exists:", !!messagingService);
-  }, [connectionStatus, messagingService]);
 
   // Use refs to avoid stale closure in event handlers
   const conversationsRef = useRef(conversations);
@@ -97,7 +88,6 @@ export default function MessageScreen({ navigation }) {
   const findAndUpdateConversation = useCallback(
     (message) => {
       const conversationId = message.conversationId;
-      console.log("MessageScreen: Updating conversation:", conversationId);
 
       if (!conversationId) {
         console.warn("MessageScreen: Message missing conversationId, skipping update");
@@ -147,7 +137,6 @@ export default function MessageScreen({ navigation }) {
         } else {
           // Add new conversation if message includes conversation data
           if (message.newConversation) {
-            console.log("MessageScreen: Adding new conversation");
             const newConversation = {
               id: conversationId,
               isGroup: message.newConversation.isGroup || false,
@@ -222,23 +211,17 @@ export default function MessageScreen({ navigation }) {
   // Subscribe to real-time message events
   useEffect(() => {
     if (!messagingService) {
-      console.log("MessageScreen: Waiting for messagingService");
       return;
     }
 
-    console.log("MessageScreen: Setting up event listeners", {
-      connectionStatus,
-    });
 
     // Handle new message received
     const handleMessageReceived = (message) => {
-      console.log("MessageScreen: New message received");
       findAndUpdateConversation(message);
     };
 
     // Handle message updated
     const handleMessageUpdated = (updatedMessage) => {
-      console.log("MessageScreen: Message updated", updatedMessage);
 
       const isDeleted =
         updatedMessage.status === "Deleted" || updatedMessage.isDeleted;
@@ -256,10 +239,6 @@ export default function MessageScreen({ navigation }) {
               !conv.lastMessageId ||
               conv.lastMessageId === updatedMessage.id
             ) {
-              console.log(
-                "MessageScreen: Updating conversation preview",
-                conv.id
-              );
               return {
                 ...conv,
                 lastMessageContent: updatedContent,
@@ -292,7 +271,6 @@ export default function MessageScreen({ navigation }) {
 
     // Handle reconnecting
     const handleReconnecting = () => {
-      console.log("MessageScreen: Reconnecting, refetching conversations");
       // Use a small delay to avoid race conditions during reconnection
       setTimeout(() => {
         fetchConversations(false).catch((error) => {
@@ -479,13 +457,10 @@ export default function MessageScreen({ navigation }) {
   const handleConversationPress = async (conversation) => {
     if (!conversation.isRead) {
       try {
-        console.log("Marking conversation as read:", conversation.id);
-        const response = await messageService.markAsRead({
+        await messageService.markAsRead({
           conversationId: conversation.id,
           messageIds: [],
         });
-
-        console.log("Marked conversation as read:", response);
 
         // Update local state
         setConversations((prev) =>

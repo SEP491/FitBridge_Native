@@ -26,7 +26,6 @@ const initialState = {
   connectionStatus: "disconnected",
   selectedMessage: null,
   messages: [],
-  tempNewConversation: null,
   bypassAppStateChange: false,
 };
 
@@ -52,8 +51,6 @@ const actionTypes = {
   SET_TYPING_STATUS: "SET_TYPING_STATUS",
   CLEAR_STATE: "CLEAR_STATE",
   SET_SELECTED_MESSAGE: "SET_SELECTED_MESSAGE",
-  SET_TEMP_NEW_CONVERSATION: "SET_TEMP_NEW_CONVERSATION",
-  SET_UNIQUE_ID: "SET_UNIQUE_ID",
   SET_BYPASS_APP_STATE_CHANGE: "SET_BYPASS_APP_STATE_CHANGE",
 };
 
@@ -172,11 +169,6 @@ const messagingReducer = (state, action) => {
       return {
         ...state,
         selectedMessage: action.payload,
-      };
-    case actionTypes.SET_TEMP_NEW_CONVERSATION:
-      return {
-        ...state,
-        tempNewConversation: action.payload,
       };
     case actionTypes.SET_BYPASS_APP_STATE_CHANGE:
       return {
@@ -560,11 +552,6 @@ export const MessagingStateProvider = ({ children }) => {
     updateConversation: (conversation) =>
       dispatch({
         type: actionTypes.UPDATE_CONVERSATION,
-        payload: conversation,
-      }),
-    setTempNewConversation: (conversation) =>
-      dispatch({
-        type: actionTypes.SET_TEMP_NEW_CONVERSATION,
         payload: conversation,
       }),
     setBypassAppStateChange: (bypass) => {
