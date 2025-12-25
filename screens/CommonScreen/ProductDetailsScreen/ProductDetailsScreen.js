@@ -238,7 +238,19 @@ export default function ProductDetailsScreen() {
     );
   };
 
+  // Check if a weight has any available flavours (quantity > 0)
+  const isWeightAvailable = (weightId) => {
+    if (!productDetails?.productDetails) return false;
+    return productDetails.productDetails.some(
+      (v) => v.weightId === weightId && v.quantity > 0
+    );
+  };
+
   const handleWeightChange = (weight) => {
+    // Don't allow selection if weight has no available flavours
+    if (!isWeightAvailable(weight.weightId)) {
+      return;
+    }
     setSelectedWeight(weight);
 
     // Check if current flavour is available for this weight
@@ -311,15 +323,15 @@ export default function ProductDetailsScreen() {
     }
   };
 
-  const handleVariantConfirm = (variant) => {
+  const handleVariantConfirm = (variant, action) => {
     setSelectedVariant(variant);
     setQuantity(modalQuantity);
     setVariantModalVisible(false);
 
-    // Execute the pending action
-    if (pendingAction === "addToCart") {
+    // Execute the action
+    if (action === "addToCart") {
       executeAddToCart(variant, modalQuantity);
-    } else if (pendingAction === "buyNow") {
+    } else if (action === "buyNow") {
       executeBuyNow(variant, modalQuantity);
     }
     setPendingAction(null);
@@ -585,27 +597,38 @@ export default function ProductDetailsScreen() {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.variantsContainer}
             >
-              {availableWeights.map((weight) => (
-                <TouchableOpacity
-                  key={weight.weightId}
-                  style={[
-                    styles.variantCard,
-                    selectedWeight?.weightId === weight.weightId &&
-                      styles.variantCardSelected,
-                  ]}
-                  onPress={() => handleWeightChange(weight)}
-                >
-                  <Text
+              {availableWeights.map((weight) => {
+                const isAvailable = isWeightAvailable(weight.weightId);
+                return (
+                  <TouchableOpacity
+                    key={weight.weightId}
                     style={[
-                      styles.variantWeight,
+                      styles.variantCard,
                       selectedWeight?.weightId === weight.weightId &&
-                        styles.variantTextSelected,
+                        styles.variantCardSelected,
+                      !isAvailable && styles.variantCardDisabled,
                     ]}
+                    onPress={() => handleWeightChange(weight)}
+                    disabled={!isAvailable}
                   >
-                    {weight.weightValue} {weight.weightUnit}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+                    <Text
+                      style={[
+                        styles.variantWeight,
+                        selectedWeight?.weightId === weight.weightId &&
+                          styles.variantTextSelected,
+                        !isAvailable && styles.variantTextDisabled,
+                      ]}
+                    >
+                      {weight.weightValue} {weight.weightUnit}
+                    </Text>
+                    {!isAvailable && (
+                      <View style={styles.outOfStockBadge}>
+                        <Text style={styles.outOfStockBadgeText}>Out</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
             </ScrollView>
           </View>
         )}
@@ -881,60 +904,70 @@ export default function ProductDetailsScreen() {
                   {t("product.weight")}
                 </Text>
                 <View style={styles.modalOptionsGrid}>
-                  {availableWeights.map((weight) => (
-                    <TouchableOpacity
-                      key={weight.weightId}
-                      style={[
-                        styles.modalOptionCard,
-                        selectedWeight?.weightId === weight.weightId &&
-                          styles.modalOptionCardSelected,
-                      ]}
-                      onPress={() => {
-                        setSelectedWeight(weight);
-                        // Find a valid flavour for this weight
-                        const variant = findVariantBySelection(
-                          weight.weightId,
-                          selectedFlavour?.flavourId
-                        );
-                        if (!variant || variant.quantity === 0) {
-                          // Find first available flavour for this weight
-                          const availableVariant =
-                            productDetails.productDetails.find(
-                              (v) =>
-                                v.weightId === weight.weightId && v.quantity > 0
-                            );
-                          if (availableVariant) {
-                            const newFlavour = availableFlavours.find(
-                              (f) => f.flavourId === availableVariant.flavourId
-                            );
-                            setSelectedFlavour(newFlavour);
-                            setSelectedVariant(availableVariant);
-                          }
-                        } else {
-                          setSelectedVariant(variant);
-                        }
-                        setModalQuantity(1);
-                      }}
-                    >
-                      <Text
+                  {availableWeights.map((weight) => {
+                    const isAvailable = isWeightAvailable(weight.weightId);
+                    const isSelected = selectedWeight?.weightId === weight.weightId;
+
+                    return (
+                      <TouchableOpacity
+                        key={weight.weightId}
                         style={[
-                          styles.modalOptionText,
-                          selectedWeight?.weightId === weight.weightId &&
-                            styles.modalOptionTextSelected,
+                          styles.modalOptionCard,
+                          isSelected && styles.modalOptionCardSelected,
+                          !isAvailable && styles.modalOptionCardDisabled,
                         ]}
+                        onPress={() => {
+                          if (!isAvailable) return;
+                          setSelectedWeight(weight);
+                          // Find a valid flavour for this weight
+                          const variant = findVariantBySelection(
+                            weight.weightId,
+                            selectedFlavour?.flavourId
+                          );
+                          if (!variant || variant.quantity === 0) {
+                            // Find first available flavour for this weight
+                            const availableVariant =
+                              productDetails.productDetails.find(
+                                (v) =>
+                                  v.weightId === weight.weightId && v.quantity > 0
+                              );
+                            if (availableVariant) {
+                              const newFlavour = availableFlavours.find(
+                                (f) => f.flavourId === availableVariant.flavourId
+                              );
+                              setSelectedFlavour(newFlavour);
+                              setSelectedVariant(availableVariant);
+                            }
+                          } else {
+                            setSelectedVariant(variant);
+                          }
+                          setModalQuantity(1);
+                        }}
+                        disabled={!isAvailable}
                       >
-                        {weight.weightValue} {weight.weightUnit}
-                      </Text>
-                      {selectedWeight?.weightId === weight.weightId && (
-                        <Ionicons
-                          name="checkmark-circle"
-                          size={18}
-                          color={colors.red}
-                          style={styles.modalOptionCheck}
-                        />
-                      )}
-                    </TouchableOpacity>
-                  ))}
+                        <Text
+                          style={[
+                            styles.modalOptionText,
+                            isSelected && styles.modalOptionTextSelected,
+                            !isAvailable && styles.modalOptionTextDisabled,
+                          ]}
+                        >
+                          {weight.weightValue} {weight.weightUnit}
+                        </Text>
+                        {isSelected && isAvailable && (
+                          <Ionicons
+                            name="checkmark-circle"
+                            size={18}
+                            color={colors.red}
+                            style={styles.modalOptionCheck}
+                          />
+                        )}
+                        {!isAvailable && (
+                          <Text style={styles.modalOptionOutOfStock}>Out</Text>
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
                 </View>
               </View>
 
@@ -1030,12 +1063,14 @@ export default function ProductDetailsScreen() {
               )}
             </ScrollView>
 
-            {/* Confirm Button */}
-            {pendingAction && selectedVariant && (
+            {/* Action Buttons - Always Show */}
+            {selectedVariant && (
               <View style={styles.modalFooter}>
                 {/* Quantity Selector */}
                 <View style={styles.modalQuantitySection}>
-                  <Text style={styles.modalQuantityLabel}>Quantity</Text>
+                  <Text style={styles.modalQuantityLabel}>
+                    {t("product.quantity") || "Quantity"}
+                  </Text>
                   <View style={styles.modalQuantityControls}>
                     <TouchableOpacity
                       style={[
@@ -1088,17 +1123,53 @@ export default function ProductDetailsScreen() {
                   </View>
                 </View>
 
-                <TouchableOpacity
-                  style={styles.modalConfirmButton}
-                  onPress={() => handleVariantConfirm(selectedVariant)}
-                  disabled={selectedVariant.quantity === 0}
-                >
-                  <Text style={styles.modalConfirmText}>
-                    {pendingAction === "addToCart"
-                      ? t("cart.addToCart")
-                      : t("product.buyNow")}
-                  </Text>
-                </TouchableOpacity>
+                {/* Action Buttons */}
+                <View style={styles.modalActionButtons}>
+                  <TouchableOpacity
+                    style={[
+                      styles.modalAddToCartButton,
+                      selectedVariant.quantity === 0 &&
+                        styles.modalButtonDisabled,
+                    ]}
+                    onPress={() => handleVariantConfirm(selectedVariant, "addToCart")}
+                    disabled={selectedVariant.quantity === 0}
+                  >
+                    <Ionicons
+                      name="cart-outline"
+                      size={20}
+                      color={selectedVariant.quantity === 0 ? "#CCC" : colors.red}
+                    />
+                    <Text
+                      style={[
+                        styles.modalAddToCartText,
+                        selectedVariant.quantity === 0 &&
+                          styles.modalButtonTextDisabled,
+                      ]}
+                    >
+                      {t("cart.addToCart")}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.modalBuyNowButton,
+                      selectedVariant.quantity === 0 &&
+                        styles.modalButtonDisabled,
+                    ]}
+                    onPress={() => handleVariantConfirm(selectedVariant, "buyNow")}
+                    disabled={selectedVariant.quantity === 0}
+                  >
+                    <Text
+                      style={[
+                        styles.modalBuyNowText,
+                        selectedVariant.quantity === 0 &&
+                          styles.modalButtonTextDisabled,
+                      ]}
+                    >
+                      {t("product.buyNow")}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             )}
           </View>
@@ -1704,6 +1775,9 @@ const styles = StyleSheet.create({
   variantTextSelected: {
     color: colors.red,
   },
+  variantTextDisabled: {
+    color: "#999",
+  },
   outOfStockBadge: {
     position: "absolute",
     top: 2,
@@ -1973,6 +2047,47 @@ const styles = StyleSheet.create({
     color: "#333",
     minWidth: 40,
     textAlign: "center",
+  },
+  modalActionButtons: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  modalAddToCartButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 14,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: colors.red,
+    backgroundColor: "#FFFFFF",
+    gap: 8,
+  },
+  modalAddToCartText: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: colors.red,
+  },
+  modalBuyNowButton: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 14,
+    borderRadius: 8,
+    backgroundColor: colors.red,
+  },
+  modalBuyNowText: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+  modalButtonDisabled: {
+    backgroundColor: "#F5F5F5",
+    borderColor: "#E0E0E0",
+  },
+  modalButtonTextDisabled: {
+    color: "#CCC",
   },
   modalConfirmButton: {
     backgroundColor: colors.red,

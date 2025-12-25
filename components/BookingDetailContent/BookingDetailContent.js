@@ -314,6 +314,21 @@ export default function BookingDetailContent({
       );
     }
   };
+
+  const getBookingStatusText = (status) => {
+    switch (status) {
+      case "Finished":
+        return t("booking.completed");
+    case "Cancelled":
+      return t("booking.canceled");
+    case "WaitingForEdit":
+      return t("booking.waitingForEdit");
+    case "Booked":
+      return t("booking.booked");
+    default:
+      return status;
+  }
+  };
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
@@ -339,7 +354,7 @@ export default function BookingDetailContent({
               </Text>
               {Booking.sessionStatus && (
                 <Text style={styles.sessionStatusBadge}>
-                  {Booking.sessionStatus}
+                  {getBookingStatusText(Booking.sessionStatus)}
                 </Text>
               )}
             </View>
@@ -380,13 +395,18 @@ export default function BookingDetailContent({
                       minute: "2-digit",
                     })}{" "}
                     -{" "}
-                    {new Date(bookingDetail.sessionEndTime).toLocaleTimeString(
+                    {bookingDetail.sessionEndTime ? (
+                      new Date(bookingDetail.sessionEndTime).toLocaleTimeString(
                       "vi-VN",
                       {
                         hour: "2-digit",
                         minute: "2-digit",
                       }
+                    )
+                    ) : (
+                      "xx:xx"
                     )}
+                    
                   </Text>
                 )}
               </View>

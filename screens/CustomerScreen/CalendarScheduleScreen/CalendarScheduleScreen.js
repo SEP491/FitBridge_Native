@@ -470,6 +470,7 @@ export default function CalendarScheduleScreen() {
                           handleEditBooking(session.bookingId);
                         }}
                         viewDetailAction={() => {
+                          console.log("Booking Detail Screen Session:", session);
                           // Navigate to detail screen or show modal
                           navigation.navigate("BookingDetailScreen", {
                             Booking: session,

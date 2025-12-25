@@ -37,7 +37,7 @@ export const TrainingResultScreen = ({ route, navigation }) => {
     activeTab: initialActiveTab,
   } = route.params;
   const { t } = useTranslation();
-  console.log("TrainingResultScreen Params:", pkg);
+  console.log("TrainingResultScreen Params:", customer );
   // State for data
   const [stats, setStats] = useState(null);
   const [muscleReport, setMuscleReport] = useState(null);

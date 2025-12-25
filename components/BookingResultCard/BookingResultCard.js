@@ -53,7 +53,7 @@ export default function BookingResultCard({ result, navigation, Booking }) {
       </View>
     );
   }
-  const customerInfo = { name: Booking.customerName };
+  const customerInfo = { name: Booking.customerName, email: Booking.customerEmail, phone: Booking.customerPhone, avatarUrl: Booking.avatarUrl };
   const pkgInfo = { packageName: Booking.packageName };
   const {
     sessionName,
@@ -92,6 +92,7 @@ export default function BookingResultCard({ result, navigation, Booking }) {
       <TouchableOpacity
         onPress={() => {
           if (navigation && Booking.customerPurchasedId) {
+            console.log("Booking Result Card Customer:", Booking);
             navigation.navigate("TrainingResultScreen", {
               customerPurchasedId: Booking.customerPurchasedId,
               customer: customerInfo,
@@ -609,7 +610,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
     padding: 20,
-    marginBottom: 16,
     flexDirection: "row",
     alignItems: "center",
     shadowColor: "#000",
