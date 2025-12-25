@@ -213,12 +213,12 @@ export default function UserMenuScreen() {
       navigation: "FAQScreen",
       category: "support",
     },
-    {
-      icon: <Ionicons name="apps-outline" size={28} color="#ED2A46" />,
-      label: t("userMenu.otherUtilities"),
-      navigation: "UserMenu",
-      category: "support",
-    },
+    // {
+    //   icon: <Ionicons name="apps-outline" size={28} color="#ED2A46" />,
+    //   label: t("userMenu.otherUtilities"),
+    //   navigation: "UserMenu",
+    //   category: "support",
+    // },
     {
       icon: <Ionicons name="trash-outline" size={28} color="#ED2A46" />,
       label: t("userMenu.deleteAccount"),
@@ -250,15 +250,20 @@ export default function UserMenuScreen() {
 
                   if (logoutSuccess) {
                     try {
-                    const pushSubscription =
-                      await Notifications.getDevicePushTokenAsync();
-                    console.log("pushSubscription", pushSubscription);
-                    const token = pushSubscription.data;
-                    await notificationService.unregisterDeviceToken({
-                      deviceToken: token,
-                    }).catch((error) => {
-                      console.error("Error unregistering device token:", error);
-                    });
+                      const pushSubscription =
+                        await Notifications.getDevicePushTokenAsync();
+                      console.log("pushSubscription", pushSubscription);
+                      const token = pushSubscription.data;
+                      await notificationService
+                        .unregisterDeviceToken({
+                          deviceToken: token,
+                        })
+                        .catch((error) => {
+                          console.error(
+                            "Error unregistering device token:",
+                            error
+                          );
+                        });
                     } catch (error) {
                       console.error("Error unregistering device token:", error);
                     }

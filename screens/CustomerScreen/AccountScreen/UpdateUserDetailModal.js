@@ -15,6 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import UserDetailService from "../../../services/user-detailService";
 import { useTranslation } from "../../../hooks/useTranslation";
 import LoadingIndicator from "../../../components/LoadingIndicator";
+import { fetchUserFromStorage } from "../../../lib";
 
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 
@@ -91,6 +92,7 @@ const UpdateUserDetailModal = ({ visible, onClose, onSuccess }) => {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(false);
+  const [user, setUser] = useState(null);
   const [formData, setFormData] = useState({
     biceps: "",
     foreArm: "",
@@ -109,8 +111,20 @@ const UpdateUserDetailModal = ({ visible, onClose, onSuccess }) => {
   useEffect(() => {
     if (visible) {
       fetchUserDetails();
+      fetchUser();
     }
   }, [visible]);
+
+  const fetchUser = async () => {
+    try {
+      const userData = await fetchUserFromStorage();
+      if (userData) {
+        setUser(userData);
+      }
+    } catch (error) {
+      console.error("Error fetching user:", error);
+    }
+  };
 
   const fetchUserDetails = async () => {
     setFetching(true);
@@ -190,7 +204,9 @@ const UpdateUserDetailModal = ({ visible, onClose, onSuccess }) => {
         shoulder: parseFloat(formData.shoulder) || 0,
         height: parseFloat(formData.height) || 0,
         weight: parseFloat(formData.weight) || 0,
-        experience: formData.experience ? parseFloat(formData.experience) : null,
+        experience: formData.experience
+          ? parseFloat(formData.experience)
+          : null,
         bio: formData.bio || null,
       };
 
@@ -269,111 +285,110 @@ const UpdateUserDetailModal = ({ visible, onClose, onSuccess }) => {
             style={styles.content}
             showsVerticalScrollIndicator={false}
           >
-              {/* Body Measurements */}
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>
-                  {t("userDetail.bodyMeasurements", "Body Measurements")}
-                </Text>
+            {/* Body Measurements */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>
+                {t("userDetail.bodyMeasurements", "Body Measurements")}
+              </Text>
 
-                <View style={styles.inputRow}>
-                  <View style={styles.inputHalf}>
-                    <InputField
-                      label={t("muscleGroups.Biceps", "Biceps")}
-                      value={formData.biceps}
-                      onChange={(value) => handleInputChange("biceps", value)}
-                      unit="cm"
-                    />
-                  </View>
-                  <View style={styles.inputHalf}>
-                    <InputField
-                      label={t("muscleGroups.ForeArm", "Forearm")}
-                      value={formData.foreArm}
-                      onChange={(value) => handleInputChange("foreArm", value)}
-                      unit="cm"
-                    />
-                  </View>
+              <View style={styles.inputRow}>
+                <View style={styles.inputHalf}>
+                  <InputField
+                    label={t("muscleGroups.Biceps", "Biceps")}
+                    value={formData.biceps}
+                    onChange={(value) => handleInputChange("biceps", value)}
+                    unit="cm"
+                  />
                 </View>
-
-                <View style={styles.inputRow}>
-                  <View style={styles.inputHalf}>
-                    <InputField
-                      label={t("muscleGroups.Thigh", "Thigh")}
-                      value={formData.thigh}
-                      onChange={(value) => handleInputChange("thigh", value)}
-                      unit="cm"
-                    />
-                  </View>
-                  <View style={styles.inputHalf}>
-                    <InputField
-                      label={t("muscleGroups.Calf", "Calf")}
-                      value={formData.calf}
-                      onChange={(value) => handleInputChange("calf", value)}
-                      unit="cm"
-                    />
-                  </View>
-                </View>
-
-                <View style={styles.inputRow}>
-                  <View style={styles.inputHalf}>
-                    <InputField
-                      label={t("muscleGroups.Chest", "Chest")}
-                      value={formData.chest}
-                      onChange={(value) => handleInputChange("chest", value)}
-                      unit="cm"
-                    />
-                  </View>
-                  <View style={styles.inputHalf}>
-                    <InputField
-                      label={t("muscleGroups.Waist", "Waist")}
-                      value={formData.waist}
-                      onChange={(value) => handleInputChange("waist", value)}
-                      unit="cm"
-                    />
-                  </View>
-                </View>
-
-                <View style={styles.inputRow}>
-                  <View style={styles.inputHalf}>
-                    <InputField
-                      label={t("muscleGroups.Hip", "Hip")}
-                      value={formData.hip}
-                      onChange={(value) => handleInputChange("hip", value)}
-                      unit="cm"
-                    />
-                  </View>
-                  <View style={styles.inputHalf}>
-                    <InputField
-                      label={t("muscleGroups.Shoulder", "Shoulder")}
-                      value={formData.shoulder}
-                      onChange={(value) =>
-                        handleInputChange("shoulder", value)
-                      }
-                      unit="cm"
-                    />
-                  </View>
-                </View>
-
-                <View style={styles.inputRow}>
-                  <View style={styles.inputHalf}>
-                    <InputField
-                      label={t("userGoals.height", "Height")}
-                      value={formData.height}
-                      onChange={(value) => handleInputChange("height", value)}
-                      unit="cm"
-                    />
-                  </View>
-                  <View style={styles.inputHalf}>
-                    <InputField
-                      label={t("userGoals.weight", "Weight")}
-                      value={formData.weight}
-                      onChange={(value) => handleInputChange("weight", value)}
-                      unit="kg"
-                    />
-                  </View>
+                <View style={styles.inputHalf}>
+                  <InputField
+                    label={t("muscleGroups.ForeArm", "Forearm")}
+                    value={formData.foreArm}
+                    onChange={(value) => handleInputChange("foreArm", value)}
+                    unit="cm"
+                  />
                 </View>
               </View>
 
-              {/* Additional Info */}
+              <View style={styles.inputRow}>
+                <View style={styles.inputHalf}>
+                  <InputField
+                    label={t("muscleGroups.Thigh", "Thigh")}
+                    value={formData.thigh}
+                    onChange={(value) => handleInputChange("thigh", value)}
+                    unit="cm"
+                  />
+                </View>
+                <View style={styles.inputHalf}>
+                  <InputField
+                    label={t("muscleGroups.Calf", "Calf")}
+                    value={formData.calf}
+                    onChange={(value) => handleInputChange("calf", value)}
+                    unit="cm"
+                  />
+                </View>
+              </View>
+
+              <View style={styles.inputRow}>
+                <View style={styles.inputHalf}>
+                  <InputField
+                    label={t("muscleGroups.Chest", "Chest")}
+                    value={formData.chest}
+                    onChange={(value) => handleInputChange("chest", value)}
+                    unit="cm"
+                  />
+                </View>
+                <View style={styles.inputHalf}>
+                  <InputField
+                    label={t("muscleGroups.Waist", "Waist")}
+                    value={formData.waist}
+                    onChange={(value) => handleInputChange("waist", value)}
+                    unit="cm"
+                  />
+                </View>
+              </View>
+
+              <View style={styles.inputRow}>
+                <View style={styles.inputHalf}>
+                  <InputField
+                    label={t("muscleGroups.Hip", "Hip")}
+                    value={formData.hip}
+                    onChange={(value) => handleInputChange("hip", value)}
+                    unit="cm"
+                  />
+                </View>
+                <View style={styles.inputHalf}>
+                  <InputField
+                    label={t("muscleGroups.Shoulder", "Shoulder")}
+                    value={formData.shoulder}
+                    onChange={(value) => handleInputChange("shoulder", value)}
+                    unit="cm"
+                  />
+                </View>
+              </View>
+
+              <View style={styles.inputRow}>
+                <View style={styles.inputHalf}>
+                  <InputField
+                    label={t("userGoals.height", "Height")}
+                    value={formData.height}
+                    onChange={(value) => handleInputChange("height", value)}
+                    unit="cm"
+                  />
+                </View>
+                <View style={styles.inputHalf}>
+                  <InputField
+                    label={t("userGoals.weight", "Weight")}
+                    value={formData.weight}
+                    onChange={(value) => handleInputChange("weight", value)}
+                    unit="kg"
+                  />
+                </View>
+              </View>
+            </View>
+
+            {/* Additional Info */}
+            {user && user.role !== "Customer" && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>
                   {t("userDetail.additionalInfo", "Additional Information")}
@@ -381,12 +396,16 @@ const UpdateUserDetailModal = ({ visible, onClose, onSuccess }) => {
 
                 <View style={styles.inputFieldContainer}>
                   <Text style={styles.inputLabel}>
-                    {t("userDetail.experience", "Experience")} ({t("userDetail.years", "years")})
+                    {t("userDetail.experience", "Experience")} (
+                    {t("userDetail.years", "years")})
                   </Text>
                   <View style={styles.inputWithUnit}>
                     <TextInput
                       style={styles.textInput}
-                      placeholder={t("userDetail.enterExperience", "Enter years of experience")}
+                      placeholder={t(
+                        "userDetail.enterExperience",
+                        "Enter years of experience"
+                      )}
                       value={formData.experience}
                       onChangeText={(value) =>
                         handleInputChange("experience", value)
@@ -415,6 +434,7 @@ const UpdateUserDetailModal = ({ visible, onClose, onSuccess }) => {
                   </View>
                 </View>
               </View>
+            )}
 
             <View style={{ height: 20 }} />
           </ScrollView>
@@ -647,4 +667,3 @@ const styles = StyleSheet.create({
 });
 
 export default UpdateUserDetailModal;
-
