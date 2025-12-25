@@ -1222,13 +1222,13 @@ export default function MessageDetailScreen({ route, navigation }) {
   const handleSendBookingRequest = useCallback(async () => {
     if (!customerPurchased) {
       Alert.alert(
-        "Error",
+        t("common.error"),
         "Vui lòng mua gói tập trước khi gửi yêu cầu đặt lịch."
       );
       return;
     }
     if (!bookingFormData.bookingName.trim()) {
-      Alert.alert("Error", "Vui lòng nhập tên lịch hẹn");
+      Alert.alert(t("common.error"), t("bookingRequest.bookingNameRequired"));
       return;
     }
 
@@ -1240,7 +1240,7 @@ export default function MessageDetailScreen({ route, navigation }) {
 
     if (selectedDate < today) {
       Alert.alert(
-        "Invalid Date",
+        t("common.error"),
         "Ngày lịch hẹn không thể là ngày trong quá khứ."
       );
       return;
@@ -1251,7 +1251,7 @@ export default function MessageDetailScreen({ route, navigation }) {
       bookingFormData.bookingDate === new Date().toISOString().split("T")[0];
     if (isToday) {
       if (!bookingFormData.startTime) {
-        Alert.alert("Error", "Vui lòng chọn giờ bắt đầu.");
+        Alert.alert(t("common.error"), t("bookingRequest.startTimeRequired"));
         return;
       }
       const [startHours, startMinutes] = bookingFormData.startTime
@@ -1265,31 +1265,33 @@ export default function MessageDetailScreen({ route, navigation }) {
       const currentTotalMinutes = currentHours * 60 + currentMinutes;
 
       if (startTotalMinutes <= currentTotalMinutes) {
-        Alert.alert("Invalid Time", "Giờ bắt đầu phải là giờ trong tương lai.");
+        Alert.alert(t("common.error"), t("bookingRequest.pastTimeError"));
         return;
       }
     }
 
     // Validate end time is at least sessionDurationInMinutes after start time
     if (!bookingFormData.startTime || !bookingFormData.endTime) {
-      Alert.alert("Error", "Vui lòng chọn cả giờ bắt đầu và giờ kết thúc.");
+      Alert.alert(t("common.error"), t("bookingRequest.endTimeRequired"));
       return;
     }
-    const [startHours, startMinutes] = bookingFormData.startTime
-      .split(":")
-      .map(Number);
-    const [endHours, endMinutes] = bookingFormData.endTime
-      .split(":")
-      .map(Number);
 
-    const startTotalMinutes = startHours * 60 + startMinutes;
-    const endTotalMinutes = endHours * 60 + endMinutes;
+    // Validate time range
+    const [startHour, startMin] = bookingFormData.startTime
+      .split(":")
+      .map(Number);
+    const [endHour, endMin] = bookingFormData.endTime.split(":").map(Number);
+    const startTotalMinutes = startHour * 60 + startMin;
+    const endTotalMinutes = endHour * 60 + endMin;
+    const diffMinutes = endTotalMinutes - startTotalMinutes;
     const sessionDuration = customerPurchased?.sessionDurationInMinutes || 60;
 
-    if (endTotalMinutes < startTotalMinutes + sessionDuration) {
+    if (diffMinutes < sessionDuration) {
       Alert.alert(
-        "Invalid Time",
-        `End time must be at least ${sessionDuration} minutes after start time.`
+        t("common.error"),
+        t("bookingRequest.endTimeMinimumDynamic", {
+          minutes: sessionDuration,
+        })
       );
       return;
     }
@@ -2107,17 +2109,28 @@ export default function MessageDetailScreen({ route, navigation }) {
               .padStart(2, "0");
             const newStartTime = `${hours}:${minutes}:00`;
 
-            // Auto-set end time based on sessionDurationInMinutes
+            // Calculate start time in minutes from midnight
+            const startMinutes =
+              selectedTime.getHours() * 60 + selectedTime.getMinutes();
             const sessionDuration =
               customerPurchased?.sessionDurationInMinutes || 60;
-            const endDateTime = new Date(selectedTime);
-            endDateTime.setMinutes(endDateTime.getMinutes() + sessionDuration);
-            const endHours = endDateTime.getHours().toString().padStart(2, "0");
-            const endMinutes = endDateTime
-              .getMinutes()
+            const endMinutes = startMinutes + sessionDuration;
+
+            // Check if end time would exceed 23:59 (1439 minutes)
+            if (endMinutes > 1439) {
+              Alert.alert(
+                t("common.error"),
+                t("bookingRequest.endTimeExceedsMidnight")
+              );
+              return;
+            }
+
+            // Auto-set end time based on sessionDurationInMinutes - staying within same day
+            const endHours = Math.floor(endMinutes / 60);
+            const endMins = endMinutes % 60;
+            const newEndTime = `${endHours
               .toString()
-              .padStart(2, "0");
-            const newEndTime = `${endHours}:${endMinutes}:00`;
+              .padStart(2, "0")}:${endMins.toString().padStart(2, "0")}:00`;
 
             setBookingFormData((prev) => ({
               ...prev,
