@@ -216,13 +216,10 @@ export default function MyPackageScreen() {
         {
           text: t("common.ok") || "OK",
           onPress: async () => {
-            navigation.navigate(t("navigation.home"), {
-              screen: "PaymentScreen",
-              params: {
-                fromDirectPurchase: true,
-                customerPurchasedIdToExtend: item.id,
-                itemToExtend: item,
-              },
+            navigation.navigate("PaymentScreen", {
+              fromDirectPurchase: true,
+              customerPurchasedIdToExtend: item.id,
+              itemToExtend: item,
             });
           },
         },

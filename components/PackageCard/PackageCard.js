@@ -293,17 +293,45 @@ export default function PackageCard({
               <Text style={styles.renewButtonText}>{t("myPackage.renew")}</Text>
             </TouchableOpacity>
           )}
-          <TouchableOpacity
-            style={[
-              styles.reportButton,
-              !canRenew && styles.reportButtonFullWidth,
-            ]}
-            onPress={() => onReport && onReport(item)}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="flag-outline" size={18} color={colors.red} />
-            <Text style={styles.reportButtonText}>{t("myPackage.report")}</Text>
-          </TouchableOpacity>
+          {item.isReported && item.isRefunded ? (
+            <View
+              style={[
+                styles.refundedBadge,
+                !canRenew && styles.refundedBadgeFullWidth,
+              ]}
+            >
+              <Ionicons name="checkmark-circle" size={18} color="#2e7d32" />
+              <Text style={styles.refundedBadgeText}>
+                {t("myPackage.refunded")}
+              </Text>
+            </View>
+          ) : item.isReported ? (
+            <View
+              style={[
+                styles.reportedBadge,
+                !canRenew && styles.reportedBadgeFullWidth,
+              ]}
+            >
+              <Ionicons name="flag" size={18} color="#f57c00" />
+              <Text style={styles.reportedBadgeText}>
+                {t("myPackage.reported")}
+              </Text>
+            </View>
+          ) : !expired ? (
+            <TouchableOpacity
+              style={[
+                styles.reportButton,
+                !canRenew && styles.reportButtonFullWidth,
+              ]}
+              onPress={() => onReport && onReport(item)}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="flag-outline" size={18} color={colors.red} />
+              <Text style={styles.reportButtonText}>
+                {t("myPackage.report")}
+              </Text>
+            </TouchableOpacity>
+          ) : null}
         </View>
        
       ) : (
@@ -594,6 +622,64 @@ const styles = StyleSheet.create({
   reportButtonText: {
     fontSize: 14,
     color: colors.red,
+    fontWeight: "700",
+    letterSpacing: 0.3,
+  },
+  refundedBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    backgroundColor: "#e8f5e8",
+    borderWidth: 1.5,
+    borderColor: "#2e7d32",
+    gap: 6,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  refundedBadgeFullWidth: {
+    flex: 1,
+  },
+  refundedBadgeText: {
+    fontSize: 14,
+    color: "#2e7d32",
+    fontWeight: "700",
+    letterSpacing: 0.3,
+  },
+  reportedBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    backgroundColor: "#fff3e0",
+    borderWidth: 1.5,
+    borderColor: "#f57c00",
+    gap: 6,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  reportedBadgeFullWidth: {
+    flex: 1,
+  },
+  reportedBadgeText: {
+    fontSize: 14,
+    color: "#f57c00",
     fontWeight: "700",
     letterSpacing: 0.3,
   },

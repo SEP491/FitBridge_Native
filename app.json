@@ -3,7 +3,7 @@
     "name": "FitBridge",
     "scheme": "fitbridge",
     "slug": "fitbridge",
-    "version": "1.5",
+    "version": "1.6",
     "orientation": "portrait",
     "icon": "./assets/LogoColor.png",
     "userInterfaceStyle": "light",
