@@ -77,7 +77,10 @@ import VideoCallPrepScreen from "../screens/CommonScreen/VideoCallPrepScreen/Vid
 
 import NotificationScreen from "../screens/CommonScreen/NotificationScreen/NotificationScreen";
 import { useSignalR } from "../context/SignalRContext";
-import { useMessagingState } from "../context/messagingStateContext";
+import {
+  MessagingStateProvider,
+  useMessagingState,
+} from "../context/messagingStateContext";
 import * as Notifications from "expo-notifications";
 import notificationService from "../services/notificationService";
 import NotificationBannerWrapper from "../components/NotificationBannerWrapper";
@@ -2326,27 +2329,29 @@ export default function Navigator({
   }
 
   return (
-    <NavigationContainer linking={linking}>
-      <NotificationBannerWrapper>
-        <Stack.Navigator
-          screenOptions={({ navigation, route }) => ({
-            headerTitleAlign: "center",
-            headerShown: false,
-            headerTintColor: "#ED2A46",
-            headerLeft: (props) =>
-              navigation.canGoBack() ? (
-                <TouchableOpacity onPress={() => navigation.goBack()}>
-                  <Ionicons name="caret-back" size={30} color="#ED2A46" />
-                </TouchableOpacity>
-              ) : null,
-          })}
-          initialRouteName="MainApp"
-        >
-          {/* MainApp is always accessible - guests can browse, login is available in tabs */}
-          <Stack.Screen name="MainApp" component={MainTab} />
-        </Stack.Navigator>
-        <FloatingVideoCall />
-      </NotificationBannerWrapper>
-    </NavigationContainer>
+    <MessagingStateProvider>
+      <NavigationContainer linking={linking}>
+        <NotificationBannerWrapper>
+          <Stack.Navigator
+            screenOptions={({ navigation, route }) => ({
+              headerTitleAlign: "center",
+              headerShown: false,
+              headerTintColor: "#ED2A46",
+              headerLeft: (props) =>
+                navigation.canGoBack() ? (
+                  <TouchableOpacity onPress={() => navigation.goBack()}>
+                    <Ionicons name="caret-back" size={30} color="#ED2A46" />
+                  </TouchableOpacity>
+                ) : null,
+            })}
+            initialRouteName="MainApp"
+          >
+            {/* MainApp is always accessible - guests can browse, login is available in tabs */}
+            <Stack.Screen name="MainApp" component={MainTab} />
+          </Stack.Navigator>
+          <FloatingVideoCall />
+        </NotificationBannerWrapper>
+      </NavigationContainer>
+    </MessagingStateProvider>
   );
 }

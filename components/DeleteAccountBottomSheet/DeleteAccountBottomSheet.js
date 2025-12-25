@@ -81,26 +81,26 @@ const DeleteAccountBottomSheet = ({
           onPress: async () => {
             setIsLoading(true);
             try {
+              try {
+                const pushSubscription =
+                  await Notifications.getDevicePushTokenAsync();
+                console.log("pushSubscription", pushSubscription);
+                const token = pushSubscription.data;
+                await notificationService
+                  .unregisterDeviceToken({
+                    deviceToken: token,
+                  })
+                  .catch((error) => {
+                    console.error("Error unregistering device token:", error);
+                  });
+              } catch (error) {
+                console.error("Error unregistering device token:", error);
+              }
               // Here you would typically call an API to delete the account
               // For now, we'll just logout the user
               const logoutSuccess = await authService.logout();
 
               if (logoutSuccess) {
-                try {
-                  const pushSubscription =
-                    await Notifications.getDevicePushTokenAsync();
-                  console.log("pushSubscription", pushSubscription);
-                  const token = pushSubscription.data;
-                  await notificationService
-                    .unregisterDeviceToken({
-                      deviceToken: token,
-                    })
-                    .catch((error) => {
-                      console.error("Error unregistering device token:", error);
-                    });
-                } catch (error) {
-                  console.error("Error unregistering device token:", error);
-                }
                 clearCart(); // Clear cart data
                 if (global.updateNavigationUser) {
                   global.updateNavigationUser();

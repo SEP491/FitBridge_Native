@@ -32,11 +32,11 @@ import { useUser } from "../../../context/UserContext";
 import orderService from "../../../services/orderService";
 import { fetchUserFromStorage } from "../../../lib";
 import { useMeetingState } from "../../../context/meetingStateContext";
-import notificationService from "../../../services/notificationService";
-import SignalRService from "../../../services/signalR/Message/service";
-import SignalRServiceFactory from "../../../services/signalR/Message/factory";
 import { ServiceName } from "../../../services/signalR/Message/constants/ServiceConfigs";
-
+import signalrService from "../../../services/signalR/signalRService";
+import SignalRServiceFactory from "../../../services/signalR/Message/factory";
+import notificationService from "../../../services/notificationService";
+import { useMessagingState } from "../../../context/messagingStateContext";
 export default function UserMenuScreen() {
   const [user, setUser] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -49,7 +49,7 @@ export default function UserMenuScreen() {
   const [orderSummary, setOrderSummary] = useState(null);
   const navigation = useNavigation();
   const { startCall, setCallInfo } = useMeetingState();
-
+  const { stopConnection } = useMessagingState();
   useEffect(() => {
     const fetchUser = async () => {
       const userData = await fetchUserFromStorage();
@@ -248,31 +248,28 @@ export default function UserMenuScreen() {
               style: "destructive", // Red color for destructive action (iOS/Android)
               onPress: async () => {
                 try {
-                  const messagingService =
-                    await SignalRServiceFactory.getInstance(
-                      ServiceName.MESSAGING
-                    );
+                  try {
+                    const pushSubscription =
+                      await Notifications.getDevicePushTokenAsync();
+                    console.log("pushSubscription", pushSubscription);
+                    const token = pushSubscription.data;
+                    await notificationService
+                      .unregisterDeviceToken({
+                        deviceToken: token,
+                      })
+                      .catch((error) => {
+                        console.error(
+                          "Error unregistering device token:",
+                          error
+                        );
+                      });
+                  } catch (error) {
+                    console.error("Error unregistering device token:", error);
+                  }
+                  // SignalRServiceFactory.dispose(ServiceName.MESSAGING);
                   const logoutSuccess = await authService.logout();
 
                   if (logoutSuccess) {
-                    try {
-                      const pushSubscription =
-                        await Notifications.getDevicePushTokenAsync();
-                      console.log("pushSubscription", pushSubscription);
-                      const token = pushSubscription.data;
-                      await notificationService
-                        .unregisterDeviceToken({
-                          deviceToken: token,
-                        })
-                        .catch((error) => {
-                          console.error(
-                            "Error unregistering device token:",
-                            error
-                          );
-                        });
-                    } catch (error) {
-                      console.error("Error unregistering device token:", error);
-                    }
                     clearCart(); // Clear cart data
                     await clearAvatarUrl(); // Clear avatar data
                     if (global.updateNavigationUser) {
@@ -285,7 +282,8 @@ export default function UserMenuScreen() {
                       signalR_webrtcService.stopConnection();
                       console.log("SignalR: Connection stopped on logout");
                     }
-                    messagingService.stopConnection();
+                    signalrService.stopConnection();
+                    stopConnection();
                     console.log("SignalR: Connection stopped on logout");
                   } else {
                     Alert.alert(t("common.error"), t("errors.logoutError"));

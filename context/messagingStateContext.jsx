@@ -190,16 +190,21 @@ export const MessagingStateProvider = ({ children }) => {
   const [state, dispatch] = useReducer(messagingReducer, initialState);
   const [joinedGroup, setJoinedGroup] = useState("");
   const connectionInitializedRef = useRef(false);
+  const messagingServiceRef = useRef(null);
+  const isDisposedRef = useRef(false);
 
   // Manual start connection function
   const startConnection = async () => {
     if (connectionInitializedRef.current) {
-      console.log("Connection already initialized, skipping...");
+      console.log(
+        "MessagingStateContext: Connection already initialized, skipping..."
+      );
       return;
     }
 
-    console.log("Starting messaging connection...");
+    console.log("MessagingStateContext: Starting messaging connection...");
     connectionInitializedRef.current = true;
+    isDisposedRef.current = false; // Reset disposal flag when starting new connection
 
     try {
       const messagingService = await SignalRServiceFactory.getInstance(
@@ -211,8 +216,11 @@ export const MessagingStateProvider = ({ children }) => {
         payload: messagingService,
       });
 
+      // Store in ref for cleanup function
+      messagingServiceRef.current = messagingService;
+
       if (!messagingService) {
-        console.warn("Messaging service not available");
+        console.warn("MessagingStateContext: Messaging service not available");
         dispatch({
           type: actionTypes.SET_CONNECTION_STATUS,
           payload: "disconnected",
@@ -223,7 +231,7 @@ export const MessagingStateProvider = ({ children }) => {
 
       // Set initial connection status
       const status = messagingService.connectionStatus;
-      console.log("Initial connection status:", status);
+      console.log("MessagingStateContext: Initial connection status:", status);
       if (status.state === signalR.HubConnectionState.Connected) {
         dispatch({
           type: actionTypes.SET_CONNECTION_STATUS,
@@ -247,11 +255,14 @@ export const MessagingStateProvider = ({ children }) => {
           messagingService.boundTriggerCallback
         );
       } catch (error) {
-        console.error("Error registering handlers", error);
+        console.error(
+          "MessagingStateContext: Error registering handlers",
+          error
+        );
         // Continue even if handler registration fails - connection may still work
       }
     } catch (error) {
-      console.error("Error starting connection:", error);
+      console.error("MessagingStateContext: Error starting connection:", error);
       dispatch({
         type: actionTypes.SET_CONNECTION_STATUS,
         payload: "disconnected",
@@ -264,29 +275,53 @@ export const MessagingStateProvider = ({ children }) => {
     }
   };
 
-  useEffect(() => {
-    return () => {
-      dispatch({ type: actionTypes.CLEAR_STATE });
-      console.log("unregistering handlers", state.messagingService);
-      unregisterHandlers(state.messagingService);
-      SignalRServiceFactory.dispose(ServiceName.MESSAGING);
-      connectionInitializedRef.current = false;
-    };
-  }, []);
+  // useEffect(() => {
+  //   return () => {
+
+  //   };
+  // }, []);
+
+  const stopConnection = () => {
+    // Guard against multiple calls
+    if (isDisposedRef.current) {
+      console.warn(
+        "MessagingStateContext: stopConnection already called, skipping..."
+      );
+      return;
+    }
+
+    isDisposedRef.current = true;
+    dispatch({ type: actionTypes.CLEAR_STATE });
+    const currentService = messagingServiceRef.current;
+    console.log(
+      "MessagingStateContext: unregistering handlers",
+      currentService
+    );
+    unregisterHandlers(currentService);
+    SignalRServiceFactory.dispose(ServiceName.MESSAGING);
+    connectionInitializedRef.current = false;
+    messagingServiceRef.current = null;
+  };
 
   // Handle join/leave groups
   useEffect(() => {
     const handleGroupJoinLeave = async () => {
-      console.log("state.activeConversation", state.activeConversation);
+      console.log(
+        "MessagingStateContext: state.activeConversation",
+        state.activeConversation
+      );
       if (!state.messagingService) return;
-      
+
       // Check connection status before attempting group operations
       const connectionStatus = state.messagingService.connectionStatus;
       if (connectionStatus.state !== signalR.HubConnectionState.Connected) {
-        console.warn("Cannot join/leave group - connection not ready:", connectionStatus.state);
+        console.warn(
+          "MessagingStateContext: Cannot join/leave group - connection not ready:",
+          connectionStatus.state
+        );
         return;
       }
-      
+
       try {
         if (state.activeConversation) {
           const groupId = state.activeConversation.id.toString();
@@ -294,20 +329,29 @@ export const MessagingStateProvider = ({ children }) => {
           if (success) {
             setJoinedGroup(groupId);
           } else {
-            console.warn(`Failed to join group ${groupId}, will retry on next connection`);
+            console.warn(
+              `MessagingStateContext: Failed to join group ${groupId}, will retry on next connection`
+            );
           }
         } else {
           if (joinedGroup) {
-            const success = await state.messagingService.removeFromGroup(joinedGroup);
+            const success = await state.messagingService.removeFromGroup(
+              joinedGroup
+            );
             if (success) {
               setJoinedGroup("");
             } else {
-              console.warn(`Failed to leave group ${joinedGroup}`);
+              console.warn(
+                `MessagingStateContext: Failed to leave group ${joinedGroup}`
+              );
             }
           }
         }
       } catch (error) {
-        console.error("Error handling group join leave", error);
+        console.error(
+          "MessagingStateContext: Error handling group join leave",
+          error
+        );
         // Don't update state on error to allow retry
       }
     };
@@ -320,13 +364,21 @@ export const MessagingStateProvider = ({ children }) => {
           // Only attempt to leave if connection is still active
           const connectionStatus = state.messagingService.connectionStatus;
           if (connectionStatus.state === signalR.HubConnectionState.Connected) {
-            state.messagingService.removeFromGroup(joinedGroup).catch((error) => {
-              console.error("Error removing from group on cleanup", error);
-            });
+            state.messagingService
+              .removeFromGroup(joinedGroup)
+              .catch((error) => {
+                console.error(
+                  "MessagingStateContext: Error removing from group on cleanup",
+                  error
+                );
+              });
           }
           setJoinedGroup("");
         } catch (error) {
-          console.error("Error removing from group on cleanup", error);
+          console.error(
+            "MessagingStateContext: Error removing from group on cleanup",
+            error
+          );
         }
       }
     };
@@ -337,7 +389,7 @@ export const MessagingStateProvider = ({ children }) => {
     if (!state.messagingService) return;
 
     const handleConnected = () => {
-      console.log("MessagingStateProvider: Connection established");
+      console.log("MessagingStateContext: Connection established");
       dispatch({
         type: actionTypes.SET_CONNECTION_STATUS,
         payload: "connected",
@@ -345,7 +397,7 @@ export const MessagingStateProvider = ({ children }) => {
     };
 
     const handleDisconnected = (error) => {
-      console.log("MessagingStateProvider: Connection disconnected", error);
+      console.log("MessagingStateContext: Connection disconnected", error);
       dispatch({
         type: actionTypes.SET_CONNECTION_STATUS,
         payload: "disconnected",
@@ -353,7 +405,7 @@ export const MessagingStateProvider = ({ children }) => {
     };
 
     const handleReconnecting = (error) => {
-      console.log("MessagingStateProvider: Connection reconnecting", error);
+      console.log("MessagingStateContext: Connection reconnecting", error);
       dispatch({
         type: actionTypes.SET_CONNECTION_STATUS,
         payload: "reconnecting",
@@ -362,7 +414,7 @@ export const MessagingStateProvider = ({ children }) => {
 
     const handleReconnected = (connectionId) => {
       console.log(
-        "MessagingStateProvider: Connection reconnected",
+        "MessagingStateContext: Connection reconnected",
         connectionId
       );
       dispatch({
@@ -377,7 +429,10 @@ export const MessagingStateProvider = ({ children }) => {
       state.messagingService.onEvent("onReconnecting", handleReconnecting);
       state.messagingService.onEvent("onReconnected", handleReconnected);
     } catch (error) {
-      console.error("Error setting up lifecycle event listeners", error);
+      console.error(
+        "MessagingStateContext: Error setting up lifecycle event listeners",
+        error
+      );
     }
 
     return () => {
@@ -388,7 +443,10 @@ export const MessagingStateProvider = ({ children }) => {
           state.messagingService.offEvent("onReconnecting", handleReconnecting);
           state.messagingService.offEvent("onReconnected", handleReconnected);
         } catch (error) {
-          console.error("Error removing lifecycle event listeners", error);
+          console.error(
+            "MessagingStateContext: Error removing lifecycle event listeners",
+            error
+          );
         }
       }
     };
@@ -410,7 +468,10 @@ export const MessagingStateProvider = ({ children }) => {
         handleTypingStatusUpdated
       );
     } catch (error) {
-      console.error("Error handling typing status updated", error);
+      console.error(
+        "MessagingStateContext: Error handling typing status updated",
+        error
+      );
     }
 
     return () => {
@@ -441,23 +502,30 @@ export const MessagingStateProvider = ({ children }) => {
         nextAppState.match(/inactive|background/)
       ) {
         if (bypassAppStateChangeRef.current) {
-          console.log("Bypassing app state change (image picker open)");
+          console.log(
+            "MessagingStateContext: Bypassing app state change (image picker open)"
+          );
           return;
         }
         console.log(
-          "App has gone to the background, pausing SignalR connection"
+          "MessagingStateContext: App has gone to the background, pausing SignalR connection"
         );
         try {
           await state.messagingService.pauseConnection();
         } catch (error) {
-          console.error("Error pausing SignalR connection:", error);
+          console.error(
+            "MessagingStateContext: Error pausing SignalR connection:",
+            error
+          );
         }
       } else if (
         appState.current.match(/inactive|background/) &&
         nextAppState === "active"
       ) {
         if (bypassAppStateChangeRef.current) {
-          console.log("Bypassing app state change (was in image picker)");
+          console.log(
+            "MessagingStateContext: Bypassing app state change (was in image picker)"
+          );
           // Reset bypass flag synchronously
           bypassAppStateChangeRef.current = false;
           dispatch({
@@ -467,13 +535,16 @@ export const MessagingStateProvider = ({ children }) => {
           return;
         }
         console.log(
-          "App has come to the foreground, starting SignalR connection"
+          "MessagingStateContext: App has come to the foreground, starting SignalR connection"
         );
         try {
           await state.messagingService.resumeConnection();
           // Check connection status after resume
           const status = state.messagingService.connectionStatus;
-          console.log("Connection status after resume:", status);
+          console.log(
+            "MessagingStateContext: Connection status after resume:",
+            status
+          );
           if (status.state === signalR.HubConnectionState.Connected) {
             dispatch({
               type: actionTypes.SET_CONNECTION_STATUS,
@@ -481,7 +552,10 @@ export const MessagingStateProvider = ({ children }) => {
             });
           }
         } catch (error) {
-          console.error("Error starting SignalR connection:", error);
+          console.error(
+            "MessagingStateContext: Error starting SignalR connection:",
+            error
+          );
           dispatch({
             type: actionTypes.SET_CONNECTION_STATUS,
             payload: "disconnected",
@@ -505,6 +579,7 @@ export const MessagingStateProvider = ({ children }) => {
   // Actions
   const actions = {
     startConnection, // Expose the manual start function
+    stopConnection, // Expose the manual stop function
     setTypingStatus: (typingStatus) =>
       dispatch({
         type: actionTypes.SET_TYPING_STATUS,

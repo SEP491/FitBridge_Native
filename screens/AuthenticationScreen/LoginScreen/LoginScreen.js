@@ -63,6 +63,9 @@ export default function LoginScreen() {
           role: userData.role,
           email: userData.email,
         };
+        const existingToken = await AsyncStorage.getItem("token");
+
+        console.log("Login token", existingToken);
         await loginRevenueCatUser(userData.sub, userData.name, userData.email);
         await AsyncStorage.setItem("user", JSON.stringify(user));
         // Handle avatar - only store if it's not null/undefined

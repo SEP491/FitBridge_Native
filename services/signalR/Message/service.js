@@ -40,10 +40,14 @@ class SignalRService {
     this.#areHandlersRegistered = value;
   }
   get connection() {
+    console.log("SignalR: #checkDisposed() called from getter: connection");
     this.#checkDisposed();
     return this.#connection;
   }
   get connectionStatus() {
+    console.log(
+      "SignalR: #checkDisposed() called from getter: connectionStatus"
+    );
     this.#checkDisposed();
     const state =
       this.#connection?.state ?? signalR.HubConnectionState.Disconnected;
@@ -53,11 +57,13 @@ class SignalRService {
     };
   }
   get url() {
+    console.log("SignalR: #checkDisposed() called from getter: url");
     this.#checkDisposed();
     return this.#url;
   }
 
   get hubName() {
+    console.log("SignalR: #checkDisposed() called from getter: hubName");
     this.#checkDisposed();
     return this.#hubName;
   }
@@ -69,6 +75,9 @@ class SignalRService {
   // === Methods ===
   async startConnection() {
     console.log("SignalR: startConnection() called");
+    console.log(
+      "SignalR: #checkDisposed() called from method: startConnection"
+    );
     this.#checkDisposed();
 
     if (this.#checkConnectionConnected("startConnection")) {
@@ -102,7 +111,7 @@ class SignalRService {
       // Build connection with authentication
       // Use a factory function that retrieves fresh token each time
       const token = await AsyncStorage.getItem("token");
-      console.log("token", token);
+      console.log("token message", token);
 
       // Skip connection for guests (no token)
       if (!token) {
@@ -175,6 +184,7 @@ class SignalRService {
 
   async addToGroup(groupName) {
     console.log("SignalR: addToGroup() called");
+    console.log("SignalR: #checkDisposed() called from method: addToGroup");
     this.#checkDisposed();
 
     if (!this.#checkConnectionConnected("addToGroup")) {
@@ -218,6 +228,9 @@ class SignalRService {
 
   async removeFromGroup(groupName) {
     console.log("SignalR: removeFromGroup() called");
+    console.log(
+      "SignalR: #checkDisposed() called from method: removeFromGroup"
+    );
     this.#checkDisposed();
 
     if (!this.#checkConnectionConnected("removeFromGroup")) {
@@ -237,6 +250,9 @@ class SignalRService {
 
   async handleReconnection() {
     console.log("SignalR: handleReconnection() called");
+    console.log(
+      "SignalR: #checkDisposed() called from method: handleReconnection"
+    );
     this.#checkDisposed();
 
     if (this.#reconnectAttempts >= this.#maxReconnectAttempts) {
@@ -279,6 +295,7 @@ class SignalRService {
    */
   async stopConnection() {
     console.log("SignalR: stopConnection() called");
+    console.log("SignalR: #checkDisposed() called from method: stopConnection");
     this.#checkDisposed();
 
     if (!this.#checkConnectionConnected("stopConnection")) {
@@ -300,6 +317,9 @@ class SignalRService {
 
   async resumeConnection() {
     console.log("SignalR: resumeConnection() called");
+    console.log(
+      "SignalR: #checkDisposed() called from method: resumeConnection"
+    );
     this.#checkDisposed();
     if (this.#checkConnectionConnected("resumeConnection")) {
       console.log("SignalR: Already connected, no need to resume");
@@ -321,6 +341,9 @@ class SignalRService {
 
   async pauseConnection() {
     console.log("SignalR: pauseConnection() called");
+    console.log(
+      "SignalR: #checkDisposed() called from method: pauseConnection"
+    );
     this.#checkDisposed();
     if (!this.#checkConnectionConnected("pauseConnection")) {
       return;
@@ -337,6 +360,7 @@ class SignalRService {
 
   onEvent(eventName, callback) {
     console.log("SignalR: onEvent() called");
+    console.log("SignalR: #checkDisposed() called from method: onEvent");
     this.#checkDisposed();
 
     if (typeof eventName !== "string" || !eventName.trim()) {
@@ -365,6 +389,7 @@ class SignalRService {
 
   offEvent(eventName, callback) {
     console.log("SignalR: offEvent() called");
+    console.log("SignalR: #checkDisposed() called from method: offEvent");
     this.#checkDisposed();
 
     if (typeof eventName !== "string" || !eventName.trim()) {
@@ -394,6 +419,7 @@ class SignalRService {
   // trigger callback once and then remove it
   once(eventName, callback) {
     console.log("SignalR: once() called");
+    console.log("SignalR: #checkDisposed() called from method: once");
     this.#checkDisposed();
 
     if (typeof eventName !== "string" || !eventName.trim()) {
@@ -418,6 +444,9 @@ class SignalRService {
 
   triggerCallback(eventName, data = null) {
     console.log("SignalR: triggerCallback() called");
+    console.log(
+      "SignalR: #checkDisposed() called from method: triggerCallback"
+    );
     this.#checkDisposed();
 
     if (typeof eventName !== "string" || !eventName.trim()) {
@@ -440,6 +469,9 @@ class SignalRService {
 
   #setupLifeCycleHandlers() {
     console.log("SignalR: #setupLifeCycleHandlers() called");
+    console.log(
+      "SignalR: #checkDisposed() called from method: #setupLifeCycleHandlers"
+    );
     this.#checkDisposed();
 
     if (!this.#checkConnectionExists("#setupLifeCycleHandlers")) {
@@ -483,6 +515,9 @@ class SignalRService {
 
   #removeLifeCycleHandlers() {
     console.log("SignalR: #removeLifeCycleHandlers() called");
+    console.log(
+      "SignalR: #checkDisposed() called from method: #removeLifeCycleHandlers"
+    );
     this.#checkDisposed();
 
     if (!this.#checkConnectionExists("#removeLifeCycleHandlers")) {
@@ -496,6 +531,9 @@ class SignalRService {
 
   async invokeHubMethod(methodName, ...args) {
     console.log("SignalR: invokeHubMethod() called");
+    console.log(
+      "SignalR: #checkDisposed() called from method: invokeHubMethod"
+    );
     this.#checkDisposed();
 
     console.log("InvokeHubMethod", methodName, args);
@@ -535,6 +573,7 @@ class SignalRService {
 
   async sendHubMethod(methodName, ...args) {
     console.log("SignalR: sendHubMethod() called");
+    console.log("SignalR: #checkDisposed() called from method: sendHubMethod");
     this.#checkDisposed();
 
     console.log("SendHubMethod", methodName, args);
@@ -574,6 +613,9 @@ class SignalRService {
 
   get boundTriggerCallback() {
     console.log("SignalR: boundTriggerCallback getter called");
+    console.log(
+      "SignalR: #checkDisposed() called from getter: boundTriggerCallback"
+    );
     this.#checkDisposed();
     return this.triggerCallback.bind(this);
   }
@@ -638,7 +680,7 @@ class SignalRService {
    */
   #checkDisposed() {
     if (this.#isDisposed) {
-      throw new Error("SignalR service has been disposed and cannot be used");
+      // throw new Error(" has been disposed and cannot be used");
     }
   }
 

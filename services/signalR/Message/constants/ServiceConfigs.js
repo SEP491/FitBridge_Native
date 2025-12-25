@@ -15,6 +15,9 @@ export const SERVICE_CONFIGS = Object.freeze({
 });
 
 export const isValidServiceName = (serviceName) => {
+  console.log(
+    `SignalR isValidServiceName: Checking if service name ${serviceName} is valid`
+  );
   return Object.values(ServiceName).includes(serviceName);
 };
 

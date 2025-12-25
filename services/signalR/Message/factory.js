@@ -82,11 +82,28 @@ export class SignalRServiceFactory {
    * @param {string} serviceName - The service name to dispose
    */
   static dispose(serviceName) {
+    console.log("SignalR Factory: Disposing connection for", serviceName);
     if (!isValidServiceName(serviceName)) {
       console.warn(
         `SignalR Factory: Invalid service name for disposal: ${serviceName}`
       );
       return;
+    }
+
+    // Guard against multiple dispose calls - check if instance exists
+    console.log(
+      `SignalR gggFactory: Checking if connection ${serviceName} exists`
+    );
+
+    if (!this.#instances.has(serviceName)) {
+      console.log(
+        `SignalR Factory: Connection ${serviceName} already disposed or does not exist, skipping...`
+      );
+      return;
+    } else {
+      console.log(
+        `SignalR Factory: Connection ${serviceName} exists, disposing...`
+      );
     }
 
     const connection = this.#instances.get(serviceName);

@@ -104,25 +104,23 @@ export default function App() {
           <SignalR_WebRTCProvider>
             <WebRTCProvider>
               <MeetingStateProvider>
-                <MessagingStateProvider>
-                  <NotificationProvider>
-                    <RevenueCatProvider>
-                      <LocationProvider>
-                        <FitnessProvider>
-                          <CartProvider>
-                            <UserProvider>
-                              <Navigator
-                                isAuthenticated={isAuthenticated}
-                                isGuest={isGuest}
-                                user={user}
-                              />
-                            </UserProvider>
-                          </CartProvider>
-                        </FitnessProvider>
-                      </LocationProvider>
-                    </RevenueCatProvider>
-                  </NotificationProvider>
-                </MessagingStateProvider>
+                <NotificationProvider>
+                  <RevenueCatProvider>
+                    <LocationProvider>
+                      <FitnessProvider>
+                        <CartProvider>
+                          <UserProvider>
+                            <Navigator
+                              isAuthenticated={isAuthenticated}
+                              isGuest={isGuest}
+                              user={user}
+                            />
+                          </UserProvider>
+                        </CartProvider>
+                      </FitnessProvider>
+                    </LocationProvider>
+                  </RevenueCatProvider>
+                </NotificationProvider>
               </MeetingStateProvider>
             </WebRTCProvider>
           </SignalR_WebRTCProvider>
