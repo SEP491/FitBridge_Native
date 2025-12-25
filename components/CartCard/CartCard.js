@@ -109,10 +109,14 @@ export default function CartCard({
               disabled={product.isGymCourse && (product.quantity || 1) >= 1}
               activeOpacity={0.7}
             >
-              <AntDesign 
-                name="plus" 
-                size={16} 
-                color={product.isGymCourse && (product.quantity || 1) >= 1 ? "#ccc" : colors.red} 
+              <AntDesign
+                name="plus"
+                size={16}
+                color={
+                  product.isGymCourse && (product.quantity || 1) >= 1
+                    ? "#ccc"
+                    : colors.red
+                }
               />
             </TouchableOpacity>
           </View>
