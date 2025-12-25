@@ -28,6 +28,7 @@ const SessionBookingCard = ({
   t, // translation function
   ptName, // PT name from props
   ptAvatar = null, // optional PT avatar
+  userRole, // user role to conditionally show/hide buttons
 }) => {
   // Extract data from booking API response
   const sessionStatus = booking.sessionStatus;
@@ -463,30 +464,34 @@ const SessionBookingCard = ({
             )}
 
             {/* Cancel Button */}
-            <TouchableOpacity
-              style={[
-                styles.actionButton,
-                styles.cancelButton,
-                isActionDisabled && styles.disabledButton,
-                showEditButton && styles.halfWidthButton,
-              ]}
-              onPress={buttonAction}
-              disabled={isActionDisabled}
-            >
-              <Ionicons
-                name={isActionDisabled ? "ban-outline" : "close-circle-outline"}
-                size={18}
-                color={isActionDisabled ? "#999" : colors.white}
-              />
-              <Text
+            {userRole !== "FreelancePT" && (
+              <TouchableOpacity
                 style={[
-                  styles.actionButtonText,
-                  isActionDisabled && styles.disabledButtonText,
+                  styles.actionButton,
+                  styles.cancelButton,
+                  isActionDisabled && styles.disabledButton,
+                  showEditButton && styles.halfWidthButton,
                 ]}
+                onPress={buttonAction}
+                disabled={isActionDisabled}
               >
-                {cancelText}
-              </Text>
-            </TouchableOpacity>
+                <Ionicons
+                  name={
+                    isActionDisabled ? "ban-outline" : "close-circle-outline"
+                  }
+                  size={18}
+                  color={isActionDisabled ? "#999" : colors.white}
+                />
+                <Text
+                  style={[
+                    styles.actionButtonText,
+                    isActionDisabled && styles.disabledButtonText,
+                  ]}
+                >
+                  {cancelText}
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         )}
       </View>

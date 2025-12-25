@@ -479,6 +479,7 @@ export default function CalendarScheduleScreen() {
                         ptAvatar={session.ptAvatarUrl}
                         currentLanguage={currentLanguage}
                         t={t}
+                        userRole={userRole}
                         buttonAction={() => {
                           handleCancelBooking(session.bookingId);
                         }}

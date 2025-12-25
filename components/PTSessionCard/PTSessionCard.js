@@ -230,7 +230,7 @@ const PTSessionCard = ({
             )}
 
             {/* Cancel Session Button */}
-            {onCancel && (
+            {/* {onCancel && (
               <TouchableOpacity
                 style={[
                   styles.actionButton,
@@ -264,7 +264,7 @@ const PTSessionCard = ({
                   </>
                 )}
               </TouchableOpacity>
-            )}
+            )} */}
           </View>
         )}
       </View>

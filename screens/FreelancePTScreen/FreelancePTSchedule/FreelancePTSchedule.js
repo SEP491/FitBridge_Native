@@ -447,6 +447,7 @@ export default function FreelancePTSchedule() {
                         ptAvatar={session.customerAvatarUrl}
                         currentLanguage={currentLanguage}
                         t={t}
+                        userRole={userRole}
                         buttonAction={() => {
                           handleCancelBooking(session.bookingId);
                         }}
