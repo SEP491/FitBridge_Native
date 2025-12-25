@@ -34,8 +34,6 @@ const ProfileScreen = () => {
     phone: "",
     dob: "",
     age: 0,
-    weight: 0,
-    height: 0,
     gender: "",
   });
 
@@ -245,8 +243,6 @@ const ProfileScreen = () => {
       formData.append("phone", userProfile.phone || "");
       formData.append("dob", userProfile.dob || "");
       formData.append("isMale", userProfile.gender === "Female" ? false : true);
-      formData.append("weight", parseFloat(userProfile.weight) || 0);
-      formData.append("height", parseFloat(userProfile.height) || 0);
 
       const response = await accountService.updateProfileUser(formData);
       console.log("Cập nhật hồ sơ phản hồi:", response);
@@ -576,7 +572,7 @@ const ProfileScreen = () => {
               </TouchableOpacity>
             </View>
 
-            <View style={styles.inputRow}>
+            {/* <View style={styles.inputRow}>
               <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
                 <Text style={styles.inputLabel}>
                   <MaterialCommunityIcons
@@ -624,7 +620,7 @@ const ProfileScreen = () => {
                   editable={isEditMode}
                 />
               </View>
-            </View>
+            </View> */}
 
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>

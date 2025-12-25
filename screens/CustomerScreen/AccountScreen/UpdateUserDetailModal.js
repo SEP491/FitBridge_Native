@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback, memo } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,8 @@ import {
   Alert,
   ActivityIndicator,
   Animated,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import UserDetailService from "../../../services/user-detailService";
@@ -88,6 +90,42 @@ const FormSkeleton = () => {
   );
 };
 
+const InputField = memo(
+  ({ label, value, onChange, unit, placeholder, maxLength = 2 }) => {
+    const [isFocused, setIsFocused] = useState(false);
+    const inputRef = useRef(null);
+
+    return (
+      <View style={styles.inputFieldContainer}>
+        <Text style={styles.inputLabel}>{label}</Text>
+        <View
+          style={[
+            styles.inputWithUnit,
+            isFocused && styles.inputWithUnitFocused,
+          ]}
+        >
+          <TextInput
+            ref={inputRef}
+            style={styles.textInput}
+            placeholder={placeholder || "0"}
+            value={value}
+            onChangeText={onChange}
+            keyboardType="decimal-pad"
+            placeholderTextColor="#ccc"
+            maxLength={maxLength}
+            editable={true}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            blurOnSubmit={false}
+            returnKeyType="next"
+          />
+          {unit && <Text style={styles.unitText}>{unit}</Text>}
+        </View>
+      </View>
+    );
+  }
+);
+
 const UpdateUserDetailModal = ({ visible, onClose, onSuccess }) => {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
@@ -157,12 +195,12 @@ const UpdateUserDetailModal = ({ visible, onClose, onSuccess }) => {
     }
   };
 
-  const handleInputChange = (field, value) => {
+  const handleInputChange = useCallback((field, value) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
-  };
+  }, []);
 
   const handleSubmit = async () => {
     // Validate required fields
@@ -234,245 +272,230 @@ const UpdateUserDetailModal = ({ visible, onClose, onSuccess }) => {
     }
   };
 
-  const InputField = ({ label, value, onChange, unit, placeholder }) => {
-    const [isFocused, setIsFocused] = useState(false);
-
-    return (
-      <View style={styles.inputFieldContainer}>
-        <Text style={styles.inputLabel}>{label}</Text>
-        <View
-          style={[
-            styles.inputWithUnit,
-            isFocused && styles.inputWithUnitFocused,
-          ]}
-        >
-          <TextInput
-            style={styles.textInput}
-            placeholder={placeholder || "0"}
-            value={value}
-            onChangeText={onChange}
-            keyboardType="decimal-pad"
-            placeholderTextColor="#ccc"
-            maxLength={2}
-            editable={true}
-          />
-          {unit && <Text style={styles.unitText}>{unit}</Text>}
-        </View>
-      </View>
-    );
-  };
-
   if (!visible) return null;
 
   return (
     <>
       <View style={styles.coverLayer}></View>
-      <View style={styles.container}>
-        <View style={styles.headerBar}>
-          <TouchableOpacity onPress={onClose}>
-            <Ionicons name="close" size={24} color="#333" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>
-            {t("userDetail.updateDetails", "Update User Details")}
-          </Text>
-          <View style={{ width: 24 }} />
-        </View>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboardAvoidingView}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+      >
+        <View style={styles.container}>
+          <View style={styles.headerBar}>
+            <TouchableOpacity onPress={onClose}>
+              <Ionicons name="close" size={24} color="#333" />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>
+              {t("userDetail.updateDetails", "Update User Details")}
+            </Text>
+            <View style={{ width: 24 }} />
+          </View>
 
-        {fetching ? (
-          <FormSkeleton />
-        ) : (
-          <ScrollView
-            style={styles.content}
-            showsVerticalScrollIndicator={false}
-          >
-            {/* Body Measurements */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>
-                {t("userDetail.bodyMeasurements", "Body Measurements")}
-              </Text>
-
-              <View style={styles.inputRow}>
-                <View style={styles.inputHalf}>
-                  <InputField
-                    label={t("muscleGroups.Biceps", "Biceps")}
-                    value={formData.biceps}
-                    onChange={(value) => handleInputChange("biceps", value)}
-                    unit="cm"
-                  />
-                </View>
-                <View style={styles.inputHalf}>
-                  <InputField
-                    label={t("muscleGroups.ForeArm", "Forearm")}
-                    value={formData.foreArm}
-                    onChange={(value) => handleInputChange("foreArm", value)}
-                    unit="cm"
-                  />
-                </View>
-              </View>
-
-              <View style={styles.inputRow}>
-                <View style={styles.inputHalf}>
-                  <InputField
-                    label={t("muscleGroups.Thigh", "Thigh")}
-                    value={formData.thigh}
-                    onChange={(value) => handleInputChange("thigh", value)}
-                    unit="cm"
-                  />
-                </View>
-                <View style={styles.inputHalf}>
-                  <InputField
-                    label={t("muscleGroups.Calf", "Calf")}
-                    value={formData.calf}
-                    onChange={(value) => handleInputChange("calf", value)}
-                    unit="cm"
-                  />
-                </View>
-              </View>
-
-              <View style={styles.inputRow}>
-                <View style={styles.inputHalf}>
-                  <InputField
-                    label={t("muscleGroups.Chest", "Chest")}
-                    value={formData.chest}
-                    onChange={(value) => handleInputChange("chest", value)}
-                    unit="cm"
-                  />
-                </View>
-                <View style={styles.inputHalf}>
-                  <InputField
-                    label={t("muscleGroups.Waist", "Waist")}
-                    value={formData.waist}
-                    onChange={(value) => handleInputChange("waist", value)}
-                    unit="cm"
-                  />
-                </View>
-              </View>
-
-              <View style={styles.inputRow}>
-                <View style={styles.inputHalf}>
-                  <InputField
-                    label={t("muscleGroups.Hip", "Hip")}
-                    value={formData.hip}
-                    onChange={(value) => handleInputChange("hip", value)}
-                    unit="cm"
-                  />
-                </View>
-                <View style={styles.inputHalf}>
-                  <InputField
-                    label={t("muscleGroups.Shoulder", "Shoulder")}
-                    value={formData.shoulder}
-                    onChange={(value) => handleInputChange("shoulder", value)}
-                    unit="cm"
-                  />
-                </View>
-              </View>
-
-              <View style={styles.inputRow}>
-                <View style={styles.inputHalf}>
-                  <InputField
-                    label={t("userGoals.height", "Height")}
-                    value={formData.height}
-                    onChange={(value) => handleInputChange("height", value)}
-                    unit="cm"
-                  />
-                </View>
-                <View style={styles.inputHalf}>
-                  <InputField
-                    label={t("userGoals.weight", "Weight")}
-                    value={formData.weight}
-                    onChange={(value) => handleInputChange("weight", value)}
-                    unit="kg"
-                  />
-                </View>
-              </View>
-            </View>
-
-            {/* Additional Info */}
-            {user && user.role !== "Customer" && (
+          {fetching ? (
+            <FormSkeleton />
+          ) : (
+            <ScrollView
+              style={styles.content}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              {/* Body Measurements */}
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>
-                  {t("userDetail.additionalInfo", "Additional Information")}
+                  {t("userDetail.bodyMeasurements", "Body Measurements")}
                 </Text>
 
-                <View style={styles.inputFieldContainer}>
-                  <Text style={styles.inputLabel}>
-                    {t("userDetail.experience", "Experience")} (
-                    {t("userDetail.years", "years")})
-                  </Text>
-                  <View style={styles.inputWithUnit}>
-                    <TextInput
-                      style={styles.textInput}
-                      placeholder={t(
-                        "userDetail.enterExperience",
-                        "Enter years of experience"
-                      )}
-                      value={formData.experience}
-                      onChangeText={(value) =>
-                        handleInputChange("experience", value)
-                      }
-                      keyboardType="decimal-pad"
-                      placeholderTextColor="#ccc"
+                <View style={styles.inputRow}>
+                  <View style={styles.inputHalf}>
+                    <InputField
+                      label={t("muscleGroups.Biceps", "Biceps")}
+                      value={formData.biceps}
+                      onChange={(value) => handleInputChange("biceps", value)}
+                      unit="cm"
+                    />
+                  </View>
+                  <View style={styles.inputHalf}>
+                    <InputField
+                      label={t("muscleGroups.ForeArm", "Forearm")}
+                      value={formData.foreArm}
+                      onChange={(value) => handleInputChange("foreArm", value)}
+                      unit="cm"
                     />
                   </View>
                 </View>
 
-                <View style={styles.inputFieldContainer}>
-                  <Text style={styles.inputLabel}>
-                    {t("profile.bio", "Bio")}
-                  </Text>
-                  <View style={styles.textAreaContainer}>
-                    <TextInput
-                      style={styles.textArea}
-                      placeholder={t("profile.enterBio", "Enter your bio")}
-                      value={formData.bio}
-                      onChangeText={(value) => handleInputChange("bio", value)}
-                      multiline
-                      numberOfLines={4}
-                      placeholderTextColor="#ccc"
-                      textAlignVertical="top"
+                <View style={styles.inputRow}>
+                  <View style={styles.inputHalf}>
+                    <InputField
+                      label={t("muscleGroups.Thigh", "Thigh")}
+                      value={formData.thigh}
+                      onChange={(value) => handleInputChange("thigh", value)}
+                      unit="cm"
+                    />
+                  </View>
+                  <View style={styles.inputHalf}>
+                    <InputField
+                      label={t("muscleGroups.Calf", "Calf")}
+                      value={formData.calf}
+                      onChange={(value) => handleInputChange("calf", value)}
+                      unit="cm"
+                    />
+                  </View>
+                </View>
+
+                <View style={styles.inputRow}>
+                  <View style={styles.inputHalf}>
+                    <InputField
+                      label={t("muscleGroups.Chest", "Chest")}
+                      value={formData.chest}
+                      onChange={(value) => handleInputChange("chest", value)}
+                      unit="cm"
+                    />
+                  </View>
+                  <View style={styles.inputHalf}>
+                    <InputField
+                      label={t("muscleGroups.Waist", "Waist")}
+                      value={formData.waist}
+                      onChange={(value) => handleInputChange("waist", value)}
+                      unit="cm"
+                    />
+                  </View>
+                </View>
+
+                <View style={styles.inputRow}>
+                  <View style={styles.inputHalf}>
+                    <InputField
+                      label={t("muscleGroups.Hip", "Hip")}
+                      value={formData.hip}
+                      onChange={(value) => handleInputChange("hip", value)}
+                      unit="cm"
+                    />
+                  </View>
+                  <View style={styles.inputHalf}>
+                    <InputField
+                      label={t("muscleGroups.Shoulder", "Shoulder")}
+                      value={formData.shoulder}
+                      onChange={(value) => handleInputChange("shoulder", value)}
+                      unit="cm"
+                    />
+                  </View>
+                </View>
+
+                <View style={styles.inputRow}>
+                  <View style={styles.inputHalf}>
+                    <InputField
+                      label={t("userGoals.height", "Height")}
+                      value={formData.height}
+                      onChange={(value) => handleInputChange("height", value)}
+                      unit="cm"
+                      maxLength={3}
+                    />
+                  </View>
+                  <View style={styles.inputHalf}>
+                    <InputField
+                      label={t("userGoals.weight", "Weight")}
+                      value={formData.weight}
+                      onChange={(value) => handleInputChange("weight", value)}
+                      unit="kg"
+                      maxLength={3}
                     />
                   </View>
                 </View>
               </View>
-            )}
 
-            <View style={{ height: 20 }} />
-          </ScrollView>
-        )}
+              {/* Additional Info */}
+              {user && user.role !== "Customer" && (
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>
+                    {t("userDetail.additionalInfo", "Additional Information")}
+                  </Text>
 
-        {/* Footer Buttons */}
-        <View style={styles.footer}>
-          <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={onClose}
-            disabled={loading}
-          >
-            <Text style={styles.cancelButtonText}>
-              {t("common.cancel", "Cancel")}
-            </Text>
-          </TouchableOpacity>
+                  <View style={styles.inputFieldContainer}>
+                    <Text style={styles.inputLabel}>
+                      {t("userDetail.experience", "Experience")} (
+                      {t("userDetail.years", "years")})
+                    </Text>
+                    <View style={styles.inputWithUnit}>
+                      <TextInput
+                        style={styles.textInput}
+                        placeholder={t(
+                          "userDetail.enterExperience",
+                          "Enter years of experience"
+                        )}
+                        value={formData.experience}
+                        onChangeText={(value) =>
+                          handleInputChange("experience", value)
+                        }
+                        keyboardType="decimal-pad"
+                        placeholderTextColor="#ccc"
+                        blurOnSubmit={false}
+                        returnKeyType="next"
+                      />
+                    </View>
+                  </View>
 
-          <TouchableOpacity
-            style={[
-              styles.submitButton,
-              loading && styles.submitButtonDisabled,
-            ]}
-            onPress={handleSubmit}
-            disabled={loading}
-          >
-            {loading ? (
-              <LoadingIndicator variant="button" />
-            ) : (
-              <>
-                <Ionicons name="checkmark" size={20} color="#fff" />
-                <Text style={styles.submitButtonText}>
-                  {t("common.save", "Save")}
-                </Text>
-              </>
-            )}
-          </TouchableOpacity>
+                  <View style={styles.inputFieldContainer}>
+                    <Text style={styles.inputLabel}>
+                      {t("profile.bio", "Bio")}
+                    </Text>
+                    <View style={styles.textAreaContainer}>
+                      <TextInput
+                        style={styles.textArea}
+                        placeholder={t("profile.enterBio", "Enter your bio")}
+                        value={formData.bio}
+                        onChangeText={(value) =>
+                          handleInputChange("bio", value)
+                        }
+                        multiline
+                        numberOfLines={4}
+                        placeholderTextColor="#ccc"
+                        textAlignVertical="top"
+                      />
+                    </View>
+                  </View>
+                </View>
+              )}
+
+              <View style={{ height: 20 }} />
+            </ScrollView>
+          )}
+
+          {/* Footer Buttons */}
+          <View style={styles.footer}>
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={onClose}
+              disabled={loading}
+            >
+              <Text style={styles.cancelButtonText}>
+                {t("common.cancel", "Cancel")}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.submitButton,
+                loading && styles.submitButtonDisabled,
+              ]}
+              onPress={handleSubmit}
+              disabled={loading}
+            >
+              {loading ? (
+                <LoadingIndicator variant="button" />
+              ) : (
+                <>
+                  <Ionicons name="checkmark" size={20} color="#fff" />
+                  <Text style={styles.submitButtonText}>
+                    {t("common.save", "Save")}
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </>
   );
 };
@@ -487,14 +510,17 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     zIndex: 999,
   },
-  container: {
+  keyboardAvoidingView: {
     position: "absolute",
     top: 100,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "#fff",
     zIndex: 1000,
+  },
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
     maxHeight: 700,
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
