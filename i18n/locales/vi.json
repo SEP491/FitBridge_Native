@@ -1254,7 +1254,8 @@
     "enterPrice": "Nhập giá",
     "enterDurationInDays": "Nhập thời hạn (ngày)",
     "enterSessionDuration": "Nhập thời lượng buổi tập",
-    "enterNumberOfSessions": "Nhập số buổi tập"
+    "enterNumberOfSessions": "Nhập số buổi tập",
+    "create": "Tạo"
   },
 
   "languageSelect": {

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -14,24 +14,24 @@ import {
   Platform,
   Linking,
   Switch,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useTranslation } from '../../../hooks/useTranslation';
-import freelancePTPackageService from '../../../services/freelancePTPackageService';
-import uploadImageService from '../../../services/uploadImageService';
-import * as ImagePicker from 'expo-image-picker';
-import LoadingIndicator from '../../../components/LoadingIndicator';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "../../../hooks/useTranslation";
+import freelancePTPackageService from "../../../services/freelancePTPackageService";
+import uploadImageService from "../../../services/uploadImageService";
+import * as ImagePicker from "expo-image-picker";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 const CreatePackageModal = ({ visible, onClose, onPackageCreated }) => {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    price: '',
-    durationInDays: '',
-    sessionDurationInMinutes: '',
-    numOfSessions: '',
+    name: "",
+    description: "",
+    price: "",
+    durationInDays: "",
+    sessionDurationInMinutes: "",
+    numOfSessions: "",
     isDisplayed: true,
   });
   const [selectedImage, setSelectedImage] = useState(null); // Local URI for preview
@@ -49,60 +49,60 @@ const CreatePackageModal = ({ visible, onClose, onPackageCreated }) => {
   }, [visible]);
 
   const handleInputChange = (field, value) => {
-    if (field === 'price') {
+    if (field === "price") {
       // Remove all non-numeric characters (dots, commas, spaces)
-      const numericValue = value.replace(/[^0-9]/g, '');
-      setFormData(prev => ({ ...prev, [field]: numericValue }));
+      const numericValue = value.replace(/[^0-9]/g, "");
+      setFormData((prev) => ({ ...prev, [field]: numericValue }));
     } else {
-      setFormData(prev => ({ ...prev, [field]: value }));
+      setFormData((prev) => ({ ...prev, [field]: value }));
     }
   };
 
   const uploadImage = async (imageUri) => {
     try {
       setUploadingImage(true);
-      
+
       // Create FormData for image upload
       const formDataImg = new FormData();
-      
+
       // Extract filename from URI
-      const uriParts = imageUri.split('/');
+      const uriParts = imageUri.split("/");
       let fileName = uriParts[uriParts.length - 1];
-      
+
       // If filename doesn't have an extension, add one
-      if (!fileName.includes('.')) {
+      if (!fileName.includes(".")) {
         fileName = `image_${Date.now()}.jpg`;
       }
-      
+
       // Determine file type from filename or default to jpeg
-      const fileExtension = fileName.split('.').pop().toLowerCase();
-      let mimeType = 'image/jpeg'; // default
-      
-      if (fileExtension === 'png') {
-        mimeType = 'image/png';
-      } else if (fileExtension === 'jpg' || fileExtension === 'jpeg') {
-        mimeType = 'image/jpeg';
-      } else if (fileExtension === 'gif') {
-        mimeType = 'image/gif';
-      } else if (fileExtension === 'webp') {
-        mimeType = 'image/webp';
+      const fileExtension = fileName.split(".").pop().toLowerCase();
+      let mimeType = "image/jpeg"; // default
+
+      if (fileExtension === "png") {
+        mimeType = "image/png";
+      } else if (fileExtension === "jpg" || fileExtension === "jpeg") {
+        mimeType = "image/jpeg";
+      } else if (fileExtension === "gif") {
+        mimeType = "image/gif";
+      } else if (fileExtension === "webp") {
+        mimeType = "image/webp";
       }
-      
+
       // For React Native, we need to structure the file object properly
-      formDataImg.append('file', {
-        uri: Platform.OS === 'ios' ? imageUri.replace('file://', '') : imageUri,
+      formDataImg.append("file", {
+        uri: Platform.OS === "ios" ? imageUri.replace("file://", "") : imageUri,
         name: fileName,
         type: mimeType,
       });
 
       const uploadResponse = await uploadImageService.uploadImage(formDataImg);
-      
+
       if (uploadResponse.status === "200" && uploadResponse.data) {
         setUploadedImageUrl(uploadResponse.data);
         setSelectedImage(imageUri); // Keep for preview
         Alert.alert(
           t("managePackage.success"),
-          "Image uploaded successfully!"
+          t("managePackage.imageUploadedSuccess")
         );
       } else {
         throw new Error("Failed to upload image");
@@ -111,10 +111,13 @@ const CreatePackageModal = ({ visible, onClose, onPackageCreated }) => {
       console.error("Error uploading image:", error);
       Alert.alert(
         t("managePackage.error"),
-        "Failed to upload image. Please try again.",
+        t("managePackage.failedToUploadImage"),
         [
-          { text: "Cancel", style: "cancel" },
-          { text: "Retry", onPress: () => uploadImage(imageUri) }
+          { text: t("managePackage.cancel"), style: "cancel" },
+          {
+            text: t("managePackage.retry"),
+            onPress: () => uploadImage(imageUri),
+          },
         ]
       );
       setSelectedImage(null);
@@ -127,25 +130,26 @@ const CreatePackageModal = ({ visible, onClose, onPackageCreated }) => {
   const pickImage = async () => {
     try {
       // Request permission to access media library
-      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      
+      const permissionResult =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+
       if (permissionResult.granted === false) {
         Alert.alert(
           t("managePackage.error"),
-          "Permission to access gallery is required to upload an image. Please enable it in your device settings.",
+          t("managePackage.galleryPermissionRequired"),
           [
-            { text: "Cancel", style: "cancel" },
-            { 
-              text: "Open Settings", 
+            { text: t("managePackage.cancel"), style: "cancel" },
+            {
+              text: t("managePackage.openSettings"),
               onPress: () => {
                 // For iOS and Android, you can use Linking to open settings
-                if (Platform.OS === 'ios') {
-                  Linking.openURL('app-settings:');
+                if (Platform.OS === "ios") {
+                  Linking.openURL("app-settings:");
                 } else {
                   Linking.openSettings();
                 }
-              }
-            }
+              },
+            },
           ]
         );
         return;
@@ -163,34 +167,58 @@ const CreatePackageModal = ({ visible, onClose, onPackageCreated }) => {
         await uploadImage(result.assets[0].uri);
       }
     } catch (error) {
-      console.error('Error picking image:', error);
-      Alert.alert(t("managePackage.error"), "Failed to pick image");
+      console.error("Error picking image:", error);
+      Alert.alert(
+        t("managePackage.error"),
+        t("managePackage.failedToPickImage")
+      );
     }
   };
 
   const validateForm = () => {
     if (!formData.name.trim()) {
-      Alert.alert(t("managePackage.error"), "Package name is required");
+      Alert.alert(
+        t("managePackage.error"),
+        t("managePackage.packageNameRequired")
+      );
       return false;
     }
     if (!formData.price || parseFloat(formData.price) <= 0) {
-      Alert.alert(t("managePackage.error"), "Valid price is required");
+      Alert.alert(
+        t("managePackage.error"),
+        t("managePackage.validPriceRequired")
+      );
       return false;
     }
     if (!formData.durationInDays || parseInt(formData.durationInDays) <= 0) {
-      Alert.alert(t("managePackage.error"), "Valid duration is required");
+      Alert.alert(
+        t("managePackage.error"),
+        t("managePackage.validDurationRequired")
+      );
       return false;
     }
-    if (!formData.sessionDurationInMinutes || parseInt(formData.sessionDurationInMinutes) <= 0) {
-      Alert.alert(t("managePackage.error"), "Valid session duration is required");
+    if (
+      !formData.sessionDurationInMinutes ||
+      parseInt(formData.sessionDurationInMinutes) <= 0
+    ) {
+      Alert.alert(
+        t("managePackage.error"),
+        t("managePackage.validSessionDurationRequired")
+      );
       return false;
     }
     if (parseInt(formData.sessionDurationInMinutes) < 60) {
-      Alert.alert(t("managePackage.error"), "Session duration must be greater than 60 minutes");
+      Alert.alert(
+        t("managePackage.error"),
+        t("managePackage.sessionDurationMin60")
+      );
       return false;
     }
     if (!formData.numOfSessions || parseInt(formData.numOfSessions) <= 0) {
-      Alert.alert(t("managePackage.error"), "Valid number of sessions is required");
+      Alert.alert(
+        t("managePackage.error"),
+        t("managePackage.validNumberOfSessionsRequired")
+      );
       return false;
     }
     return true;
@@ -201,10 +229,10 @@ const CreatePackageModal = ({ visible, onClose, onPackageCreated }) => {
 
     try {
       setLoading(true);
-      
+
       // Use uploaded image URL or default
-      const imageUrl = uploadedImageUrl || 'string';
-      
+      const imageUrl = uploadedImageUrl || "string";
+
       const packageData = {
         name: formData.name.trim(),
         description: formData.description.trim(),
@@ -216,7 +244,9 @@ const CreatePackageModal = ({ visible, onClose, onPackageCreated }) => {
         isDisplayed: formData.isDisplayed,
       };
 
-      const response = await freelancePTPackageService.createFreelancePTPackage(packageData);
+      const response = await freelancePTPackageService.createFreelancePTPackage(
+        packageData
+      );
 
       if (response.status === "200" || response.status === "201") {
         Alert.alert(
@@ -243,12 +273,12 @@ const CreatePackageModal = ({ visible, onClose, onPackageCreated }) => {
 
   const handleClose = () => {
     setFormData({
-      name: '',
-      description: '',
-      price: '',
-      durationInDays: '',
-      sessionDurationInMinutes: '',
-      numOfSessions: '',
+      name: "",
+      description: "",
+      price: "",
+      durationInDays: "",
+      sessionDurationInMinutes: "",
+      numOfSessions: "",
       isDisplayed: true,
     });
     setSelectedImage(null);
@@ -275,9 +305,9 @@ const CreatePackageModal = ({ visible, onClose, onPackageCreated }) => {
       transparent={true}
       onRequestClose={handleClose}
     >
-      <KeyboardAvoidingView 
+      <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -286,216 +316,259 @@ const CreatePackageModal = ({ visible, onClose, onPackageCreated }) => {
               <Text style={styles.modalTitle}>
                 {t("managePackage.createNewPackage")}
               </Text>
-              <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
+              <TouchableOpacity
+                onPress={handleClose}
+                style={styles.closeButton}
+              >
                 <Ionicons name="close" size={24} color="#666" />
               </TouchableOpacity>
             </View>
 
             {/* Form */}
-            <ScrollView 
+            <ScrollView
               ref={scrollViewRef}
-              style={styles.formContainer} 
+              style={styles.formContainer}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
             >
-            {/* Image Picker */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Package Image</Text>
-              <TouchableOpacity 
-                style={styles.imagePicker} 
-                onPress={pickImage}
-                disabled={uploadingImage}
-              >
-                {uploadingImage ? (
-                  <View style={styles.imagePickerPlaceholder}>
-                    <LoadingIndicator variant="inline" message="Uploading image..." />
-                  </View>
-                ) : selectedImage && uploadedImageUrl ? (
-                  <View style={{ flex: 1 }}>
-                    <Image source={{ uri: selectedImage }} style={styles.previewImage} />
-                    <View style={styles.imageSuccessBadge}>
-                      <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
-                      <Text style={styles.imageSuccessText}>Uploaded</Text>
-                    </View>
-                  </View>
-                ) : (
-                  <View style={styles.imagePickerPlaceholder}>
-                    <Ionicons name="image-outline" size={48} color="#999" />
-                    <Text style={styles.imagePickerText}>Tap to select and upload image</Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-              {uploadedImageUrl && (
-                <TouchableOpacity 
-                  style={styles.changeImageButton}
+              {/* Image Picker */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>
+                  {t("managePackage.packageImage")}
+                </Text>
+                <TouchableOpacity
+                  style={styles.imagePicker}
                   onPress={pickImage}
                   disabled={uploadingImage}
                 >
-                  <Ionicons name="refresh" size={16} color="#ED2A46" />
-                  <Text style={styles.changeImageText}>Change Image</Text>
+                  {uploadingImage ? (
+                    <View style={styles.imagePickerPlaceholder}>
+                      <LoadingIndicator
+                        variant="inline"
+                        message={t("managePackage.uploadingImage")}
+                      />
+                    </View>
+                  ) : selectedImage && uploadedImageUrl ? (
+                    <View style={{ flex: 1 }}>
+                      <Image
+                        source={{ uri: selectedImage }}
+                        style={styles.previewImage}
+                      />
+                      <View style={styles.imageSuccessBadge}>
+                        <Ionicons
+                          name="checkmark-circle"
+                          size={24}
+                          color="#4CAF50"
+                        />
+                        <Text style={styles.imageSuccessText}>
+                          {t("managePackage.uploaded")}
+                        </Text>
+                      </View>
+                    </View>
+                  ) : (
+                    <View style={styles.imagePickerPlaceholder}>
+                      <Ionicons name="image-outline" size={48} color="#999" />
+                      <Text style={styles.imagePickerText}>
+                        {t("managePackage.tapToSelectImage")}
+                      </Text>
+                    </View>
+                  )}
                 </TouchableOpacity>
-              )}
-            </View>
+                {uploadedImageUrl && (
+                  <TouchableOpacity
+                    style={styles.changeImageButton}
+                    onPress={pickImage}
+                    disabled={uploadingImage}
+                  >
+                    <Ionicons name="refresh" size={16} color="#ED2A46" />
+                    <Text style={styles.changeImageText}>
+                      {t("managePackage.changeImage")}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
 
-            {/* Package Name */}
-            <View 
-              style={styles.inputGroup}
-              ref={(ref) => (inputRefs.current['name'] = ref)}
-            >
-              <Text style={styles.label}>
-                {t("managePackage.packageName")} *
-              </Text>
-              <TextInput
-                style={styles.input}
-                value={formData.name}
-                onChangeText={(value) => handleInputChange('name', value)}
-                onFocus={() => scrollToInput('name')}
-                placeholder="Enter package name"
-                placeholderTextColor="#999"
-              />
-            </View>
-
-            {/* Description */}
-            <View 
-              style={styles.inputGroup}
-              ref={(ref) => (inputRefs.current['description'] = ref)}
-            >
-              <Text style={styles.label}>
-                {t("managePackage.description")}
-              </Text>
-              <TextInput
-                style={[styles.input, styles.textArea]}
-                value={formData.description}
-                onChangeText={(value) => handleInputChange('description', value)}
-                onFocus={() => scrollToInput('description')}
-                placeholder="Enter package description"
-                placeholderTextColor="#999"
-                multiline
-                numberOfLines={4}
-                textAlignVertical="top"
-              />
-            </View>
-
-            {/* Price */}
-            <View 
-              style={styles.inputGroup}
-              ref={(ref) => (inputRefs.current['price'] = ref)}
-            >
-              <Text style={styles.label}>
-                {t("managePackage.price")} (VND) *
-              </Text>
-              <TextInput
-                style={styles.input}
-                value={formData.price ? parseInt(formData.price).toLocaleString('vi-VN') : ''}
-                onChangeText={(value) => handleInputChange('price', value)}
-                onFocus={() => scrollToInput('price')}
-                placeholder="Enter price"
-                placeholderTextColor="#999"
-                keyboardType="numeric"
-              />
-            </View>
-
-            {/* Expiration in Days */}
-            <View 
-              style={styles.inputGroup}
-              ref={(ref) => (inputRefs.current['durationInDays'] = ref)}
-            >
-              <Text style={styles.label}>
-                {t("managePackage.expiration")} ({t("managePackage.days")}) *
-              </Text>
-              <TextInput
-                style={styles.input}
-                value={formData.durationInDays}
-                onChangeText={(value) => handleInputChange('durationInDays', value)}
-                onFocus={() => scrollToInput('durationInDays')}
-                placeholder="Enter duration in days"
-                placeholderTextColor="#999"
-                keyboardType="numeric"
-              />
-            </View>
-
-            {/* Session Duration */}
-            <View 
-              style={styles.inputGroup}
-              ref={(ref) => (inputRefs.current['sessionDurationInMinutes'] = ref)}
-            >
-              <Text style={styles.label}>
-                {t("managePackage.sessionDuration")} ({t("managePackage.minutes")}) *
-              </Text>
-              <TextInput
-                style={styles.input}
-                value={formData.sessionDurationInMinutes}
-                onChangeText={(value) => handleInputChange('sessionDurationInMinutes', value)}
-                onFocus={() => scrollToInput('sessionDurationInMinutes')}
-                placeholder="Enter session duration"
-                placeholderTextColor="#999"
-                keyboardType="numeric"
-              />
-            </View>
-
-            {/* Number of Sessions */}
-            <View 
-              style={styles.inputGroup}
-              ref={(ref) => (inputRefs.current['numOfSessions'] = ref)}
-            >
-              <Text style={styles.label}>
-                {t("managePackage.numberOfSessions")} *
-              </Text>
-              <TextInput
-                style={styles.input}
-                value={formData.numOfSessions}
-                onChangeText={(value) => handleInputChange('numOfSessions', value)}
-                onFocus={() => scrollToInput('numOfSessions')}
-                placeholder="Enter number of sessions"
-                placeholderTextColor="#999"
-                keyboardType="numeric"
-              />
-            </View>
-
-            {/* Display Package Toggle */}
-            <View style={styles.inputGroup}>
-              <View style={styles.switchContainer}>
-                <View style={styles.switchLabelContainer}>
-                  <Ionicons name="eye-outline" size={20} color="#333" />
-                  <Text style={styles.switchLabel}>
-                    {t("managePackage.displayPackage") || "Display Package"}
-                  </Text>
-                </View>
-                <Switch
-                  value={formData.isDisplayed}
-                  onValueChange={(value) => handleInputChange('isDisplayed', value)}
-                  trackColor={{ false: '#e5e7eb', true: '#ED2A46' }}
-                  thumbColor={formData.isDisplayed ? '#fff' : '#f4f3f4'}
+              {/* Package Name */}
+              <View
+                style={styles.inputGroup}
+                ref={(ref) => (inputRefs.current["name"] = ref)}
+              >
+                <Text style={styles.label}>
+                  {t("managePackage.packageName")} *
+                </Text>
+                <TextInput
+                  style={styles.input}
+                  value={formData.name}
+                  onChangeText={(value) => handleInputChange("name", value)}
+                  onFocus={() => scrollToInput("name")}
+                  placeholder={t("managePackage.enterPackageName")}
+                  placeholderTextColor="#999"
                 />
               </View>
-              <Text style={styles.switchHelperText}>
-                {t("managePackage.displayPackageHelper") || "When enabled, this package will be visible to customers"}
-              </Text>
-            </View>
-          </ScrollView>
 
-          {/* Footer Buttons */}
-          <View style={styles.modalFooter}>
-            <TouchableOpacity
-              style={[styles.button, styles.cancelButton]}
-              onPress={handleClose}
-              disabled={loading}
-            >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.button, styles.createButton]}
-              onPress={handleCreate}
-              disabled={loading}
-            >
-              {loading ? (
-                <LoadingIndicator variant="button" />
-              ) : (
-                <Text style={styles.createButtonText}>Create</Text>
-              )}
-            </TouchableOpacity>
+              {/* Description */}
+              <View
+                style={styles.inputGroup}
+                ref={(ref) => (inputRefs.current["description"] = ref)}
+              >
+                <Text style={styles.label}>
+                  {t("managePackage.description")}
+                </Text>
+                <TextInput
+                  style={[styles.input, styles.textArea]}
+                  value={formData.description}
+                  onChangeText={(value) =>
+                    handleInputChange("description", value)
+                  }
+                  onFocus={() => scrollToInput("description")}
+                  placeholder={t("managePackage.enterPackageDescription")}
+                  placeholderTextColor="#999"
+                  multiline
+                  numberOfLines={4}
+                  textAlignVertical="top"
+                />
+              </View>
+
+              {/* Price */}
+              <View
+                style={styles.inputGroup}
+                ref={(ref) => (inputRefs.current["price"] = ref)}
+              >
+                <Text style={styles.label}>
+                  {t("managePackage.price")} (VND) *
+                </Text>
+                <TextInput
+                  style={styles.input}
+                  value={
+                    formData.price
+                      ? parseInt(formData.price).toLocaleString("vi-VN")
+                      : ""
+                  }
+                  onChangeText={(value) => handleInputChange("price", value)}
+                  onFocus={() => scrollToInput("price")}
+                  placeholder={t("managePackage.enterPrice")}
+                  placeholderTextColor="#999"
+                  keyboardType="numeric"
+                />
+              </View>
+
+              {/* Expiration in Days */}
+              <View
+                style={styles.inputGroup}
+                ref={(ref) => (inputRefs.current["durationInDays"] = ref)}
+              >
+                <Text style={styles.label}>
+                  {t("managePackage.expiration")} ({t("managePackage.days")}) *
+                </Text>
+                <TextInput
+                  style={styles.input}
+                  value={formData.durationInDays}
+                  onChangeText={(value) =>
+                    handleInputChange("durationInDays", value)
+                  }
+                  onFocus={() => scrollToInput("durationInDays")}
+                  placeholder={t("managePackage.enterDurationInDays")}
+                  placeholderTextColor="#999"
+                  keyboardType="numeric"
+                />
+              </View>
+
+              {/* Session Duration */}
+              <View
+                style={styles.inputGroup}
+                ref={(ref) =>
+                  (inputRefs.current["sessionDurationInMinutes"] = ref)
+                }
+              >
+                <Text style={styles.label}>
+                  {t("managePackage.sessionDuration")} (
+                  {t("managePackage.minutes")}) *
+                </Text>
+                <TextInput
+                  style={styles.input}
+                  value={formData.sessionDurationInMinutes}
+                  onChangeText={(value) =>
+                    handleInputChange("sessionDurationInMinutes", value)
+                  }
+                  onFocus={() => scrollToInput("sessionDurationInMinutes")}
+                  placeholder={t("managePackage.enterSessionDuration")}
+                  placeholderTextColor="#999"
+                  keyboardType="numeric"
+                />
+              </View>
+
+              {/* Number of Sessions */}
+              <View
+                style={styles.inputGroup}
+                ref={(ref) => (inputRefs.current["numOfSessions"] = ref)}
+              >
+                <Text style={styles.label}>
+                  {t("managePackage.numberOfSessions")} *
+                </Text>
+                <TextInput
+                  style={styles.input}
+                  value={formData.numOfSessions}
+                  onChangeText={(value) =>
+                    handleInputChange("numOfSessions", value)
+                  }
+                  onFocus={() => scrollToInput("numOfSessions")}
+                  placeholder={t("managePackage.enterNumberOfSessions")}
+                  placeholderTextColor="#999"
+                  keyboardType="numeric"
+                />
+              </View>
+
+              {/* Display Package Toggle */}
+              <View style={styles.inputGroup}>
+                <View style={styles.switchContainer}>
+                  <View style={styles.switchLabelContainer}>
+                    <Ionicons name="eye-outline" size={20} color="#333" />
+                    <Text style={styles.switchLabel}>
+                      {t("managePackage.displayPackage") || "Display Package"}
+                    </Text>
+                  </View>
+                  <Switch
+                    value={formData.isDisplayed}
+                    onValueChange={(value) =>
+                      handleInputChange("isDisplayed", value)
+                    }
+                    trackColor={{ false: "#e5e7eb", true: "#ED2A46" }}
+                    thumbColor={formData.isDisplayed ? "#fff" : "#f4f3f4"}
+                  />
+                </View>
+                <Text style={styles.switchHelperText}>
+                  {t("managePackage.displayPackageHelper") ||
+                    "When enabled, this package will be visible to customers"}
+                </Text>
+              </View>
+            </ScrollView>
+
+            {/* Footer Buttons */}
+            <View style={styles.modalFooter}>
+              <TouchableOpacity
+                style={[styles.button, styles.cancelButton]}
+                onPress={handleClose}
+                disabled={loading}
+              >
+                <Text style={styles.cancelButtonText}>
+                  {t("managePackage.cancel")}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, styles.createButton]}
+                onPress={handleCreate}
+                disabled={loading}
+              >
+                {loading ? (
+                  <LoadingIndicator variant="button" />
+                ) : (
+                  <Text style={styles.createButtonText}>
+                    {t("managePackage.create")}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
         </View>
       </KeyboardAvoidingView>
     </Modal>
@@ -505,28 +578,28 @@ const CreatePackageModal = ({ visible, onClose, onPackageCreated }) => {
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "flex-end",
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    maxHeight: '90%',
+    maxHeight: "90%",
     paddingBottom: 20,
   },
   modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    borderBottomColor: "#e5e7eb",
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: '700',
-    color: '#333',
+    fontWeight: "700",
+    color: "#333",
   },
   closeButton: {
     padding: 4,
@@ -539,18 +612,18 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: "#e5e7eb",
     borderRadius: 12,
     padding: 12,
     fontSize: 16,
-    color: '#333',
-    backgroundColor: '#fff',
+    color: "#333",
+    backgroundColor: "#fff",
   },
   textArea: {
     height: 100,
@@ -558,40 +631,40 @@ const styles = StyleSheet.create({
   },
   imagePicker: {
     borderWidth: 2,
-    borderColor: '#e5e7eb',
-    borderStyle: 'dashed',
+    borderColor: "#e5e7eb",
+    borderStyle: "dashed",
     borderRadius: 12,
-    overflow: 'hidden',
+    overflow: "hidden",
     height: 180,
   },
   imagePickerPlaceholder: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f8f9fa',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f8f9fa",
   },
   imagePickerText: {
     marginTop: 12,
     fontSize: 14,
-    color: '#999',
+    color: "#999",
   },
   previewImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
   },
   imageSuccessBadge: {
-    position: 'absolute',
+    position: "absolute",
     top: 12,
     right: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
     gap: 6,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -599,73 +672,73 @@ const styles = StyleSheet.create({
   },
   imageSuccessText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#4CAF50',
+    fontWeight: "600",
+    color: "#4CAF50",
   },
   changeImageButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     marginTop: 8,
     paddingVertical: 8,
     gap: 6,
   },
   changeImageText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#ED2A46',
+    fontWeight: "600",
+    color: "#ED2A46",
   },
   modalFooter: {
-    flexDirection: 'row',
+    flexDirection: "row",
     paddingHorizontal: 20,
     paddingTop: 16,
     gap: 12,
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
+    borderTopColor: "#e5e7eb",
   },
   button: {
     flex: 1,
     padding: 16,
     borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   cancelButton: {
-    backgroundColor: '#f3f4f6',
+    backgroundColor: "#f3f4f6",
   },
   cancelButtonText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#666',
+    fontWeight: "600",
+    color: "#666",
   },
   createButton: {
-    backgroundColor: '#ED2A46',
+    backgroundColor: "#ED2A46",
   },
   createButtonText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
+    fontWeight: "600",
+    color: "#fff",
   },
   switchContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 8,
   },
   switchLabelContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
     flex: 1,
   },
   switchLabel: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
   },
   switchHelperText: {
     fontSize: 12,
-    color: '#666',
+    color: "#666",
     marginTop: 4,
     marginLeft: 28,
   },
