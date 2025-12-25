@@ -372,6 +372,31 @@ export const CreateUserGoalForm = ({
   };
 
   const handleSubmit = () => {
+    // Validate minimum 5 parts in current measurements
+    if (selectedCurrentParts.length < 1) {
+      Alert.alert(
+        t("common.validation", "Validation"),
+        t(
+          "userGoals.minimumCurrentParts",
+          "Please select at least 5 parts in Current Measurements"
+        )
+      );
+      return;
+    }
+
+    // Validate minimum 5 parts in target measurements
+    if (selectedTargetParts.length < 1) {
+      Alert.alert(
+        t("common.validation", "Validation"),
+        t(
+          "userGoals.minimumTargetParts",
+          "Please select at least 5 parts in Target Measurements"
+        )
+      );
+      return;
+    }
+
+
     // Validate that selected current parts have values
     for (const partKey of selectedCurrentParts) {
       const fieldName = `start${partKey}`;
