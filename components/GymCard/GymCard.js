@@ -29,7 +29,7 @@ export default function GymCard({ gym, fullWidth = false, height = 140 }) {
         <Image
           source={{
             uri:
-              // gym?.gymImages[0]?.url ||
+              gym?.gymImages[0]?.url ||
               "https://thesaigontimes.vn/wp-content/uploads/2024/12/g1-2.jpeg",
           }}
           style={[styles.image, { height: height }]}

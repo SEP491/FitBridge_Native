@@ -339,421 +339,451 @@ export default function GymDetailScreen({ route }) {
             style={{ flex: 1 }}
           >
             <ScrollView
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-          }
-        >
-          {/* Enhanced Carousel with Overlay */}
-          <View style={styles.carouselContainer}>
-            <CarouselNative
-              width={width}
-              height={350}
-              autoPlay={true}
-              scrollAnimationDuration={1000}
-              style={styles.carousel}
-              data={
-                gymDetail?.gymImages || [
-                  "https://levelfyc.com/wp-content/uploads/2024/08/khong-gian-4.jpg",
-                ]
+              showsVerticalScrollIndicator={false}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={handleRefresh}
+                />
               }
-            />
-            <LinearGradient
-              colors={["transparent", "rgba(0,0,0,0.7)"]}
-              style={styles.carouselOverlay}
-            />
-          </View>
+            >
+              {/* Enhanced Carousel with Overlay */}
+              <View style={styles.carouselContainer}>
+                <CarouselNative
+                  width={width}
+                  height={350}
+                  autoPlay={true}
+                  scrollAnimationDuration={1000}
+                  style={styles.carousel}
+                  data={
+                    gymDetail?.gymImages && gymDetail.gymImages.length > 0
+                      ? gymDetail.gymImages.map((image) =>
+                          typeof image === "string" ? { url: image } : image
+                        )
+                      : [
+                          {
+                            url: "https://levelfyc.com/wp-content/uploads/2024/08/khong-gian-4.jpg",
+                          },
+                        ]
+                  }
+                />
+                <LinearGradient
+                  colors={["transparent", "rgba(0,0,0,0.7)"]}
+                  style={styles.carouselOverlay}
+                />
+              </View>
 
-          {/* Enhanced Main Card */}
-          <View style={styles.cardDetail}>
-            <View style={styles.headerSection}>
-              <View style={styles.titleContainer}>
-                <Text style={styles.gymName}>{gymDetail?.gymName}</Text>
-                {gymDetail.hotResearch && (
-                  <View style={styles.hotBadge}>
-                    <FontAwesome6 name="fire" size={14} color="#FFF" />
-                    <Text style={styles.hotText}>HOT</Text>
+              {/* Enhanced Main Card */}
+              <View style={styles.cardDetail}>
+                <View style={styles.headerSection}>
+                  <View style={styles.titleContainer}>
+                    <Text style={styles.gymName}>{gymDetail?.gymName}</Text>
+                    {gymDetail.hotResearch && (
+                      <View style={styles.hotBadge}>
+                        <FontAwesome6 name="fire" size={14} color="#FFF" />
+                        <Text style={styles.hotText}>HOT</Text>
+                      </View>
+                    )}
                   </View>
-                )}
-              </View>
 
-              <View style={styles.locationContainer}>
-                <Ionicons name="location-outline" size={16} color="#666" />
-                <Text style={styles.gymAddress}>{gymDetail?.gymAddress}</Text>
-              </View>
+                  <View style={styles.locationContainer}>
+                    <Ionicons name="location-outline" size={16} color="#666" />
+                    <Text style={styles.gymAddress}>
+                      {gymDetail?.gymAddress}
+                    </Text>
+                  </View>
 
-              <View style={styles.priceRatingContainer}>
-                <View style={styles.priceContainer}>
-                  <Text style={styles.priceLabel}>{t("gymDetail.from")}</Text>
-                  <Text style={styles.gymStartPrice}>
-                    {formatPrice(lowestPackage)}
-                  </Text>
-                  <Text style={styles.priceUnit}>
-                    {t("gymDetail.perMonth")}
-                  </Text>
+                  <View style={styles.priceRatingContainer}>
+                    <View style={styles.priceContainer}>
+                      <Text style={styles.priceLabel}>
+                        {t("gymDetail.from")}
+                      </Text>
+                      <Text style={styles.gymStartPrice}>
+                        {formatPrice(lowestPackage)}
+                      </Text>
+                      <Text style={styles.priceUnit}>
+                        {t("gymDetail.perMonth")}
+                      </Text>
+                    </View>
+                    <View style={styles.ratingBadge}>
+                      <Ionicons name="star" size={16} color="#FFD700" />
+                      <Text style={styles.ratingText}>
+                        {formatNumber(averageRating.toFixed(1))}
+                      </Text>
+                      <Text style={styles.reviewCount}>({totalReviews})</Text>
+                    </View>
+                  </View>
                 </View>
-                <View style={styles.ratingBadge}>
-                  <Ionicons name="star" size={16} color="#FFD700" />
-                  <Text style={styles.ratingText}>
-                    {formatNumber(averageRating.toFixed(1))}
-                  </Text>
-                  <Text style={styles.reviewCount}>({totalReviews})</Text>
-                </View>
-              </View>
-            </View>
 
-            {/* Enhanced Action Buttons */}
-            <View style={styles.actionButtonsContainer}>
-              <TouchableOpacity
-                style={[styles.actionButton, styles.secondaryButton]}
-                onPress={() => navigation.navigate("PTInGymScreen", { gymId })}
-              >
-                <MaterialIcons
-                  name="fitness-center"
-                  size={20}
-                  color="#ED2A46"
-                />
-                <Text style={styles.secondaryButtonText}>
-                  {t("gymDetail.trainerList")}
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.actionButton, styles.primaryButton]}
-                onPress={() => setPackageSelectionVisible(true)}
-              >
-                <Ionicons name="list-outline" size={20} color="#FFF" />
-                <Text style={styles.primaryButtonText}>
-                  {t("gymDetail.packages")}
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Enhanced Description Section */}
-            <View style={styles.sectionContainer}>
-              <View style={styles.sectionHeader}>
-                <Ionicons
-                  name="information-circle-outline"
-                  size={20}
-                  color="#ED2A46"
-                />
-                <Text style={styles.sectionTitle}>
-                  {t("gymDetail.description")}
-                </Text>
-              </View>
-              <Text style={styles.descriptionText}>
-                {gymDetail?.gymDescription ||
-                  "No description available for this gym."}
-              </Text>
-            </View>
-
-            {/* Gym Equipment Section */}
-            {gymDetail?.gymAssets &&
-              gymDetail.gymAssets.filter((a) => a.assetType === "Equipment")
-                .length > 0 && (
-                <View style={styles.sectionContainer}>
-                  <View style={styles.sectionHeader}>
+                {/* Enhanced Action Buttons */}
+                <View style={styles.actionButtonsContainer}>
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.secondaryButton]}
+                    onPress={() =>
+                      navigation.navigate("PTInGymScreen", { gymId })
+                    }
+                  >
                     <MaterialIcons
                       name="fitness-center"
                       size={20}
                       color="#ED2A46"
                     />
-                    <Text style={styles.sectionTitle}>
-                      {t("gymDetail.equipment") || "Equipment"}
+                    <Text style={styles.secondaryButtonText}>
+                      {t("gymDetail.trainerList")}
                     </Text>
-                    <View style={styles.equipmentCountBadge}>
-                      <Text style={styles.equipmentCountText}>
-                        {
-                          gymDetail.gymAssets.filter(
-                            (a) => a.assetType === "Equipment"
-                          ).length
-                        }
-                      </Text>
-                    </View>
-                  </View>
+                  </TouchableOpacity>
 
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={styles.assetsScrollContainer}
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.primaryButton]}
+                    onPress={() => setPackageSelectionVisible(true)}
                   >
-                    {gymDetail.gymAssets
-                      .filter((a) => a.assetType === "Equipment")
-                      .map((asset) => (
-                        <View key={asset.id} style={styles.assetCard}>
-                          <Image
-                            source={{
-                              uri:
-                                asset.imageUrls &&
-                                asset.imageUrls.length > 0 &&
-                                !asset.imageUrls[0].includes("placeholder")
-                                  ? asset.imageUrls[0]
-                                  : "https://cdn-icons-png.flaticon.com/512/2548/2548530.png",
-                            }}
-                            style={styles.assetImage}
-                            resizeMode="cover"
-                          />
-                          <View style={styles.assetInfo}>
-                            <Text style={styles.assetName} numberOfLines={2}>
-                              {asset.assetName}
-                            </Text>
-                            <View style={styles.assetCategoryBadge}>
-                              <Text style={styles.assetCategoryText}>
-                                {asset.equipmentCategory}
-                              </Text>
-                            </View>
-                            <View style={styles.assetQuantityRow}>
-                              <Ionicons
-                                name="layers-outline"
-                                size={14}
-                                color="#666"
-                              />
-                              <Text style={styles.assetQuantity}>
-                                {t("gymDetail.quantity") || "Qty"}:{" "}
-                                {asset.quantity}
-                              </Text>
-                            </View>
-                            {asset.targetMuscularGroups &&
-                              asset.targetMuscularGroups.length > 0 && (
-                                <View style={styles.muscleGroupsContainer}>
-                                  {asset.targetMuscularGroups
-                                    .slice(0, 3)
-                                    .map((muscle, index) => (
-                                      <View
-                                        key={index}
-                                        style={styles.muscleTag}
-                                      >
-                                        <Text style={styles.muscleTagText}>
-                                          {muscle}
-                                        </Text>
-                                      </View>
-                                    ))}
-                                  {asset.targetMuscularGroups.length > 3 && (
-                                    <View style={styles.muscleTagMore}>
-                                      <Text style={styles.muscleTagMoreText}>
-                                        +{asset.targetMuscularGroups.length - 3}
-                                      </Text>
-                                    </View>
-                                  )}
-                                </View>
-                              )}
-                          </View>
-                        </View>
-                      ))}
-                  </ScrollView>
+                    <Ionicons name="list-outline" size={20} color="#FFF" />
+                    <Text style={styles.primaryButtonText}>
+                      {t("gymDetail.packages")}
+                    </Text>
+                  </TouchableOpacity>
                 </View>
-              )}
 
-            {/* Gym Facilities Section */}
-            {gymDetail?.gymAssets &&
-              gymDetail.gymAssets.filter((a) => a.assetType === "Facility")
-                .length > 0 && (
+                {/* Enhanced Description Section */}
                 <View style={styles.sectionContainer}>
                   <View style={styles.sectionHeader}>
                     <Ionicons
-                      name="business-outline"
+                      name="information-circle-outline"
                       size={20}
                       color="#ED2A46"
                     />
                     <Text style={styles.sectionTitle}>
-                      {t("gymDetail.facilities") || "Facilities"}
+                      {t("gymDetail.description")}
                     </Text>
-                    <View style={styles.equipmentCountBadge}>
-                      <Text style={styles.equipmentCountText}>
-                        {
-                          gymDetail.gymAssets.filter(
-                            (a) => a.assetType === "Facility"
-                          ).length
-                        }
-                      </Text>
+                  </View>
+                  <Text style={styles.descriptionText}>
+                    {gymDetail?.gymDescription ||
+                      "No description available for this gym."}
+                  </Text>
+                </View>
+
+                {/* Gym Equipment Section */}
+                {gymDetail?.gymAssets &&
+                  gymDetail.gymAssets.filter((a) => a.assetType === "Equipment")
+                    .length > 0 && (
+                    <View style={styles.sectionContainer}>
+                      <View style={styles.sectionHeader}>
+                        <MaterialIcons
+                          name="fitness-center"
+                          size={20}
+                          color="#ED2A46"
+                        />
+                        <Text style={styles.sectionTitle}>
+                          {t("gymDetail.equipment") || "Equipment"}
+                        </Text>
+                        <View style={styles.equipmentCountBadge}>
+                          <Text style={styles.equipmentCountText}>
+                            {
+                              gymDetail.gymAssets.filter(
+                                (a) => a.assetType === "Equipment"
+                              ).length
+                            }
+                          </Text>
+                        </View>
+                      </View>
+
+                      <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.assetsScrollContainer}
+                      >
+                        {gymDetail.gymAssets
+                          .filter((a) => a.assetType === "Equipment")
+                          .map((asset) => (
+                            <View key={asset.id} style={styles.assetCard}>
+                              <Image
+                                source={{
+                                  uri:
+                                    asset.imageUrls &&
+                                    asset.imageUrls.length > 0 &&
+                                    !asset.imageUrls[0].includes("placeholder")
+                                      ? asset.imageUrls[0]
+                                      : "https://cdn-icons-png.flaticon.com/512/2548/2548530.png",
+                                }}
+                                style={styles.assetImage}
+                                resizeMode="cover"
+                              />
+                              <View style={styles.assetInfo}>
+                                <Text
+                                  style={styles.assetName}
+                                  numberOfLines={2}
+                                >
+                                  {asset.assetName}
+                                </Text>
+                                <View style={styles.assetCategoryBadge}>
+                                  <Text style={styles.assetCategoryText}>
+                                    {asset.equipmentCategory}
+                                  </Text>
+                                </View>
+                                <View style={styles.assetQuantityRow}>
+                                  <Ionicons
+                                    name="layers-outline"
+                                    size={14}
+                                    color="#666"
+                                  />
+                                  <Text style={styles.assetQuantity}>
+                                    {t("gymDetail.quantity") || "Qty"}:{" "}
+                                    {asset.quantity}
+                                  </Text>
+                                </View>
+                                {asset.targetMuscularGroups &&
+                                  asset.targetMuscularGroups.length > 0 && (
+                                    <View style={styles.muscleGroupsContainer}>
+                                      {asset.targetMuscularGroups
+                                        .slice(0, 3)
+                                        .map((muscle, index) => (
+                                          <View
+                                            key={index}
+                                            style={styles.muscleTag}
+                                          >
+                                            <Text style={styles.muscleTagText}>
+                                              {muscle}
+                                            </Text>
+                                          </View>
+                                        ))}
+                                      {asset.targetMuscularGroups.length >
+                                        3 && (
+                                        <View style={styles.muscleTagMore}>
+                                          <Text
+                                            style={styles.muscleTagMoreText}
+                                          >
+                                            +
+                                            {asset.targetMuscularGroups.length -
+                                              3}
+                                          </Text>
+                                        </View>
+                                      )}
+                                    </View>
+                                  )}
+                              </View>
+                            </View>
+                          ))}
+                      </ScrollView>
                     </View>
+                  )}
+
+                {/* Gym Facilities Section */}
+                {gymDetail?.gymAssets &&
+                  gymDetail.gymAssets.filter((a) => a.assetType === "Facility")
+                    .length > 0 && (
+                    <View style={styles.sectionContainer}>
+                      <View style={styles.sectionHeader}>
+                        <Ionicons
+                          name="business-outline"
+                          size={20}
+                          color="#ED2A46"
+                        />
+                        <Text style={styles.sectionTitle}>
+                          {t("gymDetail.facilities") || "Facilities"}
+                        </Text>
+                        <View style={styles.equipmentCountBadge}>
+                          <Text style={styles.equipmentCountText}>
+                            {
+                              gymDetail.gymAssets.filter(
+                                (a) => a.assetType === "Facility"
+                              ).length
+                            }
+                          </Text>
+                        </View>
+                      </View>
+
+                      <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.assetsScrollContainer}
+                      >
+                        {gymDetail.gymAssets
+                          .filter((a) => a.assetType === "Facility")
+                          .map((asset) => (
+                            <View key={asset.id} style={styles.facilityCard}>
+                              <Image
+                                source={{
+                                  uri:
+                                    asset.imageUrls &&
+                                    asset.imageUrls.length > 0 &&
+                                    !asset.imageUrls[0].includes("placeholder")
+                                      ? asset.imageUrls[0]
+                                      : "https://cdn-icons-png.flaticon.com/512/3656/3656988.png",
+                                }}
+                                style={styles.facilityImage}
+                                resizeMode="cover"
+                              />
+                              <View style={styles.facilityInfo}>
+                                <Text
+                                  style={styles.facilityName}
+                                  numberOfLines={2}
+                                >
+                                  {asset.assetName}
+                                </Text>
+                                <Text
+                                  style={styles.facilityDescription}
+                                  numberOfLines={3}
+                                >
+                                  {asset.description}
+                                </Text>
+                              </View>
+                            </View>
+                          ))}
+                      </ScrollView>
+                    </View>
+                  )}
+
+                {/* Enhanced Map Section */}
+                <View style={styles.sectionContainer}>
+                  <View style={styles.sectionHeader}>
+                    <Ionicons name="map-outline" size={20} color="#ED2A46" />
+                    <Text style={styles.sectionTitle}>
+                      {t("gymDetail.location")}
+                    </Text>
                   </View>
 
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={styles.assetsScrollContainer}
-                  >
-                    {gymDetail.gymAssets
-                      .filter((a) => a.assetType === "Facility")
-                      .map((asset) => (
-                        <View key={asset.id} style={styles.facilityCard}>
-                          <Image
-                            source={{
-                              uri:
-                                asset.imageUrls &&
-                                asset.imageUrls.length > 0 &&
-                                !asset.imageUrls[0].includes("placeholder")
-                                  ? asset.imageUrls[0]
-                                  : "https://cdn-icons-png.flaticon.com/512/3656/3656988.png",
-                            }}
-                            style={styles.facilityImage}
-                            resizeMode="cover"
-                          />
-                          <View style={styles.facilityInfo}>
-                            <Text style={styles.facilityName} numberOfLines={2}>
-                              {asset.assetName}
-                            </Text>
-                            <Text
-                              style={styles.facilityDescription}
-                              numberOfLines={3}
-                            >
-                              {asset.description}
-                            </Text>
-                          </View>
-                        </View>
-                      ))}
-                  </ScrollView>
-                </View>
-              )}
-
-            {/* Enhanced Map Section */}
-            <View style={styles.sectionContainer}>
-              <View style={styles.sectionHeader}>
-                <Ionicons name="map-outline" size={20} color="#ED2A46" />
-                <Text style={styles.sectionTitle}>
-                  {t("gymDetail.location")}
-                </Text>
-              </View>
-
-              <View style={styles.mapContainer}>
-                <MapView
-                  ref={mapRef}
-                  style={styles.map}
-                  initialRegion={{
-                    longitude: gymDetail?.longitude || 106.6297,
-                    latitude: gymDetail?.latitude || 10.8231,
-                    longitudeDelta: 0.01,
-                    latitudeDelta: 0.01,
-                  }}
-                  showsPointsOfInterest={false}
-                  zoomEnabled={false}
-                  scrollEnabled={false}
-                >
-                  <Marker
-                    coordinate={{
-                      longitude: gymDetail?.longitude,
-                      latitude: gymDetail?.latitude,
-                    }}
-                    onPress={() => {
-                      navigation.navigate("MapStack", {
-                        screen: "MapScreen",
-                        params: {
+                  <View style={styles.mapContainer}>
+                    <MapView
+                      ref={mapRef}
+                      style={styles.map}
+                      initialRegion={{
+                        longitude: gymDetail?.longitude || 106.6297,
+                        latitude: gymDetail?.latitude || 10.8231,
+                        longitudeDelta: 0.01,
+                        latitudeDelta: 0.01,
+                      }}
+                      showsPointsOfInterest={false}
+                      zoomEnabled={false}
+                      scrollEnabled={false}
+                    >
+                      <Marker
+                        coordinate={{
                           longitude: gymDetail?.longitude,
                           latitude: gymDetail?.latitude,
-                        },
-                      });
-                    }}
-                    tracksViewChanges={true}
-                  >
-                    <View style={styles.markerContainer}>
-                      <Image
-                        source={require("../../../assets/images/LogoColor.png")}
-                        style={styles.markerImage}
-                      />
-                      {gymDetail.hotResearch && (
-                        <FontAwesome6 name="fire" size={20} color="#ED2A46" />
+                        }}
+                        onPress={() => {
+                          navigation.navigate("MapStack", {
+                            screen: "MapScreen",
+                            params: {
+                              longitude: gymDetail?.longitude,
+                              latitude: gymDetail?.latitude,
+                            },
+                          });
+                        }}
+                        tracksViewChanges={true}
+                      >
+                        <View style={styles.markerContainer}>
+                          <Image
+                            source={require("../../../assets/images/LogoColor.png")}
+                            style={styles.markerImage}
+                          />
+                          {gymDetail.hotResearch && (
+                            <FontAwesome6
+                              name="fire"
+                              size={20}
+                              color="#ED2A46"
+                            />
+                          )}
+                        </View>
+                      </Marker>
+                    </MapView>
+                    <TouchableOpacity
+                      style={styles.mapOverlay}
+                      onPress={() => {
+                        navigation.navigate("MapScreen", {
+                          params: {
+                            longitude: gymDetail?.longitude,
+                            latitude: gymDetail?.latitude,
+                          },
+                        });
+                      }}
+                    >
+                      <Text style={styles.mapOverlayText}>
+                        {t("gymDetail.viewFullMap")}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+
+              {/* Enhanced Reviews Section */}
+              <View style={styles.reviewsSection}>
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionTitle}>
+                    {averageRating.toFixed(1)}
+                  </Text>
+                  <Ionicons name="star" size={25} color="#FFD700" />
+                  <Text style={styles.sectionTitle}>
+                    {t("gymDetail.reviews") || "Reviews"}
+                    {reviews.length > 0 && ` (${reviews.length})`}
+                  </Text>
+                </View>
+
+                <View style={styles.reviewsContainer}>
+                  {reviews.length > 0 ? (
+                    <View>
+                      {reviews.map((review, index) => (
+                        <ReviewCard
+                          key={review.id || index}
+                          review={review}
+                          t={t}
+                          showProductType={false}
+                        />
+                      ))}
+
+                      {reviewsPage < reviewsTotalPages && (
+                        <TouchableOpacity
+                          style={styles.loadMoreButton}
+                          onPress={() => fetchGymReviews(reviewsPage + 1)}
+                          disabled={reviewsLoading}
+                        >
+                          {reviewsLoading ? (
+                            <LoadingIndicator variant="inline" />
+                          ) : (
+                            <>
+                              <Text style={styles.loadMoreText}>
+                                {t("common.loadMore") || "Load More"}
+                              </Text>
+                              <Ionicons
+                                name="chevron-down"
+                                size={20}
+                                color="#ED2A46"
+                              />
+                            </>
+                          )}
+                        </TouchableOpacity>
                       )}
                     </View>
-                  </Marker>
-                </MapView>
-                <TouchableOpacity
-                  style={styles.mapOverlay}
-                  onPress={() => {
-                    navigation.navigate("MapScreen", {
-                      params: {
-                        longitude: gymDetail?.longitude,
-                        latitude: gymDetail?.latitude,
-                      },
-                    });
-                  }}
-                >
-                  <Text style={styles.mapOverlayText}>
-                    {t("gymDetail.viewFullMap")}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-
-          {/* Enhanced Reviews Section */}
-          <View style={styles.reviewsSection}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>
-                {averageRating.toFixed(1)}
-              </Text>
-              <Ionicons name="star" size={25} color="#FFD700" />
-              <Text style={styles.sectionTitle}>
-                {t("gymDetail.reviews") || "Reviews"}
-                {reviews.length > 0 && ` (${reviews.length})`}
-              </Text>
-            </View>
-
-            <View style={styles.reviewsContainer}>
-              {reviews.length > 0 ? (
-                <View>
-                  {reviews.map((review, index) => (
-                    <ReviewCard
-                      key={review.id || index}
-                      review={review}
-                      t={t}
-                      showProductType={false}
-                    />
-                  ))}
-
-                  {reviewsPage < reviewsTotalPages && (
-                    <TouchableOpacity
-                      style={styles.loadMoreButton}
-                      onPress={() => fetchGymReviews(reviewsPage + 1)}
-                      disabled={reviewsLoading}
-                    >
-                      {reviewsLoading ? (
-                        <LoadingIndicator variant="inline" />
-                      ) : (
-                        <>
-                          <Text style={styles.loadMoreText}>
-                            {t("common.loadMore") || "Load More"}
-                          </Text>
-                          <Ionicons
-                            name="chevron-down"
-                            size={20}
-                            color="#ED2A46"
-                          />
-                        </>
-                      )}
-                    </TouchableOpacity>
+                  ) : (
+                    <View style={styles.emptyCommentsContainer}>
+                      <Ionicons
+                        name="chatbox-ellipses-outline"
+                        size={48}
+                        color="#E0E0E0"
+                      />
+                      <Text style={styles.emptyCommentsText}>
+                        {t("gymDetail.noReviews") || "No reviews yet"}
+                      </Text>
+                      <Text style={styles.reviewsEmptySubtext}>
+                        {t("gymDetail.beFirstToReview") ||
+                          "Be the first to share your experience with this gym"}
+                      </Text>
+                    </View>
                   )}
                 </View>
-              ) : (
-                <View style={styles.emptyCommentsContainer}>
-                  <Ionicons
-                    name="chatbox-ellipses-outline"
-                    size={48}
-                    color="#E0E0E0"
-                  />
-                  <Text style={styles.emptyCommentsText}>
-                    {t("gymDetail.noReviews") || "No reviews yet"}
-                  </Text>
-                  <Text style={styles.reviewsEmptySubtext}>
-                    {t("gymDetail.beFirstToReview") ||
-                      "Be the first to share your experience with this gym"}
-                  </Text>
-                </View>
-              )}
-            </View>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+              </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
 
-      {/* Package Selection Bottom Sheet */}
-      <PackageSelectionBottomSheet
-        visible={packageSelectionVisible}
-        onClose={() => setPackageSelectionVisible(false)}
-        gymCourse={gymCourse}
-        isPackageInCart={isPackageInCart}
-        handleAddToCart={handleAddToCart}
-        handleAddToCartWithPT={handleAddToCartWithPT}
-      />
+          {/* Package Selection Bottom Sheet */}
+          <PackageSelectionBottomSheet
+            visible={packageSelectionVisible}
+            onClose={() => setPackageSelectionVisible(false)}
+            gymCourse={gymCourse}
+            isPackageInCart={isPackageInCart}
+            handleAddToCart={handleAddToCart}
+            handleAddToCartWithPT={handleAddToCartWithPT}
+          />
         </>
       )}
     </View>
