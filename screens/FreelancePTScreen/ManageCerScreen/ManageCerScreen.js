@@ -106,11 +106,39 @@ export default function ManageCerScreen() {
 
   const handleProvidedDateConfirm = (selectedDate) => {
     setShowProvidedDatePicker(false);
+
+    // Check if expiration date is already set and if provided date is after it
+    if (expirationDate) {
+      const expirationDateObj = parseDateString(expirationDate);
+      if (selectedDate > expirationDateObj) {
+        Alert.alert(
+          t("certificate.error") || "Error",
+          t("certificate.providedDateMustBeBeforeExpiration") ||
+            "Provided date must be before expiration date"
+        );
+        return;
+      }
+    }
+
     setProvidedDate(formatDateDisplay(selectedDate));
   };
 
   const handleExpirationDateConfirm = (selectedDate) => {
     setShowExpirationDatePicker(false);
+
+    // Check if provided date is already set and if expiration date is before it
+    if (providedDate) {
+      const providedDateObj = parseDateString(providedDate);
+      if (selectedDate <= providedDateObj) {
+        Alert.alert(
+          t("certificate.error") || "Error",
+          t("certificate.expirationDateMustBeAfterProvided") ||
+            "Expiration date must be after provided date"
+        );
+        return;
+      }
+    }
+
     setExpirationDate(formatDateDisplay(selectedDate));
   };
 
@@ -237,6 +265,21 @@ export default function ManageCerScreen() {
       );
       return;
     }
+
+    // Validate that provided date is before expiration date
+    if (expirationDate) {
+      const providedDateObj = parseDateString(providedDate);
+      const expirationDateObj = parseDateString(expirationDate);
+      if (providedDateObj >= expirationDateObj) {
+        Alert.alert(
+          t("certificate.error") || "Error",
+          t("certificate.providedDateMustBeBeforeExpiration") ||
+            "Provided date must be before expiration date"
+        );
+        return;
+      }
+    }
+
     if (!image) {
       Alert.alert(
         t("certificate.missingImage"),
@@ -399,13 +442,19 @@ export default function ManageCerScreen() {
                 {formatDateForDisplay(item.providedDate)}
               </Text>
             </View>
-            <View style={styles.dateSeparator} />
-            <View style={styles.dateColumn}>
-              <Text style={styles.dateLabel}>{t("certificate.expires")}</Text>
-              <Text style={styles.dateValue}>
-                {formatDateForDisplay(item.expirationDate)}
-              </Text>
-            </View>
+            {item.expirationDate && (
+              <>
+                <View style={styles.dateSeparator} />
+                <View style={styles.dateColumn}>
+                  <Text style={styles.dateLabel}>
+                    {t("certificate.expires")}
+                  </Text>
+                  <Text style={styles.dateValue}>
+                    {formatDateForDisplay(item.expirationDate)}
+                  </Text>
+                </View>
+              </>
+            )}
           </View>
         </View>
 
@@ -833,8 +882,27 @@ export default function ManageCerScreen() {
           mode="date"
           onConfirm={handleExpirationDateConfirm}
           onCancel={() => setShowExpirationDatePicker(false)}
-          date={expirationDate ? parseDateString(expirationDate) : new Date()}
-          minimumDate={providedDate ? parseDateString(providedDate) : undefined}
+          date={
+            expirationDate
+              ? parseDateString(expirationDate)
+              : providedDate
+              ? (() => {
+                  const minDate = parseDateString(providedDate);
+                  minDate.setDate(minDate.getDate() + 1);
+                  return minDate;
+                })()
+              : new Date()
+          }
+          minimumDate={
+            providedDate
+              ? (() => {
+                  const minDate = parseDateString(providedDate);
+                  // Set minimum date to the day after provided date
+                  minDate.setDate(minDate.getDate() + 1);
+                  return minDate;
+                })()
+              : undefined
+          }
         />
       </Modal>
     </View>

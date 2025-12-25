@@ -2520,6 +2520,8 @@
     "createSuccess": "Certificate created successfully.",
     "error": "Error",
     "createError": "Could not create certificate, please try again.",
+    "providedDateMustBeBeforeExpiration": "Provided date must be before expiration date",
+    "expirationDateMustBeAfterProvided": "Expiration date must be after provided date",
     "status": {
       "all": "All",
       "waitingForReview": "Waiting for Review",

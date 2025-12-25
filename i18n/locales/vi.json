@@ -2619,6 +2619,8 @@
     "createSuccess": "Tạo chứng chỉ thành công.",
     "error": "Lỗi",
     "createError": "Không thể tạo chứng chỉ, vui lòng thử lại.",
+    "providedDateMustBeBeforeExpiration": "Ngày cấp phải trước ngày hết hạn",
+    "expirationDateMustBeAfterProvided": "Ngày hết hạn phải sau ngày cấp",
     "status": {
       "all": "Tất cả",
       "waitingForReview": "Chờ duyệt",
