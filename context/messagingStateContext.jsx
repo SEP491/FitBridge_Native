@@ -193,6 +193,26 @@ export const MessagingStateProvider = ({ children }) => {
 
   // Manual start connection function
   const startConnection = async () => {
+    // Check if current service is disposed or if we need to re-initialize
+    const currentService = state.messagingService;
+    if (connectionInitializedRef.current && currentService) {
+      // If service exists and is not disposed, check if it's connected
+      if (!currentService.isDisposed) {
+        const status = currentService.connectionStatus;
+        // If connected, we're good. If not, we should re-initialize
+        if (status.state === signalR.HubConnectionState.Connected) {
+          console.log("Connection already initialized and connected, skipping...");
+          return;
+        } else {
+          console.log("Service exists but not connected, re-initializing...");
+          connectionInitializedRef.current = false;
+        }
+      } else {
+        console.log("Service was disposed, re-initializing...");
+        connectionInitializedRef.current = false;
+      }
+    }
+
     if (connectionInitializedRef.current) {
       console.log("Connection already initialized, skipping...");
       return;

@@ -248,10 +248,6 @@ export default function UserMenuScreen() {
               style: "destructive", // Red color for destructive action (iOS/Android)
               onPress: async () => {
                 try {
-                  const messagingService =
-                    await SignalRServiceFactory.getInstance(
-                      ServiceName.MESSAGING
-                    );
                   const logoutSuccess = await authService.logout();
 
                   if (logoutSuccess) {
@@ -285,8 +281,11 @@ export default function UserMenuScreen() {
                       signalR_webrtcService.stopConnection();
                       console.log("SignalR: Connection stopped on logout");
                     }
-                    messagingService.stopConnection();
-                    console.log("SignalR: Connection stopped on logout");
+                    // Dispose the messaging service to ensure clean state on next login
+                    SignalRServiceFactory.dispose(ServiceName.MESSAGING);
+                    console.log(
+                      "SignalR: Messaging service disposed on logout"
+                    );
                   } else {
                     Alert.alert(t("common.error"), t("errors.logoutError"));
                   }

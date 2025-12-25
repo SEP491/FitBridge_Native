@@ -102,7 +102,7 @@ class SignalRService {
       // Build connection with authentication
       // Use a factory function that retrieves fresh token each time
       const token = await AsyncStorage.getItem("token");
-      console.log("token", token);
+      console.log("token message", token);
 
       // Skip connection for guests (no token)
       if (!token) {

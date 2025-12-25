@@ -3,6 +3,7 @@ import {
   isValidServiceName,
 } from "./constants/ServiceConfigs";
 import SignalRService from "./service";
+import * as signalR from "@microsoft/signalr";
 
 export class SignalRServiceFactory {
   static #instances = new Map();
@@ -20,6 +21,24 @@ export class SignalRServiceFactory {
     if (this.#instances.has(serviceName)) {
       const instance = this.#instances.get(serviceName);
       if (!instance.isDisposed) {
+        // Check if connection is actually connected, if not, restart it
+        const status = instance.connectionStatus;
+        if (status.state === signalR.HubConnectionState.Disconnected) {
+          console.log(
+            `SignalR Factory: Existing instance for ${serviceName} is disconnected, restarting...`
+          );
+          try {
+            await instance.startConnection();
+          } catch (error) {
+            console.error(
+              `SignalR Factory: Failed to restart connection for ${serviceName}, will create new instance`,
+              error
+            );
+            // If restart fails, dispose and create new
+            instance.dispose();
+            this.#instances.delete(serviceName);
+          }
+        }
         console.log(
           `SignalR Factory: Returning existing connection for ${serviceName}`
         );
