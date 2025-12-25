@@ -5,6 +5,7 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import { LinearGradient } from "expo-linear-gradient";
 import { formatPrice } from "../../lib";
 import colors from "../../constants/color";
+import { useTranslation } from "../../hooks/useTranslation";
 export default function Cart_FreelancePTCard({
   item,
   onRemove,
@@ -12,12 +13,17 @@ export default function Cart_FreelancePTCard({
   showRemove = true,
   showQuantityControls = false, // FreelancePT packages typically have quantity: 1
 }) {
+  const { t } = useTranslation();
   return (
     <View style={styles.cartCart}>
       <View style={styles.cartUpper}>
         <View style={styles.imageContainer}>
           <Image
-            source={item.imageUrl && item.imageUrl !== "string" ? { uri: item.imageUrl } : require("../../assets/images/gymroom.jpg")}
+            source={
+              item.imageUrl && item.imageUrl !== "string"
+                ? { uri: item.imageUrl }
+                : require("../../assets/images/gymroom.jpg")
+            }
             style={styles.gymImage}
           />
           <View style={styles.imageOverlay} />
@@ -40,14 +46,14 @@ export default function Cart_FreelancePTCard({
 
           {item.type && (
             <Text style={{ fontSize: 13, color: "#666", marginBottom: 8 }}>
-              {item.type} Package
+              {item.type} {t("cart.package")}
             </Text>
           )}
           {/* Show PT information */}
           {item.pt && (
             <View style={styles.ptContainer}>
               <View style={styles.ptBadge}>
-                <Text style={styles.ptBadgeText}>PT</Text>
+                <Text style={styles.ptBadgeText}>{t("cart.pt")}</Text>
               </View>
               <Text style={styles.ptName} numberOfLines={1}>
                 {item.pt.fullName}
@@ -58,18 +64,24 @@ export default function Cart_FreelancePTCard({
           {/* Package details */}
           <View style={styles.detailsRow}>
             <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>Duration:</Text>
-              <Text style={styles.detailValue}>{item.durationInDays} days</Text>
+              <Text style={styles.detailLabel}>{t("cart.duration")}</Text>
+              <Text style={styles.detailValue}>
+                {item.durationInDays} {t("cart.days")}
+              </Text>
             </View>
             <View style={styles.detailSeparator} />
             <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>Sessions:</Text>
+              <Text style={styles.detailLabel}>{t("cart.sessions")}</Text>
               <Text style={styles.detailValue}>{item.numOfSessions}</Text>
             </View>
             <View style={styles.detailSeparator} />
             <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>Duration:</Text>
-              <Text style={styles.detailValue}>{item.sessionDurationInMinutes}m</Text>
+              <Text style={styles.detailLabel}>
+                {t("cart.sessionDuration")}
+              </Text>
+              <Text style={styles.detailValue}>
+                {item.sessionDurationInMinutes}m
+              </Text>
             </View>
           </View>
         </View>
@@ -81,7 +93,8 @@ export default function Cart_FreelancePTCard({
             {formatPrice(item.price * (item.quantity || 1))}
           </Text>
           <Text style={styles.perSessionText}>
-            {formatPrice(item.price / item.numOfSessions)}/session
+            {formatPrice(item.price / item.numOfSessions)}
+            {t("cart.perSession")}
           </Text>
         </View>
 
@@ -118,10 +131,8 @@ export default function Cart_FreelancePTCard({
           </View>
         ) : (
           <View style={styles.quantityDisplayOnly}>
-            <Text style={styles.quantityLabel}>Qty:</Text>
-            <Text style={styles.quantityValueOnly}>
-              {item.quantity || 1}
-            </Text>
+            <Text style={styles.quantityLabel}>{t("cart.quantity")}</Text>
+            <Text style={styles.quantityValueOnly}>{item.quantity || 1}</Text>
           </View>
         )}
       </View>

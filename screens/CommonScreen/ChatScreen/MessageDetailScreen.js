@@ -136,8 +136,11 @@ export default function MessageDetailScreen({ route, navigation }) {
   }, []);
 
   useEffect(() => {
+    const ptId = members.find(
+      (member) => member.role === "FreelancePT"
+    )?.userId;
     // Only fetch customer purchased after currentUserRole is set
-    if (!currentUserRole || !members || members.length === 0) {
+    if (!currentUserRole || !members || members.length === 0 || !ptId) {
       return;
     }
 
@@ -1221,10 +1224,7 @@ export default function MessageDetailScreen({ route, navigation }) {
   // Handle send booking request
   const handleSendBookingRequest = useCallback(async () => {
     if (!customerPurchased) {
-      Alert.alert(
-        t("common.error"),
-        "Vui lòng mua gói tập trước khi gửi yêu cầu đặt lịch."
-      );
+      Alert.alert(t("common.error"), t("bookingRequest.purchasePackageFirst"));
       return;
     }
     if (!bookingFormData.bookingName.trim()) {
@@ -1239,10 +1239,7 @@ export default function MessageDetailScreen({ route, navigation }) {
     selectedDate.setHours(0, 0, 0, 0);
 
     if (selectedDate < today) {
-      Alert.alert(
-        t("common.error"),
-        "Ngày lịch hẹn không thể là ngày trong quá khứ."
-      );
+      Alert.alert(t("common.error"), t("bookingRequest.dateCannotBePast"));
       return;
     }
 
