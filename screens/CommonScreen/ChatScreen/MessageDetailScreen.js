@@ -63,12 +63,20 @@ export default function MessageDetailScreen({ route, navigation }) {
   const [messageLayout, setMessageLayout] = useState(null);
   const [showBookingRequestModal, setShowBookingRequestModal] = useState(false);
   const [editingBookingRequest, setEditingBookingRequest] = useState(null);
+  // Helper function to format date as YYYY-MM-DD using local date (avoid timezone issues)
+  const formatDateAsYYYYMMDD = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
   const [bookingFormData, setBookingFormData] = useState(() => {
     const now = new Date();
 
     return {
       bookingName: "",
-      bookingDate: now.toISOString().split("T")[0],
+      bookingDate: formatDateAsYYYYMMDD(now),
       startTime: "",
       endTime: "",
     };
@@ -1245,7 +1253,7 @@ export default function MessageDetailScreen({ route, navigation }) {
 
     // Validate time if booking is today
     const isToday =
-      bookingFormData.bookingDate === new Date().toISOString().split("T")[0];
+      bookingFormData.bookingDate === formatDateAsYYYYMMDD(new Date());
     if (isToday) {
       if (!bookingFormData.startTime) {
         Alert.alert(t("common.error"), t("bookingRequest.startTimeRequired"));
@@ -1317,7 +1325,7 @@ export default function MessageDetailScreen({ route, navigation }) {
 
       setBookingFormData({
         bookingName: "",
-        bookingDate: now.toISOString().split("T")[0],
+        bookingDate: formatDateAsYYYYMMDD(now),
         startTime: "",
         endTime: "",
       });
@@ -1579,7 +1587,7 @@ export default function MessageDetailScreen({ route, navigation }) {
                 setEditingBookingRequest(null);
                 setBookingFormData({
                   bookingName: "",
-                  bookingDate: new Date().toISOString().split("T")[0],
+                  bookingDate: formatDateAsYYYYMMDD(new Date()),
                   startTime: "",
                   endTime: "",
                 });
@@ -1880,7 +1888,12 @@ export default function MessageDetailScreen({ route, navigation }) {
   const formatDateForDisplay = (dateString) => {
     if (!dateString) return "";
     try {
-      const date = new Date(dateString);
+      // Parse YYYY-MM-DD as local date to avoid timezone issues
+      const [year, month, day] = dateString
+        .split("T")[0]
+        .split("-")
+        .map(Number);
+      const date = new Date(year, month - 1, day);
       return date.toLocaleDateString("en-GB");
     } catch (error) {
       return dateString;
@@ -2033,7 +2046,11 @@ export default function MessageDetailScreen({ route, navigation }) {
         onConfirm={(selectedDate) => {
           setShowDatePicker(false);
           if (selectedDate) {
-            const formatted = selectedDate.toISOString().split("T")[0];
+            // Format as YYYY-MM-DD using local date components to avoid timezone issues
+            const year = selectedDate.getFullYear();
+            const month = String(selectedDate.getMonth() + 1).padStart(2, "0");
+            const day = String(selectedDate.getDate()).padStart(2, "0");
+            const formatted = `${year}-${month}-${day}`;
             setBookingFormData((prev) => ({
               ...prev,
               bookingDate: formatted,

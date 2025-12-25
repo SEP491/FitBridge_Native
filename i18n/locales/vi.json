@@ -2092,7 +2092,15 @@
     "package": "Gói Tập",
     "dailyProgressTracking": "Theo Dõi Tiến Độ Hàng Ngày",
     "selectMuscleGroup": "Chọn Nhóm Cơ",
-    "currentUserStats": "Số Liệu Hiện Tại"
+    "currentUserStats": "Số Liệu Hiện Tại",
+    "setsCompleted": "Hiệp Đã Hoàn Thành",
+    "totalWeight": "Tổng Trọng Lượng",
+    "totalReps": "Tổng Số Lần Lặp",
+    "totalTime": "Tổng Thời Gian",
+    "avgSessionTime": "Thời Gian Trung Bình/Buổi",
+    "avgWeightPerSession": "Trọng Lượng TB/Buổi",
+    "avgSetsPerSession": "Hiệp TB/Buổi",
+    "avgRepsPerSession": "Số Lần Lặp TB/Buổi"
   },
 
   "muscleGroups": {

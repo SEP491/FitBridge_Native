@@ -181,7 +181,7 @@ export const DailyProgressChart = ({
                         {muscleData.setsCompleted}/{muscleData.setsCount}
                       </Text>
                       <Text style={styles.muscleSummaryLabel}>
-                        Sets Completed
+                        {t("trainingResults.setsCompleted", "Sets Completed")}
                       </Text>
                     </View>
                     <View style={styles.muscleSummaryItem}>
@@ -194,7 +194,7 @@ export const DailyProgressChart = ({
                         {muscleData.totalWeight} kg
                       </Text>
                       <Text style={styles.muscleSummaryLabel}>
-                        Total Weight
+                        {t("trainingResults.totalWeight", "Total Weight")}
                       </Text>
                     </View>
                   </View>
@@ -210,7 +210,9 @@ export const DailyProgressChart = ({
                       >
                         {muscleData.totalReps}
                       </Text>
-                      <Text style={styles.muscleSummaryLabel}>Total Reps</Text>
+                      <Text style={styles.muscleSummaryLabel}>
+                        {t("trainingResults.totalReps", "Total Reps")}
+                      </Text>
                     </View>
                     <View style={styles.muscleSummaryItem}>
                       <Text
@@ -221,7 +223,9 @@ export const DailyProgressChart = ({
                       >
                         {muscleData.totalTime}s
                       </Text>
-                      <Text style={styles.muscleSummaryLabel}>Total Time</Text>
+                      <Text style={styles.muscleSummaryLabel}>
+                        {t("trainingResults.totalTime", "Total Time")}
+                      </Text>
                     </View>
                   </View>
 
@@ -240,7 +244,10 @@ export const DailyProgressChart = ({
                         {muscleData.averageSessionTimeSeconds}s
                       </Text>
                       <Text style={styles.muscleSummaryLabel}>
-                        Avg Session Time
+                        {t(
+                          "trainingResults.avgSessionTime",
+                          "Avg Session Time"
+                        )}
                       </Text>
                     </View>
                     <View style={styles.muscleSummaryItem}>
@@ -254,7 +261,10 @@ export const DailyProgressChart = ({
                         kg
                       </Text>
                       <Text style={styles.muscleSummaryLabel}>
-                        Avg Weight/Session
+                        {t(
+                          "trainingResults.avgWeightPerSession",
+                          "Avg Weight/Session"
+                        )}
                       </Text>
                     </View>
                   </View>
@@ -271,7 +281,10 @@ export const DailyProgressChart = ({
                         {muscleData.averageSetsPerSession?.toFixed(1)}
                       </Text>
                       <Text style={styles.muscleSummaryLabel}>
-                        Avg Sets/Session
+                        {t(
+                          "trainingResults.avgSetsPerSession",
+                          "Avg Sets/Session"
+                        )}
                       </Text>
                     </View>
                     <View style={styles.muscleSummaryItem}>
@@ -284,7 +297,10 @@ export const DailyProgressChart = ({
                         {muscleData.averageRepsPerSession?.toFixed(1)}
                       </Text>
                       <Text style={styles.muscleSummaryLabel}>
-                        Avg Reps/Session
+                        {t(
+                          "trainingResults.avgRepsPerSession",
+                          "Avg Reps/Session"
+                        )}
                       </Text>
                     </View>
                   </View>
