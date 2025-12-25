@@ -44,7 +44,8 @@ const mapSessionStatusToRequestStatus = (sessionStatus) => {
     case "scheduled":
       return "Pending";
     case "cancelled":
-    case "canceled":
+      return "Cancelled";
+    case "rejected":
       return "Rejected";
     default:
       return "Pending";

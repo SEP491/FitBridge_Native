@@ -2218,6 +2218,7 @@
   },
 
   "bookingRequest": {
+    "cancelled": "Đã Hủy",
     "title": "Yêu Cầu Đặt Lịch",
     "createRequest": "Tạo Yêu Cầu Đặt Lịch",
     "loadingRequests": "Đang tải yêu cầu...",
@@ -2431,6 +2432,7 @@
     "tryDifferentKeywords": "Thử tìm kiếm với từ khóa khác"
   },
   "orders": {
+    "feedbackSuccess": "Đánh giá thành công",
     "refunded": "Đã hoàn trả",
     "reported": "Đã báo cáo",
     "products": "Sản phẩm",

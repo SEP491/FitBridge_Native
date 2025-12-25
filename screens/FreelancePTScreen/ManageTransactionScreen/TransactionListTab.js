@@ -42,7 +42,7 @@ const TransactionListTab = ({
     { key: 'FreelancePTPackage', label: t('transactionType.ptPackage', 'PT Package'), icon: 'fitness-outline' },
     { key: 'ExtendFreelancePTPackage', label: t('transactionType.extendPT', 'Extend PT'), icon: 'refresh-outline' },
     // { key: 'DistributeProfit', label: t('transactionType.profit', 'Profit'), icon: 'trending-up-outline' },
-    { key: 'Withdraw', label: t('transactionType.withdraw', 'Withdraw'), icon: 'wallet-outline' },
+    // { key: 'Withdraw', label: t('transactionType.withdraw', 'Withdraw'), icon: 'wallet-outline' },
   ];
 
   const filteredTransactions = transactions.filter(transaction => {

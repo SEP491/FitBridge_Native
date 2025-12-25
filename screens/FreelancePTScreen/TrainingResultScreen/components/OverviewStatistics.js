@@ -204,7 +204,7 @@ export const OverviewStatistics = ({ stats, t, StatCard }) => {
             icon="time"
           />
         )}
-
+          
         {stats.cancelledSessions >= 0 && (
           <ProgressBar
             current={stats.cancelledSessions}
@@ -215,6 +215,16 @@ export const OverviewStatistics = ({ stats, t, StatCard }) => {
             icon="close-circle"
           />
         )}
+
+        <ProgressBar
+            current={stats.totalSessions}
+            total={stats.totalSessions + stats.availableSessions}
+            label={t("trainingResults.totalSessions", "Total Sessions")}
+            useAutoColor={true}
+            color="#2196F3"
+            icon="calendar"
+          />
+
       </View>
     </StatCard>
   );

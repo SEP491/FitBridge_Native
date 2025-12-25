@@ -21,6 +21,7 @@ const BookingRequestCard = ({
         return "#FFA500";
       case "Approved":
         return "#4CAF50";
+      case "Cancelled":
       case "Rejected":
         return "#F44336";
       default:
@@ -37,6 +38,8 @@ const BookingRequestCard = ({
         return t("bookingRequest.approved");
       case "REJECTED":
         return t("bookingRequest.rejected");
+      case "CANCELLED":
+        return t("bookingRequest.cancelled");
       default:
         return status;
     }
@@ -49,6 +52,8 @@ const BookingRequestCard = ({
       case "Approved":
         return "checkmark-circle-outline";
       case "Rejected":
+        return "close-circle-outline";
+      case "Cancelled":
         return "close-circle-outline";
       default:
         return "help-circle-outline";
