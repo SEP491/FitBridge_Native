@@ -17,7 +17,7 @@ import { PackageCardSkeletonList } from "../../../components/PackageCard/Package
 import PackageFeedbackModal from "../../../components/OrderManagementCard/PackageFeedbackModal";
 import LoadingIndicator from "../../../components/LoadingIndicator";
 
-export default function FreelancePTReviewsTab() {
+export default function FreelancePTReviewsTab({ currentUserId }) {
   const navigation = useNavigation();
   const { t } = useTranslation();
 
@@ -43,6 +43,7 @@ export default function FreelancePTReviewsTab() {
       setCourseLoading(true);
 
       const response = await orderService.getCourseOrder({
+        customerId: currentUserId,
         page: pageNum,
         size: 10,
         sortOrder: "dsc",

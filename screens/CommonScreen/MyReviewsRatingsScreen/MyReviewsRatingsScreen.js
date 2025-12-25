@@ -351,9 +351,15 @@ export default function MyReviewsRatingsScreen() {
       {/* Content */}
       {contentType === "unreviewed" && (
         <>
-          {activeTab === "product" && <ProductReviewsTab />}
-          {activeTab === "gymCourse" && <GymPackageReviewsTab />}
-          {activeTab === "freelancePT" && <FreelancePTReviewsTab />}
+          {activeTab === "product" && (
+            <ProductReviewsTab currentUserId={currentUserId} />
+          )}
+          {activeTab === "gymCourse" && (
+            <GymPackageReviewsTab currentUserId={currentUserId} />
+          )}
+          {activeTab === "freelancePT" && (
+            <FreelancePTReviewsTab currentUserId={currentUserId} />
+          )}
         </>
       )}
 
