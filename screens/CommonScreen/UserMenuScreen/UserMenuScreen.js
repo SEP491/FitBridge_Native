@@ -249,6 +249,7 @@ export default function UserMenuScreen() {
                   const logoutSuccess = await authService.logout();
 
                   if (logoutSuccess) {
+                    try {
                     const pushSubscription =
                       await Notifications.getDevicePushTokenAsync();
                     console.log("pushSubscription", pushSubscription);
@@ -258,6 +259,9 @@ export default function UserMenuScreen() {
                     }).catch((error) => {
                       console.error("Error unregistering device token:", error);
                     });
+                    } catch (error) {
+                      console.error("Error unregistering device token:", error);
+                    }
                     clearCart(); // Clear cart data
                     await clearAvatarUrl(); // Clear avatar data
                     if (global.updateNavigationUser) {

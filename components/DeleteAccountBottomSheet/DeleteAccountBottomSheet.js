@@ -86,16 +86,21 @@ const DeleteAccountBottomSheet = ({
               const logoutSuccess = await authService.logout();
 
               if (logoutSuccess) {
-                const pushSubscription =
-                  await Notifications.getDevicePushTokenAsync();
-                console.log("pushSubscription", pushSubscription);
-                const token = pushSubscription.data;
-                await notificationService.unregisterDeviceToken({
-                    deviceToken: token,
-                  })
-                  .catch((error) => {
-                    console.error("Error unregistering device token:", error);
-                  });
+                try {
+                  const pushSubscription =
+                    await Notifications.getDevicePushTokenAsync();
+                  console.log("pushSubscription", pushSubscription);
+                  const token = pushSubscription.data;
+                  await notificationService
+                    .unregisterDeviceToken({
+                      deviceToken: token,
+                    })
+                    .catch((error) => {
+                      console.error("Error unregistering device token:", error);
+                    });
+                } catch (error) {
+                  console.error("Error unregistering device token:", error);
+                }
                 clearCart(); // Clear cart data
                 if (global.updateNavigationUser) {
                   global.updateNavigationUser();
