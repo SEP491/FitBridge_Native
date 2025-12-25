@@ -293,20 +293,22 @@ export const UserGoalsProgress = ({
         >
           {/* Add Measurement and View History Button */}
           <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={styles.addMeasurementButton}
-              onPress={() =>
-                navigation?.navigate("AddMeasurementScreen", {
-                  customerPurchasedId,
-                  firstTimeScan: firstTimeScanMeasurements,
-                })
-              }
-            >
-              <Ionicons name="add-circle" size={20} color="#fff" />
-              <Text style={styles.addMeasurementButtonText}>
-                {t("bodyMeasurements.addMeasurement", "Add Measurement")}
-              </Text>
-            </TouchableOpacity>
+            {userRole === "Customer" && (
+              <TouchableOpacity
+                style={styles.addMeasurementButton}
+                onPress={() =>
+                  navigation?.navigate("AddMeasurementScreen", {
+                    customerPurchasedId,
+                    firstTimeScan: firstTimeScanMeasurements,
+                  })
+                }
+              >
+                <Ionicons name="add-circle" size={20} color="#fff" />
+                <Text style={styles.addMeasurementButtonText}>
+                  {t("bodyMeasurements.addMeasurement", "Add Measurement")}
+                </Text>
+              </TouchableOpacity>
+            )}
             <TouchableOpacity
               style={styles.viewHistoryButton}
               onPress={() => setHistoryModalVisible(true)}

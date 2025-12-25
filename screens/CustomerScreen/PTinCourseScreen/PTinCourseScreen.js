@@ -45,23 +45,6 @@ export default function PTinCourseScreen({ route }) {
   }, []);
 
   const handleAddToCart = async (selectedPT) => {
-    // if (getCartCount() > 0) {
-    //   Alert.alert(
-    //     t("ptCourse.cartHasPackage"),
-    //     t("ptCourse.viewCartQuestion"),
-    //     [
-    //       {
-    //         text: t("ptCourse.no"),
-    //         style: "cancel",
-    //       },
-    //       {
-    //         text: t("ptCourse.viewCart"),
-    //         onPress: () => navigation.navigate("CartScreen"),
-    //       },
-    //     ]
-    //   );
-    //   return;
-    // } else {
     const cartItem = {
       ...gymPackage,
       pt:
@@ -109,7 +92,7 @@ export default function PTinCourseScreen({ route }) {
       item={item}
       showButtons={true}
       onDetailPress={() => {
-        navigation.navigate("PTProfileScreen", {
+        navigation.navigate("GymPTProfileScreen", {
           ptId: item.id,
         });
       }}
