@@ -373,7 +373,7 @@ export const CreateUserGoalForm = ({
 
   const handleSubmit = () => {
     // Validate minimum 5 parts in current measurements
-    if (selectedCurrentParts.length < 5) {
+    if (selectedCurrentParts.length < 1) {
       Alert.alert(
         t("common.validation", "Validation"),
         t(
@@ -385,7 +385,7 @@ export const CreateUserGoalForm = ({
     }
 
     // Validate minimum 5 parts in target measurements
-    if (selectedTargetParts.length < 5) {
+    if (selectedTargetParts.length < 1) {
       Alert.alert(
         t("common.validation", "Validation"),
         t(

@@ -2091,8 +2091,8 @@
 
   "userGoals": {
     "fillSelectedField": "Vui lòng điền các số đo cơ thể trong phần đã chọn",
-    "minimumTargetParts": "Vui lòng chọn ít nhất 5 phần cơ thể trong Số Đo Mục Tiêu",
-    "minimumCurrentParts": "Vui lòng chọn ít nhất 5 phần cơ thể trong Số Đo Hiện Tại",
+    "minimumTargetParts": "Vui lòng chọn ít nhất 1 phần cơ thể trong Số Đo Mục Tiêu",
+    "minimumCurrentParts": "Vui lòng chọn ít nhất 1 phần cơ thể trong Số Đo Hiện Tại",
     "imageRequired": "Vui lòng thêm ảnh cơ thể trước khi lưu",
     "updateGoals": "Chỉnh Sửa",
     "selectedParts": "Các Phần Cơ Thể Đã Chọn",
