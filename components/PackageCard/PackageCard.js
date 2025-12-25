@@ -113,9 +113,8 @@ export default function PackageCard({
           <Image
             source={{
               uri:
-                item.gymCourse?.imageUrl ||
+                item.courseImageUrl ||
                 item.freelancePTPackage?.imageUrl ||
-                item.imageUrl ||
                 "https://fitness-nation.net/wp-content/uploads/2019/04/5-Things-to-Consider-When-Buying-a-Gym-Membership.jpg",
             }}
             style={styles.courseImage}
