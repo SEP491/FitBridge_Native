@@ -179,7 +179,11 @@ export default function MessageDetailScreen({ route, navigation }) {
 
     // Handle new message received
     const handleMessageReceived = (message) => {
-      // Normalize conversationId for comparison (handle both string and number)
+      console.log("MessageDetailScreen: New message received", message, {
+        messageConvId: message.conversationId,
+        currentConvId: conversationIdRef.current,
+        currentUserId: currentUserIdRef.current,
+      });
       const messageConvId = message.conversationId?.toString();
       const currentConvId = conversationIdRef.current?.toString();
 

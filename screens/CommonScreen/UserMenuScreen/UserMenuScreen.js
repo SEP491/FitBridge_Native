@@ -33,6 +33,9 @@ import orderService from "../../../services/orderService";
 import { fetchUserFromStorage } from "../../../lib";
 import { useMeetingState } from "../../../context/meetingStateContext";
 import notificationService from "../../../services/notificationService";
+import SignalRService from "../../../services/signalR/Message/service";
+import SignalRServiceFactory from "../../../services/signalR/Message/factory";
+import { ServiceName } from "../../../services/signalR/Message/constants/ServiceConfigs";
 
 export default function UserMenuScreen() {
   const [user, setUser] = useState(null);
@@ -245,7 +248,10 @@ export default function UserMenuScreen() {
               style: "destructive", // Red color for destructive action (iOS/Android)
               onPress: async () => {
                 try {
-                  // Use the authService logout method
+                  const messagingService =
+                    await SignalRServiceFactory.getInstance(
+                      ServiceName.MESSAGING
+                    );
                   const logoutSuccess = await authService.logout();
 
                   if (logoutSuccess) {
@@ -279,6 +285,7 @@ export default function UserMenuScreen() {
                       signalR_webrtcService.stopConnection();
                       console.log("SignalR: Connection stopped on logout");
                     }
+                    messagingService.dispose();
                   } else {
                     Alert.alert(t("common.error"), t("errors.logoutError"));
                   }
