@@ -541,7 +541,6 @@ const FreelancePTDashboard = ({ navigation }) => {
           </Text>
         </TouchableOpacity> */}
 
-        Charts Section
         {showCharts && (
           <View style={styles.chartsContainer}>
             {/* Revenue Trend Chart */}
