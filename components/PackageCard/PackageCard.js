@@ -283,16 +283,21 @@ export default function PackageCard({
       {/* Second Row: Action Buttons */}
       {!isReviewMode ? ( // Review mode: no action buttons
         <View style={styles.actionButtonsRow}>
+          {canRenew && onRenew && (
+            <TouchableOpacity
+              style={[styles.renewButton, { backgroundColor: typeConfig.color }]}
+              onPress={() => onRenew(item)}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="refresh" size={18} color="#fff" />
+              <Text style={styles.renewButtonText}>{t("myPackage.renew")}</Text>
+            </TouchableOpacity>
+          )}
           <TouchableOpacity
-            style={[styles.renewButton, { backgroundColor: typeConfig.color }]}
-            onPress={() => onRenew && onRenew(item)}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="refresh" size={18} color="#fff" />
-            <Text style={styles.renewButtonText}>{t("myPackage.renew")}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.reportButton}
+            style={[
+              styles.reportButton,
+              !canRenew && styles.reportButtonFullWidth,
+            ]}
             onPress={() => onReport && onReport(item)}
             activeOpacity={0.8}
           >
@@ -582,6 +587,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
+  },
+  reportButtonFullWidth: {
+    flex: 1,
   },
   reportButtonText: {
     fontSize: 14,

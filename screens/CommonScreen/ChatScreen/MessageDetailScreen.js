@@ -94,6 +94,49 @@ export default function MessageDetailScreen({ route, navigation }) {
   const [currentUserId, setCurrentUserId] = useState(null);
   const [currentUserRole, setCurrentUserRole] = useState(null);
 
+  const [customerPurchased, setCustomerPurchased] = useState(null);
+  const [sessionDuration, setSessionDuration] = useState(60); // Default to 60 minutes
+  useEffect(() => {
+    const fetchCustomerPurchased = async () => {
+      const response = await messageService.checkCustomerPurchased({
+        ptId: members.find((member) => member.role === "FreelancePT")?.userId,
+      });
+      setCustomerPurchased(response.data);
+    };
+    fetchCustomerPurchased();
+  }, [members]);
+
+  // Fetch session duration when booking modal opens
+  useEffect(() => {
+    const fetchSessionDuration = async () => {
+      if (!showBookingRequestModal) return;
+
+      const ptId = members.find(
+        (member) => member.role === "FreelancePT"
+      )?.userId;
+      const userId = members.find(
+        (member) => member.role === "Customer"
+      )?.userId;
+
+      try {
+        const responseCheck = await messageService.checkCustomerPurchased(
+          currentUserRole === "Customer" ? { ptId } : { customerId: userId }
+        );
+
+        if (responseCheck && responseCheck.data) {
+          const duration =
+            responseCheck.data?.duration || responseCheck.duration || 60;
+          const durationMinutes = typeof duration === "number" ? duration : 60;
+          setSessionDuration(durationMinutes);
+        }
+      } catch (error) {
+        console.error("Error fetching session duration:", error);
+        // Keep default 60 minutes on error
+      }
+    };
+
+    fetchSessionDuration();
+  }, [showBookingRequestModal, members, currentUserRole]);
   // Update refs when values change
   useEffect(() => {
     conversationIdRef.current = conversationId;
@@ -1205,67 +1248,8 @@ export default function MessageDetailScreen({ route, navigation }) {
       return;
     }
 
-    // Validate date is not in the past
-    const selectedDate = new Date(bookingFormData.bookingDate);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    selectedDate.setHours(0, 0, 0, 0);
-
-    if (selectedDate < today) {
-      Alert.alert("Invalid Date", "Booking date cannot be in the past.");
-      return;
-    }
-
-    // Validate time if booking is today
-    const isToday =
-      bookingFormData.bookingDate === new Date().toISOString().split("T")[0];
-    if (isToday) {
-      if (!bookingFormData.startTime) {
-        Alert.alert("Error", "Please select a start time.");
-        return;
-      }
-      const [startHours, startMinutes] = bookingFormData.startTime
-        .split(":")
-        .map(Number);
-      const now = new Date();
-      const currentHours = now.getHours();
-      const currentMinutes = now.getMinutes();
-
-      const startTotalMinutes = startHours * 60 + startMinutes;
-      const currentTotalMinutes = currentHours * 60 + currentMinutes;
-
-      if (startTotalMinutes <= currentTotalMinutes) {
-        Alert.alert("Invalid Time", "Start time must be in the future.");
-        return;
-      }
-    }
-
-    // Validate end time is at least 1 hour after start time
-    if (!bookingFormData.startTime || !bookingFormData.endTime) {
-      Alert.alert("Error", "Please select both start and end times.");
-      return;
-    }
-    const [startHours, startMinutes] = bookingFormData.startTime
-      .split(":")
-      .map(Number);
-    const [endHours, endMinutes] = bookingFormData.endTime
-      .split(":")
-      .map(Number);
-
-    const startTotalMinutes = startHours * 60 + startMinutes;
-    const endTotalMinutes = endHours * 60 + endMinutes;
-
-    if (endTotalMinutes < startTotalMinutes + 60) {
-      Alert.alert(
-        "Invalid Time",
-        "End time must be at least 1 hour after start time."
-      );
-      return;
-    }
-
     try {
       setSending(true);
-      setShowBookingRequestModal(false);
       const ptId = members.find(
         (member) => member.role === "FreelancePT"
       )?.userId;
@@ -1273,6 +1257,7 @@ export default function MessageDetailScreen({ route, navigation }) {
         (member) => member.role === "Customer"
       )?.userId;
 
+      // Check customer purchased first to get duration
       const responseCheck = await messageService.checkCustomerPurchased(
         currentUserRole === "Customer" ? { ptId } : { customerId: userId }
       );
@@ -1286,11 +1271,86 @@ export default function MessageDetailScreen({ route, navigation }) {
         return;
       }
 
+      // Extract duration and customerPurchasedId from response
+      // Handle different response structures: data could be ID or object with id/duration
+      const customerPurchasedId =
+        typeof responseCheck.data === "object" && responseCheck.data?.id
+          ? responseCheck.data.id
+          : responseCheck.data;
+      const duration =
+        responseCheck.data?.duration || responseCheck.duration || 60; // fallback to 60 minutes if not provided
+      const durationMinutes = typeof duration === "number" ? duration : 60;
+
+      // Validate date is not in the past
+      const selectedDate = new Date(bookingFormData.bookingDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      selectedDate.setHours(0, 0, 0, 0);
+
+      if (selectedDate < today) {
+        Alert.alert("Invalid Date", "Booking date cannot be in the past.");
+        setSending(false);
+        return;
+      }
+
+      // Validate time if booking is today
+      const isToday =
+        bookingFormData.bookingDate === new Date().toISOString().split("T")[0];
+      if (isToday) {
+        if (!bookingFormData.startTime) {
+          Alert.alert("Error", "Please select a start time.");
+          setSending(false);
+          return;
+        }
+        const [startHours, startMinutes] = bookingFormData.startTime
+          .split(":")
+          .map(Number);
+        const now = new Date();
+        const currentHours = now.getHours();
+        const currentMinutes = now.getMinutes();
+
+        const startTotalMinutes = startHours * 60 + startMinutes;
+        const currentTotalMinutes = currentHours * 60 + currentMinutes;
+
+        if (startTotalMinutes <= currentTotalMinutes) {
+          Alert.alert("Invalid Time", "Start time must be in the future.");
+          setSending(false);
+          return;
+        }
+      }
+
+      // Validate end time is at least duration minutes after start time
+      if (!bookingFormData.startTime || !bookingFormData.endTime) {
+        Alert.alert("Error", "Please select both start and end times.");
+        setSending(false);
+        return;
+      }
+      const [startHours, startMinutes] = bookingFormData.startTime
+        .split(":")
+        .map(Number);
+      const [endHours, endMinutes] = bookingFormData.endTime
+        .split(":")
+        .map(Number);
+
+      const startTotalMinutes = startHours * 60 + startMinutes;
+      const endTotalMinutes = endHours * 60 + endMinutes;
+
+      if (endTotalMinutes < startTotalMinutes + durationMinutes) {
+        Alert.alert(
+          "Invalid Time",
+          `End time must be at least ${durationMinutes} minutes after start time.`
+        );
+        setSending(false);
+        return;
+      }
+
+      setShowBookingRequestModal(false);
+
       const messageData = {
         conversationId,
         content: `Booking request: ${bookingFormData.bookingName}`,
         mediaType: "BookingRequest",
-        customerPurchasedId: responseCheck.data,
+        customerPurchasedId: customerPurchasedId,
         createBookingRequest: {
           bookingName: bookingFormData.bookingName,
           bookingDate: bookingFormData.bookingDate,
@@ -1973,7 +2033,7 @@ export default function MessageDetailScreen({ route, navigation }) {
               </TouchableOpacity>
             </View>
 
-            {/* End Time (auto 1 hour after start time) */}
+            {/* End Time (auto-calculated based on session duration) */}
             <View style={styles.formGroup}>
               <Text style={styles.formLabel}>{t("messageScreen.endTime")}</Text>
               <View style={styles.formInputTouchable}>
@@ -2094,9 +2154,9 @@ export default function MessageDetailScreen({ route, navigation }) {
               .padStart(2, "0");
             const newStartTime = `${hours}:${minutes}:00`;
 
-            // Auto-set end time to 1 hour after selected start time
+            // Auto-set end time based on session duration
             const endDateTime = new Date(selectedTime);
-            endDateTime.setHours(endDateTime.getHours() + 1);
+            endDateTime.setMinutes(endDateTime.getMinutes() + sessionDuration);
             const endHours = endDateTime.getHours().toString().padStart(2, "0");
             const endMinutes = endDateTime
               .getMinutes()

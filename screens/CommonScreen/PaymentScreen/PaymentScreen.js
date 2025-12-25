@@ -471,6 +471,14 @@ export default function PaymentScreen({ navigation, route }) {
         {displayItems.length > 0 ? (
           <View style={styles.itemsContainer}>
             {displayItems.map((item, index) => {
+              // Check if item is to be extended FIRST (before other type checks)
+              // This handles items with toExtend flag or when extending via customerPurchasedIdToExtend
+              if (customerPurchasedIdToExtend || item.toExtend === true) {
+                return (
+                  <CartCard_Extend key={item.id || index} itemToExtend={item} />
+                );
+              }
+
               // Check if item is a product (has selectedVariant)
               if (item.selectedVariant && !item.gymId) {
                 return (
@@ -493,10 +501,6 @@ export default function PaymentScreen({ navigation, route }) {
                     onRemove={() => handleRemoveItem(item.cartItemId)}
                   />
                 );
-              }
-              if (item.toExtend === true) {
-                // Use regular CartCard for items to extend
-                return <CartCard_Extend key={item.id} itemToExtend={item} />;
               }
 
               // Use regular CartCard for other types (GymCourse, etc.)

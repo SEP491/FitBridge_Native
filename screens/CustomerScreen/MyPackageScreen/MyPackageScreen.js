@@ -84,8 +84,9 @@ export default function MyPackageScreen() {
             hasPTAssigned
           );
 
-          // Determine if package can be extended (check if gymCourse exists and is active)
-          const canExtend = item.gymCourse && item.gymCourse.isActive !== false;
+          // Determine if package can be extended (check if gymCourseId exists)
+          // If gymCourseId exists, the package can potentially be extended
+          const canExtend = !!item.gymCourseId;
 
           return {
             ...item,
@@ -97,11 +98,15 @@ export default function MyPackageScreen() {
 
         // Map freelance PT packages
         const mappedFreelancePt = freelancePtItems.map((item) => {
-          // Determine if package can be extended (check if freelancePTPackage exists and is active)
-          const canExtend =
-            item.freelancePTPackage &&
-            item.freelancePTPackage.isActive !== false;
-
+          // Determine if package can be extended (check if freelancePTPackageId exists)
+          // If freelancePTPackageId exists, the package can potentially be extended
+          const canExtend = !!item.freelancePTPackageId;
+          console.log(
+            "Mapping Freelance PT Item:",
+            item,
+            "Can Extend:",
+            canExtend
+          );
           return {
             ...item,
             type: "freelancePT",
@@ -158,52 +163,40 @@ export default function MyPackageScreen() {
     return expDate < today;
   };
 
-  // Check if an expired package can be renewed
+  // Check if a package can be renewed
+  // Renew button can ONLY appear for packages that are NOT expired
   const canRenewPackage = (pkg) => {
-    // If package is not expired, it can be renewed
-    if (!isPackageExpired(pkg.expirationDate)) {
-      return true;
+    // If package is expired, it cannot be renewed (renew button should not appear)
+    if (isPackageExpired(pkg.expirationDate)) {
+      return false;
     }
 
-    // If package is expired, check if it can still be renewed
+    // Package is not expired, check if it can be renewed
     // A package cannot be renewed if:
-    // 1. The package/product is no longer available (gymCourse or freelancePTPackage is null/inactive)
-    // 2. The package has toExtend set to false
-    // 3. The gymCourse or freelancePTPackage doesn't exist or is inactive
+    // 1. The package has toExtend set to false
+    // 2. The gymCourseId or freelancePTPackageId doesn't exist
 
     if (pkg.toExtend === false) {
       return false;
     }
 
-    // Check if the underlying package/product still exists and is active
-    const gymCourse = pkg.gymCourse;
-    const freelancePTPackage = pkg.freelancePTPackage;
-
-    if (
-      pkg.type === "freelancePT" ||
-      pkg.type === "gymCourseWithPT" ||
-      pkg.type === "gymCourseNormal"
-    ) {
-      // For gym courses, check if gymCourse exists and is active
-      if (gymCourse && gymCourse.isActive === false) {
-        return false;
-      }
-      if (!gymCourse) {
+    // Check if the underlying package/product ID exists
+    // For gym courses, check if gymCourseId exists
+    if (pkg.type === "gymCourseWithPT" || pkg.type === "gymCourseNormal") {
+      if (!pkg.gymCourseId) {
         return false;
       }
     }
 
+    // For freelance PT packages, check if freelancePTPackageId exists
     if (pkg.type === "freelancePT") {
-      // For freelance PT packages, check if freelancePTPackage exists and is active
-      if (freelancePTPackage && freelancePTPackage.isActive === false) {
-        return false;
-      }
-      if (!freelancePTPackage) {
+      if (!pkg.freelancePTPackageId) {
         return false;
       }
     }
 
-    return true;
+    // If package is not expired and toExtend is true with valid ID, package can be renewed
+    return pkg.toExtend === true;
   };
 
   const filteredPackages = packages.filter((pkg) => {
@@ -355,8 +348,12 @@ export default function MyPackageScreen() {
 
       // Create report
       // Get the latest order item ID (get the last element in the array)
-      const latestOrderItemId = Array.isArray(selectedPackageForReport.orderItems) 
-        ? selectedPackageForReport.orderItems[selectedPackageForReport.orderItems.length - 1]
+      const latestOrderItemId = Array.isArray(
+        selectedPackageForReport.orderItems
+      )
+        ? selectedPackageForReport.orderItems[
+            selectedPackageForReport.orderItems.length - 1
+          ]
         : selectedPackageForReport.orderItems;
 
       const reportData = {
@@ -389,7 +386,8 @@ export default function MyPackageScreen() {
       console.error("Error submitting report:", error);
       Alert.alert(
         t("errors.error"),
-        error?.response?.data?.message || t("myPackage.reportModal.submitFailedRetry")
+        error?.response?.data?.message ||
+          t("myPackage.reportModal.submitFailedRetry")
       );
     } finally {
       setIsSubmittingReport(false);
