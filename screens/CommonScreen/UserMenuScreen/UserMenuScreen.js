@@ -285,7 +285,8 @@ export default function UserMenuScreen() {
                       signalR_webrtcService.stopConnection();
                       console.log("SignalR: Connection stopped on logout");
                     }
-                    messagingService.dispose();
+                    messagingService.stopConnection();
+                    console.log("SignalR: Connection stopped on logout");
                   } else {
                     Alert.alert(t("common.error"), t("errors.logoutError"));
                   }
