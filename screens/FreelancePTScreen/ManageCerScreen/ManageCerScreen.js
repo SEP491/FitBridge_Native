@@ -63,12 +63,35 @@ export default function ManageCerScreen() {
           (cert) => cert.certificateStatus?.toLowerCase() === selectedStatus
         );
 
-  // Format date to dd-mm-yyyy for display and API
+  // Format date to dd-mm-yyyy for display
   const formatDateDisplay = (date) => {
     const day = date.getDate().toString().padStart(2, "0");
     const month = (date.getMonth() + 1).toString().padStart(2, "0");
     const year = date.getFullYear();
     return `${day}-${month}-${year}`;
+  };
+
+  // Format date to YYYY-MM-DD for API
+  const formatDateForAPI = (dateString) => {
+    if (!dateString) return "";
+    // If it's already in dd-mm-yyyy format, convert to YYYY-MM-DD
+    const parts = dateString.split("-");
+    if (parts.length === 3) {
+      // Assume format is dd-mm-yyyy
+      const day = parts[0];
+      const month = parts[1];
+      const year = parts[2];
+      return `${year}-${month}-${day}`;
+    }
+    // If it's a Date object or ISO string, format it
+    const date = new Date(dateString);
+    if (!isNaN(date.getTime())) {
+      const year = date.getFullYear();
+      const month = (date.getMonth() + 1).toString().padStart(2, "0");
+      const day = date.getDate().toString().padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+    return dateString;
   };
 
   // Parse dd-mm-yyyy string to Date object
@@ -225,8 +248,11 @@ export default function ManageCerScreen() {
     const formData = new FormData();
     formData.append("ptId", user?.id);
     formData.append("certificateMetadataId", selectedMetadata.id);
-    formData.append("providedDate", providedDate);
-    formData.append("expirationDate", expirationDate);
+    formData.append("providedDate", formatDateForAPI(providedDate));
+    formData.append(
+      "expirationDate",
+      expirationDate ? formatDateForAPI(expirationDate) : ""
+    );
     formData.append("certUrl", {
       uri: image.uri,
       name: image.name,
