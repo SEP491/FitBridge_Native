@@ -111,6 +111,7 @@ import FreelancePTBookingHistoryScreen from "../screens/FreelancePTScreen/Freela
 import CustomerPurchasedTransactionScreen from "../screens/FreelancePTScreen/CustomerPurchasedTransactionScreen";
 import CustomerPurchasedBookingHistoryScreen from "../screens/FreelancePTScreen/CustomerPurchasedBookingHistoryScreen";
 import PackageHistoryScreen from "../screens/CustomerScreen/PackageHistoryScreen/PackageHistoryScreen";
+import GymPTProfileScreen from "../screens/CommonScreen/GymPTProfileScreen/GymPTProfileScreen";
 
 export default function Navigator({
   isAuthenticated: propIsAuthenticated,
@@ -297,6 +298,15 @@ export default function Navigator({
         <Stack.Screen
           name="PTProfileScreen"
           component={PTProfileScreen}
+          options={{
+            headerTitleAlign: "center",
+            headerShown: true,
+            title: t("screenTitles.ptInfo"),
+          }}
+        />
+        <Stack.Screen
+          name="GymPTProfileScreen"
+          component={GymPTProfileScreen}
           options={{
             headerTitleAlign: "center",
             headerShown: true,

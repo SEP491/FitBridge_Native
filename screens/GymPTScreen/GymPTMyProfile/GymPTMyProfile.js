@@ -19,8 +19,10 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 import * as ImagePicker from "expo-image-picker";
 import accountService from "../../../services/accountService";
 import { useTranslation } from "../../../hooks/useTranslation";
-import { formatNumber, formatDate, formatDateForAPI } from "../../../lib";
+import { formatDate, formatDateForAPI } from "../../../lib";
 import { useUser } from "../../../context/UserContext";
+import UpdateUserDetailModal from "../../CustomerScreen/AccountScreen/UpdateUserDetailModal";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 const GymPTMyProfile = () => {
   const { t } = useTranslation();
@@ -31,8 +33,8 @@ const GymPTMyProfile = () => {
     email: "",
     phone: "",
     dob: "",
-    weight: 0,
-    height: 0,
+    // weight: 0,
+    // height: 0,
     gender: "",
     avatarUrl: "",
     isActive: "",
@@ -51,6 +53,8 @@ const GymPTMyProfile = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [displayDate, setDisplayDate] = useState("");
   const [displayIdentityDate, setDisplayIdentityDate] = useState("");
+  const [showUpdateUserDetailModal, setShowUpdateUserDetailModal] =
+    useState(false);
 
   const formatDisplayDate = (dateString) => {
     if (!dateString) return "";
@@ -59,43 +63,6 @@ const GymPTMyProfile = () => {
 
   const formatAPIDate = (date) => {
     return formatDateForAPI(date);
-  };
-
-  const calculateBMI = (weight, height) => {
-    const numWeight = parseFloat(weight);
-    const numHeight = parseFloat(height);
-    if (!numWeight || !numHeight || numWeight <= 0 || numHeight <= 0)
-      return null;
-    const heightInMeters = numHeight / 100;
-    return formatNumber(
-      parseFloat((numWeight / (heightInMeters * heightInMeters)).toFixed(1))
-    );
-  };
-
-  const getBMICategory = (bmi) => {
-    if (!bmi) return "";
-    const numBmi =
-      typeof bmi === "string"
-        ? parseFloat(bmi.replace(",", "."))
-        : parseFloat(bmi);
-    if (isNaN(numBmi)) return "";
-    if (numBmi < 18.5) return t("profile.bmiCategories.underweight");
-    if (numBmi < 25) return t("profile.bmiCategories.normal");
-    if (numBmi < 30) return t("profile.bmiCategories.overweight");
-    return t("profile.bmiCategories.obese");
-  };
-
-  const getBMIColor = (bmi) => {
-    if (!bmi) return "#666";
-    const numBmi =
-      typeof bmi === "string"
-        ? parseFloat(bmi.replace(",", "."))
-        : parseFloat(bmi);
-    if (isNaN(numBmi)) return "#666";
-    if (numBmi < 18.5) return "#2196F3";
-    if (numBmi < 25) return "#4CAF50";
-    if (numBmi < 30) return "#FF9800";
-    return "#F44336";
   };
 
   useEffect(() => {
@@ -272,8 +239,6 @@ const GymPTMyProfile = () => {
       formData.append("phone", userProfile.phone || "");
       formData.append("dob", userProfile.dob || "");
       formData.append("isMale", userProfile.gender === "Female" ? false : true);
-      formData.append("weight", parseFloat(userProfile.weight) || 0);
-      formData.append("height", parseFloat(userProfile.height) || 0);
       formData.append("citizenIdNumber", userProfile.citizenIdNumber || "");
       formData.append("identityCardPlace", userProfile.identityCardPlace || "");
       formData.append(
@@ -323,13 +288,6 @@ const GymPTMyProfile = () => {
     setIsEditMode(false);
     fetchProfileData();
   };
-
-  const bmi = calculateBMI(
-    parseFloat(userProfile.weight),
-    parseFloat(userProfile.height)
-  );
-  const bmiCategory = getBMICategory(bmi);
-  const bmiColor = getBMIColor(bmi);
 
   return (
     <KeyboardAvoidingView
@@ -408,39 +366,38 @@ const GymPTMyProfile = () => {
           </View>
         </LinearGradient>
 
-        {/* Quick Stats Cards */}
-        <View style={styles.statsContainer}>
-          <View style={styles.statCard}>
-            <MaterialCommunityIcons
-              name="weight-kilogram"
-              size={24}
-              color="#FF914D"
-            />
-            <Text style={styles.statValue}>{userProfile.weight}</Text>
-            <Text style={styles.statLabel}>{t("profile.units.kg")}</Text>
-          </View>
-
-          <View style={styles.statCard}>
-            <MaterialCommunityIcons
-              name="human-male-height"
-              size={24}
-              color="#FF914D"
-            />
-            <Text style={styles.statValue}>{userProfile.height}</Text>
-            <Text style={styles.statLabel}>{t("profile.units.cm")}</Text>
-          </View>
-
-          {bmi && (
-            <View style={styles.statCard}>
+        {/* Action card to update body details */}
+        <View style={styles.actionCardsContainer}>
+          <TouchableOpacity
+            style={styles.actionCard}
+            onPress={() => setShowUpdateUserDetailModal(true)}
+          >
+            <View
+              style={[styles.actionCardIcon, { backgroundColor: "#E3F2FD" }]}
+            >
               <MaterialCommunityIcons
-                name="heart-pulse"
-                size={24}
-                color={bmiColor}
+                name="account"
+                size={20}
+                color="#2196F3"
               />
-              <Text style={[styles.statValue, { color: bmiColor }]}>{bmi}</Text>
-              <Text style={styles.statLabel}>BMI</Text>
             </View>
-          )}
+            <View style={styles.actionCardContent}>
+              <Text style={styles.actionCardTitle}>
+                {t("userDetail.updateDetails", "Update User Details")}
+              </Text>
+              <Text style={styles.actionCardSubtitle}>
+                {t(
+                  "userDetail.updateBodyMeasurements",
+                  "Update body measurements and bio"
+                )}
+              </Text>
+            </View>
+            <MaterialCommunityIcons
+              name="chevron-right"
+              size={16}
+              color="#999"
+            />
+          </TouchableOpacity>
         </View>
 
         {/* Personal Information Form */}
@@ -544,56 +501,6 @@ const GymPTMyProfile = () => {
                   />
                 </View>
               </TouchableOpacity>
-            </View>
-
-            <View style={styles.inputRow}>
-              <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
-                <Text style={styles.inputLabel}>
-                  <MaterialCommunityIcons
-                    name="weight-kilogram"
-                    size={16}
-                    color="#FF914D"
-                  />{" "}
-                  {t("profile.weight")}
-                </Text>
-                <TextInput
-                  style={[
-                    styles.textInput,
-                    !isEditMode && styles.disabledInput,
-                  ]}
-                  value={userProfile.weight?.toString()}
-                  onChangeText={(text) =>
-                    setUserProfile({ ...userProfile, weight: text })
-                  }
-                  placeholder="0"
-                  keyboardType="numeric"
-                  editable={isEditMode}
-                />
-              </View>
-
-              <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}>
-                <Text style={styles.inputLabel}>
-                  <MaterialCommunityIcons
-                    name="human-male-height"
-                    size={16}
-                    color="#FF914D"
-                  />{" "}
-                  {t("profile.height")}
-                </Text>
-                <TextInput
-                  style={[
-                    styles.textInput,
-                    !isEditMode && styles.disabledInput,
-                  ]}
-                  value={userProfile.height?.toString()}
-                  onChangeText={(text) =>
-                    setUserProfile({ ...userProfile, height: text })
-                  }
-                  placeholder="0"
-                  keyboardType="numeric"
-                  editable={isEditMode}
-                />
-              </View>
             </View>
 
             <View style={styles.inputGroup}>
@@ -915,6 +822,14 @@ const GymPTMyProfile = () => {
         </Modal>
       </ScrollView>
 
+      <UpdateUserDetailModal
+        visible={showUpdateUserDetailModal}
+        onClose={() => setShowUpdateUserDetailModal(false)}
+        onSuccess={() => {
+          fetchProfileData();
+        }}
+      />
+
       {/* Date Picker Modal */}
       <DateTimePickerModal
         isVisible={showDatePicker}
@@ -1034,6 +949,44 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     marginLeft: 6,
+  },
+  actionCardsContainer: {
+    gap: 12,
+    marginHorizontal: 16,
+    marginTop: 12,
+  },
+  actionCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  actionCardIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#FFE8E8",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 16,
+  },
+  actionCardContent: {
+    flex: 1,
+  },
+  actionCardTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#000",
+    marginBottom: 2,
+  },
+  actionCardSubtitle: {
+    fontSize: 14,
+    color: "#666",
   },
   statsContainer: {
     flexDirection: "row",

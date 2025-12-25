@@ -50,7 +50,7 @@ export default function PTInGymScreen({ route }) {
       item={item}
       showButtons={false}
       onPress={() =>
-        navigation.navigate("PTProfileScreen", {
+        navigation.navigate("GymPTProfileScreen", {
           ptId: item.id,
         })
       }
