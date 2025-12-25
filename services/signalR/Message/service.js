@@ -289,6 +289,7 @@ class SignalRService {
     try {
       await this.#connection.stop();
       this.#removeLifeCycleHandlers();
+      this.#connectionCallbacks.clear();
       console.log("SignalR: Connection stopped");
     } catch (error) {
       console.error("SignalR: Error stopping connection", error);
