@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import colors from "../../constants/color";
+import { useTranslation } from "../../hooks/useTranslation";
 
 const { width } = Dimensions.get("window");
 
@@ -20,6 +21,7 @@ const BookingRequestCard = ({
   senderAvatarUrl,
   currentUserRole,
 }) => {
+  const { t, currentLanguage } = useTranslation();
   const {
     bookingRequestId,
     requestStatus,
@@ -31,11 +33,13 @@ const BookingRequestCard = ({
     bookingName,
   } = bookingRequest;
 
-  // Format date
+  // Format date with proper locale
   const formatDate = (dateString) => {
     try {
       const date = new Date(dateString);
-      return date.toLocaleDateString("en-US", {
+      // Use current language from translation hook
+      const locale = currentLanguage === "vi" ? "vi-VN" : "en-US";
+      return date.toLocaleDateString(locale, {
         weekday: "short",
         month: "short",
         day: "numeric",
@@ -46,14 +50,17 @@ const BookingRequestCard = ({
     }
   };
 
-  // Format time
+  // Format time (24-hour format for consistency)
   const formatTime = (timeString) => {
     try {
+      if (!timeString) return "";
+      // Handle both HH:mm:ss and HH:mm formats
       const [hours, minutes] = timeString.split(":");
-      const hour = parseInt(hours);
-      const ampm = hour >= 12 ? "PM" : "AM";
-      const displayHour = hour % 12 || 12;
-      return `${displayHour}:${minutes} ${ampm}`;
+      const hour = parseInt(hours, 10);
+      const min = parseInt(minutes || "0", 10);
+      
+      // Use 24-hour format for consistency
+      return `${hour.toString().padStart(2, "0")}:${min.toString().padStart(2, "0")}`;
     } catch (error) {
       return timeString;
     }
@@ -66,19 +73,19 @@ const BookingRequestCard = ({
         return {
           color: "#10B981",
           icon: "checkmark-circle",
-          label: "Approved",
+          label: t("bookingRequest.approved") || "Approved",
         };
       case "Pending":
         return {
           color: "#F59E0B",
           icon: "time",
-          label: "Pending",
+          label: t("bookingRequest.pending") || "Pending",
         };
       case "Rejected":
         return {
           color: "#EF4444",
           icon: "close-circle",
-          label: "Rejected",
+          label: t("bookingRequest.rejected") || "Rejected",
         };
       default:
         return {
@@ -93,13 +100,13 @@ const BookingRequestCard = ({
   const getRequestTypeLabel = () => {
     switch (requestType) {
       case "CustomerCreate":
-        return "Customer Created";
+        return t("bookingRequest.customerCreated") || "Customer Created";
       case "PtCreate":
-        return "PT Created";
+        return t("bookingRequest.ptCreated") || "PT Created";
       case "PtUpdate":
-        return "PT Updated";
+        return t("bookingRequest.ptUpdated") || "PT Updated";
       case "CustomerUpdate":
-        return "Customer Updated";
+        return t("bookingRequest.customerUpdated") || "Customer Updated";
       default:
         return requestType;
     }
@@ -169,7 +176,7 @@ const BookingRequestCard = ({
                     : styles.otherUserHeaderTitle,
                 ]}
               >
-                Booking Request
+                {t("messageScreen.bookingRequest") || "Booking Request"}
               </Text>
             </View>
             <View
@@ -324,7 +331,7 @@ const BookingRequestCard = ({
                   >
                     <Ionicons name="create-outline" size={18} color="#3B82F6" />
                     <Text style={styles.editButtonReceivedText}>
-                      Edit Request
+                      {t("bookingRequest.editRequest") || "Edit Request"}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -336,14 +343,18 @@ const BookingRequestCard = ({
                     onPress={() => onAction(bookingRequestId, "reject")}
                   >
                     <Ionicons name="close" size={18} color="#EF4444" />
-                    <Text style={styles.rejectButtonText}>Reject</Text>
+                    <Text style={styles.rejectButtonText}>
+                      {t("bookingRequest.reject") || "Reject"}
+                    </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={[styles.actionButton, styles.approveButton]}
                     onPress={() => onAction(bookingRequestId, "approve")}
                   >
                     <Ionicons name="checkmark" size={18} color="#FFFFFF" />
-                    <Text style={styles.approveButtonText}>Approve</Text>
+                    <Text style={styles.approveButtonText}>
+                      {t("bookingRequest.approve") || "Approve"}
+                    </Text>
                   </TouchableOpacity>
                 </View>
               )}
