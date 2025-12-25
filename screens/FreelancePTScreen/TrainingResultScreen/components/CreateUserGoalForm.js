@@ -141,48 +141,47 @@ export const CreateUserGoalForm = ({
   t,
   modalPosition,
   loading = false,
+  mode = "create", // 'create' or 'edit'
+  initialData = null, // Existing user goal data for edit mode
+  initialSelectedTargetParts = [], // Pre-selected target parts for edit mode
 }) => {
-  const [formData, setFormData] = useState({
-    customerPurchasedId: customerPurchasedId,
-    // Start values
-    startHeight: "",
-    startWeight: "",
-    startBiceps: "",
-    startForeArm: "",
-    startChest: "",
-    startBack: "",
-    startShoulder: "",
-    startWaist: "",
-    startHip: "",
-    startThigh: "",
-    startCalf: "",
-    startGlutes: "",
-    // Target values
-    targetHeight: "",
-    targetWeight: "",
-    targetBiceps: "",
-    targetForeArm: "",
-    targetChest: "",
-    targetBack: "",
-    targetShoulder: "",
-    targetWaist: "",
-    targetHip: "",
-    targetThigh: "",
-    targetCalf: "",
-    targetGlutes: "",
-    // Image
-    imageUrl: null,
-  });
-
-  const [imageUri, setImageUri] = useState(null);
-  const [activeSection, setActiveSection] = useState("measurements"); // 'measurements', 'targets', 'photo'
-  const [selectedTargetParts, setSelectedTargetParts] = useState([]); // Array of selected part keys
-  const [showTargetPartsModal, setShowTargetPartsModal] = useState(false);
-  const [selectedCurrentParts, setSelectedCurrentParts] = useState([]); // Array of selected current part keys
-  const [showCurrentPartsModal, setShowCurrentPartsModal] = useState(false);
-
-  const resetForm = () => {
-    setFormData({
+  // Initialize form data from initialData if in edit mode
+  const getInitialFormData = () => {
+    if (mode === "edit" && initialData) {
+      return {
+        customerPurchasedId: customerPurchasedId,
+        // Start values - convert numbers to strings for input fields
+        startHeight: initialData.startHeight ? String(initialData.startHeight) : "",
+        startWeight: initialData.startWeight ? String(initialData.startWeight) : "",
+        startBiceps: initialData.startBiceps ? String(initialData.startBiceps) : "",
+        startForeArm: initialData.startForeArm ? String(initialData.startForeArm) : "",
+        startChest: initialData.startChest ? String(initialData.startChest) : "",
+        startBack: initialData.startBack ? String(initialData.startBack) : "",
+        startShoulder: initialData.startShoulder ? String(initialData.startShoulder) : "",
+        startWaist: initialData.startWaist ? String(initialData.startWaist) : "",
+        startHip: initialData.startHip ? String(initialData.startHip) : "",
+        startThigh: initialData.startThigh ? String(initialData.startThigh) : "",
+        startCalf: initialData.startCalf ? String(initialData.startCalf) : "",
+        startGlutes: initialData.startGlutes ? String(initialData.startGlutes) : "",
+        // Target values
+        targetHeight: initialData.targetHeight ? String(initialData.targetHeight) : "",
+        targetWeight: initialData.targetWeight ? String(initialData.targetWeight) : "",
+        targetBiceps: initialData.targetBiceps ? String(initialData.targetBiceps) : "",
+        targetForeArm: initialData.targetForeArm ? String(initialData.targetForeArm) : "",
+        targetChest: initialData.targetChest ? String(initialData.targetChest) : "",
+        targetBack: initialData.targetBack ? String(initialData.targetBack) : "",
+        targetShoulder: initialData.targetShoulder ? String(initialData.targetShoulder) : "",
+        targetWaist: initialData.targetWaist ? String(initialData.targetWaist) : "",
+        targetHip: initialData.targetHip ? String(initialData.targetHip) : "",
+        targetThigh: initialData.targetThigh ? String(initialData.targetThigh) : "",
+        targetCalf: initialData.targetCalf ? String(initialData.targetCalf) : "",
+        targetGlutes: initialData.targetGlutes ? String(initialData.targetGlutes) : "",
+        // Image
+        imageUrl: initialData.imageUrl || null,
+      };
+    }
+    // Default empty form for create mode
+    return {
       customerPurchasedId: customerPurchasedId,
       startHeight: "",
       startWeight: "",
@@ -209,40 +208,81 @@ export const CreateUserGoalForm = ({
       targetCalf: "",
       targetGlutes: "",
       imageUrl: null,
-    });
-    setImageUri(null);
-    setActiveSection("measurements");
-    setSelectedTargetParts([]);
-    setSelectedCurrentParts([]);
+    };
   };
 
-  const toggleTargetPart = (partKey) => {
-    setSelectedTargetParts((prev) => {
-      if (prev.includes(partKey)) {
-        // Remove part and reset its value
-        setFormData((prevData) => ({
-          ...prevData,
-          [`target${partKey}`]: "",
-        }));
-        return prev.filter((key) => key !== partKey);
-      } else {
-        // Add part
-        return [...prev, partKey];
-      }
-    });
+  const [formData, setFormData] = useState(getInitialFormData());
+
+  // Initialize selected parts based on initialData
+  // Target parts automatically sync with current parts
+  const getInitialSelectedParts = React.useMemo(() => {
+    if (mode === "edit" && initialData) {
+      const currentParts = [];
+
+      // Find which current parts have values
+      const musclePartKeys = ["Height", "Weight", "Biceps", "ForeArm", "Chest", "Back", "Shoulder", "Waist", "Hip", "Thigh", "Calf", "Glutes"];
+      musclePartKeys.forEach((key) => {
+        const value = initialData[`start${key}`];
+        if (value !== null && value !== undefined && value !== 0 && value !== "") {
+          currentParts.push(key);
+        }
+      });
+
+      // Target parts automatically match current parts
+      return { currentParts, targetParts: currentParts };
+    }
+    return { currentParts: [], targetParts: [] };
+  }, [mode, initialData]);
+
+  const [imageUri, setImageUri] = useState(
+    mode === "edit" && initialData?.imageUrl ? initialData.imageUrl : null
+  );
+  const [activeSection, setActiveSection] = useState("measurements");
+  // Target parts automatically sync with current parts
+  const [selectedCurrentParts, setSelectedCurrentParts] = useState(getInitialSelectedParts.currentParts);
+  const [showCurrentPartsModal, setShowCurrentPartsModal] = useState(false);
+  
+  // selectedTargetParts is derived from selectedCurrentParts
+  const selectedTargetParts = selectedCurrentParts;
+
+  // Track if form has been initialized to prevent resetting during editing
+  const prevVisibleRef = React.useRef(false);
+
+  React.useEffect(() => {
+    // Only initialize when modal transitions from closed to open
+    // This prevents resetting the form while user is editing
+    if (visible && !prevVisibleRef.current) {
+      // Modal just opened - initialize form with latest initialData
+      setFormData(getInitialFormData());
+      // Initialize current parts, target parts will automatically sync
+      const initialParts = getInitialSelectedParts;
+      setSelectedCurrentParts(initialParts.currentParts);
+      setImageUri(mode === "edit" && initialData?.imageUrl ? initialData.imageUrl : null);
+      setActiveSection("measurements");
+    }
+    prevVisibleRef.current = visible;
+  }, [visible, mode, initialData]);
+
+  const resetForm = () => {
+    setFormData(getInitialFormData());
+    const initialParts = getInitialSelectedParts;
+    setSelectedCurrentParts(initialParts.currentParts);
+    setImageUri(mode === "edit" && initialData?.imageUrl ? initialData.imageUrl : null);
+    setActiveSection("measurements");
   };
 
   const toggleCurrentPart = (partKey) => {
     setSelectedCurrentParts((prev) => {
       if (prev.includes(partKey)) {
-        // Remove part and reset its value
+        // Remove part and reset its values (both start and target)
         setFormData((prevData) => ({
           ...prevData,
           [`start${partKey}`]: "",
+          [`target${partKey}`]: "",
         }));
         return prev.filter((key) => key !== partKey);
       } else {
-        // Add part
+        // Add part - target parts automatically sync
         return [...prev, partKey];
       }
     });
@@ -384,17 +424,7 @@ export const CreateUserGoalForm = ({
       return;
     }
 
-    // Validate minimum 5 parts in target measurements
-    if (selectedTargetParts.length < 1) {
-      Alert.alert(
-        t("common.validation", "Validation"),
-        t(
-          "userGoals.minimumTargetParts",
-          "Please select at least 5 parts in Target Measurements"
-        )
-      );
-      return;
-    }
+    // Target parts automatically match current parts, so validation is already covered above
 
 
     // Validate that selected current parts have values
@@ -426,8 +456,8 @@ export const CreateUserGoalForm = ({
       }
     }
 
-    // Validate that selected target parts have values
-    for (const partKey of selectedTargetParts) {
+    // Validate that selected target parts have values (same parts as current)
+    for (const partKey of selectedCurrentParts) {
       const fieldName = `target${partKey}`;
       const value = formData[fieldName];
       
@@ -588,7 +618,9 @@ export const CreateUserGoalForm = ({
             <Ionicons name="close" size={24} color="#333" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>
-            {t("userGoals.createGoal", "Create Goal")}
+            {mode === "edit"
+              ? t("userGoals.updateGoals", "Update Goal")
+              : t("userGoals.createGoal", "Create Goal")}
           </Text>
           <View style={{ width: 24 }} />
         </View>
@@ -788,31 +820,27 @@ export const CreateUserGoalForm = ({
                 )}
               </Text>
 
-              {/* Choose Parts Button */}
-              <TouchableOpacity
-                style={styles.choosePartsButton}
-                onPress={() => setShowTargetPartsModal(true)}
-              >
-                <Ionicons name="add-circle-outline" size={20} color="#ED2A46" />
-                <Text style={styles.choosePartsButtonText}>
-                  {t("userGoals.chooseParts", "Choose Parts to Set Target")}
+              {/* Info Text - Target parts automatically match current parts */}
+              <View style={styles.infoContainer}>
+                <Ionicons name="information-circle-outline" size={20} color="#2196F3" />
+                <Text style={styles.infoText}>
+                  {t("userGoals.targetPartsAutoSync", "Target measurements will use the same parts as current measurements")}
                 </Text>
-                <Ionicons name="chevron-forward" size={20} color="#666" />
-              </TouchableOpacity>
+              </View>
 
-              {/* Selected Parts List */}
-              {selectedTargetParts.length > 0 && (
+              {/* Selected Parts List - Same as Current Measurements */}
+              {selectedCurrentParts.length > 0 && (
                 <View style={styles.selectedPartsContainer}>
                   <Text style={styles.selectedPartsTitle}>
                     {t("userGoals.selectedParts", "Selected Parts")}
                   </Text>
 
                   {/* Height and Weight Row (if selected) */}
-                  {(selectedTargetParts.includes("Height") ||
-                    selectedTargetParts.includes("Weight")) && (
+                  {(selectedCurrentParts.includes("Height") ||
+                    selectedCurrentParts.includes("Weight")) && (
                     <View style={styles.heightWeightRow}>
-                      {selectedTargetParts.includes("Height") && (
-                        <View style={[styles.selectedPartWrapper, styles.heightWeightInputWrapper]}>
+                      {selectedCurrentParts.includes("Height") && (
+                        <View style={styles.heightWeightInputWrapper}>
                           <InputField
                             label={muscleGroups[0].label}
                             value={formData.targetHeight}
@@ -825,20 +853,10 @@ export const CreateUserGoalForm = ({
                             }
                             unit={muscleGroups[0].unit}
                           />
-                          <TouchableOpacity
-                            style={styles.removePartButton}
-                            onPress={() => toggleTargetPart("Height")}
-                          >
-                            <Ionicons
-                              name="close-circle"
-                              size={24}
-                              color="#F44336"
-                            />
-                          </TouchableOpacity>
                         </View>
                       )}
-                      {selectedTargetParts.includes("Weight") && (
-                        <View style={[styles.selectedPartWrapper, styles.heightWeightInputWrapper]}>
+                      {selectedCurrentParts.includes("Weight") && (
+                        <View style={styles.heightWeightInputWrapper}>
                           <InputField
                             label={muscleGroups[1].label}
                             value={formData.targetWeight}
@@ -851,16 +869,6 @@ export const CreateUserGoalForm = ({
                             }
                             unit={muscleGroups[1].unit}
                           />
-                          <TouchableOpacity
-                            style={styles.removePartButton}
-                            onPress={() => toggleTargetPart("Weight")}
-                          >
-                            <Ionicons
-                              name="close-circle"
-                              size={24}
-                              color="#F44336"
-                            />
-                          </TouchableOpacity>
                         </View>
                       )}
                     </View>
@@ -871,7 +879,7 @@ export const CreateUserGoalForm = ({
                     {muscleGroups
                       .slice(2)
                       .filter((group) =>
-                        selectedTargetParts.includes(group.key)
+                        selectedCurrentParts.includes(group.key)
                       )
                       .map((group) => (
                         <View
@@ -891,16 +899,6 @@ export const CreateUserGoalForm = ({
                             }
                             unit={group.unit}
                           />
-                          <TouchableOpacity
-                            style={styles.removePartButton}
-                            onPress={() => toggleTargetPart(group.key)}
-                          >
-                            <Ionicons
-                              name="close-circle"
-                              size={24}
-                              color="#F44336"
-                            />
-                          </TouchableOpacity>
                         </View>
                       ))}
                   </View>
@@ -977,94 +975,6 @@ export const CreateUserGoalForm = ({
           <View style={{ height: 20 }} />
         </ScrollView>
 
-        {/* Target Parts Selection Modal */}
-        <Modal
-          visible={showTargetPartsModal}
-          transparent={true}
-          animationType="slide"
-          onRequestClose={() => setShowTargetPartsModal(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>
-                  {t("userGoals.chooseParts", "Select Parts to Set Target")}
-                </Text>
-                <TouchableOpacity
-                  onPress={() => setShowTargetPartsModal(false)}
-                  style={styles.modalCloseButton}
-                >
-                  <Ionicons name="close" size={24} color="#333" />
-                </TouchableOpacity>
-              </View>
-
-              <ScrollView style={styles.modalBody}>
-                {muscleGroups.map((group) => {
-                  const isSelected = selectedTargetParts.includes(group.key);
-                  const hasImage = muscleGroupImages[group.key];
-                  return (
-                    <TouchableOpacity
-                      key={group.key}
-                      style={[
-                        styles.partOption,
-                        isSelected && styles.partOptionSelected,
-                      ]}
-                      onPress={() => toggleTargetPart(group.key)}
-                    >
-                      <View style={styles.partOptionContent}>
-                        {hasImage ? (
-                          <Image
-                            source={muscleGroupImages[group.key]}
-                            style={styles.partOptionImage}
-                            resizeMode="contain"
-                          />
-                        ) : (
-                          <View style={styles.partOptionIconPlaceholder}>
-                            <Ionicons
-                              name={
-                                group.key === "Height"
-                                  ? "resize-outline"
-                                  : "barbell-outline"
-                              }
-                              size={24}
-                              color={isSelected ? "#4CAF50" : "#999"}
-                            />
-                          </View>
-                        )}
-                        <Text
-                          style={[
-                            styles.partOptionText,
-                            isSelected && styles.partOptionTextSelected,
-                          ]}
-                        >
-                          {group.label}
-                        </Text>
-                      </View>
-                      {isSelected && (
-                        <Ionicons
-                          name="checkmark-circle"
-                          size={24}
-                          color="#4CAF50"
-                        />
-                      )}
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-
-              <View style={styles.modalFooter}>
-                <TouchableOpacity
-                  style={styles.modalDoneButton}
-                  onPress={() => setShowTargetPartsModal(false)}
-                >
-                  <Text style={styles.modalDoneButtonText}>
-                    {t("common.done", "Done")}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </Modal>
 
         {/* Current Parts Selection Modal */}
         <Modal
@@ -1181,7 +1091,9 @@ export const CreateUserGoalForm = ({
               <>
                 <Ionicons name="checkmark" size={20} color="#fff" />
                 <Text style={styles.submitButtonText}>
-                  {t("userGoals.createGoal", "Create Goal")}
+                  {mode === "edit"
+                    ? t("userGoals.updateGoals", "Update Goal")
+                    : t("userGoals.createGoal", "Create Goal")}
                 </Text>
               </>
             )}
@@ -1609,5 +1521,20 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
+  },
+  infoContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#E3F2FD",
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    gap: 8,
+  },
+  infoText: {
+    flex: 1,
+    fontSize: 13,
+    color: "#1976D2",
+    lineHeight: 18,
   },
 });

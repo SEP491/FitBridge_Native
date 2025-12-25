@@ -2090,6 +2090,11 @@
   },
 
   "userGoals": {
+    "targetPartsAutoSync": "Số đo mục tiêu sẽ tự động đồng bộ với số đo hiện tại",
+    "updateSuccessTitle": "Mục Tiêu Đã Được Cập Nhật",
+    "updateSuccessMessage": "Mục tiêu đã được cập nhật thành công.",
+    "updateErrorTitle": "Mục Tiêu Đã Không Được Cập Nhật",
+    "updateErrorMessage": "Mục tiêu đã không được cập nhật. Vui lòng thử lại.",
     "fillSelectedField": "Vui lòng điền các số đo cơ thể trong phần đã chọn",
     "minimumTargetParts": "Vui lòng chọn ít nhất 1 phần cơ thể trong Số Đo Mục Tiêu",
     "minimumCurrentParts": "Vui lòng chọn ít nhất 1 phần cơ thể trong Số Đo Hiện Tại",

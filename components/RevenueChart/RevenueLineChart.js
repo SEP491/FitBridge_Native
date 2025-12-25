@@ -58,7 +58,7 @@ const RevenueLineChart = ({ startDate, endDate, onDataLoaded }) => {
       if (response) {
         // Standard structure: response.data.items
         if (response.data && Array.isArray(response.data.items)) {
-          items = mockedData.data.items;
+          items = response.data.items;
         } 
       }
 
