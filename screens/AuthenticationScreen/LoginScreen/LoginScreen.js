@@ -62,7 +62,9 @@ export default function LoginScreen() {
           phone: userData.phone,
           role: userData.role,
           email: userData.email,
+          isContractSigned: userData.isContractSigned,
         };
+        console.log("User Data When login:", user);
         const existingToken = await AsyncStorage.getItem("token");
 
         console.log("Login token", existingToken);

@@ -1277,8 +1277,7 @@ export default function MessageDetailScreen({ route, navigation }) {
         typeof responseCheck.data === "object" && responseCheck.data?.id
           ? responseCheck.data.id
           : responseCheck.data;
-      const duration =
-        responseCheck.data?.duration || responseCheck.duration || 60; // fallback to 60 minutes if not provided
+      const duration = responseCheck.data?.sessionDurationInMinutes || 60; // fallback to 60 minutes if not provided
       const durationMinutes = typeof duration === "number" ? duration : 60;
 
       // Validate date is not in the past

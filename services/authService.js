@@ -25,7 +25,9 @@ const authService = {
           ...response.data,
           role: parsedStoredUser.role,
           id: parsedStoredUser.id,
+          isContractSigned: parsedStoredUser.isContractSigned || "False",
         };
+        console.log("User Data When validateToken:", user);
       }
 
       return {

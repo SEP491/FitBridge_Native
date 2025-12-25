@@ -16,8 +16,9 @@ import CreateVoucherModal from "./CreateVoucherModal";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { VoucherCardWithGradient } from "../../../components/VoucherCard/VoucherCard";
 import VoucherCardVertical from "../../../components/VoucherCard/VoucherCardVertical";
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import LoadingIndicator from "../../../components/LoadingIndicator";
+import { fetchUserFromStorage } from "./../../../lib/async/asyncUtils";
 
 const ManageVoucherScreen = ({ navigation }) => {
   const { t } = useTranslation();
@@ -25,7 +26,8 @@ const ManageVoucherScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [userName, setUserName] = useState('');
+  const [userName, setUserName] = useState("");
+  const [user, setUser] = useState(null);
   const [pagination, setPagination] = useState({
     page: 1,
     size: 10,
@@ -36,17 +38,25 @@ const ManageVoucherScreen = ({ navigation }) => {
   useEffect(() => {
     fetchCoupons();
     loadUserName();
+    fetchUser();
   }, [navigation]);
+
+  const fetchUser = async () => {
+    const userData = await fetchUserFromStorage();
+    if (userData) {
+      setUser(userData);
+    }
+  };
 
   const loadUserName = async () => {
     try {
-      const userDataString = await AsyncStorage.getItem('user');
+      const userDataString = await AsyncStorage.getItem("user");
       if (userDataString) {
         const userData = JSON.parse(userDataString);
-        setUserName(userData.fullName || userData.name || '');
+        setUserName(userData.fullName || userData.name || "");
       }
     } catch (error) {
-      console.error('Error loading user name:', error);
+      console.error("Error loading user name:", error);
     }
   };
 
@@ -149,22 +159,54 @@ const ManageVoucherScreen = ({ navigation }) => {
 
       {/* Add New Voucher Button */}
       <TouchableOpacity
-        style={styles.addButton}
+        style={[
+          styles.addButton,
+          user?.role === "FreelancePT" &&
+            user?.isContractSigned === "False" &&
+            styles.addButtonDisabled,
+        ]}
         onPress={() => setShowCreateModal(true)}
+        activeOpacity={0.8}
+        disabled={
+          user?.role === "FreelancePT" && user?.isContractSigned === "False"
+        }
       >
-        <Ionicons name="add" size={20} color="#fff" />
-        <Text style={styles.addButtonText}>
+        <Ionicons
+          name="add"
+          size={20}
+          color={
+            user?.role === "FreelancePT" && user?.isContractSigned === "False"
+              ? "#999"
+              : "#fff"
+          }
+        />
+        <Text
+          style={[
+            styles.addButtonText,
+            user?.role === "FreelancePT" &&
+              user?.isContractSigned === "False" &&
+              styles.addButtonTextDisabled,
+          ]}
+        >
           {t("manageVoucher.createNewVoucher")}
         </Text>
       </TouchableOpacity>
 
       {/* Vouchers List */}
-      <SafeAreaView style={{ width: "100%", paddingTop: -45, paddingBottom: 250 }}>
+      <SafeAreaView
+        style={{ width: "100%", paddingTop: -45, paddingBottom: 250 }}
+      >
         <FlatList
-          data={vouchers}a
+          data={vouchers}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
-            <TouchableOpacity onPress={() => navigation.navigate('VoucherDetailScreen', { voucherId: item.id })}>
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate("VoucherDetailScreen", {
+                  voucherId: item.id,
+                })
+              }
+            >
               <VoucherCardWithGradient voucher={item} userName={userName} />
             </TouchableOpacity>
           )}
@@ -263,11 +305,18 @@ const styles = StyleSheet.create({
     padding: 16,
     width: "90%",
   },
+  addButtonDisabled: {
+    backgroundColor: "#ccc",
+    opacity: 0.6,
+  },
   addButtonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
     marginLeft: 8,
+  },
+  addButtonTextDisabled: {
+    color: "#999",
   },
   vouchersList: {
     paddingBottom: 20,
