@@ -2386,6 +2386,8 @@
     "tryDifferentKeywords": "Thử tìm kiếm với từ khóa khác"
   },
   "orders": {
+    "refunded": "Đã hoàn trả",
+    "reported": "Đã báo cáo",
     "products": "Sản phẩm",
     "pleaseSelectRating": "Vui lòng chọn đánh giá",
     "pleaseEnterFeedback": "Vui lòng nhập đánh giá của bạn",
@@ -2705,6 +2707,8 @@
   },
 
   "myReports": {
+    "reportedProduct": "Sản Phẩm Bị Báo Cáo",
+    "reportedProductLabel": "Sản phẩm bị báo cáo",
     "loadingReports": "Đang tải báo cáo...",
     "loadingDetail": "Đang tải chi tiết báo cáo...",
     "noReportsFound": "Không Tìm Thấy Báo Cáo",

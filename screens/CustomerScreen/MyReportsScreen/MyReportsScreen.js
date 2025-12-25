@@ -17,6 +17,7 @@ import ReportService from "../../../services/reportService";
 import colors from "../../../constants/color";
 import { useNavigation } from "@react-navigation/native";
 import LoadingIndicator from "../../../components/LoadingIndicator";
+import LogoColor from "../../../assets/images/LogoColor.png";
 
 export default function MyReportsScreen() {
   const { t } = useTranslation();
@@ -45,23 +46,7 @@ export default function MyReportsScreen() {
         // API returns paginated data with items array
         const reportsData = response.data.items || [];
         // Map the response to ensure consistent data structure
-        const mappedReports = reportsData.map((report) => ({
-          id: report.id,
-          reporterName: report.reporterName,
-          reporterAvatarUrl: report.reporterAvatarUrl,
-          reportedUserName: report.reportedUserName,
-          reportedUserAvatarUrl: report.reportedUserAvatarUrl,
-          orderItemId: report.orderItemId,
-          title: report.title,
-          description: report.description,
-          status: report.status,
-          resolvedAt: report.resolvedAt,
-          reportType: report.reportType,
-          evidenceImageUrls: report.evidenceImageUrls || [],
-          resolvedEvidenceImageUrls: report.resolvedEvidenceImageUrls,
-          createdAt: report.createdAt,
-        }));
-        setReports(mappedReports);
+        setReports(reportsData);
       } else {
         setReports([]);
       }
@@ -236,26 +221,31 @@ export default function MyReportsScreen() {
         </Text>
 
         {/* Reported User Info */}
-        {item.reportedUserName && (
           <View style={styles.reportedUserContainer}>
             <Image
-              source={{
-                uri:
-                  item.reportedUserAvatarUrl ||
-                  "https://via.placeholder.com/40",
-              }}
+              source={
+                (item.reportedUserAvatarUrl !== null
+                  ? item.reportedUserAvatarUrl
+                  : item.reportedProductImageUrl) !== null
+                  ? {
+                      uri:
+                        item.reportedUserAvatarUrl !== null
+                          ? item.reportedUserAvatarUrl
+                          : item.reportedProductImageUrl,
+                    }
+                  : LogoColor
+              }
               style={styles.reportedUserAvatar}
             />
             <View style={styles.reportedUserInfo}>
               <Text style={styles.reportedUserLabel}>
-                {t("myReports.reportedUser")}
+               {item.isProductReport ? t("myReports.reportedProduct") : t("myReports.reportedUser")} 
               </Text>
               <Text style={styles.reportedUserName}>
-                {item.reportedUserName}
+                {item.isProductReport ? item.reportedProduct : item.reportedUserName}
               </Text>
             </View>
           </View>
-        )}
 
         {/* Footer */}
         <View style={styles.cardFooter}>

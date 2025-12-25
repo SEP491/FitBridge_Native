@@ -308,35 +308,78 @@ const ReportModal = ({ visible, onClose, orderItems = [] }) => {
           {orderItems.map((item, index) => (
             <TouchableOpacity
               key={index}
-              style={styles.productListItem}
-              onPress={() => handleSelectItem(item)}
-              activeOpacity={0.7}
+              style={[
+                styles.productListItem,
+                item.isReported && styles.productListItemReported,
+              ]}
+              onPress={() => !item.isReported && handleSelectItem(item)}
+              activeOpacity={item.isReported ? 1 : 0.7}
+              disabled={item.isReported}
             >
               <View style={styles.productListCard}>
                 {item.productDetail?.imageUrl ? (
                   <Image
                     source={{ uri: item.productDetail.imageUrl }}
-                    style={styles.productListImage}
+                    style={[
+                      styles.productListImage,
+                      item.isReported && styles.productListImageReported,
+                    ]}
                     resizeMode="cover"
                   />
                 ) : (
-                  <View style={styles.productListPlaceholder}>
+                  <View
+                    style={[
+                      styles.productListPlaceholder,
+                      item.isReported && styles.productListImageReported,
+                    ]}
+                  >
                     <Ionicons name="image-outline" size={32} color="#CCC" />
                   </View>
                 )}
                 <View style={styles.productListInfo}>
-                  <Text style={styles.productListName} numberOfLines={2}>
-                    {item.productDetail?.flavourName || "Product"}
-                    {item.productDetail?.weightValue > 0 &&
-                      ` - ${item.productDetail.weightValue}${
-                        item.productDetail.weightUnit || ""
-                      }`}
-                  </Text>
-                  <Text style={styles.productListQuantity}>
+                  <View style={styles.productListNameRow}>
+                    <Text
+                      style={[
+                        styles.productListName,
+                        item.isReported && styles.productListNameReported,
+                      ]}
+                      numberOfLines={2}
+                    >
+                      {item.productDetail?.flavourName || "Product"}
+                      {item.productDetail?.weightValue > 0 &&
+                        ` - ${item.productDetail.weightValue}${
+                          item.productDetail.weightUnit || ""
+                        }`}
+                    </Text>
+                    
+                  </View>
+                  <Text
+                    style={[
+                      styles.productListQuantity,
+                      item.isReported && styles.productListQuantityReported,
+                    ]}
+                  >
                     {t("orders.quantity")}: {item.quantity}
                   </Text>
                 </View>
-                <Ionicons name="chevron-forward" size={24} color="#999" />
+                {!item.isReported && (
+                  <Ionicons name="chevron-forward" size={24} color="#999" />
+                )}
+                {item.isReported && (
+                  item.isRefunded ? (<View style={styles.reportedTag}>
+                    <Text style={styles.reportedTagText}>
+                      {t("orders.refunded") || "Refunded"}
+                    </Text>
+                  </View>) : (
+                      <View style={styles.reportedTag}>
+                        <Text style={styles.reportedTagText}>
+                          {t("orders.reported") || "Reported"}
+                        </Text>
+                      </View>
+                    )
+                    )}
+                  
+                
               </View>
             </TouchableOpacity>
           ))}
@@ -637,6 +680,39 @@ const styles = StyleSheet.create({
   productListQuantity: {
     fontSize: 13,
     color: "#666",
+  },
+  productListItemReported: {
+    opacity: 0.7,
+  },
+  productListImageReported: {
+    opacity: 0.6,
+  },
+  productListNameRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    marginBottom: 6,
+    gap: 8,
+  },
+  productListNameReported: {
+    flex: 1,
+  },
+  productListQuantityReported: {
+    color: "#999",
+  },
+  reportedTag: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#ED2A46",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 4,
+  },
+  reportedTagText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "white",
   },
   productSection: {
     backgroundColor: "#fff",
