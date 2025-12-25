@@ -39,7 +39,7 @@ const FreelancePTDashboard = ({ navigation }) => {
   const [dashboardStats, setDashboardStats] = useState(null);
 
   // Charts state
-  const [showCharts, setShowCharts] = useState(true);
+  const [showCharts, setShowCharts] = useState(false);
   const [transactions, setTransactions] = useState([]);
   const [selectedYears, setSelectedYears] = useState([]);
   const [showYearModal, setShowYearModal] = useState(false);
@@ -523,7 +523,7 @@ const FreelancePTDashboard = ({ navigation }) => {
           mostPopularPackages={dashboardStats?.mostPopularPackages || []}
         />
 
-        {/* Toggle Charts Button */}
+        {/* Toggle Charts Button
         <TouchableOpacity
           style={styles.toggleChartsButton}
           onPress={() => setShowCharts(!showCharts)}
@@ -539,9 +539,9 @@ const FreelancePTDashboard = ({ navigation }) => {
               ? t("transaction.hideCharts", "Hide Charts")
               : t("transaction.showCharts", "Show Charts")}
           </Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
-        {/* Charts Section */}
+        Charts Section
         {showCharts && (
           <View style={styles.chartsContainer}>
             {/* Revenue Trend Chart */}
