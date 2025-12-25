@@ -94,7 +94,7 @@ export default function PackageCard({
         expandPackageIndex: packageIndex >= 0 ? packageIndex : null,
       });
     } else if (isGymWithPT || isGymNormal) {
-      // For Gym Course packages, navigate to PackageHistoryScreen
+      console.log("item", item);
       navigation.navigate("PackageHistoryScreen", {
         customerPurchasedId: item.id,
         packageName: item.packageName,
@@ -285,7 +285,10 @@ export default function PackageCard({
         <View style={styles.actionButtonsRow}>
           {canRenew && onRenew && (
             <TouchableOpacity
-              style={[styles.renewButton, { backgroundColor: typeConfig.color }]}
+              style={[
+                styles.renewButton,
+                { backgroundColor: typeConfig.color },
+              ]}
               onPress={() => onRenew(item)}
               activeOpacity={0.8}
             >
@@ -333,7 +336,6 @@ export default function PackageCard({
             </TouchableOpacity>
           ) : null}
         </View>
-       
       ) : (
         <View style={styles.actionButtonsRow}>
           {onFeedback && !item.hasReviewed && (
@@ -352,7 +354,8 @@ export default function PackageCard({
       )}
 
       {/* Third Row: View Detail Button (For current packages only - Freelance PT and Gym Course Packages) */}
-      {!expired &&
+      {!isReviewMode &&
+        !expired &&
         ((isFreelancePT && customer) || isGymWithPT || isGymNormal) && (
           <View style={styles.viewDetailRow}>
             <TouchableOpacity

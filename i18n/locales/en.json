@@ -262,7 +262,8 @@
     "errorPostingComment": "Cannot post comment",
     "enterCommentContent": "Please enter comment content",
     "commentSuccess": "Comment successful",
-    "error": "Error"
+    "error": "Error",
+    "onlyCustomerCanAddToCart": "Only customers can add packages to cart"
   },
 
   "booking": {
