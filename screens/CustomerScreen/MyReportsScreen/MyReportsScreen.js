@@ -18,6 +18,7 @@ import colors from "../../../constants/color";
 import { useNavigation } from "@react-navigation/native";
 import LoadingIndicator from "../../../components/LoadingIndicator";
 import LogoColor from "../../../assets/images/LogoColor.png";
+import { MyReportsScreenSkeletonList } from "./MyReportsScreenSkeleton";
 
 export default function MyReportsScreen() {
   const { t } = useTranslation();
@@ -287,19 +288,6 @@ export default function MyReportsScreen() {
     </View>
   );
 
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <LoadingIndicator
-            variant="page"
-            message={t("myReports.loadingReports")}
-          />
-        </View>
-      </SafeAreaView>
-    );
-  }
-
   return (
     <SafeAreaView style={styles.container}>
       {/* Tab Bar */}
@@ -403,25 +391,34 @@ export default function MyReportsScreen() {
       </View>
 
       {/* Reports List */}
-      <FlatList
-        data={filteredReports}
-        renderItem={renderReportItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={[
-          styles.listContainer,
-          filteredReports.length === 0 && styles.emptyListContainer,
-        ]}
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={renderEmptyState}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={[colors.red]}
-            tintColor={colors.red}
-          />
-        }
-      />
+      {loading ? (
+        <ScrollView
+          contentContainerStyle={styles.listContainer}
+          showsVerticalScrollIndicator={false}
+        >
+          <MyReportsScreenSkeletonList count={4} />
+        </ScrollView>
+      ) : (
+        <FlatList
+          data={filteredReports}
+          renderItem={renderReportItem}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={[
+            styles.listContainer,
+            filteredReports.length === 0 && styles.emptyListContainer,
+          ]}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={renderEmptyState}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={[colors.red]}
+              tintColor={colors.red}
+            />
+          }
+        />
+      )}
     </SafeAreaView>
   );
 }
