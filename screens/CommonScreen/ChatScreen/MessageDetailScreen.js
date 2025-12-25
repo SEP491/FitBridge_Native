@@ -95,48 +95,7 @@ export default function MessageDetailScreen({ route, navigation }) {
   const [currentUserRole, setCurrentUserRole] = useState(null);
 
   const [customerPurchased, setCustomerPurchased] = useState(null);
-  const [sessionDuration, setSessionDuration] = useState(60); // Default to 60 minutes
-  useEffect(() => {
-    const fetchCustomerPurchased = async () => {
-      const response = await messageService.checkCustomerPurchased({
-        ptId: members.find((member) => member.role === "FreelancePT")?.userId,
-      });
-      setCustomerPurchased(response.data);
-    };
-    fetchCustomerPurchased();
-  }, [members]);
 
-  // Fetch session duration when booking modal opens
-  useEffect(() => {
-    const fetchSessionDuration = async () => {
-      if (!showBookingRequestModal) return;
-
-      const ptId = members.find(
-        (member) => member.role === "FreelancePT"
-      )?.userId;
-      const userId = members.find(
-        (member) => member.role === "Customer"
-      )?.userId;
-
-      try {
-        const responseCheck = await messageService.checkCustomerPurchased(
-          currentUserRole === "Customer" ? { ptId } : { customerId: userId }
-        );
-
-        if (responseCheck && responseCheck.data) {
-          const duration =
-            responseCheck.data?.duration || responseCheck.duration || 60;
-          const durationMinutes = typeof duration === "number" ? duration : 60;
-          setSessionDuration(durationMinutes);
-        }
-      } catch (error) {
-        console.error("Error fetching session duration:", error);
-        // Keep default 60 minutes on error
-      }
-    };
-
-    fetchSessionDuration();
-  }, [showBookingRequestModal, members, currentUserRole]);
   // Update refs when values change
   useEffect(() => {
     conversationIdRef.current = conversationId;
@@ -176,6 +135,30 @@ export default function MessageDetailScreen({ route, navigation }) {
     fetchCurrentUser();
   }, []);
 
+  useEffect(() => {
+    // Only fetch customer purchased after currentUserRole is set
+    if (!currentUserRole || !members || members.length === 0) {
+      return;
+    }
+
+    const fetchCustomerPurchased = async () => {
+      const ptId = members.find(
+        (member) => member.role === "FreelancePT"
+      )?.userId;
+      const userId = members.find(
+        (member) => member.role === "Customer"
+      )?.userId;
+      try {
+        const response = await messageService.checkCustomerPurchased(
+          currentUserRole === "Customer" ? { ptId } : { customerId: userId }
+        );
+        setCustomerPurchased(response.data);
+      } catch (error) {
+        console.error("Error fetching customer purchased:", error);
+      }
+    };
+    fetchCustomerPurchased();
+  }, [members, currentUserRole]);
   // Join conversation on mount and when conversationId changes
   useEffect(() => {
     const currentConvId = conversationIdRef.current;
@@ -211,7 +194,6 @@ export default function MessageDetailScreen({ route, navigation }) {
     };
   }, [conversationId, isConnected, messagingService]);
 
-  // Subscribe to real-time message events
   useEffect(() => {
     if (!conversationId || !messagingService) {
       console.log(
@@ -222,11 +204,6 @@ export default function MessageDetailScreen({ route, navigation }) {
 
     // Handle new message received
     const handleMessageReceived = (message) => {
-      console.log("MessageDetailScreen: New message received", message, {
-        messageConvId: message.conversationId,
-        currentConvId: conversationIdRef.current,
-        currentUserId: currentUserIdRef.current,
-      });
       const messageConvId = message.conversationId?.toString();
       const currentConvId = conversationIdRef.current?.toString();
 
@@ -1243,113 +1220,89 @@ export default function MessageDetailScreen({ route, navigation }) {
 
   // Handle send booking request
   const handleSendBookingRequest = useCallback(async () => {
+    if (!customerPurchased) {
+      Alert.alert(
+        "Error",
+        "Vui lòng mua gói tập trước khi gửi yêu cầu đặt lịch."
+      );
+      return;
+    }
     if (!bookingFormData.bookingName.trim()) {
-      Alert.alert("Error", "Please enter a booking name");
+      Alert.alert("Error", "Vui lòng nhập tên lịch hẹn");
       return;
     }
 
-    try {
-      setSending(true);
-      const ptId = members.find(
-        (member) => member.role === "FreelancePT"
-      )?.userId;
-      const userId = members.find(
-        (member) => member.role === "Customer"
-      )?.userId;
+    // Validate date is not in the past
+    const selectedDate = new Date(bookingFormData.bookingDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    selectedDate.setHours(0, 0, 0, 0);
 
-      // Check customer purchased first to get duration
-      const responseCheck = await messageService.checkCustomerPurchased(
-        currentUserRole === "Customer" ? { ptId } : { customerId: userId }
+    if (selectedDate < today) {
+      Alert.alert(
+        "Invalid Date",
+        "Ngày lịch hẹn không thể là ngày trong quá khứ."
       );
-      console.log("response check:", responseCheck);
-      if (!responseCheck || !responseCheck.data) {
-        Alert.alert(
-          "Error",
-          "You need to purchase a session with the PT before sending a booking request."
-        );
-        setSending(false);
-        return;
-      }
+      return;
+    }
 
-      // Extract duration and customerPurchasedId from response
-      // Handle different response structures: data could be ID or object with id/duration
-      const customerPurchasedId =
-        typeof responseCheck.data === "object" && responseCheck.data?.id
-          ? responseCheck.data.id
-          : responseCheck.data;
-      const duration = responseCheck.data?.sessionDurationInMinutes || 60; // fallback to 60 minutes if not provided
-      const durationMinutes = typeof duration === "number" ? duration : 60;
-
-      // Validate date is not in the past
-      const selectedDate = new Date(bookingFormData.bookingDate);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      selectedDate.setHours(0, 0, 0, 0);
-
-      if (selectedDate < today) {
-        Alert.alert("Invalid Date", "Booking date cannot be in the past.");
-        setSending(false);
-        return;
-      }
-
-      // Validate time if booking is today
-      const isToday =
-        bookingFormData.bookingDate === new Date().toISOString().split("T")[0];
-      if (isToday) {
-        if (!bookingFormData.startTime) {
-          Alert.alert("Error", "Please select a start time.");
-          setSending(false);
-          return;
-        }
-        const [startHours, startMinutes] = bookingFormData.startTime
-          .split(":")
-          .map(Number);
-        const now = new Date();
-        const currentHours = now.getHours();
-        const currentMinutes = now.getMinutes();
-
-        const startTotalMinutes = startHours * 60 + startMinutes;
-        const currentTotalMinutes = currentHours * 60 + currentMinutes;
-
-        if (startTotalMinutes <= currentTotalMinutes) {
-          Alert.alert("Invalid Time", "Start time must be in the future.");
-          setSending(false);
-          return;
-        }
-      }
-
-      // Validate end time is at least duration minutes after start time
-      if (!bookingFormData.startTime || !bookingFormData.endTime) {
-        Alert.alert("Error", "Please select both start and end times.");
-        setSending(false);
+    // Validate time if booking is today
+    const isToday =
+      bookingFormData.bookingDate === new Date().toISOString().split("T")[0];
+    if (isToday) {
+      if (!bookingFormData.startTime) {
+        Alert.alert("Error", "Vui lòng chọn giờ bắt đầu.");
         return;
       }
       const [startHours, startMinutes] = bookingFormData.startTime
         .split(":")
         .map(Number);
-      const [endHours, endMinutes] = bookingFormData.endTime
-        .split(":")
-        .map(Number);
+      const now = new Date();
+      const currentHours = now.getHours();
+      const currentMinutes = now.getMinutes();
 
       const startTotalMinutes = startHours * 60 + startMinutes;
-      const endTotalMinutes = endHours * 60 + endMinutes;
+      const currentTotalMinutes = currentHours * 60 + currentMinutes;
 
-      if (endTotalMinutes < startTotalMinutes + durationMinutes) {
-        Alert.alert(
-          "Invalid Time",
-          `End time must be at least ${durationMinutes} minutes after start time.`
-        );
-        setSending(false);
+      if (startTotalMinutes <= currentTotalMinutes) {
+        Alert.alert("Invalid Time", "Giờ bắt đầu phải là giờ trong tương lai.");
         return;
       }
+    }
 
+    // Validate end time is at least sessionDurationInMinutes after start time
+    if (!bookingFormData.startTime || !bookingFormData.endTime) {
+      Alert.alert("Error", "Vui lòng chọn cả giờ bắt đầu và giờ kết thúc.");
+      return;
+    }
+    const [startHours, startMinutes] = bookingFormData.startTime
+      .split(":")
+      .map(Number);
+    const [endHours, endMinutes] = bookingFormData.endTime
+      .split(":")
+      .map(Number);
+
+    const startTotalMinutes = startHours * 60 + startMinutes;
+    const endTotalMinutes = endHours * 60 + endMinutes;
+    const sessionDuration = customerPurchased?.sessionDurationInMinutes || 60;
+
+    if (endTotalMinutes < startTotalMinutes + sessionDuration) {
+      Alert.alert(
+        "Invalid Time",
+        `End time must be at least ${sessionDuration} minutes after start time.`
+      );
+      return;
+    }
+
+    try {
+      setSending(true);
       setShowBookingRequestModal(false);
 
       const messageData = {
         conversationId,
         content: `Booking request: ${bookingFormData.bookingName}`,
         mediaType: "BookingRequest",
-        customerPurchasedId: customerPurchasedId,
+        customerPurchasedId: customerPurchased.id,
         createBookingRequest: {
           bookingName: bookingFormData.bookingName,
           bookingDate: bookingFormData.bookingDate,
@@ -1387,6 +1340,7 @@ export default function MessageDetailScreen({ route, navigation }) {
     currentUserId,
     currentUserRole,
     members,
+    customerPurchased,
   ]);
 
   // Render message item
@@ -2032,7 +1986,7 @@ export default function MessageDetailScreen({ route, navigation }) {
               </TouchableOpacity>
             </View>
 
-            {/* End Time (auto-calculated based on session duration) */}
+            {/* End Time (auto 1 hour after start time) */}
             <View style={styles.formGroup}>
               <Text style={styles.formLabel}>{t("messageScreen.endTime")}</Text>
               <View style={styles.formInputTouchable}>
@@ -2153,7 +2107,9 @@ export default function MessageDetailScreen({ route, navigation }) {
               .padStart(2, "0");
             const newStartTime = `${hours}:${minutes}:00`;
 
-            // Auto-set end time based on session duration
+            // Auto-set end time based on sessionDurationInMinutes
+            const sessionDuration =
+              customerPurchased?.sessionDurationInMinutes || 60;
             const endDateTime = new Date(selectedTime);
             endDateTime.setMinutes(endDateTime.getMinutes() + sessionDuration);
             const endHours = endDateTime.getHours().toString().padStart(2, "0");
