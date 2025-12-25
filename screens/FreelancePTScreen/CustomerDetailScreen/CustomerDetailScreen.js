@@ -96,6 +96,7 @@ export const CustomerDetailScreen = ({ route, navigation }) => {
     setPackageStatistics({});
     setPackageMuscleReports({});
     setRefreshing(false);
+    setExpandedPackages([])
   };
 
   // Auto-expand package if expandPackageIndex is provided
