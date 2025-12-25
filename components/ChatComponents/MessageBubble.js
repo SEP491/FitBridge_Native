@@ -37,6 +37,7 @@ const MessageBubble = ({
     replyToMessageMediaType,
     deliveryStatus,
     isUploading,
+    isSending,
     isDeleted,
   } = message;
 
@@ -51,7 +52,7 @@ const MessageBubble = ({
 
   // Handle long press with layout measurement
   const handleLongPress = () => {
-    if (isUploading || !onLongPress) return;
+    if (isUploading || isSending || !onLongPress) return;
 
     if (messageRef.current) {
       messageRef.current.measureInWindow((x, y, width, height) => {
@@ -150,13 +151,14 @@ const MessageBubble = ({
               <TouchableOpacity
                 onPress={() =>
                   !isUploading &&
+                  !isSending &&
                   onImagePress &&
                   onImagePress(mediaUrl || content)
                 }
                 onLongPress={handleLongPress}
                 delayLongPress={500}
                 activeOpacity={0.9}
-                disabled={isUploading}
+                disabled={isUploading || isSending}
               >
                 <View style={styles.imageContainer}>
                   <Image
@@ -198,17 +200,23 @@ const MessageBubble = ({
 
             {/* Text message */}
             {mediaType === "Text" && !isDeleted && (
-              <View>
+              <View style={styles.textMessageContainer}>
                 <Text
                   style={[
                     styles.messageText,
                     isCurrentUser
                       ? styles.currentUserText
                       : styles.otherUserText,
+                    isSending && styles.sendingText,
                   ]}
                 >
                   {content}
                 </Text>
+                {isSending && (
+                  <View style={styles.sendingIndicator}>
+                    <ActivityIndicator size="small" color={isCurrentUser ? "#FFFFFF" : "#6B7280"} />
+                  </View>
+                )}
               </View>
             )}
 
@@ -490,6 +498,17 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#6B7280",
     textAlign: "center",
+  },
+  textMessageContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  sendingText: {
+    opacity: 0.7,
+  },
+  sendingIndicator: {
+    marginLeft: 4,
   },
 });
 

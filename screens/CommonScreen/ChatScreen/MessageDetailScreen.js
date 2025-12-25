@@ -83,6 +83,9 @@ export default function MessageDetailScreen({ route, navigation }) {
 
   const flatListRef = useRef(null);
   const typingTimeoutRef = useRef(null);
+  const tempMessageTimeoutRef = useRef(null);
+  const conversationIdRef = useRef(conversationId);
+  const currentUserIdRef = useRef(currentUserId);
 
   // Get messaging state context
   const { messagingService, connectionStatus, setBypassAppStateChange } =
@@ -93,15 +96,38 @@ export default function MessageDetailScreen({ route, navigation }) {
   const [currentUserId, setCurrentUserId] = useState(null);
   const [currentUserRole, setCurrentUserRole] = useState(null);
 
+  // Update refs when values change
+  useEffect(() => {
+    conversationIdRef.current = conversationId;
+  }, [conversationId]);
+
+  useEffect(() => {
+    currentUserIdRef.current = currentUserId;
+  }, [currentUserId]);
+
+  // Clear messages when conversationId changes (e.g., after user switch)
+  useEffect(() => {
+    if (conversationId) {
+      console.log(
+        "MessageDetailScreen: ConversationId changed, clearing messages",
+        conversationId
+      );
+      setMessages([]);
+      setPageNumber(1);
+      setHasMore(true);
+    }
+  }, [conversationId]);
+
   useEffect(() => {
     // Fetch current user ID from your auth context or service
     const fetchCurrentUser = async () => {
       try {
         const userData = await fetchUserFromStorage();
-        console.log("Fetched user data:", userData);
+        console.log("MessageDetailScreen: Fetched user data:", userData);
         if (userData) {
           setCurrentUserId(userData.id);
           setCurrentUserRole(userData.role);
+          currentUserIdRef.current = userData.id;
         }
       } catch (error) {
         console.error("Error fetching current user", error);
@@ -121,14 +147,16 @@ export default function MessageDetailScreen({ route, navigation }) {
     );
   }, [connectionStatus, messagingService]);
 
-  // Join conversation on mount
+  // Join conversation on mount and when conversationId changes
   useEffect(() => {
-    if (conversationId && isConnected && messagingService) {
-      messagingService.addToGroup(conversationId);
-      console.log("MessageDetailScreen: Joined conversation", conversationId);
+    const currentConvId = conversationIdRef.current;
+    if (currentConvId && isConnected && messagingService) {
+      const normalizedConvId = currentConvId.toString();
+      messagingService.addToGroup(normalizedConvId);
+      console.log("MessageDetailScreen: Joined conversation", normalizedConvId);
     }
 
-    // Leave conversation on unmount
+    // Leave conversation on unmount or when conversationId changes
     return () => {
       // Clear typing timeout
       if (typingTimeoutRef.current) {
@@ -136,10 +164,12 @@ export default function MessageDetailScreen({ route, navigation }) {
       }
 
       // Stop typing indicator if active
-      if (conversationId && isConnected && messagingService) {
+      const convIdToLeave = conversationIdRef.current;
+      if (convIdToLeave && isConnected && messagingService) {
+        const normalizedConvId = convIdToLeave.toString();
         messagingService
           .invokeHubMethod(HUB_METHODS.USER_TYPING, {
-            conversationId: conversationId,
+            conversationId: normalizedConvId,
             isTyping: false,
           })
           .catch((error) => {
@@ -148,8 +178,8 @@ export default function MessageDetailScreen({ route, navigation }) {
               error
             );
           });
-        messagingService.removeFromGroup(conversationId);
-        console.log("MessageDetailScreen: Left conversation", conversationId);
+        messagingService.removeFromGroup(normalizedConvId);
+        console.log("MessageDetailScreen: Left conversation", normalizedConvId);
       }
     };
   }, [conversationId, isConnected, messagingService]);
@@ -170,32 +200,95 @@ export default function MessageDetailScreen({ route, navigation }) {
 
     // Handle new message received
     const handleMessageReceived = (message) => {
-      console.log("MessageDetailScreen: New message received", message);
+      console.log("MessageDetailScreen: New message received", message, {
+        messageConvId: message.conversationId,
+        currentConvId: conversationIdRef.current,
+        currentUserId: currentUserIdRef.current,
+      });
+
+      // Normalize conversationId for comparison (handle both string and number)
+      const messageConvId = message.conversationId?.toString();
+      const currentConvId = conversationIdRef.current?.toString();
 
       // Only add message if it belongs to this conversation
-      if (message.conversationId === conversationId) {
+      if (messageConvId && currentConvId && messageConvId === currentConvId) {
         setMessages((prev) => {
           // Check if message already exists (prevent duplicates)
-          const exists = prev.some(
-            (m) => m.id === message.id || 
-            (m.id === `temp_${message.id}` && message.id) // Handle temp message replacement
-          );
+          const exists = prev.some((m) => {
+            const msgId = m.id?.toString();
+            const newMsgId = message.id?.toString();
+            return msgId === newMsgId;
+          });
+
           if (exists) {
-            console.log("MessageDetailScreen: Message already exists, skipping duplicate");
+            console.log(
+              "MessageDetailScreen: Message already exists, skipping duplicate",
+              {
+                messageId: message.id,
+                conversationId: message.conversationId,
+              }
+            );
             return prev;
           }
 
+          // Check if this is replacing a temp message
+          // Look for temp messages with matching content and sender
+          const tempMessageIndex = prev.findIndex(
+            (m) =>
+              m.id?.startsWith("temp_") &&
+              m.senderId === message.senderId &&
+              m.content === message.content &&
+              Math.abs(new Date(m.createdAt) - new Date(message.createdAt)) <
+                5000 // Within 5 seconds
+          );
+
+          if (tempMessageIndex !== -1) {
+            console.log(
+              "MessageDetailScreen: Replacing temp message with real message",
+              {
+                tempId: prev[tempMessageIndex].id,
+                realId: message.id,
+              }
+            );
+            // Clear timeout since we got the real message
+            if (tempMessageTimeoutRef.current) {
+              clearTimeout(tempMessageTimeoutRef.current);
+              tempMessageTimeoutRef.current = null;
+            }
+            // Replace temp message with real message
+            const newMessages = [...prev];
+            newMessages[tempMessageIndex] = {
+              ...message,
+              isSending: false, // Remove sending flag
+            };
+            return newMessages;
+          }
+
           // Add new message at the beginning (since list is inverted)
-          return [message, ...prev];
+          console.log("MessageDetailScreen: Adding new message", {
+            messageId: message.id,
+            senderId: message.senderId,
+            currentUserId: currentUserId,
+          });
+          return [{ ...message, isSending: false }, ...prev];
         });
 
         // Mark as read if from other user
-        if (message.senderId !== currentUserId) {
+        const currentUserIdValue = currentUserIdRef.current;
+        if (message.senderId !== currentUserIdValue) {
           markMessagesAsRead([message.id]).catch((error) => {
             console.error("Error marking message as read:", error);
             // Silently fail - not critical
           });
         }
+      } else {
+        console.warn("MessageDetailScreen: Message conversationId mismatch", {
+          messageConvId,
+          currentConvId,
+          messageId: message.id,
+          messageSenderId: message.senderId,
+          currentUserId: currentUserIdRef.current,
+        });
       }
     };
 
@@ -203,7 +296,11 @@ export default function MessageDetailScreen({ route, navigation }) {
     const handleMessageUpdated = (updatedMessage) => {
       console.log("MessageDetailScreen: Message updated", updatedMessage);
 
-      if (updatedMessage.conversationId === conversationId) {
+      // Normalize conversationId for comparison
+      const messageConvId = updatedMessage.conversationId?.toString();
+      const currentConvId = conversationIdRef.current?.toString();
+
+      if (messageConvId && currentConvId && messageConvId === currentConvId) {
         const isDeleted =
           updatedMessage.status === "Deleted" || updatedMessage.isDeleted;
         setMessages((prev) =>
@@ -211,9 +308,9 @@ export default function MessageDetailScreen({ route, navigation }) {
             // Match by ID (handle both regular and temp message IDs)
             if (
               msg.id === updatedMessage.id ||
-              (msg.id?.startsWith("temp_") && 
-               updatedMessage.id && 
-               msg.id.includes(updatedMessage.id))
+              (msg.id?.startsWith("temp_") &&
+                updatedMessage.id &&
+                msg.id.includes(updatedMessage.id))
             ) {
               return {
                 ...msg,
@@ -240,9 +337,16 @@ export default function MessageDetailScreen({ route, navigation }) {
     const handleTyping = (typingData) => {
       console.log("MessageDetailScreen: User typing", typingData);
 
+      // Normalize conversationId for comparison
+      const typingConvId = typingData.conversationId?.toString();
+      const currentConvId = conversationIdRef.current?.toString();
+      const currentUserIdValue = currentUserIdRef.current;
+
       if (
-        typingData.conversationId === conversationId &&
-        typingData.userId !== currentUserId
+        typingConvId &&
+        currentConvId &&
+        typingConvId === currentConvId &&
+        typingData.userId !== currentUserIdValue
       ) {
         setTypingStatus(typingData);
 
@@ -263,7 +367,11 @@ export default function MessageDetailScreen({ route, navigation }) {
     const handleStatusUpdate = (statusUpdate) => {
       console.log("MessageDetailScreen: Message status updated", statusUpdate);
 
-      if (statusUpdate.conversationId === conversationId) {
+      // Normalize conversationId for comparison
+      const statusConvId = statusUpdate.conversationId?.toString();
+      const currentConvId = conversationIdRef.current?.toString();
+
+      if (statusConvId && currentConvId && statusConvId === currentConvId) {
         setMessages((prev) =>
           prev.map((msg) => {
             if (statusUpdate.messageIds?.includes(msg.id)) {
@@ -282,6 +390,7 @@ export default function MessageDetailScreen({ route, navigation }) {
     // Handle reaction received
     const handleReactionReceived = (reactionData) => {
       console.log("MessageDetailScreen: Reaction received", reactionData);
+      // Only process reactions for messages in current conversation
       setMessages((prev) =>
         prev.map((msg) =>
           msg.id === reactionData.messageId
@@ -294,7 +403,7 @@ export default function MessageDetailScreen({ route, navigation }) {
     // Handle reaction removed
     const handleReactionRemoved = (reactionData) => {
       console.log("MessageDetailScreen: Reaction removed", reactionData);
-
+      // Only process reactions for messages in current conversation
       setMessages((prev) =>
         prev.map((msg) =>
           msg.id === reactionData.messageId ? { ...msg, reaction: null } : msg
@@ -395,8 +504,12 @@ export default function MessageDetailScreen({ route, navigation }) {
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
+      // Clear temp message timeout on cleanup
+      if (tempMessageTimeoutRef.current) {
+        clearTimeout(tempMessageTimeoutRef.current);
+      }
     };
-  }, [conversationId, messagingService, currentUserId]);
+  }, [messagingService, markMessagesAsRead]); // Remove conversationId and currentUserId from deps to avoid stale closures
 
   // Fetch messages on mount
   useEffect(() => {
@@ -465,7 +578,7 @@ export default function MessageDetailScreen({ route, navigation }) {
         if (!isInitial && page > 1) {
           setPageNumber(page - 1);
         }
-        
+
         // Show error message only for initial load to avoid spamming user
         if (isInitial) {
           const errorMessage =
@@ -542,7 +655,9 @@ export default function MessageDetailScreen({ route, navigation }) {
     (text) => {
       setInputText(text);
 
-      if (isConnected && conversationId && messagingService) {
+      const currentConvId = conversationIdRef.current;
+      if (isConnected && currentConvId && messagingService) {
+        const normalizedConvId = currentConvId.toString();
         // Clear previous timeout
         if (typingTimeoutRef.current) {
           clearTimeout(typingTimeoutRef.current);
@@ -552,7 +667,7 @@ export default function MessageDetailScreen({ route, navigation }) {
         if (text.length > 0) {
           messagingService
             .invokeHubMethod(HUB_METHODS.USER_TYPING, {
-              conversationId: conversationId,
+              conversationId: normalizedConvId,
               isTyping: true,
             })
             .catch((error) => {
@@ -567,7 +682,7 @@ export default function MessageDetailScreen({ route, navigation }) {
             if (messagingService && isConnected) {
               messagingService
                 .invokeHubMethod(HUB_METHODS.USER_TYPING, {
-                  conversationId: conversationId,
+                  conversationId: normalizedConvId,
                   isTyping: false,
                 })
                 .catch((error) => {
@@ -581,7 +696,7 @@ export default function MessageDetailScreen({ route, navigation }) {
         } else {
           messagingService
             .invokeHubMethod(HUB_METHODS.USER_TYPING, {
-              conversationId: conversationId,
+              conversationId: normalizedConvId,
               isTyping: false,
             })
             .catch((error) => {
@@ -593,7 +708,7 @@ export default function MessageDetailScreen({ route, navigation }) {
         }
       }
     },
-    [isConnected, conversationId, messagingService]
+    [isConnected, messagingService]
   );
 
   // Handle image picker with temporary message approach
@@ -754,9 +869,11 @@ export default function MessageDetailScreen({ route, navigation }) {
 
   // Handle send message
   const handleSend = useCallback(async () => {
-    if (!inputText.trim() || sending || !conversationId) return;
+    const currentConvId = conversationIdRef.current;
+    if (!inputText.trim() || sending || !currentConvId) return;
 
     const messageContent = inputText.trim();
+    const normalizedConvId = currentConvId.toString();
 
     // Check if editing
     if (editingMessage) {
@@ -768,7 +885,7 @@ export default function MessageDetailScreen({ route, navigation }) {
 
         await messageService.updateMessage({
           messageId: messageIdToUpdate,
-          conversationId: conversationId,
+          conversationId: normalizedConvId,
           newContent: messageContent,
         });
 
@@ -785,7 +902,7 @@ export default function MessageDetailScreen({ route, navigation }) {
         if (messagingService) {
           const updatedMessageEvent = {
             id: messageIdToUpdate,
-            conversationId: conversationId,
+            conversationId: normalizedConvId,
             content: messageContent,
             newContent: messageContent,
             status: "Edited",
@@ -819,7 +936,7 @@ export default function MessageDetailScreen({ route, navigation }) {
       clearTimeout(typingTimeoutRef.current);
       messagingService
         .invokeHubMethod(HUB_METHODS.USER_TYPING, {
-          conversationId: conversationId,
+          conversationId: normalizedConvId,
           isTyping: false,
         })
         .catch((error) => {
@@ -834,6 +951,35 @@ export default function MessageDetailScreen({ route, navigation }) {
     setInputText("");
     setReplyingTo(null);
 
+    // Create temporary message ID for optimistic update
+    const tempMessageId = `temp_${Date.now()}_${Math.random()
+      .toString(36)
+      .substr(2, 9)}`;
+
+    // Add temporary message immediately for optimistic UI update
+    const tempMessage = {
+      id: tempMessageId,
+      conversationId: normalizedConvId,
+      senderId: currentUserIdRef.current,
+      senderName: "You",
+      content: messageContent,
+      mediaType: "Text",
+      messageType: "User",
+      createdAt: new Date().toISOString(),
+      isSending: true, // Flag to show sending state
+      replyToMessageId: replyData.replyToMessageId || null,
+      replyToMessageContent: replyData.replyToMessageContent || null,
+      replyToMessageMediaType: replyData.replyToMessageMediaType || null,
+    };
+
+    setMessages((prev) => {
+      // Check if temp message already exists (shouldn't happen, but safety check)
+      if (prev.some((m) => m.id === tempMessageId)) {
+        return prev;
+      }
+      return [tempMessage, ...prev];
+    });
+
     try {
       setSending(true);
 
@@ -844,30 +990,81 @@ export default function MessageDetailScreen({ route, navigation }) {
         ...replyData,
       };
 
+      console.log("Sending message:", messageData);
       const sentMessage = await messageService.sendMessage(messageData);
+      console.log("Message sent, response:", sentMessage);
 
-      // Add the sent message to the top of the list (check for duplicates)
-      // Note: SignalR will also send the message, so we check for duplicates
-      setMessages((prev) => {
-        // Check if message already exists (e.g., from SignalR)
-        if (prev.some((m) => m.id === sentMessage.id || m.id === sentMessage.data?.id)) {
-          return prev;
+      // Extract the actual message from response (handle different response structures)
+      let actualMessage = null;
+      if (sentMessage?.data) {
+        actualMessage = sentMessage.data;
+      } else if (sentMessage?.id) {
+        actualMessage = sentMessage;
+      } else if (sentMessage) {
+        actualMessage = sentMessage;
+      }
+
+      // Replace temp message with real message when SignalR delivers it
+      // For now, update the temp message with real data if we have it
+      if (actualMessage && actualMessage.id) {
+        setMessages((prev) => {
+          // Check if real message already arrived via SignalR
+          const realMessageExists = prev.some((m) => m.id === actualMessage.id);
+          if (realMessageExists) {
+            // Remove temp message, real one already exists
+            return prev.filter((m) => m.id !== tempMessageId);
+          }
+
+          // Replace temp message with real message
+          return prev.map((msg) => {
+            if (msg.id === tempMessageId) {
+              return {
+                ...actualMessage,
+                isSending: false,
+              };
+            }
+            return msg;
+          });
+        });
+      } else {
+        // If we don't have the message data, just mark temp as not sending
+        // SignalR will deliver it and replace the temp message
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === tempMessageId ? { ...msg, isSending: false } : msg
+          )
+        );
+
+        // Set a timeout to remove temp message if SignalR doesn't deliver within 10 seconds
+        // This handles cases where SignalR connection is lost or delayed
+        if (tempMessageTimeoutRef.current) {
+          clearTimeout(tempMessageTimeoutRef.current);
         }
-        // Add the sent message if it doesn't exist yet
-        const messageToAdd = sentMessage.data || sentMessage;
-        if (messageToAdd && messageToAdd.id) {
-          return [messageToAdd, ...prev];
-        }
-        return prev;
-      });
+        tempMessageTimeoutRef.current = setTimeout(() => {
+          setMessages((prev) => {
+            const stillExists = prev.some((m) => m.id === tempMessageId);
+            if (stillExists) {
+              console.warn(
+                "MessageDetailScreen: Temp message not replaced by SignalR, removing after timeout"
+              );
+              return prev.filter((m) => m.id !== tempMessageId);
+            }
+            return prev;
+          });
+        }, 10000); // 10 seconds timeout
+      }
     } catch (error) {
       console.error("Error sending message:", error);
+
+      // Remove temp message on error
+      setMessages((prev) => prev.filter((m) => m.id !== tempMessageId));
+
       // Restore input on error
       setInputText(messageContent);
       if (replyData.replyToMessageId) {
         setReplyingTo(replyingTo);
       }
-      
+
       // Show user-friendly error message
       const errorMessage =
         error?.response?.data?.message ||
@@ -880,7 +1077,6 @@ export default function MessageDetailScreen({ route, navigation }) {
   }, [
     inputText,
     replyingTo,
-    conversationId,
     sending,
     editingMessage,
     isConnected,
@@ -1183,7 +1379,7 @@ export default function MessageDetailScreen({ route, navigation }) {
       });
     } catch (error) {
       console.error("Error sending booking request:", error);
-      
+
       // Show detailed error message
       const errorMessage =
         error?.response?.data?.message ||
@@ -1193,7 +1389,13 @@ export default function MessageDetailScreen({ route, navigation }) {
     } finally {
       setSending(false);
     }
-  }, [bookingFormData, conversationId, currentUserId, currentUserRole, members]);
+  }, [
+    bookingFormData,
+    conversationId,
+    currentUserId,
+    currentUserRole,
+    members,
+  ]);
 
   // Render message item
   const renderMessage = useCallback(
