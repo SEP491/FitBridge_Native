@@ -232,6 +232,9 @@ export default function PaymentScreen({ navigation, route }) {
         (item) => item.toExtend === true && item.packageType === "Freelance PT"
       );
       const isGymCourse = displayItems.some((item) => item.type === "Normal");
+      const isGymCourseWithPT = displayItems.some(
+        (item) => item.type === "WithPt"
+      );
 
       // Determine productType and itemsId based on cart contents
       let productType;
@@ -256,6 +259,12 @@ export default function PaymentScreen({ navigation, route }) {
         productType = "GymCourse";
         itemsId = displayItems
           .filter((item) => item.type === "Normal")
+          .map((item) => item.id);
+      } else if (isGymCourseWithPT) {
+        // Handle Gym Course packages
+        productType = "GymCourse";
+        itemsId = displayItems
+          .filter((item) => item.type === "WithPt")
           .map((item) => item.id);
       } else {
         // Default to FreelancePTPackage for backward compatibility

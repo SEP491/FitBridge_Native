@@ -58,6 +58,21 @@ export default function GymDetailScreen({ route }) {
   const [newComment, setNewComment] = useState("");
   const [isPostingComment, setIsPostingComment] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [currentUserRole, setCurrentUserRole] = useState(null);
+
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      try {
+        const userData = await fetchUserFromStorage();
+        if (userData) {
+          setCurrentUserRole(userData.role);
+        }
+      } catch (error) {
+        console.error("Error fetching user role:", error);
+      }
+    };
+    fetchUserRole();
+  }, []);
 
   useEffect(() => {
     const fetchGymDetail = async () => {
@@ -245,22 +260,19 @@ export default function GymDetailScreen({ route }) {
   };
 
   // Handle adding package to cart
-  const handleAddToCart = (packageGym) => {
+  const handleAddToCart = async (packageGym) => {
+    // Check if user is Customer role
+    if (currentUserRole !== "Customer") {
+      Alert.alert(
+        t("gymDetail.error") || "Error",
+        t("gymDetail.onlyCustomerCanAddToCart") ||
+          "Only customers can add packages to cart"
+      );
+      return;
+    }
+
     getCartCount();
 
-    // if (getCartCount() > 0) {
-    //   Alert.alert(t("gymDetail.cartAlert"), t("gymDetail.viewCart") + "?", [
-    //     {
-    //       text: t("gymDetail.no"),
-    //       style: "cancel",
-    //     },
-    //     {
-    //       text: t("gymDetail.viewCart"),
-    //       onPress: () => navigation.navigate("CartScreen"),
-    //     },
-    //   ]);
-    //   return;
-    // } else {
     console.log("Gym Detail:", gymDetail);
     const gymPackage = {
       gymId: gymDetail.id,
@@ -268,7 +280,10 @@ export default function GymDetailScreen({ route }) {
       gymAddress: gymDetail.gymAddress,
       gymImage:
         packageGym.image ||
-        gymDetail?.gymImages[0]?.url ||
+        gymDetail?.gymImages?.[0]?.url ||
+        (typeof gymDetail?.gymImages?.[0] === "string"
+          ? gymDetail.gymImages[0]
+          : null) ||
         "https://levelfyc.com/wp-content/uploads/2024/08/khong-gian-4.jpg",
       id: packageGym.id,
       name: packageGym.name,
@@ -284,19 +299,36 @@ export default function GymDetailScreen({ route }) {
         packageName: packageGym.name,
         gymName: gymDetail.gymName,
       }),
-      [{ text: t("gymDetail.ok") }]
+      [
+        {
+          text: t("gymDetail.ok"),
+          onPress: () => navigation.navigate("CartScreen"),
+        },
+      ]
     );
-    // }
   };
 
-  const handleAddToCartWithPT = (packageGym) => {
+  const handleAddToCartWithPT = async (packageGym) => {
+    // Check if user is Customer role
+    if (currentUserRole !== "Customer") {
+      Alert.alert(
+        t("gymDetail.error") || "Error",
+        t("gymDetail.onlyCustomerCanAddToCart") ||
+          "Only customers can add packages to cart"
+      );
+      return;
+    }
+
     const gymPackage = {
       gymId: gymDetail.id,
       gymName: gymDetail.gymName,
       gymAddress: gymDetail.gymAddress,
       gymImage:
         packageGym.image ||
-        gymDetail?.gymImages[0]?.url ||
+        gymDetail?.gymImages?.[0]?.url ||
+        (typeof gymDetail?.gymImages?.[0] === "string"
+          ? gymDetail.gymImages[0]
+          : null) ||
         "https://levelfyc.com/wp-content/uploads/2024/08/khong-gian-4.jpg",
       id: packageGym.id,
       name: packageGym.name,
@@ -319,20 +351,22 @@ export default function GymDetailScreen({ route }) {
         <GymDetailScreenSkeleton />
       ) : (
         <>
-          {/* Cart Icon */}
-          <View style={styles.cartIconContainer}>
-            <TouchableOpacity
-              style={styles.cartButton}
-              onPress={() => navigation.navigate("CartScreen")}
-            >
-              <Ionicons name="bag-outline" size={24} color="#ED2A46" />
-              {getCartCount() > 0 && (
-                <View style={styles.cartBadge}>
-                  <Text style={styles.cartBadgeText}>{getCartCount()}</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          </View>
+          {/* Cart Icon - Only show for Customer role */}
+          {currentUserRole === "Customer" && (
+            <View style={styles.cartIconContainer}>
+              <TouchableOpacity
+                style={styles.cartButton}
+                onPress={() => navigation.navigate("CartScreen")}
+              >
+                <Ionicons name="bag-outline" size={24} color="#ED2A46" />
+                {getCartCount() > 0 && (
+                  <View style={styles.cartBadge}>
+                    <Text style={styles.cartBadgeText}>{getCartCount()}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
+          )}
 
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}

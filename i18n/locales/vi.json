@@ -278,7 +278,8 @@
     "errorPostingComment": "Không thể đăng bình luận",
     "enterCommentContent": "Vui lòng nhập nội dung bình luận",
     "commentSuccess": "Bình luận thành công",
-    "error": "Lỗi"
+    "error": "Lỗi",
+    "onlyCustomerCanAddToCart": "Chỉ khách hàng mới có thể thêm gói tập vào giỏ hàng"
   },
 
   "booking": {
