@@ -638,7 +638,6 @@ export default function MessageScreen({ navigation }) {
         </>
       )}
 
-      {/* Floating Create Button */}
       <TouchableOpacity
         style={styles.fab}
         onPress={handleCreateConversation}
@@ -647,7 +646,6 @@ export default function MessageScreen({ navigation }) {
         <Ionicons name="create-outline" size={24} color="#FFFFFF" />
       </TouchableOpacity>
 
-      {/* Create Conversation Modal */}
       <CreateConversationModal
         visible={createModalVisible}
         onClose={() => setCreateModalVisible(false)}

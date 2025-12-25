@@ -1279,7 +1279,7 @@ export default function MessageDetailScreen({ route, navigation }) {
           )}
           <View style={styles.headerTextContainer}>
             <Text style={styles.headerTitle}>{conversationTitle}</Text>
-            <View style={styles.headerSubtitleRow}>
+            {/* <View style={styles.headerSubtitleRow}>
               {!typingStatus?.isTyping && (
                 <View
                   style={[
@@ -1303,7 +1303,7 @@ export default function MessageDetailScreen({ route, navigation }) {
                   ? t("messageScreen.reconnecting")
                   : t("chat.offline")}
               </Text>
-            </View>
+            </View> */}
           </View>
         </TouchableOpacity>
 

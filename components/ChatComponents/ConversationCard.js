@@ -108,7 +108,7 @@ const ConversationCard = ({
           </View>
         )}
         {!isRead && <View style={styles.unreadBadge} />}
-        {!isGroup && isOnline && <View style={styles.onlineIndicator} />}
+        {/* {!isGroup && isOnline && <View style={styles.onlineIndicator} />} */}
       </View>
 
       {/* Content */}
