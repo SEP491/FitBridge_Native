@@ -9,6 +9,7 @@ import {
   RefreshControl,
   ActivityIndicator,
   Image,
+  Alert,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -98,21 +99,26 @@ export default function MessageScreen({ navigation }) {
       const conversationId = message.conversationId;
       console.log("MessageScreen: Updating conversation:", conversationId);
 
+      if (!conversationId) {
+        console.warn("MessageScreen: Message missing conversationId, skipping update");
+        return;
+      }
+
       setConversations((prev) => {
+        // Normalize IDs for comparison
+        const normalizeId = (id) => id?.toString();
+        const targetId = normalizeId(conversationId);
+        
         const convo = prev.find((conv) => {
-          const matches =
-            conv.id === conversationId ||
-            conv.id?.toString() === conversationId?.toString();
-          return matches;
+          const convId = normalizeId(conv.id);
+          return convId === targetId;
         });
 
         if (convo) {
           // Update existing conversation
           const updatedConversations = prev.map((conv) => {
-            if (
-              conv.id === conversationId ||
-              conv.id?.toString() === conversationId?.toString()
-            ) {
+            const convId = normalizeId(conv.id);
+            if (convId === targetId) {
               const isDeleted =
                 message.status === "Deleted" || message.isDeleted;
               return {
@@ -127,7 +133,7 @@ export default function MessageScreen({ navigation }) {
                 lastMessageId: message.id,
                 lastMessageStatus: message.status,
                 lastMessageIsDeleted: isDeleted,
-                updatedAt: message.createdAt,
+                updatedAt: message.createdAt || message.updatedAt || new Date().toISOString(),
                 isRead: message.senderId === currentUserId,
               };
             }
@@ -136,7 +142,7 @@ export default function MessageScreen({ navigation }) {
 
           // Sort by latest message time
           return updatedConversations.sort(
-            (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)
+            (a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0)
           );
         } else {
           // Add new conversation if message includes conversation data
@@ -147,17 +153,18 @@ export default function MessageScreen({ navigation }) {
               isGroup: message.newConversation.isGroup || false,
               isRead: false,
               title: message.senderName || message.newConversation.title,
-              updatedAt: message.createdAt,
+              updatedAt: message.createdAt || new Date().toISOString(),
               lastMessageContent: message.content,
               lastMessageType: message.messageType,
               lastMessageMediaType: message.mediaType,
               lastMessageSenderName: message.senderName,
               lastMessageSenderId: message.senderId,
               conversationImg: message.newConversation.conversationImg || null,
+              members: message.newConversation.members || [],
             };
             const newConversations = [...prev, newConversation];
             return newConversations.sort(
-              (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)
+              (a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0)
             );
           }
           return prev;
@@ -286,7 +293,13 @@ export default function MessageScreen({ navigation }) {
     // Handle reconnecting
     const handleReconnecting = () => {
       console.log("MessageScreen: Reconnecting, refetching conversations");
-      fetchConversations(false);
+      // Use a small delay to avoid race conditions during reconnection
+      setTimeout(() => {
+        fetchConversations(false).catch((error) => {
+          console.error("Error refetching conversations on reconnect:", error);
+          // Silently fail - will retry on next reconnection
+        });
+      }, 1000);
     };
 
     // Handle user presence update
@@ -404,6 +417,23 @@ export default function MessageScreen({ navigation }) {
       } catch (error) {
         console.error("Error fetching conversations:", error);
         // Keep existing data on error
+        // Show error message only on initial load or refresh
+        if (isRefresh || pageNumber === 1) {
+          const errorMessage =
+            error?.response?.data?.message ||
+            error?.message ||
+            "Failed to load conversations. Please check your connection and try again.";
+          // Use a timeout to avoid showing alert during rapid refreshes
+          setTimeout(() => {
+            Alert.alert("Error", errorMessage, [
+              { text: "OK", style: "cancel" },
+              {
+                text: "Retry",
+                onPress: () => fetchConversations(true),
+              },
+            ]);
+          }, 100);
+        }
       } finally {
         setTimeout(() => {
           setLoading(false);
@@ -471,6 +501,7 @@ export default function MessageScreen({ navigation }) {
       } catch (error) {
         console.error("Error marking conversation as read:", error);
         // Continue navigation even if marking as read fails
+        // Silently fail - not critical for user experience
       }
     }
 

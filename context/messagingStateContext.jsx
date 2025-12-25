@@ -219,7 +219,15 @@ export const MessagingStateProvider = ({ children }) => {
         payload: messagingService,
       });
 
-      if (!messagingService) return;
+      if (!messagingService) {
+        console.warn("Messaging service not available");
+        dispatch({
+          type: actionTypes.SET_CONNECTION_STATUS,
+          payload: "disconnected",
+        });
+        connectionInitializedRef.current = false;
+        return;
+      }
 
       // Set initial connection status
       const status = messagingService.connectionStatus;
@@ -248,9 +256,18 @@ export const MessagingStateProvider = ({ children }) => {
         );
       } catch (error) {
         console.error("Error registering handlers", error);
+        // Continue even if handler registration fails - connection may still work
       }
     } catch (error) {
       console.error("Error starting connection:", error);
+      dispatch({
+        type: actionTypes.SET_CONNECTION_STATUS,
+        payload: "disconnected",
+      });
+      dispatch({
+        type: actionTypes.SET_ERROR,
+        payload: error.message || "Failed to initialize messaging connection",
+      });
       connectionInitializedRef.current = false;
     }
   };
@@ -265,25 +282,41 @@ export const MessagingStateProvider = ({ children }) => {
     };
   }, []);
 
-  // Hanlde join/leave groups
+  // Handle join/leave groups
   useEffect(() => {
     const handleGroupJoinLeave = async () => {
       console.log("state.activeConversation", state.activeConversation);
       if (!state.messagingService) return;
+      
+      // Check connection status before attempting group operations
+      const connectionStatus = state.messagingService.connectionStatus;
+      if (connectionStatus.state !== signalR.HubConnectionState.Connected) {
+        console.warn("Cannot join/leave group - connection not ready:", connectionStatus.state);
+        return;
+      }
+      
       try {
         if (state.activeConversation) {
-          await state.messagingService.addToGroup(
-            state.activeConversation.id.toString()
-          );
-          setJoinedGroup(state.activeConversation.id.toString());
+          const groupId = state.activeConversation.id.toString();
+          const success = await state.messagingService.addToGroup(groupId);
+          if (success) {
+            setJoinedGroup(groupId);
+          } else {
+            console.warn(`Failed to join group ${groupId}, will retry on next connection`);
+          }
         } else {
           if (joinedGroup) {
-            await state.messagingService.removeFromGroup(joinedGroup);
-            setJoinedGroup("");
+            const success = await state.messagingService.removeFromGroup(joinedGroup);
+            if (success) {
+              setJoinedGroup("");
+            } else {
+              console.warn(`Failed to leave group ${joinedGroup}`);
+            }
           }
         }
       } catch (error) {
         console.error("Error handling group join leave", error);
+        // Don't update state on error to allow retry
       }
     };
 
@@ -292,14 +325,20 @@ export const MessagingStateProvider = ({ children }) => {
     return () => {
       if (state.messagingService && joinedGroup) {
         try {
-          state.messagingService.removeFromGroup(joinedGroup);
+          // Only attempt to leave if connection is still active
+          const connectionStatus = state.messagingService.connectionStatus;
+          if (connectionStatus.state === signalR.HubConnectionState.Connected) {
+            state.messagingService.removeFromGroup(joinedGroup).catch((error) => {
+              console.error("Error removing from group on cleanup", error);
+            });
+          }
           setJoinedGroup("");
         } catch (error) {
           console.error("Error removing from group on cleanup", error);
         }
       }
     };
-  }, [state.activeConversation, state.messagingService]);
+  }, [state.activeConversation, state.messagingService, joinedGroup]);
 
   // Listen to lifecycle events for connection status tracking
   useEffect(() => {

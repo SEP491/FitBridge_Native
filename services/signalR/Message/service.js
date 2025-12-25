@@ -185,6 +185,7 @@ class SignalRService {
     this.#checkDisposed();
 
     if (!this.#checkConnectionConnected("addToGroup")) {
+      console.warn(`SignalR: Cannot add to group ${groupName} - connection not ready`);
       return false;
     }
 
@@ -197,6 +198,22 @@ class SignalRService {
       return true;
     } catch (error) {
       console.error(`SignalR: Failed to join group ${groupName}:`, error);
+      // Retry once if connection is still available
+      if (
+        this.#connection &&
+        this.#connection.state === signalR.HubConnectionState.Connected
+      ) {
+        try {
+          console.log(`SignalR: Retrying addToGroup for ${groupName}`);
+          await this.#connection.invoke("AddToGroup", groupName);
+          if (!this.#groups.includes(groupName)) {
+            this.#groups.push(groupName);
+          }
+          return true;
+        } catch (retryError) {
+          console.error(`SignalR: Retry failed for group ${groupName}:`, retryError);
+        }
+      }
       return false;
     }
   }
@@ -446,9 +463,17 @@ class SignalRService {
       console.log("SignalR: Reconnected", connectionId);
 
       // Rejoin groups since SignalR loses them on reconnect
-      for (const group of this.#groups) {
-        await this.addToGroup(group);
-      }
+      // Use Promise.allSettled to ensure all groups are attempted even if some fail
+      const groupRejoinPromises = this.#groups.map(async (group) => {
+        try {
+          await this.addToGroup(group);
+        } catch (error) {
+          console.error(`SignalR: Failed to rejoin group ${group} after reconnect:`, error);
+          // Continue with other groups even if one fails
+        }
+      });
+      
+      await Promise.allSettled(groupRejoinPromises);
 
       this.triggerCallback("onReconnected", connectionId);
     };
@@ -473,7 +498,12 @@ class SignalRService {
 
     console.log("InvokeHubMethod", methodName, args);
     if (!this.#checkConnectionConnected("invokeHubMethod")) {
-      throw new Error("Hub connection is not initialized or not connected.");
+      const error = new Error("Hub connection is not initialized or not connected.");
+      console.error("SignalR: Cannot invoke method - connection not ready", {
+        methodName,
+        connectionState: this.#connection?.state,
+      });
+      throw error;
     }
 
     try {
@@ -485,6 +515,16 @@ class SignalRService {
         args,
         error
       );
+      
+      // If connection lost during invoke, trigger reconnection
+      if (
+        this.#connection &&
+        this.#connection.state === signalR.HubConnectionState.Disconnected
+      ) {
+        console.log("SignalR: Connection lost during invoke, will reconnect");
+        this.triggerCallback("onDisconnected", error);
+      }
+      
       throw error;
     }
   }
@@ -495,7 +535,12 @@ class SignalRService {
 
     console.log("SendHubMethod", methodName, args);
     if (!this.#checkConnectionConnected("sendHubMethod")) {
-      throw new Error("Hub connection is not initialized or not connected.");
+      const error = new Error("Hub connection is not initialized or not connected.");
+      console.error("SignalR: Cannot send method - connection not ready", {
+        methodName,
+        connectionState: this.#connection?.state,
+      });
+      throw error;
     }
 
     try {
@@ -507,6 +552,16 @@ class SignalRService {
         args,
         error
       );
+      
+      // If connection lost during send, trigger reconnection
+      if (
+        this.#connection &&
+        this.#connection.state === signalR.HubConnectionState.Disconnected
+      ) {
+        console.log("SignalR: Connection lost during send, will reconnect");
+        this.triggerCallback("onDisconnected", error);
+      }
+      
       throw error;
     }
   }

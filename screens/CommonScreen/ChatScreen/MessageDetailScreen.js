@@ -175,9 +175,15 @@ export default function MessageDetailScreen({ route, navigation }) {
       // Only add message if it belongs to this conversation
       if (message.conversationId === conversationId) {
         setMessages((prev) => {
-          // Check if message already exists
-          const exists = prev.some((m) => m.id === message.id);
-          if (exists) return prev;
+          // Check if message already exists (prevent duplicates)
+          const exists = prev.some(
+            (m) => m.id === message.id || 
+            (m.id === `temp_${message.id}` && message.id) // Handle temp message replacement
+          );
+          if (exists) {
+            console.log("MessageDetailScreen: Message already exists, skipping duplicate");
+            return prev;
+          }
 
           // Add new message at the beginning (since list is inverted)
           return [message, ...prev];
@@ -185,7 +191,10 @@ export default function MessageDetailScreen({ route, navigation }) {
 
         // Mark as read if from other user
         if (message.senderId !== currentUserId) {
-          markMessagesAsRead([message.id]);
+          markMessagesAsRead([message.id]).catch((error) => {
+            console.error("Error marking message as read:", error);
+            // Silently fail - not critical
+          });
         }
       }
     };
@@ -199,9 +208,16 @@ export default function MessageDetailScreen({ route, navigation }) {
           updatedMessage.status === "Deleted" || updatedMessage.isDeleted;
         setMessages((prev) =>
           prev.map((msg) => {
-            if (msg.id === updatedMessage.id) {
+            // Match by ID (handle both regular and temp message IDs)
+            if (
+              msg.id === updatedMessage.id ||
+              (msg.id?.startsWith("temp_") && 
+               updatedMessage.id && 
+               msg.id.includes(updatedMessage.id))
+            ) {
               return {
                 ...msg,
+                id: updatedMessage.id || msg.id, // Ensure we use the real ID
                 content: isDeleted
                   ? "This message was deleted"
                   : updatedMessage.newContent ||
@@ -449,6 +465,21 @@ export default function MessageDetailScreen({ route, navigation }) {
         if (!isInitial && page > 1) {
           setPageNumber(page - 1);
         }
+        
+        // Show error message only for initial load to avoid spamming user
+        if (isInitial) {
+          const errorMessage =
+            error?.response?.data?.message ||
+            error?.message ||
+            "Failed to load messages. Please check your connection and try again.";
+          Alert.alert("Error", errorMessage, [
+            { text: "OK", style: "cancel" },
+            {
+              text: "Retry",
+              onPress: () => fetchMessages(1, true),
+            },
+          ]);
+        }
       } finally {
         if (isInitial) {
           setLoading(false);
@@ -481,6 +512,8 @@ export default function MessageDetailScreen({ route, navigation }) {
         }
       } catch (error) {
         console.error("Error marking messages as read:", error);
+        // Silently fail - this is not critical for user experience
+        // but log for debugging
       }
     },
     [conversationId, messages, currentUserId]
@@ -674,8 +707,8 @@ export default function MessageDetailScreen({ route, navigation }) {
       const uploadResponse = await uploadImageService.uploadImage(formData);
       console.log("Upload response:", uploadResponse);
 
-      if (uploadResponse.status !== "200" || !uploadResponse.data) {
-        throw new Error("Failed to upload image");
+      if (!uploadResponse || !uploadResponse.data) {
+        throw new Error("Failed to upload image: Invalid response from server");
       }
 
       const uploadedUrl = uploadResponse.data;
@@ -814,12 +847,18 @@ export default function MessageDetailScreen({ route, navigation }) {
       const sentMessage = await messageService.sendMessage(messageData);
 
       // Add the sent message to the top of the list (check for duplicates)
+      // Note: SignalR will also send the message, so we check for duplicates
       setMessages((prev) => {
         // Check if message already exists (e.g., from SignalR)
-        if (prev.some((m) => m.id === sentMessage.id)) {
+        if (prev.some((m) => m.id === sentMessage.id || m.id === sentMessage.data?.id)) {
           return prev;
         }
-        return [...prev];
+        // Add the sent message if it doesn't exist yet
+        const messageToAdd = sentMessage.data || sentMessage;
+        if (messageToAdd && messageToAdd.id) {
+          return [messageToAdd, ...prev];
+        }
+        return prev;
       });
     } catch (error) {
       console.error("Error sending message:", error);
@@ -828,6 +867,13 @@ export default function MessageDetailScreen({ route, navigation }) {
       if (replyData.replyToMessageId) {
         setReplyingTo(replyingTo);
       }
+      
+      // Show user-friendly error message
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to send message. Please check your connection and try again.";
+      Alert.alert("Error", errorMessage, [{ text: "OK", style: "cancel" }]);
     } finally {
       setSending(false);
     }
@@ -1012,6 +1058,16 @@ export default function MessageDetailScreen({ route, navigation }) {
     setSelectedMessage(null);
   }, [selectedMessage]);
 
+  // Handle edit booking request (placeholder - not fully implemented)
+  const handleEditBookingRequest = useCallback(async () => {
+    // TODO: Implement booking request editing functionality
+    Alert.alert(
+      "Not Implemented",
+      "Booking request editing is not yet available.",
+      [{ text: "OK", style: "cancel" }]
+    );
+  }, []);
+
   // Handle send booking request
   const handleSendBookingRequest = useCallback(async () => {
     if (!bookingFormData.bookingName.trim()) {
@@ -1127,11 +1183,17 @@ export default function MessageDetailScreen({ route, navigation }) {
       });
     } catch (error) {
       console.error("Error sending booking request:", error);
-      Alert.alert("Error", "Failed to send booking request. Please try again.");
+      
+      // Show detailed error message
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to send booking request. Please check your connection and try again.";
+      Alert.alert("Error", errorMessage, [{ text: "OK", style: "cancel" }]);
     } finally {
       setSending(false);
     }
-  }, [bookingFormData, conversationId, currentUserId]);
+  }, [bookingFormData, conversationId, currentUserId, currentUserRole, members]);
 
   // Render message item
   const renderMessage = useCallback(
