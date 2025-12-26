@@ -29,6 +29,7 @@ const CustomerPurchasedCard = ({ purchase, onPress }) => {
   const daysRemaining = getDaysRemaining(purchase.expirationDate);
   const isExpiringSoon = daysRemaining <= 7 && daysRemaining > 0;
   const isExpired = daysRemaining < 0;
+  const isOutOfSessions = purchase.availableSessions === 0;
 
   return (
     <TouchableOpacity
@@ -39,7 +40,7 @@ const CustomerPurchasedCard = ({ purchase, onPress }) => {
       <View style={styles.cardContainer}>
         <LinearGradient
           colors={[colors.orange, colors.red]}
-          style={styles.gradientCard}
+          style={[styles.gradientCard, isOutOfSessions && styles.outOfSessionsCard]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
         >
@@ -67,11 +68,31 @@ const CustomerPurchasedCard = ({ purchase, onPress }) => {
                   </Text>
                 </View>
               </View>
-              <View style={styles.sessionsBadge}>
-                <MaterialIcons name="event" size={14} color={colors.white} />
-                <Text style={styles.sessionsText}>
-                  {purchase.availableSessions}{" "}
-                  {t("freelanceCourseScreen.sessionsAvailable")}
+              <View
+                style={[
+                  styles.sessionsBadge,
+                  isOutOfSessions && styles.sessionsBadgeOut,
+                ]}
+              >
+                <MaterialIcons
+                  name="event-busy"
+                  size={14}
+                  color={isOutOfSessions ? "rgba(255,255,255,0.7)" : colors.white}
+                />
+                <Text
+                  style={[
+                    styles.sessionsText,
+                    isOutOfSessions && styles.sessionsTextOut,
+                  ]}
+                >
+                  {isOutOfSessions
+                    ? t(
+                        "freelanceCourseScreen.outOfSessions",
+                        "Hết buổi tập"
+                      )
+                    : `${purchase.availableSessions} ${t(
+                        "freelanceCourseScreen.sessionsAvailable"
+                      )}`}
                 </Text>
               </View>
             </View>
@@ -170,6 +191,9 @@ const styles = StyleSheet.create({
     padding: 16,
     position: "relative",
   },
+  outOfSessionsCard: {
+    opacity: 0.6,
+  },
   packageHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -233,10 +257,19 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
     gap: 6,
   },
+  sessionsBadgeOut: {
+    backgroundColor: "rgba(0,0,0,0.15)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.3)",
+  },
   sessionsText: {
     color: colors.white,
     fontSize: 13,
     fontWeight: "600",
+  },
+  sessionsTextOut: {
+    color: "rgba(255,255,255,0.8)",
+    fontStyle: "italic",
   },
   customerSection: {
     backgroundColor: "rgba(255,255,255,0.15)",

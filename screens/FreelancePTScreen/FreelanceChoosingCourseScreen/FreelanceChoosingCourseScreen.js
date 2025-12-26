@@ -147,6 +147,7 @@ export default function FreelanceChoosingCourseScreen() {
                     customerPurchasedId: purchase.id,
                     customerId: purchase.customerId,
                     duration: purchase.sessionDurationInMinutes,
+                    availableSessions: purchase.availableSessions,
                   });
                 }}
               />
