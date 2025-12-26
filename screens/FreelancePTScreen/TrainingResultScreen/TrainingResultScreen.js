@@ -37,7 +37,7 @@ export const TrainingResultScreen = ({ route, navigation }) => {
     activeTab: initialActiveTab,
   } = route.params;
   const { t } = useTranslation();
-  console.log("TrainingResultScreen Params:", customer );
+  console.log("TrainingResultScreen Params:", customer);
   // State for data
   const [stats, setStats] = useState(null);
   const [muscleReport, setMuscleReport] = useState(null);
@@ -267,7 +267,9 @@ export const TrainingResultScreen = ({ route, navigation }) => {
           strokeWidth: 3,
         },
       ],
-      legend: [`${getMuscleGroupText(selectedMuscleGroup)} - ${selectedMetric}`],
+      legend: [
+        `${getMuscleGroupText(selectedMuscleGroup)} - ${selectedMetric}`,
+      ],
     };
   };
 
@@ -361,7 +363,7 @@ export const TrainingResultScreen = ({ route, navigation }) => {
                 <Text style={styles.customerName}>
                   {customer?.name || t("trainingResults.customer")}
                 </Text>
-                
+
                 {customer?.email ? (
                   <Text style={styles.infoContactText}>{customer.email}</Text>
                 ) : null}
@@ -483,6 +485,7 @@ export const TrainingResultScreen = ({ route, navigation }) => {
 
               {/* User Goals Progress */}
               <UserGoalsProgress
+                customerId={customer.customerId}
                 chartConfig={chartConfig}
                 t={t}
                 StatCard={StatCard}
@@ -531,9 +534,9 @@ export const TrainingResultScreen = ({ route, navigation }) => {
               <StatCard title={t("trainingResults.performance")} icon="trophy">
                 <StatRow
                   label={t("trainingResults.averageSessionTime")}
-                  value={`${stats.averageSessionTimePerSession?.toFixed(
-                    1
-                  )} ${t("trainingResults.seconds")}`}
+                  value={`${stats.averageSessionTimePerSession?.toFixed(1)} ${t(
+                    "trainingResults.seconds"
+                  )}`}
                   icon="timer-outline"
                 />
                 <StatRow
@@ -571,14 +574,16 @@ export const TrainingResultScreen = ({ route, navigation }) => {
                   <StatRow
                     label={t("trainingResults.totalPracticeTime")}
                     value={`${Math.floor(
-                      stats.workoutStatistics.totalPracticeTimeSeconds 
+                      stats.workoutStatistics.totalPracticeTimeSeconds
                     )} ${t("trainingResults.seconds")} / ${Math.floor(
                       stats.workoutStatistics.plannedPracticeTime
                     )} ${t("trainingResults.seconds")}`}
                   />
                   <StatRow
                     label={t("trainingResults.averageRestTime")}
-                    value={`${stats.workoutStatistics.averageRestTimeSeconds} ${t("trainingResults.seconds")}`}
+                    value={`${
+                      stats.workoutStatistics.averageRestTimeSeconds
+                    } ${t("trainingResults.seconds")}`}
                   />
                 </StatCard>
               )}
@@ -612,6 +617,7 @@ export const TrainingResultScreen = ({ route, navigation }) => {
             <>
               {/* User Goals Progress */}
               <UserGoalsProgress
+                customerId={customer.customerId}
                 chartConfig={chartConfig}
                 t={t}
                 StatCard={StatCard}
@@ -758,7 +764,7 @@ const styles = StyleSheet.create({
     color: "#333",
   },
   packageName: {
-    marginTop:4,
+    marginTop: 4,
     fontSize: 14,
     color: "#666",
   },

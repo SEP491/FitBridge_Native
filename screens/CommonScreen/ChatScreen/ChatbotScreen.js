@@ -381,6 +381,7 @@ export default function ChatbotScreen({ navigation }) {
     console.log("📡 Starting stream request:", {
       message: prompt,
       thread_id: threadIdRef.current,
+      coords: coords,
     });
 
     return new Promise((resolve, reject) => {
@@ -484,9 +485,9 @@ export default function ChatbotScreen({ navigation }) {
         }
       };
 
-      // Start streaming
+      // Start streaming with coordinates
       chatbotService
-        .streamMessage(prompt, threadIdRef.current, onToken, onEvent)
+        .streamMessage(prompt, threadIdRef.current, onToken, onEvent, coords)
         .catch((error) => {
           console.error("Streaming failed:", error);
           // Remove streaming message on error

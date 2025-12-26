@@ -43,6 +43,7 @@ const ActivityTypeTag = ({ type }) => {
 export default function BookingResultCard({ result, navigation, Booking }) {
   const { t } = useTranslation();
   console.log("Booking Result:", result);
+  console.log("Booking:", Booking);
   if (!result) {
     return (
       <View style={styles.emptyContainer}>
@@ -53,7 +54,13 @@ export default function BookingResultCard({ result, navigation, Booking }) {
       </View>
     );
   }
-  const customerInfo = { name: Booking.customerName, email: Booking.customerEmail, phone: Booking.customerPhone, avatarUrl: Booking.avatarUrl };
+  const customerInfo = {
+    customerId: Booking.customerId,
+    name: Booking.customerName,
+    email: Booking.customerEmail,
+    phone: Booking.customerPhone,
+    avatarUrl: Booking.avatarUrl,
+  };
   const pkgInfo = { packageName: Booking.packageName };
   const {
     sessionName,
