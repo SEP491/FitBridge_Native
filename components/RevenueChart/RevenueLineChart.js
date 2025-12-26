@@ -54,16 +54,16 @@ const RevenueLineChart = ({ onDataLoaded }) => {
       const start = new Date(selectedYear, 0, 2); // January 1st
       const end = new Date(selectedYear, 11, 32); // December 31st
       return {
-        startDate: start.toISOString().split('T')[0],
-        endDate: end.toISOString().split('T')[0],
+        startDate: start.toISOString().split("T")[0],
+        endDate: end.toISOString().split("T")[0],
       };
     } else {
       // Month mode: selected month only
       const start = new Date(selectedYear, selectedMonth, 2);
       const end = new Date(selectedYear, selectedMonth + 1, 1); // Last day of selected month
       return {
-        startDate: start.toISOString().split('T')[0],
-        endDate: end.toISOString().split('T')[0],
+        startDate: start.toISOString().split("T")[0],
+        endDate: end.toISOString().split("T")[0],
       };
     }
   };
@@ -79,7 +79,7 @@ const RevenueLineChart = ({ onDataLoaded }) => {
     try {
       const response = await dashBoardService.getRevenueDetails();
       let items = [];
-      
+
       if (response?.data?.items) {
         items = response.data.items;
       }
@@ -122,12 +122,12 @@ const RevenueLineChart = ({ onDataLoaded }) => {
       // Request service returns: { status, message, data: { items, total, totalProfitSum } }
       // So response.data contains: { items: [...], total: 8, totalProfitSum: 12861000 }
       let items = [];
-      
+
       if (response) {
         // Standard structure: response.data.items
         if (response.data && Array.isArray(response.data.items)) {
           items = response.data.items;
-        } 
+        }
       }
 
       console.log("Revenue items count:", items.length);
@@ -161,9 +161,10 @@ const RevenueLineChart = ({ onDataLoaded }) => {
         let key;
         if (displayMode === "year") {
           // Year mode: aggregate by month
-          key = `${date.getFullYear()}-${String(
-            date.getMonth() + 1
-          ).padStart(2, "0")}`;
+          key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+            2,
+            "0"
+          )}`;
         } else {
           // Month mode: aggregate by week (4 weeks)
           const dayOfMonth = date.getDate();
@@ -176,9 +177,13 @@ const RevenueLineChart = ({ onDataLoaded }) => {
             totalRevenue: 0,
             appCommission: 0,
             paybackToGym: 0,
-            date: displayMode === "year" 
-              ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-01`
-              : dateSource, // Use original date for month mode
+            date:
+              displayMode === "year"
+                ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+                    2,
+                    "0"
+                  )}-01`
+                : dateSource, // Use original date for month mode
           };
         }
 
@@ -218,7 +223,9 @@ const RevenueLineChart = ({ onDataLoaded }) => {
             };
           }
           return {
-            date: new Date(selectedYear, selectedMonth, weekNum * 7 + 1).toISOString().split('T')[0],
+            date: new Date(selectedYear, selectedMonth, weekNum * 7 + 1)
+              .toISOString()
+              .split("T")[0],
             totalRevenue: 0,
             appCommission: 0,
             paybackToGym: 0,
@@ -272,7 +279,20 @@ const RevenueLineChart = ({ onDataLoaded }) => {
       if (displayMode === "year") {
         // Year mode: show month names
         const date = new Date(item.date);
-        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const monthNames = [
+          "Jan",
+          "Feb",
+          "Mar",
+          "Apr",
+          "May",
+          "Jun",
+          "Jul",
+          "Aug",
+          "Sep",
+          "Oct",
+          "Nov",
+          "Dec",
+        ];
         return monthNames[date.getMonth()];
       } else {
         // Month mode: show week numbers
@@ -303,7 +323,7 @@ const RevenueLineChart = ({ onDataLoaded }) => {
         },
       ],
       formatYLabel: (value) => {
-        const numValue = (value);
+        const numValue = parseFloat(value);
         if (numValue >= 1000000) {
           return `${(numValue / 1000000).toFixed(1)}M`;
         } else if (numValue >= 1000) {
@@ -337,8 +357,18 @@ const RevenueLineChart = ({ onDataLoaded }) => {
   const chartData = prepareChartData();
 
   const monthNames = [
-    "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
-    "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"
+    "Tháng 1",
+    "Tháng 2",
+    "Tháng 3",
+    "Tháng 4",
+    "Tháng 5",
+    "Tháng 6",
+    "Tháng 7",
+    "Tháng 8",
+    "Tháng 9",
+    "Tháng 10",
+    "Tháng 11",
+    "Tháng 12",
   ];
 
   return (
@@ -346,9 +376,7 @@ const RevenueLineChart = ({ onDataLoaded }) => {
       <View style={styles.chartCard}>
         <View style={styles.chartHeader}>
           <Ionicons name="trending-up" size={24} color="#ED2A46" />
-          <Text style={styles.chartTitle}>
-            Xu Hướng Doanh Thu & Lợi Nhuận
-          </Text>
+          <Text style={styles.chartTitle}>Xu Hướng Doanh Thu & Lợi Nhuận</Text>
         </View>
 
         {/* Display Mode, Year and Month Selectors */}
@@ -384,8 +412,14 @@ const RevenueLineChart = ({ onDataLoaded }) => {
               activeOpacity={0.7}
               disabled={loading}
             >
-              <Ionicons name="calendar-number-outline" size={16} color="#ED2A46" />
-              <Text style={styles.selectorText}>{monthNames[selectedMonth]}</Text>
+              <Ionicons
+                name="calendar-number-outline"
+                size={16}
+                color="#ED2A46"
+              />
+              <Text style={styles.selectorText}>
+                {monthNames[selectedMonth]}
+              </Text>
               <Ionicons name="chevron-down" size={16} color="#ED2A46" />
             </TouchableOpacity>
           )}
@@ -405,7 +439,8 @@ const RevenueLineChart = ({ onDataLoaded }) => {
           <View style={styles.emptyContainer}>
             <Ionicons name="bar-chart-outline" size={48} color="#E0E0E0" />
             <Text style={styles.emptyText}>
-              Không có dữ liệu để hiển thị cho {monthNames[selectedMonth]} {selectedYear}
+              Không có dữ liệu để hiển thị cho {monthNames[selectedMonth]}{" "}
+              {selectedYear}
             </Text>
           </View>
         ) : (
@@ -426,21 +461,33 @@ const RevenueLineChart = ({ onDataLoaded }) => {
                 withShadow={false}
                 fromZero
                 segments={5}
+                formatYLabel={(value) => {
+                  const num = parseFloat(value);
+                  if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+                  if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
+                  return value;
+                }}
               />
             </ScrollView>
-          
+
             {/* Legend */}
             <View style={styles.legendContainer}>
               <View style={styles.legendItem}>
-                <View style={[styles.legendDot, { backgroundColor: "#3B82F6" }]} />
+                <View
+                  style={[styles.legendDot, { backgroundColor: "#3B82F6" }]}
+                />
                 <Text style={styles.legendText}>Tổng Doanh Thu</Text>
               </View>
               <View style={styles.legendItem}>
-                <View style={[styles.legendDot, { backgroundColor: "#F59E0B" }]} />
+                <View
+                  style={[styles.legendDot, { backgroundColor: "#F59E0B" }]}
+                />
                 <Text style={styles.legendText}>Hoa Hồng App</Text>
               </View>
               <View style={styles.legendItem}>
-                <View style={[styles.legendDot, { backgroundColor: "#10B981" }]} />
+                <View
+                  style={[styles.legendDot, { backgroundColor: "#10B981" }]}
+                />
                 <Text style={styles.legendText}>Tiền Về Ví</Text>
               </View>
             </View>
@@ -489,7 +536,11 @@ const RevenueLineChart = ({ onDataLoaded }) => {
                       {year}
                     </Text>
                     {isSelected && (
-                      <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={24}
+                        color="#4CAF50"
+                      />
                     )}
                   </TouchableOpacity>
                 );
@@ -540,7 +591,11 @@ const RevenueLineChart = ({ onDataLoaded }) => {
                       {month}
                     </Text>
                     {isSelected && (
-                      <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={24}
+                        color="#4CAF50"
+                      />
                     )}
                   </TouchableOpacity>
                 );
@@ -887,4 +942,3 @@ const styles = StyleSheet.create({
 });
 
 export default RevenueLineChart;
-
