@@ -11,6 +11,8 @@ import {
   ActivityIndicator,
   Dimensions,
   Modal,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
@@ -24,9 +26,11 @@ const ReviewCard = ({
   isReviewMode = false,
   t,
   showProductType = false,
+  fetchPTReview,
   productTypeText = null,
   onReviewUpdated,
   onReviewDeleted,
+  
 }) => {
   console.log(review);
   const [modalVisible, setModalVisible] = useState(false);
@@ -199,6 +203,7 @@ const ReviewCard = ({
           ? t("common.updateReviewSuccess") || "Review updated successfully"
           : "Review updated successfully"
       );
+      fetchPTReview();
       setEditModalVisible(false);
       // Optionally refresh the parent component
       if (onReviewUpdated) {
@@ -464,7 +469,11 @@ const ReviewCard = ({
         animationType="slide"
         onRequestClose={() => setEditModalVisible(false)}
       >
-        <View style={styles.editModalOverlay}>
+        <KeyboardAvoidingView
+          style={styles.editModalOverlay}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+        >
           <View style={styles.editModalContent}>
             <View style={styles.editModalHeader}>
               <Text style={styles.editModalTitle}>
@@ -481,6 +490,7 @@ const ReviewCard = ({
             <ScrollView
               style={styles.editModalBody}
               showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
             >
               {/* Review ID (Display Only) */}
               <View style={styles.editFieldContainer}>
@@ -620,7 +630,7 @@ const ReviewCard = ({
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </>
   );

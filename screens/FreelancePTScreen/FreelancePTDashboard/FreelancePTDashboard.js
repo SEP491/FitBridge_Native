@@ -521,6 +521,7 @@ const FreelancePTDashboard = ({ navigation }) => {
           renderRevenueComparison={renderRevenueComparison}
           renderComparisonBadge={renderComparisonBadge}
           mostPopularPackages={dashboardStats?.mostPopularPackages || []}
+          packageRevenueBreakdown={dashboardStats?.packageRevenueBreakdown || []}
         />
 
         {/* Toggle Charts Button

@@ -145,14 +145,13 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   swiperContainer: {
-    paddingBottom: 25,
   },
   paginationDot: {
     backgroundColor: "#E0E0E0",
     width: 8,
     height: 8,
     borderRadius: 4,
-    top: 20,
+    top: -5,
   },
   activePaginationDot: {
     backgroundColor: "#ED2A46",
@@ -160,7 +159,7 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     marginHorizontal: 4,
-    top: 20,
+    top: -5,
   },
   emptyContainer: {
     backgroundColor: "#F8F9FA",
