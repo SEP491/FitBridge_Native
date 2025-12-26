@@ -8,10 +8,12 @@ import {
   Image,
   ActivityIndicator,
   Linking,
+  Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import WebView from "react-native-webview";
 import orderService from "../../../services/orderService";
 import paymentService from "../../../services/paymentService";
 import { useTranslation } from "../../../hooks/useTranslation";
@@ -23,6 +25,7 @@ const OrderDetailScreen = () => {
   const { t } = useTranslation();
   const { selectedOrder } = route.params;
   const order = selectedOrder;
+  const [showTrackingWebView, setShowTrackingWebView] = useState(false);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -218,6 +221,28 @@ const OrderDetailScreen = () => {
                 </View>
               )}
             </View>
+
+            {order.ahamoveSharedLink && (
+              <TouchableOpacity
+                style={styles.trackInlineButton}
+                onPress={() => setShowTrackingWebView(true)}
+                activeOpacity={0.8}
+              >
+                <Ionicons
+                  name="navigate-outline"
+                  size={18}
+                  color="#fff"
+                />
+                <Text style={styles.trackInlineButtonText}>
+                  {t("orders.trackOrder")}
+                </Text>
+                <Ionicons
+                  name="open-outline"
+                  size={18}
+                  color="#fff"
+                />
+              </TouchableOpacity>
+            )}
           </View>
         )}
 
@@ -369,16 +394,6 @@ const OrderDetailScreen = () => {
           </View>
         </View>
 
-        {/* Tracking Info */}
-        {order.shippingTrackingId && (
-          <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <Ionicons name="cube-outline" size={24} color="#ED2A46" />
-              <Text style={styles.cardTitle}>{t("orders.trackingInfo")}</Text>
-            </View>
-            <Text style={styles.trackingId}>{order.shippingTrackingId}</Text>
-          </View>
-        )}
 
         <View style={{ height: 100 }} />
       </ScrollView>
@@ -432,6 +447,49 @@ const OrderDetailScreen = () => {
             </TouchableOpacity>
           </View>
         )}
+
+      {/* Tracking WebView Modal */}
+      <Modal
+        visible={showTrackingWebView}
+        animationType="slide"
+        transparent={false}
+        onRequestClose={() => setShowTrackingWebView(false)}
+      >
+        <SafeAreaView style={styles.webViewContainer} >
+          <View style={styles.webViewHeader}>
+            <TouchableOpacity
+              style={styles.webViewCloseButton}
+              onPress={() => setShowTrackingWebView(false)}
+            >
+              <Ionicons name="close" size={24} color="#333" />
+            </TouchableOpacity>
+            <Text style={styles.webViewHeaderTitle}>
+              {t("orders.trackOrder")}
+            </Text>
+            <View style={styles.webViewPlaceholder} />
+          </View>
+          {order.ahamoveSharedLink && (
+            <WebView
+              source={{ uri: order.ahamoveSharedLink }}
+              style={styles.webView}
+              startInLoadingState={true}
+              renderLoading={() => (
+                <View style={styles.webViewLoading}>
+                  <ActivityIndicator size="large" color="#ED2A46" />
+                </View>
+              )}
+              onError={(syntheticEvent) => {
+                const { nativeEvent } = syntheticEvent;
+                console.error("WebView error: ", nativeEvent);
+              }}
+              onHttpError={(syntheticEvent) => {
+                const { nativeEvent } = syntheticEvent;
+                console.error("WebView HTTP error: ", nativeEvent.statusCode);
+              }}
+            />
+          )}
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -595,6 +653,21 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#666",
     fontStyle: "italic",
+  },
+  trackInlineButton: {
+    marginTop: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#00BCD4",
+    paddingVertical: 10,
+    borderRadius: 10,
+    gap: 8,
+  },
+  trackInlineButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#fff",
   },
   productItem: {
     flexDirection: "row",
@@ -768,6 +841,51 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
     color: "#fff",
+  },
+  webViewContainer: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  webViewHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E0E0E0",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  webViewCloseButton: {
+    padding: 8,
+  },
+  webViewHeaderTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#333",
+    flex: 1,
+    textAlign: "center",
+  },
+  webViewPlaceholder: {
+    width: 40,
+  },
+  webView: {
+    flex: 1,
+  },
+  webViewLoading: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fff",
   },
 });
 
