@@ -124,12 +124,13 @@ const BalanceDetailScreen = () => {
       // Check if date is valid
       if (isNaN(date.getTime())) return "N/A";
       
-      // Use UTC methods to match the UTC date from the API
-      const day = String(date.getUTCDate()).padStart(2, "0");
-      const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-      const year = date.getUTCFullYear();
-      const hours = String(date.getUTCHours()).padStart(2, "0");
-      const minutes = String(date.getUTCMinutes()).padStart(2, "0");
+      // Convert to Vietnam timezone (UTC+7) by adding 7 hours
+      const vietnamTime = new Date(date.getTime() + 7 * 60 * 60 * 1000);
+      const day = String(vietnamTime.getUTCDate()).padStart(2, "0");
+      const month = String(vietnamTime.getUTCMonth() + 1).padStart(2, "0");
+      const year = vietnamTime.getUTCFullYear();
+      const hours = String(vietnamTime.getUTCHours()).padStart(2, "0");
+      const minutes = String(vietnamTime.getUTCMinutes()).padStart(2, "0");
       
       return `${hours}:${minutes} ${day}/${month}/${year}`;
     } catch (error) {
@@ -140,33 +141,42 @@ const BalanceDetailScreen = () => {
 
   const formatDateHeader = (dateString) => {
     if (!dateString) return "N/A";
-    // If dateString is in YYYY-MM-DD format (from grouping), parse it as UTC
-    let date;
-    if (typeof dateString === "string" && dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
-      // Parse YYYY-MM-DD as UTC date
-      const [year, month, day] = dateString.split("-").map(Number);
-      date = new Date(Date.UTC(year, month - 1, day));
-    } else {
-      date = new Date(dateString);
+    try {
+      // If dateString is in YYYY-MM-DD format (from grouping), parse it as UTC
+      let date;
+      if (typeof dateString === "string" && dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        // Parse YYYY-MM-DD as UTC date at midnight
+        const [year, month, day] = dateString.split("-").map(Number);
+        date = new Date(Date.UTC(year, month - 1, day));
+      } else {
+        date = new Date(dateString);
+      }
+      
+      // Check if date is valid
+      if (isNaN(date.getTime())) return "N/A";
+      
+      // Convert to Vietnam timezone (UTC+7) by adding 7 hours
+      const vietnamTime = new Date(date.getTime() + 7 * 60 * 60 * 1000);
+      const day = String(vietnamTime.getUTCDate()).padStart(2, "0");
+      const month = String(vietnamTime.getUTCMonth() + 1).padStart(2, "0");
+      const year = vietnamTime.getUTCFullYear();
+      
+      const daysOfWeek = [
+        "Chủ Nhật",
+        "Thứ Hai",
+        "Thứ Ba",
+        "Thứ Tư",
+        "Thứ Năm",
+        "Thứ Sáu",
+        "Thứ Bảy",
+      ];
+      const dayOfWeek = daysOfWeek[vietnamTime.getUTCDay()];
+      
+      return `${day}/${month}/${year} - ${dayOfWeek}`;
+    } catch (error) {
+      console.error("Error formatting date header:", error);
+      return "N/A";
     }
-    
-    // Use UTC methods to match the UTC date from grouping
-    const day = String(date.getUTCDate()).padStart(2, "0");
-    const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-    const year = date.getUTCFullYear();
-    
-    const daysOfWeek = [
-      "Chủ Nhật",
-      "Thứ Hai",
-      "Thứ Ba",
-      "Thứ Tư",
-      "Thứ Năm",
-      "Thứ Sáu",
-      "Thứ Bảy",
-    ];
-    const dayOfWeek = daysOfWeek[date.getUTCDay()];
-    
-    return `${day}/${month}/${year} - ${dayOfWeek}`;
   };
 
   const getTransactionDate = (item) => {

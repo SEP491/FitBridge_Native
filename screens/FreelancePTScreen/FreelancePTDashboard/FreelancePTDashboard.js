@@ -23,6 +23,7 @@ import dashBoardService from "../../../services/dashBoardService";
 import transactionService from "../../../services/transactionService";
 import accountService from "../../../services/accountService";
 import { useTranslation } from "../../../hooks/useTranslation";
+import { useFocusEffect } from "@react-navigation/native";
 
 const { width } = Dimensions.get("window");
 const CHART_WIDTH = width - 32;
@@ -86,6 +87,15 @@ const FreelancePTDashboard = ({ navigation }) => {
       }
     }
   };
+  useFocusEffect(
+    useCallback(() => {
+      fetchWalletData();
+      loadTodaySessions();
+      fetchMonthLyRevenue();
+      loadTransactions();
+      fetchDashboardStats();
+    }, [])
+  )
 
   const getYearColor = (index) => {
     const colors = [
