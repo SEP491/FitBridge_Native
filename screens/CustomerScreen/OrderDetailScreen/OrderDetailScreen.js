@@ -438,7 +438,7 @@ const OrderDetailScreen = () => {
         transparent={false}
         onRequestClose={() => setShowTrackingWebView(false)}
       >
-        <SafeAreaView style={styles.webViewContainer} >
+        <SafeAreaView style={styles.webViewContainer} edges={["top"]}>
           <View style={styles.webViewHeader}>
             <TouchableOpacity
               style={styles.webViewCloseButton}
