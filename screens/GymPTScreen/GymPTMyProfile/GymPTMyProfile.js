@@ -47,6 +47,8 @@ const GymPTMyProfile = () => {
     freelancePtImages: [],
     imagesToAdd: [],
     imagesToRemove: [],
+    ptMaxCourse: 0,
+    ptCurrentCourse: 0,
   });
 
   const [isEditMode, setIsEditMode] = useState(false);
@@ -199,6 +201,8 @@ const GymPTMyProfile = () => {
         freelancePtImages: response.data.freelancePtImages || [],
         imagesToAdd: response.data.imagesToAdd || [],
         imagesToRemove: response.data.imagesToRemove || [],
+        ptMaxCourse: response.data.ptMaxCourse || 0,
+        ptCurrentCourse: response.data.ptCurrentCourse || 0,
       });
       if (response.data.id) {
         setUserId(response.data.id);
@@ -293,6 +297,12 @@ const GymPTMyProfile = () => {
       addList.forEach((item) => appendGalleryImageToFormData(formData, item));
       const removeList = normalizeListInput(userProfile.imagesToRemove);
       removeList.forEach((item) => formData.append("imagesToRemove", item));
+      formData.append(
+        "ptMaxCourse",
+        Number.isFinite(parseInt(userProfile.ptMaxCourse, 10))
+          ? parseInt(userProfile.ptMaxCourse, 10)
+          : 0
+      );
 
       console.log("Form data:", formData);
       const response = await accountService.updateProfileUser(formData);
@@ -708,6 +718,44 @@ const GymPTMyProfile = () => {
                   </Text>
                 </TouchableOpacity>
               )}
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>
+                <MaterialCommunityIcons
+                  name="progress-check"
+                  size={16}
+                  color="#FF914D"
+                />{" "}
+                {t("profile.ptCurrentCourse")}
+              </Text>
+              <TextInput
+                style={[styles.textInput, styles.disabledInput]}
+                value={userProfile.ptCurrentCourse?.toString()}
+                editable={false}
+                placeholder={t("profile.ptCurrentCourse")}
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>
+                <MaterialCommunityIcons
+                  name="counter"
+                  size={16}
+                  color="#FF914D"
+                />{" "}
+                {t("profile.ptMaxCourse")}
+              </Text>
+              <TextInput
+                style={[styles.textInput, !isEditMode && styles.disabledInput]}
+                value={userProfile.ptMaxCourse?.toString()}
+                onChangeText={(text) =>
+                  setUserProfile({ ...userProfile, ptMaxCourse: text })
+                }
+                placeholder={t("profile.ptMaxCoursePlaceholder")}
+                editable={isEditMode}
+                keyboardType="numeric"
+              />
             </View>
           </View>
         </View>
