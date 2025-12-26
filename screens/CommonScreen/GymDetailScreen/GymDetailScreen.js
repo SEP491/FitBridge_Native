@@ -51,7 +51,6 @@ export default function GymDetailScreen({ route }) {
   const [reviewsLoading, setReviewsLoading] = useState(false);
 
   // Comment-related states
-  const [comments, setComments] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [currentUserRole, setCurrentUserRole] = useState(null);
 
@@ -258,9 +257,10 @@ export default function GymDetailScreen({ route }) {
     setPackageSelectionVisible(false);
   };
 
-  const averageRating = 4.5;
-  const totalReviews = comments.length;
-
+  const averageRating =
+    reviews.length > 0
+      ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
+      : 0;
   return (
     <View style={styles.container}>
       {loading ? (
@@ -354,13 +354,6 @@ export default function GymDetailScreen({ route }) {
                       <Text style={styles.priceUnit}>
                         {t("gymDetail.perMonth")}
                       </Text>
-                    </View>
-                    <View style={styles.ratingBadge}>
-                      <Ionicons name="star" size={16} color="#FFD700" />
-                      <Text style={styles.ratingText}>
-                        {formatNumber(averageRating.toFixed(1))}
-                      </Text>
-                      <Text style={styles.reviewCount}>({totalReviews})</Text>
                     </View>
                   </View>
                 </View>
@@ -461,7 +454,7 @@ export default function GymDetailScreen({ route }) {
                               <View style={styles.assetInfo}>
                                 <Text
                                   style={styles.assetName}
-                                  numberOfLines={2}
+                                  numberOfLines={1}
                                 >
                                   {asset.vietnameseName || asset.assetName}
                                 </Text>
@@ -1249,25 +1242,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#F8F9FA",
   },
 
-  postCommentButton: {
-    backgroundColor: "#ED2A46",
-    borderRadius: 25,
-    width: 50,
-    height: 50,
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#ED2A46",
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-
-  postCommentButtonDisabled: {
-    backgroundColor: "#CCC",
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-
   // Updated Avatar Styles
   avatarPlaceholder: {
     width: 40,
@@ -1302,20 +1276,6 @@ const styles = StyleSheet.create({
     color: "#ED2A46",
     fontSize: 14,
     fontWeight: "600",
-  },
-
-  // Empty Comments Styles
-  emptyCommentsContainer: {
-    alignItems: "center",
-    paddingVertical: 40,
-  },
-
-  emptyCommentsText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#666",
-    textAlign: "center",
-    marginTop: 12,
   },
 
   reviewsEmptySubtext: {
