@@ -54,9 +54,7 @@ export default function AddMeasurementScreen({ route }) {
         );
         setScanToken(tokenResponse.token);
         setWebViewUrl(
-          firstTimeScan
-            ? `https://platform.bodygram.com/${deviceLanguage}/${ORG_ID}/scan?token=${tokenResponse.token}&system=metric&height=${userInfo.height}&weight=${userInfo.weight}&gender=${gender}&age=${userAge}&remove-header=true&tap=true&can-save-as-image=true&debugger=false`
-            : `https://platform.bodygram.com/${deviceLanguage}/${ORG_ID}/scan?token=${tokenResponse.token}&system=metric&height=${userInfo.height}&weight=${userInfo.weight}&gender=${gender}&age=${userAge}&screens=scan&tap=true&remove-header=true&tap=true&can-save-as-image=true&debugger=false`
+          `https://platform.bodygram.com/${deviceLanguage}/${ORG_ID}/scan?token=${tokenResponse.token}&system=metric&height=${userInfo.height}&weight=${userInfo.weight}&gender=${gender}&age=${userAge}&remove-header=true&tap=true&can-save-as-image=true&debugger=false`
         );
         console.log("Scan Token Response:", tokenResponse);
       } catch (error) {
