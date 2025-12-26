@@ -72,7 +72,6 @@ export default function BookingDetailContent({
   onAddExercise,
   onRefresh,
   refreshing = false,
-  timeBeforeStart = 30,
   userGoalExists = null,
   onCreateGoal,
 }) {
@@ -262,24 +261,24 @@ export default function BookingDetailContent({
     }
   };
 
-  const canStartSession = () => {
-    if (!Booking?.startTime || !Booking?.bookingDate) return false;
-    try {
-      const dateTimeString = `${Booking.bookingDate}T${Booking.startTime}`;
-      const plannedStartTime = new Date(dateTimeString);
-      console.log("plannedStartTime", plannedStartTime);
-      const now = new Date();
+  // const canStartSession = () => {
+  //   if (!Booking?.startTime || !Booking?.bookingDate) return false;
+  //   try {
+  //     const dateTimeString = `${Booking.bookingDate}T${Booking.startTime}`;
+  //     const plannedStartTime = new Date(dateTimeString);
+  //     console.log("plannedStartTime", plannedStartTime);
+  //     const now = new Date();
 
-      const earliestStartTime = new Date(plannedStartTime);
-      earliestStartTime.setMinutes(
-        earliestStartTime.getMinutes() - timeBeforeStart
-      );
-      return now >= earliestStartTime;
-    } catch (error) {
-      console.error("Error checking if can start session:", error);
-      return false;
-    }
-  };
+  //     const earliestStartTime = new Date(plannedStartTime);
+  //     earliestStartTime.setMinutes(
+  //       earliestStartTime.getMinutes() - timeBeforeStart
+  //     );
+  //     return now >= earliestStartTime;
+  //   } catch (error) {
+  //     console.error("Error checking if can start session:", error);
+  //     return false;
+  //   }
+  // };
 
   const handleStartSession = async () => {
     try {
@@ -319,15 +318,15 @@ export default function BookingDetailContent({
     switch (status) {
       case "Finished":
         return t("booking.completed");
-    case "Cancelled":
-      return t("booking.canceled");
-    case "WaitingForEdit":
-      return t("booking.waitingForEdit");
-    case "Booked":
-      return t("booking.booked");
-    default:
-      return status;
-  }
+      case "Cancelled":
+        return t("booking.canceled");
+      case "WaitingForEdit":
+        return t("booking.waitingForEdit");
+      case "Booked":
+        return t("booking.booked");
+      default:
+        return status;
+    }
   };
   return (
     <KeyboardAvoidingView
@@ -395,18 +394,14 @@ export default function BookingDetailContent({
                       minute: "2-digit",
                     })}{" "}
                     -{" "}
-                    {bookingDetail.sessionEndTime ? (
-                      new Date(bookingDetail.sessionEndTime).toLocaleTimeString(
-                      "vi-VN",
-                      {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      }
-                    )
-                    ) : (
-                      "xx:xx"
-                    )}
-                    
+                    {bookingDetail.sessionEndTime
+                      ? new Date(
+                          bookingDetail.sessionEndTime
+                        ).toLocaleTimeString("vi-VN", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
+                      : "xx:xx"}
                   </Text>
                 )}
               </View>
@@ -835,24 +830,22 @@ export default function BookingDetailContent({
         </View>
         {userRole === "Customer" && (
           <View style={styles.controlsContainer}>
-            {sessionState === "not-started" &&
-              isBookingDateToday() &&
-              canStartSession() && (
-                <TouchableOpacity
-                  style={styles.actionButton}
-                  onPress={handleStartSession}
-                >
-                  <Ionicons
-                    name="play-circle"
-                    size={24}
-                    color="#FFFFFF"
-                    style={styles.buttonIcon}
-                  />
-                  <Text style={styles.actionButtonText}>
-                    {t("bookingDetail.startSession", "Start Session")}
-                  </Text>
-                </TouchableOpacity>
-              )}
+            {sessionState === "not-started" && isBookingDateToday() && (
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={handleStartSession}
+              >
+                <Ionicons
+                  name="play-circle"
+                  size={24}
+                  color="#FFFFFF"
+                  style={styles.buttonIcon}
+                />
+                <Text style={styles.actionButtonText}>
+                  {t("bookingDetail.startSession", "Start Session")}
+                </Text>
+              </TouchableOpacity>
+            )}
 
             {sessionState === "in-progress" && (
               <TouchableOpacity
