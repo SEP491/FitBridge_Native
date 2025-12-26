@@ -51,12 +51,6 @@ export default function GymDetailScreen({ route }) {
   const [reviewsLoading, setReviewsLoading] = useState(false);
 
   // Comment-related states
-  const [comments, setComments] = useState([]);
-  const [commentsLoading, setCommentsLoading] = useState(false);
-  const [commentsPage, setCommentsPage] = useState(1);
-  const [hasMoreComments, setHasMoreComments] = useState(false);
-  const [newComment, setNewComment] = useState("");
-  const [isPostingComment, setIsPostingComment] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [currentUserRole, setCurrentUserRole] = useState(null);
 
@@ -115,7 +109,6 @@ export default function GymDetailScreen({ route }) {
     fetchGymDetail();
     fetchCourseGym();
     fetchGymReviews();
-    // fetchComments();
   }, [gymId]);
 
   const fetchGymReviews = async (pageNum = 1) => {
@@ -171,80 +164,6 @@ export default function GymDetailScreen({ route }) {
     }
   };
 
-  // Fetch comments function
-  const fetchComments = async (page = 1, reset = false) => {
-    setCommentsLoading(true);
-    try {
-      const response = await gymService.getCommentsByGymId(gymId, {
-        page,
-        size: 3,
-      });
-
-      const { items, totalPages } = response.data;
-
-      if (reset || page === 1) {
-        setComments(items);
-      } else {
-        setComments((prevComments) => [...prevComments, ...items]);
-      }
-
-      setCommentsPage(page);
-      setHasMoreComments(page < totalPages);
-    } catch (error) {
-      console.error("Error fetching comments:", error);
-      Alert.alert(t("gymDetail.error"), t("gymDetail.errorLoadingComments"));
-    } finally {
-      setCommentsLoading(false);
-    }
-  };
-
-  // Post comment function
-  const handlePostComment = async () => {
-    // Check if user is logged in
-    const userData = await fetchUserFromStorage();
-    if (!userData) {
-      Alert.alert(t("auth.loginRequired"), t("auth.pleaseLoginToContinue"), [
-        { text: t("common.cancel"), style: "cancel" },
-        {
-          text: t("navigation.login"),
-          onPress: () =>
-            navigation.navigate(t("navigation.login"), { screen: "Login" }),
-        },
-      ]);
-      return;
-    }
-
-    if (!newComment.trim()) {
-      Alert.alert(t("gymDetail.error"), t("gymDetail.enterCommentContent"));
-      return;
-    }
-
-    setIsPostingComment(true);
-    try {
-      await gymService.postComment(gymId, {
-        content: newComment.trim(),
-      });
-
-      setNewComment("");
-      Alert.alert(t("common.success"), t("gymDetail.commentSuccess"));
-
-      // Refresh comments
-      // fetchComments(1, true);
-    } catch (error) {
-      console.error("Error posting comment:", error);
-      Alert.alert(t("gymDetail.error"), t("gymDetail.errorPostingComment"));
-    } finally {
-      setIsPostingComment(false);
-    }
-  };
-
-  // Load more comments
-  const handleLoadMoreComments = () => {
-    if (!commentsLoading && hasMoreComments) {
-      // fetchComments(commentsPage + 1);
-    }
-  };
-
   if (!gymId) {
     return (
       <View style={styles.loadingContainer}>
@@ -252,16 +171,13 @@ export default function GymDetailScreen({ route }) {
       </View>
     );
   }
-  // Check if package is already in the cart
   const isPackageInCart = (packageId) => {
     return cart.some(
       (item) => item.id === packageId && item.gymId === gymDetail.id
     );
   };
 
-  // Handle adding package to cart
   const handleAddToCart = async (packageGym) => {
-    // Check if user is Customer role
     if (currentUserRole !== "Customer") {
       Alert.alert(
         t("gymDetail.error") || "Error",
@@ -341,10 +257,10 @@ export default function GymDetailScreen({ route }) {
     setPackageSelectionVisible(false);
   };
 
-  // Since the API doesn't return ratings in comments, we'll use a default rating
-  const averageRating = 4.5; // You can make this dynamic based on your requirements
-  const totalReviews = comments.length;
-
+  const averageRating =
+    reviews.length > 0
+      ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
+      : 0;
   return (
     <View style={styles.container}>
       {loading ? (
@@ -438,13 +354,6 @@ export default function GymDetailScreen({ route }) {
                       <Text style={styles.priceUnit}>
                         {t("gymDetail.perMonth")}
                       </Text>
-                    </View>
-                    <View style={styles.ratingBadge}>
-                      <Ionicons name="star" size={16} color="#FFD700" />
-                      <Text style={styles.ratingText}>
-                        {formatNumber(averageRating.toFixed(1))}
-                      </Text>
-                      <Text style={styles.reviewCount}>({totalReviews})</Text>
                     </View>
                   </View>
                 </View>
@@ -545,9 +454,9 @@ export default function GymDetailScreen({ route }) {
                               <View style={styles.assetInfo}>
                                 <Text
                                   style={styles.assetName}
-                                  numberOfLines={2}
+                                  numberOfLines={1}
                                 >
-                                  {asset.assetName}
+                                  {asset.vietnameseName || asset.assetName}
                                 </Text>
                                 <View style={styles.assetCategoryBadge}>
                                   <Text style={styles.assetCategoryText}>
@@ -652,7 +561,7 @@ export default function GymDetailScreen({ route }) {
                                   style={styles.facilityName}
                                   numberOfLines={2}
                                 >
-                                  {asset.assetName}
+                                  {asset.vietnameseName || asset.assetName}
                                 </Text>
                                 <Text
                                   style={styles.facilityDescription}
@@ -1333,25 +1242,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#F8F9FA",
   },
 
-  postCommentButton: {
-    backgroundColor: "#ED2A46",
-    borderRadius: 25,
-    width: 50,
-    height: 50,
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#ED2A46",
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-
-  postCommentButtonDisabled: {
-    backgroundColor: "#CCC",
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-
   // Updated Avatar Styles
   avatarPlaceholder: {
     width: 40,
@@ -1386,20 +1276,6 @@ const styles = StyleSheet.create({
     color: "#ED2A46",
     fontSize: 14,
     fontWeight: "600",
-  },
-
-  // Empty Comments Styles
-  emptyCommentsContainer: {
-    alignItems: "center",
-    paddingVertical: 40,
-  },
-
-  emptyCommentsText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#666",
-    textAlign: "center",
-    marginTop: 12,
   },
 
   reviewsEmptySubtext: {
