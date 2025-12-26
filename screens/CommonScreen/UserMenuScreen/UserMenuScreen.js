@@ -42,6 +42,7 @@ export default function UserMenuScreen() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
+  const shimmerAnim = useRef(new Animated.Value(0)).current;
   const { clearCart } = useCart(); // Assuming useCart is defined in your context or service
   const { t } = useTranslation();
   const { logoutRevenueCatUser } = useRevenueCat();
@@ -50,6 +51,30 @@ export default function UserMenuScreen() {
   const navigation = useNavigation();
   const { startCall, setCallInfo } = useMeetingState();
   const { stopConnection } = useMessagingState();
+  const badgeSkeletonOpacity = shimmerAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.3, 0.7],
+  });
+  useEffect(() => {
+    const shimmer = Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmerAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shimmerAnim, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    shimmer.start();
+
+    return () => shimmer.stop();
+  }, [shimmerAnim]);
+
   useEffect(() => {
     const fetchUser = async () => {
       const userData = await fetchUserFromStorage();
@@ -420,12 +445,21 @@ useFocusEffect(
                 >
                   <View style={styles.orderIconContainer}>
                     <Ionicons name="time-outline" size={28} color="#FF9800" />
-                    {getOrderCountByStatus("Pending") > 0 && (
-                      <View style={styles.orderBadge}>
-                        <Text style={styles.orderBadgeText}>
-                          {getOrderCountByStatus("Pending")}
-                        </Text>
-                      </View>
+                    {loadingOrders ? (
+                      <Animated.View
+                        style={[
+                          styles.orderBadgeSkeleton,
+                          { opacity: badgeSkeletonOpacity },
+                        ]}
+                      />
+                    ) : (
+                      getOrderCountByStatus("Pending") > 0 && (
+                        <View style={styles.orderBadge}>
+                          <Text style={styles.orderBadgeText}>
+                            {getOrderCountByStatus("Pending")}
+                          </Text>
+                        </View>
+                      )
                     )}
                   </View>
                   <Text style={styles.orderStatusText}>
@@ -449,12 +483,21 @@ useFocusEffect(
                       size={28}
                       color="#2196F3"
                     />
-                    {getOrderCountByStatus("Processing") > 0 && (
-                      <View style={styles.orderBadge}>
-                        <Text style={styles.orderBadgeText}>
-                          {getOrderCountByStatus("Processing")}
-                        </Text>
-                      </View>
+                    {loadingOrders ? (
+                      <Animated.View
+                        style={[
+                          styles.orderBadgeSkeleton,
+                          { opacity: badgeSkeletonOpacity },
+                        ]}
+                      />
+                    ) : (
+                      getOrderCountByStatus("Processing") > 0 && (
+                        <View style={styles.orderBadge}>
+                          <Text style={styles.orderBadgeText}>
+                            {getOrderCountByStatus("Processing")}
+                          </Text>
+                        </View>
+                      )
                     )}
                   </View>
                   <Text style={styles.orderStatusText}>
@@ -474,12 +517,21 @@ useFocusEffect(
                 >
                   <View style={styles.orderIconContainer}>
                     <Ionicons name="car-outline" size={28} color="#00BCD4" />
-                    {getOrderCountByStatus("Shipping") > 0 && (
-                      <View style={styles.orderBadge}>
-                        <Text style={styles.orderBadgeText}>
-                          {getOrderCountByStatus("Shipping")}
-                        </Text>
-                      </View>
+                    {loadingOrders ? (
+                      <Animated.View
+                        style={[
+                          styles.orderBadgeSkeleton,
+                          { opacity: badgeSkeletonOpacity },
+                        ]}
+                      />
+                    ) : (
+                      getOrderCountByStatus("Shipping") > 0 && (
+                        <View style={styles.orderBadge}>
+                          <Text style={styles.orderBadgeText}>
+                            {getOrderCountByStatus("Shipping")}
+                          </Text>
+                        </View>
+                      )
                     )}
                   </View>
                   <Text style={styles.orderStatusText}>
@@ -500,12 +552,21 @@ useFocusEffect(
                 >
                   <View style={styles.orderIconContainer}>
                     <Ionicons name="star-outline" size={28} color="#FF9800" />
-                    {getOrderCountByStatus("Feedback") > 0 && (
-                      <View style={styles.orderBadge}>
-                        <Text style={styles.orderBadgeText}>
-                          {getOrderCountByStatus("Feedback")}
-                        </Text>
-                      </View>
+                    {loadingOrders ? (
+                      <Animated.View
+                        style={[
+                          styles.orderBadgeSkeleton,
+                          { opacity: badgeSkeletonOpacity },
+                        ]}
+                      />
+                    ) : (
+                      getOrderCountByStatus("Feedback") > 0 && (
+                        <View style={styles.orderBadge}>
+                          <Text style={styles.orderBadgeText}>
+                            {getOrderCountByStatus("Feedback")}
+                          </Text>
+                        </View>
+                      )
                     )}
                   </View>
                   <Text style={styles.orderStatusText}>
@@ -965,6 +1026,17 @@ const styles = {
     color: "white",
     fontSize: 11,
     fontWeight: "700",
+  },
+  orderBadgeSkeleton: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: "#E5E7EB",
+    borderWidth: 2,
+    borderColor: "#fff",
   },
   orderStatusText: {
     fontSize: 12,

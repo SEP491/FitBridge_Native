@@ -129,6 +129,7 @@ const OrderDetailScreen = () => {
   }
 
   return (
+    <>
     <SafeAreaView style={styles.container} edges={["top"]}>
       <ScrollView
         style={styles.scrollView}
@@ -431,49 +432,50 @@ const OrderDetailScreen = () => {
           </View>
         )}
 
-      {/* Tracking WebView Modal */}
-      <Modal
-        visible={showTrackingWebView}
-        animationType="slide"
-        transparent={false}
-        onRequestClose={() => setShowTrackingWebView(false)}
-      >
-        <SafeAreaView style={styles.webViewContainer} edges={["top"]}>
-          <View style={styles.webViewHeader}>
-            <TouchableOpacity
-              style={styles.webViewCloseButton}
-              onPress={() => setShowTrackingWebView(false)}
-            >
-              <Ionicons name="close" size={24} color="#333" />
-            </TouchableOpacity>
-            <Text style={styles.webViewHeaderTitle}>
-              {t("orders.trackOrder")}
-            </Text>
-            <View style={styles.webViewPlaceholder} />
-          </View>
-          {order.ahamoveSharedLink && (
-            <WebView
-              source={{ uri: order.ahamoveSharedLink }}
-              style={styles.webView}
-              startInLoadingState={true}
-              renderLoading={() => (
-                <View style={styles.webViewLoading}>
-                  <ActivityIndicator size="large" color="#ED2A46" />
-                </View>
-              )}
-              onError={(syntheticEvent) => {
-                const { nativeEvent } = syntheticEvent;
-                console.error("WebView error: ", nativeEvent);
-              }}
-              onHttpError={(syntheticEvent) => {
-                const { nativeEvent } = syntheticEvent;
-                console.error("WebView HTTP error: ", nativeEvent.statusCode);
-              }}
-            />
+      </SafeAreaView>
+    {/* Tracking WebView Modal */}
+    <Modal
+    visible={showTrackingWebView}
+    animationType="slide"
+    transparent={false}
+    onRequestClose={() => setShowTrackingWebView(false)}
+  >
+    <SafeAreaView style={styles.webViewContainer} edges={["top"]}>
+      <View style={styles.webViewHeader}>
+        <TouchableOpacity
+          style={styles.webViewCloseButton}
+          onPress={() => setShowTrackingWebView(false)}
+        >
+          <Ionicons name="close" size={24} color="#333" />
+        </TouchableOpacity>
+        <Text style={styles.webViewHeaderTitle}>
+          {t("orders.trackOrder")}
+        </Text>
+        <View style={styles.webViewPlaceholder} />
+      </View>
+      {order.ahamoveSharedLink && (
+        <WebView
+          source={{ uri: order.ahamoveSharedLink }}
+          style={styles.webView}
+          startInLoadingState={true}
+          renderLoading={() => (
+            <View style={styles.webViewLoading}>
+              <ActivityIndicator size="large" color="#ED2A46" />
+            </View>
           )}
-        </SafeAreaView>
-      </Modal>
+          onError={(syntheticEvent) => {
+            const { nativeEvent } = syntheticEvent;
+            console.error("WebView error: ", nativeEvent);
+          }}
+          onHttpError={(syntheticEvent) => {
+            const { nativeEvent } = syntheticEvent;
+            console.error("WebView HTTP error: ", nativeEvent.statusCode);
+          }}
+        />
+      )}
     </SafeAreaView>
+  </Modal>
+  </>
   );
 };
 
