@@ -46,6 +46,7 @@ export const UserGoalsProgress = ({
   navigation,
   initialUserGoals,
   onlyLineChart = false,
+  customerId,
 }) => {
   const [userGoals, setUserGoals] = React.useState(initialUserGoals || null);
   const [bodyMeasurements, setBodyMeasurements] = React.useState([]);
@@ -293,22 +294,21 @@ export const UserGoalsProgress = ({
         >
           {/* Add Measurement and View History Button */}
           <View style={styles.buttonContainer}>
-            {userRole === "Customer" && (
-              <TouchableOpacity
-                style={styles.addMeasurementButton}
-                onPress={() =>
-                  navigation?.navigate("AddMeasurementScreen", {
-                    customerPurchasedId,
-                    firstTimeScan: firstTimeScanMeasurements,
-                  })
-                }
-              >
-                <Ionicons name="add-circle" size={20} color="#fff" />
-                <Text style={styles.addMeasurementButtonText}>
-                  {t("bodyMeasurements.addMeasurement", "Add Measurement")}
-                </Text>
-              </TouchableOpacity>
-            )}
+            <TouchableOpacity
+              style={styles.addMeasurementButton}
+              onPress={() =>
+                navigation?.navigate("AddMeasurementScreen", {
+                  customerPurchasedId,
+                  firstTimeScan: firstTimeScanMeasurements,
+                  customerId,
+                })
+              }
+            >
+              <Ionicons name="add-circle" size={20} color="#fff" />
+              <Text style={styles.addMeasurementButtonText}>
+                {t("bodyMeasurements.addMeasurement", "Add Measurement")}
+              </Text>
+            </TouchableOpacity>
             <TouchableOpacity
               style={styles.viewHistoryButton}
               onPress={() => setHistoryModalVisible(true)}

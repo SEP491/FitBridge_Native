@@ -1216,6 +1216,20 @@ export default function Navigator({
           }}
         />
         <Stack.Screen
+          name="AddMeasurementScreen"
+          component={AddMeasurementScreen}
+          options={{
+            headerShown: true,
+            title: t("screenTitles.addMeasurement"),
+            headerTitleAlign: "center",
+            headerTitleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "#ED2A46",
+            },
+          }}
+        />
+        <Stack.Screen
           name="EditSessionActivityScreen"
           component={EditSessionActivityScreen}
           options={{
