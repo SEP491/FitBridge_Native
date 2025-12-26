@@ -2432,6 +2432,8 @@
     "productsComingSoon": "Sản phẩm sắp ra mắt"
   },
   "product": {
+    "viewAll": "Xem tất cả",
+    "viewAllVariants": "Xem tất cả các phân loại",
     "productDetails": "Chi tiết sản phẩm",
     "description": "Thông tin sản phẩm",
     "reviews": "Đánh giá ",

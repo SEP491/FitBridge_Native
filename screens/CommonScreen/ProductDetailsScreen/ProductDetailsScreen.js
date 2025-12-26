@@ -589,7 +589,7 @@ export default function ProductDetailsScreen() {
                 </Text>
               </View>
               <TouchableOpacity onPress={() => setVariantModalVisible(true)}>
-                <Text style={styles.viewAllText}>View All</Text>
+                <Text style={styles.viewAllText}>{t("product.viewAll")}</Text>
               </TouchableOpacity>
             </View>
             <ScrollView
@@ -623,7 +623,7 @@ export default function ProductDetailsScreen() {
                     </Text>
                     {!isAvailable && (
                       <View style={styles.outOfStockBadge}>
-                        <Text style={styles.outOfStockBadgeText}>Out</Text>
+                        <Text style={styles.outOfStockBadgeText}>{t("product.outOfStock")}</Text>
                       </View>
                     )}
                   </TouchableOpacity>
@@ -678,7 +678,7 @@ export default function ProductDetailsScreen() {
                     </Text>
                     {!isAvailable && (
                       <View style={styles.outOfStockBadge}>
-                        <Text style={styles.outOfStockBadgeText}>Out</Text>
+                        <Text style={styles.outOfStockBadgeText}>{t("product.outOfStock")}</Text>
                       </View>
                     )}
                   </TouchableOpacity>
@@ -963,7 +963,7 @@ export default function ProductDetailsScreen() {
                           />
                         )}
                         {!isAvailable && (
-                          <Text style={styles.modalOptionOutOfStock}>Out</Text>
+                          <Text style={styles.modalOptionOutOfStock}>{t("product.outOfStock")}</Text>
                         )}
                       </TouchableOpacity>
                     );
@@ -1021,7 +1021,7 @@ export default function ProductDetailsScreen() {
                           />
                         )}
                         {!isAvailable && (
-                          <Text style={styles.modalOptionOutOfStock}>Out</Text>
+                          <Text style={styles.modalOptionOutOfStock}>{t("product.outOfStock")}</Text>
                         )}
                       </TouchableOpacity>
                     );
