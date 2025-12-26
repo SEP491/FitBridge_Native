@@ -440,13 +440,13 @@ const OrderDetailScreen = () => {
     transparent={false}
     onRequestClose={() => setShowTrackingWebView(false)}
   >
-    <SafeAreaView style={styles.webViewContainer} edges={["top"]}>
+    <View style={styles.webViewContainer}>
       <View style={styles.webViewHeader}>
         <TouchableOpacity
           style={styles.webViewCloseButton}
           onPress={() => setShowTrackingWebView(false)}
         >
-          <Ionicons name="close" size={24} color="#333" />
+          <Ionicons name="close" size={24} color="#ED2A46" />
         </TouchableOpacity>
         <Text style={styles.webViewHeaderTitle}>
           {t("orders.trackOrder")}
@@ -473,7 +473,7 @@ const OrderDetailScreen = () => {
           }}
         />
       )}
-    </SafeAreaView>
+      </View>
   </Modal>
   </>
   );
@@ -830,6 +830,7 @@ const styles = StyleSheet.create({
   webViewContainer: {
     flex: 1,
     backgroundColor: "#fff",
+    paddingTop: 64
   },
   webViewHeader: {
     flexDirection: "row",
@@ -848,11 +849,12 @@ const styles = StyleSheet.create({
   },
   webViewCloseButton: {
     padding: 8,
+    color: "#ED2A46",
   },
   webViewHeaderTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#333",
+    color: "#ED2A46",
     flex: 1,
     textAlign: "center",
   },

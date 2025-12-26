@@ -2519,9 +2519,14 @@
       "processing": "Đang Xử Lý",
       "assigning": "Đang Phân Công",
       "shipping": "Đang Giao",
+      "arrived":"Hàng đã đến nơi",
+      "inReturn":"Trả Hàng",
+      "returned":"Trả Hàng",
+      "customerNotReceived":"Chưa Nhận Hàng",
       "finished": "Hoàn Thành",
       "cancelled": "Đã Hủy"
     },
+    "inReturn":"Trả Hàng",
     "paymentMethods": {
       "cod": "Thanh Toán Khi Nhận Hàng",
       "online": "Thanh Toán Online",
