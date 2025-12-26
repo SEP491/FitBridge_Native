@@ -1051,6 +1051,7 @@
   },
 
   "withdrawal": {
+    "exceedDailyLimit": "Bạn đã đạt giới hạn rút tiền hôm nay. ",
     "maximumReached": "Bạn đã đạt giới hạn rút tiền hôm nay. ",
     "availableBalance": "Số dư khả dụng",
     "requestWithdrawal": "Yêu cầu rút tiền",

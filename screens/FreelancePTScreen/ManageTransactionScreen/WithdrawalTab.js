@@ -241,16 +241,7 @@ const WithdrawalTab = ({
       amountNumber > remainingWithdrawalLimit
     ) {
       setValidationMessage(
-        t(
-          "withdrawal.exceedDailyLimit",
-          `Số tiền rút vượt quá giới hạn còn lại hôm nay. Đã rút: ${formatCurrency(
-            maximumWithdrawalData.todayWithdrawalAmount
-          )} / Giới hạn: ${formatCurrency(
-            maximumWithdrawalData.maximumWithdrawalAmountPerDay
-          )}. Số tiền còn lại có thể rút: ${formatCurrency(
-            remainingWithdrawalLimit
-          )}`
-        )
+        t("withdrawal.exceedDailyLimit") + ("Số tiền bạn còn có thể rút là: " + formatCurrency(remainingWithdrawalLimit))
       );
       return;
     }
