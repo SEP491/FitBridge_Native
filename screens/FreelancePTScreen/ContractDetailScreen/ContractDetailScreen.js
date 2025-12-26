@@ -170,8 +170,7 @@ export default function ContractDetailScreen({ route, navigation }) {
             Long Thạnh Mỹ, Thủ Đức, Thành phố Hồ Chí Minh 700000
           </Text>
           <Text style={styles.infoText}>
-            <Text style={styles.boldText}>Mã số thuế:</Text> [Mã số thuế của
-            FitBridge]
+            <Text style={styles.boldText}>Mã số thuế:</Text> 83868386836
           </Text>
           <Text style={styles.infoText}>
             <Text style={styles.boldText}>Đại diện bởi:</Text> Lâm Quốc Phong
@@ -491,8 +490,7 @@ export default function ContractDetailScreen({ route, navigation }) {
             Long Thạnh Mỹ, Thủ Đức, Thành phố Hồ Chí Minh 700000
           </Text>
           <Text style={styles.infoText}>
-            <Text style={styles.boldText}>Mã số thuế:</Text> [Mã số thuế của
-            FitBridge]
+            <Text style={styles.boldText}>Mã số thuế:</Text> 83868386836
           </Text>
           <Text style={styles.infoText}>
             <Text style={styles.boldText}>Đại diện bởi:</Text> Lâm Quốc Phong
