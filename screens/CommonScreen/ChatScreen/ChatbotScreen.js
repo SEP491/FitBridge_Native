@@ -376,51 +376,124 @@ export default function ChatbotScreen({ navigation }) {
       }));
   };
 
-  // API call function with conversation history
+  // Streaming API call function
   const callChatAPI = async (prompt) => {
-    // Format current conversation history for the request
-    const conversationHistory = formatConversationHistory(messages);
-
-    // Map to backend /invoke contract
-    const requestData = {
+    console.log("📡 Starting stream request:", {
       message: prompt,
-      search_criteria: {
-        // Extend this object with real filters if needed
-      },
-      // Match backend contract exactly:
-      // "user_location": { "latitude": 10.8752, "longitude": 106.8007 }
-      user_location: {
-        latitude: coords.latitude,
-        longitude: coords.longitude,
-      },
-      // Optional: keep sending history if your backend supports it
-      conversation_history: conversationHistory,
-    };
+      thread_id: threadIdRef.current,
+    });
 
-    console.log("📡 Sending request to API:", requestData);
+    return new Promise((resolve, reject) => {
+      let accumulatedText = "";
+      let aiMessageId = "ai-" + Date.now();
+      let gyms = null;
+      let trainers = null;
+      let finalReport = "";
 
-    // Log detailed conversation history for debugging
-
-    try {
-      const response = await chatbotService.sendMessage(requestData, {
-        thread_id: threadIdRef.current,
-      });
-
-      // The /invoke API returns `{ messages: [...], final_report: "" }`
-      // Extract the latest AI message and normalize to the shape used below.
-      const messagesFromApi = response.messages || [];
-      const lastAiMessage = [...messagesFromApi]
-        .reverse()
-        .find((m) => m.type === "ai");
-
-      return {
-        message: lastAiMessage?.content,
-        raw: response,
+      // Create initial AI message with empty text (will be updated as tokens stream in)
+      const initialAiMessage = {
+        id: aiMessageId,
+        text: "",
+        isAI: true,
+        timestamp: new Date(),
+        role: "assistant",
+        isStreaming: true,
       };
-    } catch (error) {
-      console.error("API call failed:", error);
-      throw error;
-    }
+
+      // Add the initial message to state
+      setMessages((prev) => [...prev, initialAiMessage]);
+
+      // Token callback - update message text in real-time
+      const onToken = (token, data) => {
+        accumulatedText += token;
+
+        // Update the message text in real-time
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === aiMessageId
+              ? { ...msg, text: accumulatedText, isStreaming: true }
+              : msg
+          )
+        );
+      };
+
+      // Event callback - handle other events
+      const onEvent = (eventType, data) => {
+        console.log(`📨 SSE Event: ${eventType}`, data);
+
+        switch (eventType) {
+          case "done":
+            // Extract structured data from done event if available
+            if (data && typeof data === "object") {
+              if (data.gyms) gyms = data.gyms;
+              if (data.trainers) trainers = data.trainers;
+              if (data.final_report) finalReport = data.final_report;
+            }
+
+            // Finalize the message with any structured data
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === aiMessageId
+                  ? {
+                      ...msg,
+                      text: accumulatedText || msg.text,
+                      isStreaming: false,
+                      gyms: gyms || null,
+                      hasGyms: gyms && gyms.length > 0,
+                      trainers: trainers || null,
+                      hasTrainers: trainers && trainers.length > 0,
+                    }
+                  : msg
+              )
+            );
+            resolve({
+              message: accumulatedText,
+              gyms: gyms,
+              trainers: trainers,
+              final_report: finalReport,
+            });
+            break;
+
+          case "error":
+            // Handle error
+            const errorMessage = {
+              id: "error-" + Date.now(),
+              text: t("chat.connectionError"),
+              isAI: true,
+              timestamp: new Date(),
+              role: "assistant",
+              isError: true,
+            };
+            // Remove streaming message and add error
+            setMessages((prev) =>
+              prev.filter((msg) => msg.id !== aiMessageId).concat(errorMessage)
+            );
+            reject(new Error(data.error || "Streaming error occurred"));
+            break;
+
+          case "node_end":
+          case "tool_start":
+          case "tool_end":
+            // Log these events but don't update UI
+            console.log(`🔧 Tool event: ${eventType}`, data);
+            break;
+
+          default:
+            // Handle any other events
+            console.log(`ℹ️ Unknown event: ${eventType}`, data);
+        }
+      };
+
+      // Start streaming
+      chatbotService
+        .streamMessage(prompt, threadIdRef.current, onToken, onEvent)
+        .catch((error) => {
+          console.error("Streaming failed:", error);
+          // Remove streaming message on error
+          setMessages((prev) => prev.filter((msg) => msg.id !== aiMessageId));
+          reject(error);
+        });
+    });
   };
 
   // Handle gym card press
@@ -484,64 +557,34 @@ export default function ChatbotScreen({ navigation }) {
     try {
       const response = await callChatAPI(userPrompt);
 
-      let aiResponseText = "";
-      let gyms = null;
-      let trainers = null;
-
-      // Check if response contains gyms data
-      if (response.gyms && response.gyms.length > 0) {
-        // Only show the prompt response, gyms will be shown as cards
-        aiResponseText = response.promptResponse || t("chat.gymsForYou");
-        gyms = response.gyms;
-      } else if (response.trainers && response.trainers.length > 0) {
-        // Handle trainers data
-        aiResponseText = response.promptResponse || t("chat.trainersForYou");
-        trainers = response.trainers;
-      } else if (response.message) {
-        aiResponseText = response.message;
-      } else if (response.promptResponse) {
-        aiResponseText = response.promptResponse;
-      } else {
-        aiResponseText = t("chat.cannotProcess");
-      }
-
-      const aiResponse = {
-        id: "ai-" + Date.now(),
-        text: aiResponseText,
-        isAI: true,
-        timestamp: new Date(),
-        role: "assistant",
-        gyms: gyms, // Store gyms data for card rendering
-        hasGyms: gyms && gyms.length > 0, // Flag to indicate this message has gym cards
-        trainers: trainers, // Store trainers data for card rendering
-        hasTrainers: trainers && trainers.length > 0, // Flag to indicate this message has trainer cards
-      };
-
-      setMessages((prev) => [...prev, aiResponse]);
-
-      // Log conversation history response if available
-      if (response.conversation_history) {
-        console.log(
-          "📜 Server returned conversation history with",
-          response.conversation_history.length,
-          "messages"
+      // After streaming completes, update the final message with any additional data (gyms, trainers, etc.)
+      if (response.gyms || response.trainers) {
+        setMessages((prev) =>
+          prev.map((msg) => {
+            // Find the last AI message (the one that was streaming)
+            if (
+              msg.isAI &&
+              msg.role === "assistant" &&
+              !msg.hasGyms &&
+              !msg.hasTrainers
+            ) {
+              return {
+                ...msg,
+                gyms: response.gyms || null,
+                hasGyms: response.gyms && response.gyms.length > 0,
+                trainers: response.trainers || null,
+                hasTrainers: response.trainers && response.trainers.length > 0,
+              };
+            }
+            return msg;
+          })
         );
       }
     } catch (error) {
       console.error("Error sending message:", error);
 
-      const errorMessage = {
-        id: "error-" + Date.now(),
-        text: t("chat.connectionError"),
-        isAI: true,
-        timestamp: new Date(),
-        role: "assistant",
-        isError: true,
-      };
-
-      setMessages((prev) => [...prev, errorMessage]);
-
-      // Optional: Show alert for critical errors
+      // Error message is already handled in callChatAPI's onEvent callback
+      // But we can show an alert for critical errors
       Alert.alert(
         t("chat.connectionErrorTitle"),
         t("chat.serverConnectionFailed")
