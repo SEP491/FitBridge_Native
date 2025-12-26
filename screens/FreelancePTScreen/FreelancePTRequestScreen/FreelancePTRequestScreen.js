@@ -42,7 +42,7 @@ export default function FreelancePTRequestScreen({ route }) {
   const [showStartTimePicker, setShowStartTimePicker] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userRole, setUserRole] = useState(null);
-  const { customerPurchasedId, duration } = route.params;
+  const { customerPurchasedId, duration, availableSessions } = route.params;
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -647,21 +647,23 @@ export default function FreelancePTRequestScreen({ route }) {
           )}
         </ScrollView>
 
-        {/* Floating Action Button */}
-        <TouchableOpacity
-          style={styles.fab}
-          onPress={() => setShowCreateModal(true)}
-          activeOpacity={0.8}
-        >
-          <LinearGradient
-            colors={["#FF914D", "#ED2A46"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.fabGradient}
+        {/* Floating Action Button - Only show if availableSessions > 0 */}
+        {availableSessions > 0 && (
+          <TouchableOpacity
+            style={styles.fab}
+            onPress={() => setShowCreateModal(true)}
+            activeOpacity={0.8}
           >
-            <Ionicons name="add" size={28} color="#fff" />
-          </LinearGradient>
-        </TouchableOpacity>
+            <LinearGradient
+              colors={["#FF914D", "#ED2A46"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.fabGradient}
+            >
+              <Ionicons name="add" size={28} color="#fff" />
+            </LinearGradient>
+          </TouchableOpacity>
+        )}
 
         {/* Create Modal */}
         {renderCreateModal()}

@@ -1561,6 +1561,7 @@
   },
 
   "freelanceCourseScreen": {
+    "outOfSessions": "Hết buổi tập",
     "title": "Khách Hàng Của Tôi",
     "subtitle": "Quản lý gói tập và lịch trình của khách hàng",
     "loading": "Đang tải...",
