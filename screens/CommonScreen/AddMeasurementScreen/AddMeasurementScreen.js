@@ -43,6 +43,8 @@ export default function AddMeasurementScreen({ route }) {
     shoulder: "",
     height: "",
     weight: "",
+    dob: "",
+    gender: "",
   });
   const [userRole, setUserRole] = React.useState(null);
 
@@ -59,15 +61,13 @@ export default function AddMeasurementScreen({ route }) {
       const fetchScanToken = async () => {
         const deviceLanguage = getCurrentLanguage();
         console.log("Device Language:", deviceLanguage);
-        const userInfo = await fetchUserFromStorage();
-
         // Check if user is logged in and has required fields
         if (
-          !userInfo ||
-          !userInfo.dob ||
-          !userInfo.gender ||
-          !userInfo.height ||
-          !userInfo.weight
+          !manualMeasurements ||
+          !manualMeasurements.dob ||
+          !manualMeasurements.gender ||
+          !manualMeasurements.height ||
+          !manualMeasurements.weight
         ) {
           Alert.alert(
             t("bodyMeasurements.loginRequired"),
@@ -78,8 +78,9 @@ export default function AddMeasurementScreen({ route }) {
         }
 
         const userAge =
-          new Date().getFullYear() - new Date(userInfo.dob).getFullYear();
-        const gender = userInfo.gender.toLowerCase();
+          new Date().getFullYear() -
+          new Date(manualMeasurements.dob).getFullYear();
+        const gender = manualMeasurements.gender.toLowerCase();
         try {
           const requestData = {
             customScanId: customerPurchasedId,
@@ -93,7 +94,7 @@ export default function AddMeasurementScreen({ route }) {
           );
           setScanToken(tokenResponse.token);
           setWebViewUrl(
-            `https://platform.bodygram.com/${deviceLanguage}/${ORG_ID}/scan?token=${tokenResponse.token}&system=metric&height=${userInfo.height}&weight=${userInfo.weight}&gender=${gender}&age=${userAge}&remove-header=true&tap=true&can-save-as-image=true&debugger=false`
+            `https://platform.bodygram.com/${deviceLanguage}/${ORG_ID}/scan?token=${tokenResponse.token}&system=metric&height=${manualMeasurements.height}&weight=${manualMeasurements.weight}&gender=${gender}&age=${userAge}&remove-header=true&tap=true&can-save-as-image=true&debugger=false`
           );
           console.log("Scan Token Response:", tokenResponse);
         } catch (error) {
@@ -265,6 +266,8 @@ export default function AddMeasurementScreen({ route }) {
               shoulder: response.data.shoulder?.toString() || "",
               height: response.data.height?.toString() || "",
               weight: response.data.weight?.toString() || "",
+              dob: response.data.dob?.toString() || "",
+              gender: response.data.gender?.toString() || "",
             });
             return; // Successfully loaded from API, no need to fallback
           }
