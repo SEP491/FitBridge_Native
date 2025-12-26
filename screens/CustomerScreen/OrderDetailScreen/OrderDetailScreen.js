@@ -413,23 +413,6 @@ const OrderDetailScreen = () => {
         </View>
       )}
 
-      {order.currentStatus === "Shipping" && order.shippingTrackingId && (
-        <View style={styles.bottomActions}>
-          <TouchableOpacity
-            style={styles.trackingButton}
-            onPress={() =>
-              navigation.navigate("TrackingScreen", {
-                trackingId: order.shippingTrackingId,
-              })
-            }
-          >
-            <Ionicons name="location-outline" size={20} color="#fff" />
-            <Text style={styles.trackingButtonText}>
-              {t("orders.trackOrder")}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
 
       {order.currentStatus === "Finished" &&
         order.orderItems.some((item) => !item.isFeedback) && (

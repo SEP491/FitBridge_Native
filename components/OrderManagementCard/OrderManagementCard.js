@@ -455,6 +455,7 @@ const OrderManagementCard = ({ order, onRefresh }) => {
                 {formatPrice(order.subTotalPrice)}
               </Text>
             </View>
+            {order.totalAmount - (order.subTotalPrice + order.shippingFee) < 0 && (
             <View style={styles.shippingFeeRow}>
               <Text style={styles.shippingFeeLabel}>
                 {t("payment.discount")}:
@@ -463,6 +464,7 @@ const OrderManagementCard = ({ order, onRefresh }) => {
                 {formatPrice((order.totalAmount - (order.subTotalPrice + order.shippingFee)))}
               </Text>
             </View>
+            )}
             <View style={styles.shippingFeeRow}>
               <Text style={styles.shippingFeeLabel}>
                 {t("orders.shippingFee")}:
