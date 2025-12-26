@@ -44,6 +44,9 @@ const GymPTMyProfile = () => {
     identityCardPlace: "",
     citizenCardPermanentAddress: "",
     identityCardDate: "",
+    freelancePtImages: [],
+    imagesToAdd: [],
+    imagesToRemove: [],
   });
 
   const [isEditMode, setIsEditMode] = useState(false);
@@ -142,6 +145,23 @@ const GymPTMyProfile = () => {
     });
   };
 
+  const appendGalleryImageToFormData = (formData, uri) => {
+    if (!uri) return;
+    const isRemote = uri.startsWith("http");
+    if (isRemote) {
+      formData.append("imagesToAdd", uri);
+      return;
+    }
+    const name = uri.split("/").pop() || "gallery.jpg";
+    const extension = name.split(".").pop() || "jpg";
+    const type = `image/${extension}`;
+    formData.append("imagesToAdd", {
+      uri,
+      name,
+      type,
+    });
+  };
+
   const genderOptions = [
     { label: t("profile.genderOptions.male"), value: "Male" },
     { label: t("profile.genderOptions.female"), value: "Female" },
@@ -176,6 +196,9 @@ const GymPTMyProfile = () => {
         ...response.data,
         frontCitizenIdUrl: response.data.frontCitizenIdUrl || "",
         backCitizenIdUrl: response.data.backCitizenIdUrl || "",
+        freelancePtImages: response.data.freelancePtImages || [],
+        imagesToAdd: response.data.imagesToAdd || [],
+        imagesToRemove: response.data.imagesToRemove || [],
       });
       if (response.data.id) {
         setUserId(response.data.id);
@@ -219,6 +242,14 @@ const GymPTMyProfile = () => {
           ...userProfile,
           backCitizenIdUrl: result.assets[0].uri,
         });
+      } else if (type === "galleryImage") {
+        setUserProfile((prev) => ({
+          ...prev,
+          imagesToAdd: [
+            ...(prev.imagesToAdd ? prev.imagesToAdd : []),
+            result.assets[0].uri,
+          ],
+        }));
       }
     }
   };
@@ -258,6 +289,12 @@ const GymPTMyProfile = () => {
         "backCitizenIdFile"
       );
 
+      const addList = normalizeListInput(userProfile.imagesToAdd);
+      addList.forEach((item) => appendGalleryImageToFormData(formData, item));
+      const removeList = normalizeListInput(userProfile.imagesToRemove);
+      removeList.forEach((item) => formData.append("imagesToRemove", item));
+
+      console.log("Form data:", formData);
       const response = await accountService.updateProfileUser(formData);
       console.log("Update profile response:", response);
       if (global.updateNavigationUser) {
@@ -278,11 +315,57 @@ const GymPTMyProfile = () => {
       }
     } catch (error) {
       console.error("Error updating profile:", error);
-      Alert.alert(t("profile.profileError"), t("profile.updateProfileError"));
+      Alert.alert(
+        t("profile.profileError"),
+        error.response?.data?.message || t("profile.updateProfileError")
+      );
     } finally {
       setIsSaving(false);
     }
   };
+
+  const handleRemoveGalleryImage = (uri) => {
+    setUserProfile((prev) => {
+      const currentAdd = normalizeListInput(prev.imagesToAdd);
+      const filteredAdd = currentAdd.filter((item) => item !== uri);
+      const currentRemove = normalizeListInput(prev.imagesToRemove);
+      const shouldAddToRemove =
+        uri && typeof uri === "string" && uri.startsWith("http");
+      return {
+        ...prev,
+        imagesToAdd: filteredAdd,
+        imagesToRemove: shouldAddToRemove
+          ? [...currentRemove, uri]
+          : currentRemove,
+      };
+    });
+  };
+
+  const handleRemoveExistingImage = (uri) => {
+    if (!uri) return;
+    setUserProfile((prev) => {
+      const remaining = (prev.freelancePtImages || []).filter(
+        (item) => item !== uri
+      );
+      const currentRemove = normalizeListInput(prev.imagesToRemove);
+      return {
+        ...prev,
+        freelancePtImages: remaining,
+        imagesToRemove: [...currentRemove, uri],
+      };
+    });
+  };
+
+  const portfolioImages = [
+    ...(userProfile.freelancePtImages || []).map((uri) => ({
+      uri,
+      existing: true,
+    })),
+    ...normalizeListInput(userProfile.imagesToAdd).map((uri) => ({
+      uri,
+      existing: false,
+    })),
+  ];
 
   const cancelEditMode = () => {
     setIsEditMode(false);
@@ -432,6 +515,9 @@ const GymPTMyProfile = () => {
                 style={[styles.textInput, !isEditMode && styles.disabledInput]}
                 value={userProfile.fullName}
                 editable={isEditMode}
+                onChangeText={(text) =>
+                  setUserProfile({ ...userProfile, fullName: text })
+                }
                 placeholder={t("profile.enterFullName")}
               />
             </View>
@@ -446,9 +532,9 @@ const GymPTMyProfile = () => {
                 {t("email")}
               </Text>
               <TextInput
-                style={[styles.textInput, !isEditMode && styles.disabledInput]}
+                style={[styles.textInput, styles.disabledInput]}
                 value={userProfile.email}
-                editable={isEditMode}
+                editable={false}
                 placeholder={t("email")}
               />
             </View>
@@ -537,6 +623,91 @@ const GymPTMyProfile = () => {
                   />
                 </View>
               </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+
+        {/* Bio & Portfolio Images */}
+        <View style={styles.sectionContainer}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>
+              {t("profile.bioImagesSection")}
+            </Text>
+          </View>
+
+          <View style={styles.formContainer}>
+            <View style={styles.inputGroup}>
+              <View style={styles.galleryHeader}>
+                <Text style={styles.inputLabel}>
+                  <MaterialCommunityIcons
+                    name="image-frame"
+                    size={16}
+                    color="#FF914D"
+                  />{" "}
+                  {t("profile.currentImages")}
+                </Text>
+                {isEditMode && (
+                  <TouchableOpacity
+                    style={styles.addImageButton}
+                    onPress={() => pickImage("galleryImage")}
+                  >
+                    <MaterialCommunityIcons
+                      name="image-plus"
+                      size={16}
+                      color="#fff"
+                    />
+                    <Text style={styles.addImageButtonText}>
+                      {t("profile.addImage")}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              {portfolioImages.length ? (
+                <View style={styles.galleryColumn}>
+                  {portfolioImages.map((item) => (
+                    <View key={item.uri} style={styles.galleryItemFull}>
+                      <Image
+                        source={{ uri: item.uri }}
+                        style={styles.galleryImage}
+                      />
+                      {isEditMode && (
+                        <TouchableOpacity
+                          style={styles.galleryRemove}
+                          onPress={() =>
+                            item.existing
+                              ? handleRemoveExistingImage(item.uri)
+                              : handleRemoveGalleryImage(item.uri)
+                          }
+                        >
+                          <MaterialCommunityIcons
+                            name="close"
+                            size={14}
+                            color="#fff"
+                          />
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  ))}
+                </View>
+              ) : (
+                <TouchableOpacity
+                  style={styles.galleryEmpty}
+                  onPress={() => isEditMode && pickImage("galleryImage")}
+                  disabled={!isEditMode}
+                >
+                  <MaterialCommunityIcons
+                    name="image-plus"
+                    size={32}
+                    color="#ccc"
+                  />
+                  <Text style={styles.galleryEmptyText}>
+                    {isEditMode
+                      ? t("profile.galleryEmptyHint")
+                      : t("profile.galleryEmptyTitle")}
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
           </View>
         </View>
@@ -1234,6 +1405,69 @@ const styles = StyleSheet.create({
   selectedOptionText: {
     color: "#FF914D",
     fontWeight: "600",
+  },
+  galleryHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  addImageButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FF914D",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    gap: 6,
+  },
+  addImageButtonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  galleryColumn: {
+    flexDirection: "column",
+    gap: 12,
+  },
+  galleryImage: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+  },
+  galleryItemFull: {
+    width: "100%",
+    aspectRatio: 16 / 9,
+    borderRadius: 12,
+    overflow: "hidden",
+    backgroundColor: "#f8f9fa",
+    position: "relative",
+  },
+  galleryRemove: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  galleryEmpty: {
+    borderWidth: 1,
+    borderStyle: "dashed",
+    borderColor: "#e0e0e0",
+    borderRadius: 12,
+    padding: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#f8f9fa",
+  },
+  galleryEmptyText: {
+    marginTop: 8,
+    color: "#666",
+    textAlign: "center",
   },
 });
 

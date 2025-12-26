@@ -1884,7 +1884,15 @@ export default function Navigator({
             },
           }}
         />
-
+        <Stack.Screen
+          name="GymPTProfileScreen"
+          component={GymPTProfileScreen}
+          options={{
+            headerTitleAlign: "center",
+            headerShown: true,
+            title: t("screenTitles.ptInfo"),
+          }}
+        />
         <Stack.Screen
           name="ManageVoucherScreen"
           component={ManageVoucherScreen}

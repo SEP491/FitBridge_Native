@@ -62,17 +62,17 @@ export default function GymCard({ gym, fullWidth = false, height = 140 }) {
           {gym?.gymName}
         </Text>
 
-        {gym?.representName && (
+        {gym?.gymDescription && (
           <Text style={styles.representName} numberOfLines={1}>
-            {gym?.representName}
+            {gym.gymDescription.substring(0, 15) + "..."}
           </Text>
         )}
 
-        {gym?.gymDescription && (
+        {gym?.gymAddress && (
           <View style={styles.addressContainer}>
             <Ionicons name="location-outline" size={12} color="#6B6B6B" />
             <Text style={styles.address} numberOfLines={2} ellipsizeMode="tail">
-              {gym.gymAddress || gym.gymDescription.substring(0, 15) + "..."}
+              {gym.gymAddress}
             </Text>
           </View>
         )}
