@@ -373,6 +373,20 @@ useFocusEffect(
               </TouchableOpacity>
             </View>
           )}
+          {user && user.role === "GymPT" && (
+            <View style={styles.viewMyPersonalScreenButtonContainer}>
+              <TouchableOpacity
+                style={styles.viewMyPersonalScreenButton}
+                onPress={() =>
+                  navigation.navigate("GymPTProfileScreen", { ptId: user?.id })
+                }
+              >
+                <Text style={styles.viewMyPersonalScreenButtonText}>
+                  {t("userMenu.viewMyPersonalScreen")}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </LinearGradient>
 
         {/* Menu Items with Categories */}

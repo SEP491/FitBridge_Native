@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -52,6 +52,9 @@ const GymPTProfileScreen = ({ route, navigation }) => {
   const [reviewsTotalPages, setReviewsTotalPages] = useState(1);
   const [reviewsLoading, setReviewsLoading] = useState(false);
   const [avgRating, setAvgRating] = useState(null);
+  const [imageModalVisible, setImageModalVisible] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const imageScrollViewRef = useRef(null);
 
   useEffect(() => {
     if (reviews.length > 0) {
@@ -425,6 +428,62 @@ const GymPTProfileScreen = ({ route, navigation }) => {
         {/* Profile Tab Content */}
         {activeTab === "profile" && (
           <>
+            {pt?.freelancePt?.freelancePtImages &&
+              pt.freelancePt.freelancePtImages.length > 0 && (
+                <View style={styles.sectionContainer}>
+                  <View style={styles.sectionHeader}>
+                    <Text style={styles.sectionTitle}>
+                      <Ionicons
+                        name="images-outline"
+                        size={20}
+                        color="#FF914D"
+                      />{" "}
+                      {t("freelancePT.imageShowcase") || "Image Showcase"}
+                    </Text>
+                  </View>
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.imageGalleryContainer}
+                  >
+                    {pt.freelancePt.freelancePtImages.map((imageUrl, index) => (
+                      <TouchableOpacity
+                        key={index}
+                        style={styles.imageGalleryItem}
+                        onPress={() => {
+                          setSelectedImageIndex(index);
+                          setImageModalVisible(true);
+                          // Scroll to selected image when modal opens
+                          setTimeout(() => {
+                            if (imageScrollViewRef.current) {
+                              imageScrollViewRef.current.scrollTo({
+                                x: index * Dimensions.get("window").width,
+                                animated: false,
+                              });
+                            }
+                          }, 100);
+                        }}
+                        activeOpacity={0.8}
+                      >
+                        <Image
+                          source={{ uri: imageUrl }}
+                          style={styles.imageGalleryImage}
+                          resizeMode="cover"
+                        />
+                        {index ===
+                          pt.freelancePt.freelancePtImages.length - 1 &&
+                          pt.freelancePt.freelancePtImages.length > 3 && (
+                            <View style={styles.imageOverlay}>
+                              <Text style={styles.imageOverlayText}>
+                                +{pt.freelancePt.freelancePtImages.length - 3}
+                              </Text>
+                            </View>
+                          )}
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
             {/* Body Measurements Section */}
             <View style={styles.sectionContainer}>
               <View style={styles.sectionHeader}>
@@ -509,6 +568,68 @@ const GymPTProfileScreen = ({ route, navigation }) => {
                 />
               )}
             </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Image Showcase Modal */}
+      <Modal
+        visible={imageModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setImageModalVisible(false)}
+      >
+        <View style={styles.imageModalOverlay}>
+          <View style={styles.imageModalContainer}>
+            <View style={styles.imageModalHeader}>
+              <Text style={styles.imageModalTitle}>
+                {selectedImageIndex + 1} /{" "}
+                {pt?.freelancePt?.freelancePtImages?.length || 0}
+              </Text>
+              <TouchableOpacity
+                onPress={() => setImageModalVisible(false)}
+                style={styles.imageModalCloseButton}
+              >
+                <Ionicons name="close" size={24} color="#fff" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView
+              ref={imageScrollViewRef}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onMomentumScrollEnd={(event) => {
+                const index = Math.round(
+                  event.nativeEvent.contentOffset.x /
+                    Dimensions.get("window").width
+                );
+                setSelectedImageIndex(index);
+              }}
+            >
+              {pt?.freelancePt?.freelancePtImages?.map((imageUrl, index) => (
+                <View key={index} style={styles.imageModalImageContainer}>
+                  <Image
+                    source={{ uri: imageUrl }}
+                    style={styles.imageModalImage}
+                    resizeMode="contain"
+                  />
+                </View>
+              ))}
+            </ScrollView>
+            {pt?.freelancePt?.freelancePtImages?.length > 1 && (
+              <View style={styles.imageModalPagination}>
+                {pt.freelancePt.freelancePtImages.map((_, index) => (
+                  <View
+                    key={index}
+                    style={[
+                      styles.imageModalDot,
+                      selectedImageIndex === index &&
+                        styles.imageModalDotActive,
+                    ]}
+                  />
+                ))}
+              </View>
+            )}
           </View>
         </View>
       </Modal>
@@ -1403,6 +1524,111 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     color: "#ED2A46",
+  },
+  // Image Gallery Styles
+  imageGalleryContainer: {
+    paddingVertical: 8,
+    gap: 12,
+  },
+  imageGalleryItem: {
+    width: 200,
+    height: 200,
+    borderRadius: 12,
+    overflow: "hidden",
+    marginRight: 12,
+    position: "relative",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  imageGalleryImage: {
+    width: "100%",
+    height: "100%",
+  },
+  imageOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  imageOverlayText: {
+    color: "#fff",
+    fontSize: 24,
+    fontWeight: "700",
+  },
+  // Image Modal Styles
+  imageModalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.95)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  imageModalContainer: {
+    width: Dimensions.get("window").width,
+    height: Dimensions.get("window").height,
+  },
+  imageModalHeader: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 16,
+    paddingTop: 50,
+    zIndex: 10,
+    backgroundColor: "transparent",
+  },
+  imageModalTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#fff",
+  },
+  imageModalCloseButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  imageModalImageContainer: {
+    width: Dimensions.get("window").width,
+    height: Dimensions.get("window").height,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  imageModalImage: {
+    width: Dimensions.get("window").width,
+    height: Dimensions.get("window").height,
+  },
+  imageModalPagination: {
+    position: "absolute",
+    bottom: 40,
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 8,
+    zIndex: 10,
+  },
+  imageModalDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "rgba(255, 255, 255, 0.4)",
+  },
+  imageModalDotActive: {
+    backgroundColor: "#FF914D",
+    width: 24,
   },
 });
 

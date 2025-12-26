@@ -483,6 +483,7 @@ const FreelancePTMyProfile = () => {
       addList.forEach((item) => appendGalleryImageToFormData(formData, item));
       const removeList = normalizeListInput(userProfile.imagesToRemove);
       removeList.forEach((item) => formData.append("imagesToRemove", item));
+      console.log("Form data:", formData);
 
       const response = await accountService.updateProfileUser(formData);
       console.log("Update profile response:", response);
@@ -661,6 +662,9 @@ const FreelancePTMyProfile = () => {
                 style={[styles.textInput, !isEditMode && styles.disabledInput]}
                 value={userProfile.fullName}
                 editable={isEditMode}
+                onChangeText={(text) =>
+                  setUserProfile({ ...userProfile, fullName: text })
+                }
                 placeholder={t("profile.enterFullName")}
               />
             </View>
@@ -675,9 +679,9 @@ const FreelancePTMyProfile = () => {
                 {t("email")}
               </Text>
               <TextInput
-                style={[styles.textInput, !isEditMode && styles.disabledInput]}
+                style={[styles.textInput, styles.disabledInput]}
                 value={userProfile.email}
-                editable={isEditMode}
+                editable={false}
                 placeholder={t("email")}
               />
             </View>

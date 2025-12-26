@@ -52,6 +52,7 @@ export default function NearbyGymsSection({ refreshTrigger }) {
   }, [coordinates, refreshTrigger]);
 
   const renderGymCard = (item) => {
+    console.log("Item In Nearby Gyms Section:", item);
     return <GymCard gym={item} />;
   };
 
