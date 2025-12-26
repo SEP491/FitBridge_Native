@@ -52,6 +52,13 @@ const styles = StyleSheet.create({
     width: CARD_WIDTH,
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    paddingBottom: 20,
+    minHeight: 200
   },
   imageContainer: {
     position: "relative",

@@ -89,7 +89,6 @@ const styles = StyleSheet.create({
   revenueChartRow: {
     flexDirection: "row",
     gap: 12,
-    marginBottom: 12,
   },
 });
 

@@ -3,88 +3,19 @@ import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/Ionicons";
 import { mockedDataDashboard } from "./mockedDataDashboard";
+import { t } from "../../../i18n";
 
-const TopPackageCard = ({ packageData, formatCurrency, renderRevenueComparison }) => {
-  if (!packageData) return null;
-
-  return (
-    <TouchableOpacity style={styles.topPackageCard} activeOpacity={0.9}>
-      <LinearGradient
-        colors={["#FFD89B", "#FFF8E1", "#FFFFFF"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.topPackageGradient}
-      >
-        {/* Decorative Elements */}
-        <View style={styles.decorativeCircle1} />
-        <View style={styles.decorativeCircle2} />
-        <View style={styles.decorativeCircle3} />
-
-        <View style={styles.topPackageContent}>
-          {/* Enhanced Rank Badge */}
-          <View style={styles.topPackageHeader}>
-            <LinearGradient
-              colors={["#FFD700", "#FFA500"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.rankBadge}
-            >
-              <Icon name="trophy" size={14} color="#FFF" />
-              <Text style={styles.rankText}>#1</Text>
-            </LinearGradient>
-          </View>
-
-          {/* Package Info */}
-          <View style={styles.topPackageInfo}>
-          <View style={styles.purchaseInfo}>
-              <Icon name="people" size={14} color="#FF6B35" />
-              <Text style={styles.purchaseCount}>
-                {packageData.totalPurchase || 0} người đã mua
-              </Text>
-            </View>
-            <Text style={styles.packageName}>
-              {packageData.packageName || "Gói tập 1"}
-            </Text>
-            
-          </View>
-
-          {/* Revenue Display */}
-          <View style={styles.revenueDisplayContainer}>
-            <Text style={styles.revenueLabel}>Doanh thu</Text>
-            <Text style={styles.packageRevenue}>
-              {formatCurrency(packageData.totalProfit || packageData.totalIncome || 0)}
-            </Text>
-          </View>
-
-          {/* Comparison Info */}
-          {renderRevenueComparison(packageData.compareToLastMonth)}
-
-          {/* View Details Button */}
-          <TouchableOpacity style={styles.viewDetailsButton}>
-            <Text style={styles.viewDetailsText}>Xem chi tiết</Text>
-            <Icon name="arrow-forward" size={16} color="#FF6B35" />
-          </TouchableOpacity>
-        </View>
-
-        {/* Package Image */}
-        <View style={styles.topPackageImageContainer}>
-          <View style={styles.imageGlow} />
-          <Image
-            source={{
-              uri: packageData.imageURL || "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300",
-            }}
-            style={styles.packageIconImage}
-          />
-        </View>
-      </LinearGradient>
-    </TouchableOpacity>
-  );
-};
-
-const SecondaryPackageCard = ({ packageData, rank, hasMargin, formatCurrency, renderComparisonBadge }) => {
+const PackageCard = ({ packageData, rank, formatCurrency, renderRevenueComparison, renderComparisonBadge }) => {
   if (!packageData) return null;
 
   const rankConfig = {
+    1: {
+      iconColor: "#FFD700",
+      iconName: "trophy",
+      gradientColors: ["#FFD89B", "#FFF8E1", "#FFFFFF"],
+      badgeGradient: ["#FFD700", "#FFA500"],
+      accentColor: "#FF6B35",
+    },
     2: {
       iconColor: "#FFA500",
       iconName: "medal",
@@ -101,83 +32,83 @@ const SecondaryPackageCard = ({ packageData, rank, hasMargin, formatCurrency, re
     },
   };
 
-  const config = rankConfig[rank] || rankConfig[2];
+  const config = rankConfig[rank] || rankConfig[1];
 
   return (
-    <TouchableOpacity
-      style={[
-        styles.secondaryPackageCard,
-        hasMargin && styles.secondaryPackageCardWithMargin,
-      ]}
-      activeOpacity={0.9}
-    >
+    <TouchableOpacity style={styles.packageCard} activeOpacity={0.9}>
       <LinearGradient
         colors={config.gradientColors}
-        style={styles.secondaryPackageGradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
+        style={styles.packageGradient}
       >
         {/* Decorative Elements */}
-        <View style={styles.secondaryDecorativeCircle} />
+        {rank === 1 && (
+          <>
+            <View style={styles.decorativeCircle1} />
+            <View style={styles.decorativeCircle2} />
+            <View style={styles.decorativeCircle3} />
+          </>
+        )}
+        {rank !== 1 && <View style={styles.secondaryDecorativeCircle} />}
 
-        <View style={styles.secondaryPackageContent}>
+        <View style={styles.packageContent}>
           {/* Enhanced Rank Badge */}
-          <View style={styles.secondaryPackageHeader}>
+          <View style={styles.packageHeader}>
             <LinearGradient
               colors={config.badgeGradient}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              style={styles.secondaryRankBadge}
+              style={styles.rankBadge}
             >
               <Icon
                 name={config.iconName}
-                size={14}
+                size={rank === 1 ? 14 : 14}
                 color="#FFF"
-                style={{ marginRight: 4 }}
+                style={{ marginRight: rank === 1 ? 0 : 4 }}
               />
-              <Text style={styles.secondaryRankText}>#{rank}</Text>
+              <Text style={styles.rankText}>#{rank}</Text>
             </LinearGradient>
-          </View>
-
-          {/* Package Info */}
-          <View style={styles.secondaryPackageInfo}>
-            <Text style={styles.secondaryPackageName}>
-              {packageData.packageName || `Gói tập ${rank}`}
-            </Text>
-            <View style={styles.secondaryPurchaseInfo}>
-              <Icon
-                name="people"
-                size={12}
-                color={config.accentColor}
-                style={{ marginRight: 4 }}
-              />
-              <Text style={styles.secondaryPurchaseCount}>
-                {packageData.totalPurchase || 0} người đã mua
+            <View style={styles.purchaseInfo}>
+              <Icon name="people" size={14} color={config.accentColor} />
+              <Text style={styles.purchaseCount}>
+                {packageData.totalPurchase || 0} lượt mua
               </Text>
             </View>
           </View>
+          
+
+          {/* Package Info */}
+          <View style={styles.packageInfo}>
+            
+            <Text style={styles.packageName}>
+              {packageData.packageName || `Gói tập ${rank}`}
+            </Text>
+          </View>
 
           {/* Revenue Display */}
-          <View style={styles.secondaryRevenueSection}>
-            <View style={styles.secondaryRevenueContainer}>
-              <Text style={styles.secondaryPackageRevenue}>
+          <View style={styles.revenueDisplayContainer}>
+            <Text style={styles.revenueLabel}>{t("transactionType.profit")}</Text>
+            <View style={styles.revenueRow}>
+              <Text style={styles.packageRevenue}>
                 {formatCurrency(packageData.totalProfit || packageData.totalIncome || 0)}
               </Text>
-              {renderComparisonBadge(packageData.compareToLastMonth)}
+              {rank === 1
+                ? renderRevenueComparison(packageData.compareToLastMonth)
+                : renderComparisonBadge(packageData.compareToLastMonth)}
             </View>
           </View>
         </View>
 
-        {/* Enhanced Package Image */}
-        <View style={styles.secondaryPackageImageContainer}>
-          <View style={styles.secondaryImageGlow} />
+        {/* Package Image */}
+        <View style={styles.packageImageContainer}>
+          {rank === 1 && <View style={styles.imageGlow} />}
+          {rank !== 1 && <View style={styles.secondaryImageGlow} />}
           <Image
             source={{
-              uri:
-                packageData.imageURL ||
-                "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300",
+              uri: packageData.imageURL || "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300",
             }}
-            style={styles.packageSecondaryIconImage}
+            style={rank === 1 ? styles.packageIconImage : styles.packageSecondaryIconImage}
             resizeMode="cover"
           />
         </View>
@@ -185,6 +116,7 @@ const SecondaryPackageCard = ({ packageData, rank, hasMargin, formatCurrency, re
     </TouchableOpacity>
   );
 };
+
 
 const BestsellerPackages = ({ formatCurrency, renderRevenueComparison, renderComparisonBadge, mostPopularPackages = [] }) => {
   // Transform API data to match component structure
@@ -214,34 +146,16 @@ const BestsellerPackages = ({ formatCurrency, renderRevenueComparison, renderCom
       </Text>
 
       <View style={styles.bestsellerContainer}>
-        {/* Top Package Card */}
-        <TopPackageCard 
-          packageData={sortedPackages[0]} 
-          formatCurrency={formatCurrency}
-          renderRevenueComparison={renderRevenueComparison}
-        />
-
-        {/* Secondary Packages Container */}
-        {sortedPackages.length > 1 && (
-          <View style={styles.secondaryPackagesContainer}>
-            <SecondaryPackageCard
-              packageData={sortedPackages[1]}
-              rank={2}
-              hasMargin={!!sortedPackages[2]}
-              formatCurrency={formatCurrency}
-              renderComparisonBadge={renderComparisonBadge}
-            />
-            {sortedPackages[2] && (
-              <SecondaryPackageCard
-                packageData={sortedPackages[2]}
-                rank={3}
-                hasMargin={false}
-                formatCurrency={formatCurrency}
-                renderComparisonBadge={renderComparisonBadge}
-              />
-            )}
-          </View>
-        )}
+        {sortedPackages.slice(0, 3).map((pkg, index) => (
+          <PackageCard
+            key={pkg.packageId || index}
+            packageData={pkg}
+            rank={index + 1}
+            formatCurrency={formatCurrency}
+            renderRevenueComparison={renderRevenueComparison}
+            renderComparisonBadge={renderComparisonBadge}
+          />
+        ))}
       </View>
     </View>
   );
@@ -250,7 +164,6 @@ const BestsellerPackages = ({ formatCurrency, renderRevenueComparison, renderCom
 const styles = StyleSheet.create({
   bestsellerSection: {
     padding: 20,
-    marginTop: 20,
   },
   bestsellerTitle: {
     fontSize: 18,
@@ -259,32 +172,39 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   bestsellerContainer: {
-    flexDirection: "row",
+    flexDirection: "column",
+    gap: 12,
   },
-  topPackageCard: {
-    flex: 1,
-    borderRadius: 40,
-    marginRight: 12,
+  packageCard: {
+    width: "100%",
+    borderRadius: 24,
     elevation: 8,
     shadowColor: "#FF6B35",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
+    marginBottom: 1,
   },
-  topPackageGradient: {
+  packageGradient: {
     padding: 20,
     justifyContent: "space-between",
     position: "relative",
-    minHeight: 250,
-    borderRadius: 40,
+    borderRadius: 24,
+    flexDirection: "row",
+    alignItems: "center",
   },
-  topPackageContent: {
+  packageContent: {
     zIndex: 2,
+    flex: 1,
+    marginRight: 20,
+
   },
-  topPackageHeader: {
+  packageHeader: {
     flexDirection: "row",
     justifyContent: "flex-start",
-    marginBottom: 12,
+    marginBottom: 8,
+    gap:10,
+    alignItems: "center"
   },
   rankBadge: {
     flexDirection: "row",
@@ -297,107 +217,40 @@ const styles = StyleSheet.create({
   rankText: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#FF6B35",
+    color: "#fff",
+    letterSpacing: 0.5,
+    marginLeft:5
   },
-  topPackageInfo: {
+  packageInfo: {
   },
   purchaseInfo: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 6,
+    gap: 5,
+    marginTop: 5,
+    marginBottom: 8,
   },
   purchaseCount: {
     fontSize: 11,
     color: "#888",
     fontWeight: "500",
   },
-  topPackageImageContainer: {
-    position: "absolute",
-    right: 0,
-    top: 0,
+  packageImageContainer: {
+    position: "relative",
     zIndex: 1,
   },
   packageIconImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 60,
-    borderWidth: 5,
-    borderColor: "rgba(255, 255, 255, 0.8)",
-  },
-  packageName: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333",
-    marginBottom: 4,
-  },
-  packageRevenue: {
-    fontSize: 22,
-    fontWeight: "800",
-    color: "#C41E3A",
-    letterSpacing: -0.5,
-  },
-  secondaryPackagesContainer: {
-    flex: 1,
-  },
-  secondaryPackageCard: {
-    flex: 1,
-    borderRadius: 40,
-    elevation: 6,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    overflow: "hidden",
-  },
-  secondaryPackageGradient: {
-    padding: 16,
-    justifyContent: "space-between",
-    position: "relative",
-    borderRadius: 40,
-  },
-  secondaryPackageCardWithMargin: {
-    marginBottom: 5,
-  },
-  secondaryPackageContent: {
-    zIndex: 2,
-    flex: 1,
-  },
-  secondaryPackageHeader: {
-    flexDirection: "row",
-    justifyContent: "flex-start",
-    marginBottom: 5,
-  },  
-  secondaryRankBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 18,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  secondaryRankText: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: "#FFF",
-    letterSpacing: 0.5,
-  },
-  secondaryPackageInfo: {
-  },
-  secondaryPackageImageContainer: {
-    position: "absolute",
-    right: 0,
-    top: 0,
-    zIndex: 1,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 4,
+    borderColor: "rgba(255, 255, 255, 0.9)",
   },
   packageSecondaryIconImage: {
-    width: 70,
-    height: 70,
-    borderRadius: 40,
-    borderWidth: 5,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 4,
     borderColor: "rgba(255, 255, 255, 0.9)",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
@@ -405,36 +258,24 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 5,
   },
-  secondaryPackageName: {
-    fontSize: 14,
+  packageName: {
+    fontSize: 18,
     fontWeight: "700",
     color: "#333",
-    marginBottom: 5,
-    lineHeight: 18,
+    marginBottom: 4,
+    lineHeight: 24,
   },
-  secondaryPurchaseInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 4,
-  },
-  secondaryPurchaseCount: {
-    fontSize: 11,
-    color: "#666",
-    fontWeight: "600",
-  },
-  secondaryRevenueSection: {
-    marginTop: 5,
-  },
-  secondaryRevenueContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  secondaryPackageRevenue: {
-    fontSize: 15,
+  packageRevenue: {
+    fontSize: 20,
     fontWeight: "800",
     color: "#C41E3A",
-    letterSpacing: -0.3,
-    marginRight: 6,
+    letterSpacing: -0.5,
+  },
+  revenueRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    flexWrap: "wrap",
   },
   secondaryDecorativeCircle: {
     position: "absolute",
@@ -447,8 +288,8 @@ const styles = StyleSheet.create({
   },
   secondaryImageGlow: {
     position: "absolute",
-    width: 80,
-    height: 80,
+    width: 70,
+    height: 70,
     borderRadius: 45,
     backgroundColor: "rgba(255, 255, 255, 0.4)",
     right: -5,
@@ -482,7 +323,7 @@ const styles = StyleSheet.create({
     left: 40,
   },
   revenueDisplayContainer: {
-    marginTop: 12,
+    marginTop: 8,
   },
   revenueLabel: {
     fontSize: 11,
@@ -507,7 +348,7 @@ const styles = StyleSheet.create({
   },
   imageGlow: {
     position: "absolute",
-    width: 140,
+    width: 120,
     height: 140,
     borderRadius: 70,
     backgroundColor: "rgba(255, 255, 255, 0.3)",

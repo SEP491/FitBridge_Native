@@ -295,7 +295,7 @@ const PTProfileScreen = ({ route, navigation }) => {
               {pt.freelancePt?.rating ? (
                 <View style={styles.ratingBadge}>
                   <Ionicons name="star" size={14} color="#FFD700" />
-                  <Text style={styles.ratingText}>{pt.freelancePt.rating}</Text>
+                  <Text style={styles.ratingText}>{(pt.freelancePt.rating).toFixed(1)}</Text>
                 </View>
               ) : (
                 <View style={styles.ratingBadge}>
@@ -992,6 +992,7 @@ const PTProfileScreen = ({ route, navigation }) => {
                       review={review}
                       t={t}
                       showProductType={false}
+                      fetchPTReview={fetchPTReview}
                     />
                   ))}
 
