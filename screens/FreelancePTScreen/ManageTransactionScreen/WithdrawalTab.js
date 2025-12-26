@@ -16,6 +16,7 @@ import dashBoardService from "../../../services/dashBoardService";
 import banks from "../../../constants/banks";
 import SummaryCard from "../../../components/SummaryCards/SummaryCard";
 import ImageViewerModal from "../../../components/ReviewCard/ImageViewerModal";
+import { useFocusEffect } from "@react-navigation/native";
 
 const WithdrawalTab = ({
   totalRevenue,
@@ -35,6 +36,7 @@ const WithdrawalTab = ({
   formatDate,
   t,
   loadWithdrawalHistory,
+  maximumWithdrawal,
 }) => {
   const [availableBalance, setAvailableBalance] = useState(0);
   const [pendingBalance, setPendingBalance] = useState(0);
@@ -46,10 +48,16 @@ const WithdrawalTab = ({
   const MAX_WITHDRAW = 20000000;
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [imageUrls, setImageUrls] = useState([]);
+  const [maximumWithdrawalData, setMaximumWithdrawalData] = useState({
+    isMaximumWithdrawalAmountReached: false,
+    maximumWithdrawalAmountPerDay: 0,
+    todayWithdrawalAmount: 0,
+  });
   // Format currency to Vietnamese Dong
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("vi-VN").format(amount) + "₫";
   };
+
 
   const fetchWalletData = async () => {
     try {
@@ -63,9 +71,35 @@ const WithdrawalTab = ({
     }
   };
 
-  useEffect(() => {
-    fetchWalletData();
-  }, []);
+  const fetchMaximumWithdrawalCheck = async () => {
+    try {
+      const response = await paymentService.checkMaximumWithdrawal();
+      if (response.data) {
+        setMaximumWithdrawalData({
+          isMaximumWithdrawalAmountReached:
+            response.data.isMaximumWithdrawalAmountReached || false,
+          maximumWithdrawalAmountPerDay:
+            response.data.maximumWithdrawalAmountPerDay || 0,
+          todayWithdrawalAmount: response.data.todayWithdrawalAmount || 0,
+        });
+      }
+    } catch (error) {
+      console.error("Error checking maximum withdrawal:", error);
+      // On error, assume limit is not reached to allow withdrawals
+      setMaximumWithdrawalData({
+        isMaximumWithdrawalAmountReached: false,
+        maximumWithdrawalAmountPerDay: 0,
+        todayWithdrawalAmount: 0,
+      });
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchWalletData();
+      fetchMaximumWithdrawalCheck();
+    }, [])
+  );
 
   const summaryFinancialStats = [
     {
@@ -154,6 +188,22 @@ const WithdrawalTab = ({
 
   const handleSubmitWithdrawal = () => {
     setValidationMessage("");
+    
+    // Check if maximum withdrawal amount is reached
+    if (maximumWithdrawalData.isMaximumWithdrawalAmountReached) {
+      setValidationMessage(
+        t(
+          "withdrawal.maximumReached",
+          `Bạn đã đạt giới hạn rút tiền hôm nay. Đã rút: ${formatCurrency(
+            maximumWithdrawalData.todayWithdrawalAmount
+          )} / Giới hạn: ${formatCurrency(
+            maximumWithdrawalData.maximumWithdrawalAmountPerDay
+          )}`
+        )
+      );
+      return;
+    }
+
     const amountNumber = parseInt(withdrawalAmount || "0", 10);
     if (Number.isNaN(amountNumber) || amountNumber <= 0) {
       setValidationMessage(
@@ -182,6 +232,29 @@ const WithdrawalTab = ({
       return;
     }
 
+    // Check if amount exceeds remaining daily withdrawal limit
+    const remainingWithdrawalLimit =
+      maximumWithdrawalData.maximumWithdrawalAmountPerDay -
+      maximumWithdrawalData.todayWithdrawalAmount;
+    if (
+      maximumWithdrawalData.maximumWithdrawalAmountPerDay > 0 &&
+      amountNumber > remainingWithdrawalLimit
+    ) {
+      setValidationMessage(
+        t(
+          "withdrawal.exceedDailyLimit",
+          `Số tiền rút vượt quá giới hạn còn lại hôm nay. Đã rút: ${formatCurrency(
+            maximumWithdrawalData.todayWithdrawalAmount
+          )} / Giới hạn: ${formatCurrency(
+            maximumWithdrawalData.maximumWithdrawalAmountPerDay
+          )}. Số tiền còn lại có thể rút: ${formatCurrency(
+            remainingWithdrawalLimit
+          )}`
+        )
+      );
+      return;
+    }
+
     if (amountNumber > availableBalance) {
       setValidationMessage(
         t(
@@ -193,7 +266,12 @@ const WithdrawalTab = ({
     }
 
     setValidationMessage("");
+    // Call handleWithdrawal and refresh maximum withdrawal check after
     handleWithdrawal();
+    // Refresh maximum withdrawal check after a short delay to allow API to update
+    setTimeout(() => {
+      fetchMaximumWithdrawalCheck();
+    }, 1000);
   };
 
   const handleViewProof = (url) => () => {
@@ -352,14 +430,50 @@ const WithdrawalTab = ({
           </View>
         </View>
 
+        {/* Maximum Withdrawal Message */}
+        {maximumWithdrawalData.isMaximumWithdrawalAmountReached && (
+          <View style={styles.maximumWithdrawalMessage}>
+            <Ionicons name="alert-circle" size={20} color="#F44336" />
+            <Text style={styles.maximumWithdrawalText}>
+              {t(
+                "withdrawal.maximumReached",
+                `Bạn đã đạt giới hạn rút tiền hôm nay. Đã rút: ${formatCurrency(
+                  maximumWithdrawalData.todayWithdrawalAmount
+                )} / Giới hạn: ${formatCurrency(
+                  maximumWithdrawalData.maximumWithdrawalAmountPerDay
+                )}`
+              )}
+            </Text>
+          </View>
+        )}
+
         {/* Submit Button */}
         <TouchableOpacity
-          style={styles.submitButton}
+          style={[
+            styles.submitButton,
+            maximumWithdrawalData.isMaximumWithdrawalAmountReached &&
+              styles.submitButtonDisabled,
+          ]}
           onPress={handleSubmitWithdrawal}
           activeOpacity={0.8}
+          disabled={maximumWithdrawalData.isMaximumWithdrawalAmountReached}
         >
-          <Ionicons name="checkmark-circle" size={20} color="#fff" />
-          <Text style={styles.submitButtonText}>
+          <Ionicons
+            name="checkmark-circle"
+            size={20}
+            color={
+              maximumWithdrawalData.isMaximumWithdrawalAmountReached
+                ? "#999"
+                : "#fff"
+            }
+          />
+          <Text
+            style={[
+              styles.submitButtonText,
+              maximumWithdrawalData.isMaximumWithdrawalAmountReached &&
+                styles.submitButtonTextDisabled,
+            ]}
+          >
             {t("withdrawal.submitRequest", "Submit Request")}
           </Text>
         </TouchableOpacity>
@@ -567,10 +681,35 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
   },
+  submitButtonDisabled: {
+    backgroundColor: "#E0E0E0",
+    elevation: 0,
+    shadowOpacity: 0,
+  },
   submitButtonText: {
     fontSize: 16,
     fontWeight: "bold",
     color: "#fff",
+  },
+  submitButtonTextDisabled: {
+    color: "#999",
+  },
+  maximumWithdrawalMessage: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFEBEE",
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 8,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: "#F44336",
+  },
+  maximumWithdrawalText: {
+    flex: 1,
+    fontSize: 13,
+    color: "#F44336",
+    fontWeight: "500",
   },
   withdrawalHistory: {
     backgroundColor: "#fff",
