@@ -293,9 +293,7 @@ export default function AddMeasurementScreen({ route }) {
   }, []);
 
   useEffect(() => {
-    if (measurementMode === "manual") {
-      loadUserInfo();
-    }
+    loadUserInfo();
   }, [measurementMode, customerId]);
 
   const injectedJavaScript = `
