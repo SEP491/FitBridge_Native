@@ -28,7 +28,7 @@ export default function CarouselBannerSection() {
     <View style={styles.carouselContainer}>
       <CarouselNative
         width={widthCarousel}
-        height={150}
+        height={180}
         autoPlay={true}
         scrollAnimationDuration={1000}
         style={styles.carousel}
