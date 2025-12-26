@@ -62,11 +62,9 @@ export default function GymCard({ gym, fullWidth = false, height = 140 }) {
           {gym?.gymName}
         </Text>
 
-        {gym?.gymDescription && (
-          <Text style={styles.representName} numberOfLines={1}>
-            {gym.gymDescription.substring(0, 15) + "..."}
+          <Text style={styles.representName} numberOfLines={1} ellipsizeMode="tail">
+            {gym.gymDescription ? gym.gymDescription : "Phòng Gym Mới"}
           </Text>
-        )}
 
         {gym?.gymAddress && (
           <View style={styles.addressContainer}>
