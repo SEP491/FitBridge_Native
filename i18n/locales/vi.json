@@ -2524,7 +2524,8 @@
       "returned":"Trả Hàng",
       "customerNotReceived":"Chưa Nhận Hàng",
       "finished": "Hoàn Thành",
-      "cancelled": "Đã Hủy"
+      "cancelled": "Đã Hủy",
+      "accepted":"Shipper đã nhận đơn hàng"
     },
     "inReturn":"Trả Hàng",
     "paymentMethods": {

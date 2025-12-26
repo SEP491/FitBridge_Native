@@ -356,7 +356,7 @@ const OrderManagementCard = ({ order, onRefresh }) => {
             size={20}
             color="#fff"
           />
-          <Text style={styles.statusText}>{getStatusText(order.currentStatus)}</Text>
+          <Text numberOfLines={1} ellipsizeMode="tail" style={styles.statusText}>{getStatusText(order.currentStatus)}</Text>
         </View>
         <Text style={styles.dateText}>{formatDate(order.createdAt)}</Text>
       </View>

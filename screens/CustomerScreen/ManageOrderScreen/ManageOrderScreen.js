@@ -61,7 +61,7 @@ const ManageOrderScreen = ({ route }) => {
     },
     {
       id: "confirm",
-      label: t("orders.confirm"),
+      label: t("orders.created"),
       icon: "document-text-outline",
       color: "#3498DB",
       status: "Created",
@@ -80,7 +80,6 @@ const ManageOrderScreen = ({ route }) => {
       color: "#1ABC9C",
       status: "Processing",
     },
-
     {
       id: "assigning",
       label: t("orders.assigning"),
@@ -92,22 +91,36 @@ const ManageOrderScreen = ({ route }) => {
       id: "accepted",
       label: t("orders.accepted"),
       icon: "checkmark-done-outline",
-      color: "#27AE60",
+      color: "#2ECC71",
       status: "Accepted",
     },
     {
       id: "shipping",
       label: t("orders.shipping"),
-      icon: "bicycle-outline",
-      color: "#E74C3C",
+      icon: "car-outline",
+      color: "#3498DB",
       status: "Shipping",
     },
     {
       id: "arrived",
       label: t("orders.arrived"),
       icon: "location-outline",
-      color: "#2980B9",
+      color: "#8E44AD",
       status: "Arrived",
+    },
+    {
+      id: "inReturn",
+      label: t("orders.inReturn"),
+      icon: "arrow-undo-outline",
+      color: "#E67E22",
+      status: "InReturn",
+    },
+    {
+      id: "returned",
+      label: t("orders.returned"),
+      icon: "return-down-back-outline",
+      color: "#D35400",
+      status: "Returned",
     },
     {
       id: "feedback",
@@ -130,13 +143,6 @@ const ManageOrderScreen = ({ route }) => {
       icon: "close-circle-outline",
       color: "#E74C3C",
       status: "Cancelled",
-    },
-    {
-      id: "returned",
-      label: t("orders.returned"),
-      icon: "arrow-undo-outline",
-      color: "#C0392B",
-      status: "Returned",
     },
   ];
   useEffect(() => {
@@ -454,6 +460,10 @@ const ManageOrderScreen = ({ route }) => {
             ? orderSummary?.summaryProductOrder?.totalAccepted || 0
             : item.status === "Shipping"
             ? orderSummary?.summaryProductOrder?.totalShipping || 0
+            : item.status === "InReturn"
+            ? orderSummary?.summaryProductOrder?.totalInReturn || 0
+            : item.status === "CustomerNotReceived"
+            ? orderSummary?.summaryProductOrder?.totalCustomerNotReceived || 0
             : item.status === "Finished"
             ? orderSummary?.summaryProductOrder?.totalFinished || 0
             : item.status === "Cancelled"

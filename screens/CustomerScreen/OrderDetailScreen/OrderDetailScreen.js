@@ -37,6 +37,16 @@ const OrderDetailScreen = () => {
         return "#1ABC9C";
       case "Assigning":
         return "#9B59B6";
+      case "Accepted":
+        return "#2ECC71";
+      case "Arrived":
+        return "#8E44AD";
+      case "InReturn":
+        return "#E67E22";
+      case "Returned":
+        return "#D35400";
+      case "CustomerNotReceived":
+        return "#E74C3C";
       case "Shipping":
         return "#3498DB";
       case "Finished":
@@ -58,8 +68,18 @@ const OrderDetailScreen = () => {
         return "construct-outline";
       case "Assigning":
         return "people-outline";
+      case "Accepted":
+        return "checkmark-done-outline";
       case "Shipping":
         return "car-outline";
+      case "Arrived":
+        return "location-outline";
+      case "InReturn":
+        return "arrow-undo-outline";
+      case "Returned":
+        return "return-down-back-outline";
+      case "CustomerNotReceived":
+        return "close-outline";
       case "Finished":
         return "checkmark-circle-outline";
       case "Cancelled":
@@ -92,8 +112,34 @@ const OrderDetailScreen = () => {
   };
 
   const getStatusText = (status) => {
-    const statusKey = status?.toLowerCase();
-    return t(`orders.status.${statusKey}`) || status;
+    switch (status) {
+      case "Created":
+        return t("orders.created");
+      case "Pending":
+        return t("orders.pending");
+      case "Processing":
+        return t("orders.processing");
+      case "Assigning":
+        return t("orders.assigning");
+      case "Accepted":
+        return t("orders.accepted");
+      case "Shipping":
+        return t("orders.shipping");
+      case "Arrived":
+        return t("orders.arrived");
+      case "InReturn":
+        return t("orders.inReturn");
+      case "Returned":
+        return t("orders.returned");
+      case "CustomerNotReceived":
+        return t("orders.customerNotReceived");
+      case "Finished":
+        return t("orders.finished");
+      case "Cancelled":
+        return t("orders.cancelled");
+      default:
+        return t("orders.unknown");
+    }
   };
 
   const handleCompletePayment = async () => {
