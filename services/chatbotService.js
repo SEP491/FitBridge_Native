@@ -13,9 +13,10 @@ const chatbotService = {
    * @param {string} threadId - Unique thread ID for conversation persistence
    * @param {Function} onToken - Callback for each token received
    * @param {Function} onEvent - Callback for other events (node_end, tool_start, tool_end, done, error)
+   * @param {Object} coords - Optional coordinates object with latitude and longitude
    * @returns {Promise<void>}
    */
-  streamMessage: async (message, threadId, onToken, onEvent) => {
+  streamMessage: async (message, threadId, onToken, onEvent, coords = null) => {
     const API_BASE_URL = process.env.EXPO_PUBLIC_API_CHATBOT_URL;
 
     return new Promise((resolve, reject) => {
@@ -24,6 +25,16 @@ const chatbotService = {
         thread_id: threadId,
         message: message,
       });
+
+      // Add coordinates if provided
+      if (
+        coords &&
+        coords.latitude !== undefined &&
+        coords.longitude !== undefined
+      ) {
+        params.append("latitude", coords.latitude.toString());
+        params.append("longitude", coords.longitude.toString());
+      }
 
       const url = `${API_BASE_URL}/stream?${params.toString()}`;
 
