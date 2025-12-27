@@ -11,12 +11,15 @@ const SessionCard = ({
   buttonAction,
   t, // translation function
   withText, // text for "with"
+  hideButton = false, // hide button if time has passed
 }) => {
   // Use API response format directly
   const ptName = session.ptName;
-  const ptAvatar = session.ptAvatarUrl;
+  const ptAvatar = session.avatarUrl || session.ptAvatarUrl; // Support both formats
   const sessionTitle =
-    session.title || (t ? t("schedule.ptSession") : "PT Training Session");
+    session.slotName ||
+    session.title ||
+    (t ? t("schedule.ptSession") : "PT Training Session");
 
   // Use API time format directly
   const startTime = session.startTime;
@@ -86,11 +89,13 @@ const SessionCard = ({
           </View>
         </View>
 
-        {/* Action button */}
-        <TouchableOpacity style={styles.actionButton} onPress={buttonAction}>
-          <Ionicons name="calendar" size={18} color={colors.white} />
-          <Text style={styles.actionButtonText}>{cancelText}</Text>
-        </TouchableOpacity>
+        {/* Action button - hide if time has passed */}
+        {!hideButton && (
+          <TouchableOpacity style={styles.actionButton} onPress={buttonAction}>
+            <Ionicons name="calendar" size={18} color={colors.white} />
+            <Text style={styles.actionButtonText}>{cancelText}</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );

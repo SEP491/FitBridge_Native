@@ -161,15 +161,28 @@ export default function ScheduleScreen({ route }) {
     }
   };
 
+  // Check if slot start time has passed
+  const isSlotTimePassed = (slot) => {
+    if (!slot.registerDate || !slot.startTime) return false;
+
+    const now = new Date();
+    const slotDateTime = new Date(`${slot.registerDate}T${slot.startTime}`);
+
+    return slotDateTime < now;
+  };
+
   // Transform slot data to session format for SessionCard
   const transformSlotToSession = (slot) => {
     return {
       ...slot,
       bookingId: slot.slotId,
       ptName: slot.ptName || "Personal Trainer",
+      avatarUrl: slot.avatarUrl, // Map avatarUrl from API
       startTime: slot.startTime,
       endTime: slot.endTime,
-      title: slot.slotName, // "PT Training Session" or similar
+      slotName: slot.slotName, // Use slotName directly
+      title: slot.slotName, // Keep title for backward compatibility
+      registerDate: slot.registerDate, // Include registerDate for time checking
     };
   };
 
@@ -223,6 +236,7 @@ export default function ScheduleScreen({ route }) {
               })
               .map((slot) => {
                 const sessionData = transformSlotToSession(slot);
+                const isTimePassed = isSlotTimePassed(slot);
                 return (
                   <SessionCard
                     key={slot.slotId}
@@ -238,6 +252,7 @@ export default function ScheduleScreen({ route }) {
                     buttonAction={() => handleBookSlot(slot)}
                     isLoading={booking === slot.slotId}
                     buttonDisabled={booking !== null}
+                    hideButton={isTimePassed}
                   />
                 );
               })
