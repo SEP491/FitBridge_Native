@@ -406,6 +406,14 @@ export default function ChatbotScreen({ navigation }) {
 
       // Token callback - update message text in real-time
       const onToken = (token, data) => {
+        console.log(
+          "📝 Received token:",
+          token,
+          "| Accumulated:",
+          accumulatedText + token,
+          "| Full data:",
+          data
+        );
         accumulatedText += token;
 
         // Update the message text in real-time
