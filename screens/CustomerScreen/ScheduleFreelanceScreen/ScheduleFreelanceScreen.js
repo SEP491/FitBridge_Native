@@ -41,6 +41,7 @@ export default function ScheduleFreelanceScreen({ route }) {
   // Date/Time picker states
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showStartTimePicker, setShowStartTimePicker] = useState(false);
+  const [defaultStartTime, setDefaultStartTime] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userRole, setUserRole] = useState(null);
 
@@ -158,6 +159,7 @@ export default function ScheduleFreelanceScreen({ route }) {
     );
 
     setShowStartTimePicker(false);
+    setDefaultStartTime(null);
   };
 
   const resetForm = () => {
@@ -414,7 +416,10 @@ export default function ScheduleFreelanceScreen({ route }) {
               </Text>
               <TouchableOpacity
                 style={styles.datePickerButton}
-                onPress={() => setShowStartTimePicker(true)}
+                onPress={() => {
+                  setDefaultStartTime(getDefaultStartTime());
+                  setShowStartTimePicker(true);
+                }}
               >
                 <Text
                   style={[
@@ -493,9 +498,12 @@ export default function ScheduleFreelanceScreen({ route }) {
         isVisible={showStartTimePicker}
         mode="time"
         onConfirm={handleStartTimeConfirm}
-        onCancel={() => setShowStartTimePicker(false)}
+        onCancel={() => {
+          setShowStartTimePicker(false);
+          setDefaultStartTime(null);
+        }}
         is24Hour={true}
-        date={getDefaultStartTime()}
+        date={defaultStartTime || getDefaultStartTime()}
       />
     </Modal>
   );
