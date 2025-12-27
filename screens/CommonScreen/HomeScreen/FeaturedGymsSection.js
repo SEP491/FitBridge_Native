@@ -26,6 +26,7 @@ export default function FeaturedGymsSection({ refreshTrigger }) {
       const response = await gymService.getAllGyms({
         page: 1,
         size: 200,
+        doApplyPaging: false,
       });
       // The API returns data with gyms property containing items array
       const gymsData = response.data?.items || [];
@@ -140,14 +141,13 @@ const styles = StyleSheet.create({
     color: "#ED2A46",
     fontWeight: "600",
   },
-  swiperContainer: {
-  },
+  swiperContainer: {},
   paginationDot: {
     backgroundColor: "#E0E0E0",
     width: 8,
     height: 8,
     borderRadius: 4,
-    top:-10
+    top: -10,
   },
   activePaginationDot: {
     backgroundColor: "#ED2A46",
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     marginHorizontal: 4,
-    top:-10
+    top: -10,
   },
   loadingContainer: {
     flex: 1,
