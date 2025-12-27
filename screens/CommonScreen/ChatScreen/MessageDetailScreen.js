@@ -83,7 +83,6 @@ export default function MessageDetailScreen({ route, navigation }) {
   });
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showStartTimePicker, setShowStartTimePicker] = useState(false);
-  const [defaultStartTime, setDefaultStartTime] = useState(null);
   const [userPresences, setUserPresences] = useState(
     initialUserPresences || {}
   );
@@ -1984,10 +1983,7 @@ export default function MessageDetailScreen({ route, navigation }) {
               </Text>
               <TouchableOpacity
                 style={styles.formInputTouchable}
-                onPress={() => {
-                  setDefaultStartTime(getDefaultStartTime());
-                  setShowStartTimePicker(true);
-                }}
+                onPress={() => setShowStartTimePicker(true)}
               >
                 <Ionicons name="time-outline" size={20} color="#6B7280" />
                 <Text
@@ -2155,14 +2151,10 @@ export default function MessageDetailScreen({ route, navigation }) {
               startTime: newStartTime,
               endTime: newEndTime,
             }));
-            setDefaultStartTime(null);
           }
         }}
-        onCancel={() => {
-          setShowStartTimePicker(false);
-          setDefaultStartTime(null);
-        }}
-        date={defaultStartTime || getDefaultStartTime()}
+        onCancel={() => setShowStartTimePicker(false)}
+        date={getDefaultStartTime()}
         is24Hour={true}
         confirmTextIOS={t("messageScreen.confirm")}
         cancelTextIOS={t("chat.cancel")}
